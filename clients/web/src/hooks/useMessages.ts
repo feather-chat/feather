@@ -68,16 +68,24 @@ export function useSendThreadReply(parentMessageId: string, channelId: string) {
     mutationFn: (content: string) =>
       messagesApi.send(channelId, { content, thread_parent_id: parentMessageId }),
     onSuccess: (data) => {
-      // Add to thread cache
+      // Add to thread cache (threads are ordered ASC, so append to end)
       queryClient.setQueryData(
         ['thread', parentMessageId],
         (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
           if (!old) return old;
+
+          // Check if message already exists (SSE might have added it first)
+          const exists = old.pages.some((page) =>
+            page.messages.some((m) => m.id === data.message.id)
+          );
+          if (exists) return old;
+
           const newPages = [...old.pages];
-          if (newPages[0]) {
-            newPages[0] = {
-              ...newPages[0],
-              messages: [data.message, ...newPages[0].messages],
+          const lastPageIndex = newPages.length - 1;
+          if (newPages[lastPageIndex]) {
+            newPages[lastPageIndex] = {
+              ...newPages[lastPageIndex],
+              messages: [...newPages[lastPageIndex].messages, data.message],
             };
           }
           return { ...old, pages: newPages };

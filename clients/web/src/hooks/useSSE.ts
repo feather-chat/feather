@@ -56,11 +56,20 @@ export function useSSE(workspaceId: string | undefined) {
           ['thread', message.thread_parent_id],
           (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
             if (!old) return old;
+
+            // Check if message already exists in thread
+            const exists = old.pages.some((page) =>
+              page.messages.some((m) => m.id === message.id)
+            );
+            if (exists) return old;
+
+            // Thread messages are ordered ASC (oldest first), so append to end
             const newPages = [...old.pages];
-            if (newPages[0]) {
-              newPages[0] = {
-                ...newPages[0],
-                messages: [message, ...newPages[0].messages],
+            const lastPageIndex = newPages.length - 1;
+            if (newPages[lastPageIndex]) {
+              newPages[lastPageIndex] = {
+                ...newPages[lastPageIndex],
+                messages: [...newPages[lastPageIndex].messages, message],
               };
             }
             return { ...old, pages: newPages };

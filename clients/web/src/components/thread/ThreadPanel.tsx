@@ -36,8 +36,8 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
   // Get parent message from cache
   const parentMessage = getParentMessageFromCache(queryClient, messageId);
 
-  // Flatten and reverse thread messages
-  const threadMessages = data?.pages.flatMap((page) => page.messages).reverse() || [];
+  // Flatten thread messages (already in chronological order from API)
+  const threadMessages = data?.pages.flatMap((page) => page.messages) || [];
 
   return (
     <div className="w-96 border-l border-gray-200 dark:border-gray-700 flex flex-col bg-white dark:bg-gray-900">
