@@ -175,6 +175,41 @@ Loads in order (later overrides earlier):
 3. Environment (`FEATHER_` prefix)
 4. CLI flags
 
+### Testing
+
+**Run tests**:
+```bash
+cd api && go test ./...           # Run all tests
+cd api && go test -v ./...        # Verbose output
+cd api && go test -cover ./...    # With coverage
+cd api && go test ./internal/user/...  # Specific package
+```
+
+**Test file conventions**:
+- Test files are named `*_test.go` alongside source files
+- Test database uses in-memory SQLite (`:memory:`)
+- Use low bcrypt cost (4) in tests for speed
+
+**Test utilities** (`api/internal/testutil/`):
+```go
+// In-memory test database with migrations
+db := testutil.TestDB(t)
+
+// Create test fixtures
+user := testutil.CreateTestUser(t, db, "test@example.com", "Test")
+ws := testutil.CreateTestWorkspace(t, db, user.ID, "slug", "Name")
+ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "general", "public")
+msg := testutil.CreateTestMessage(t, db, ch.ID, user.ID, "Hello")
+
+// Mock password reset repository for auth service tests
+mockResets := testutil.NewMockPasswordResetRepository()
+```
+
+**Test patterns**:
+- Table-driven tests for permission helpers and validation
+- Repository tests use real in-memory SQLite
+- Handler tests use minimal dependencies with mock repositories
+
 ### Manual Testing
 
 ```bash
