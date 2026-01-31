@@ -84,7 +84,7 @@ feather/
 ## Type Generation
 
 Types flow from `api/openapi.yaml`:
-1. **Go server**: `oapi-codegen` generates `api/internal/api/server.gen.go` (types + strict server interface)
+1. **Go server**: `oapi-codegen` generates `api/internal/openapi/server.gen.go` (types + strict server interface)
 2. **TypeScript types**: `openapi-typescript` generates `packages/api-client/generated/schema.ts`
 
 Regenerate after API changes:
@@ -148,7 +148,7 @@ import { get, post, ApiError } from '@feather/api-client';
 | File | Purpose |
 |------|---------|
 | `api/openapi.yaml` | API specification (source of truth) |
-| `api/internal/api/server.gen.go` | Generated types and interfaces |
+| `api/internal/openapi/server.gen.go` | Generated types and interfaces |
 | `api/internal/handler/handler.go` | Main handler implementing StrictServerInterface |
 | `api/internal/app/app.go` | Dependency wiring |
 | `api/internal/server/router.go` | Router setup, mounts generated handlers |

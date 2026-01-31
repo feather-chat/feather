@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/feather/api/internal/api"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/workspace"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
@@ -22,7 +22,7 @@ func validateSlug(slug string) error {
 }
 
 // CreateWorkspace creates a new workspace
-func (h *Handler) CreateWorkspace(ctx context.Context, request api.CreateWorkspaceRequestObject) (api.CreateWorkspaceResponseObject, error) {
+func (h *Handler) CreateWorkspace(ctx context.Context, request openapi.CreateWorkspaceRequestObject) (openapi.CreateWorkspaceResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -49,13 +49,13 @@ func (h *Handler) CreateWorkspace(ctx context.Context, request api.CreateWorkspa
 	}
 
 	apiWs := workspaceToAPI(ws)
-	return api.CreateWorkspace200JSONResponse{
+	return openapi.CreateWorkspace200JSONResponse{
 		Workspace: &apiWs,
 	}, nil
 }
 
 // GetWorkspace gets workspace details
-func (h *Handler) GetWorkspace(ctx context.Context, request api.GetWorkspaceRequestObject) (api.GetWorkspaceResponseObject, error) {
+func (h *Handler) GetWorkspace(ctx context.Context, request openapi.GetWorkspaceRequestObject) (openapi.GetWorkspaceResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -73,13 +73,13 @@ func (h *Handler) GetWorkspace(ctx context.Context, request api.GetWorkspaceRequ
 	}
 
 	apiWs := workspaceToAPI(ws)
-	return api.GetWorkspace200JSONResponse{
+	return openapi.GetWorkspace200JSONResponse{
 		Workspace: &apiWs,
 	}, nil
 }
 
 // UpdateWorkspace updates a workspace
-func (h *Handler) UpdateWorkspace(ctx context.Context, request api.UpdateWorkspaceRequestObject) (api.UpdateWorkspaceResponseObject, error) {
+func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWorkspaceRequestObject) (openapi.UpdateWorkspaceResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -118,13 +118,13 @@ func (h *Handler) UpdateWorkspace(ctx context.Context, request api.UpdateWorkspa
 	}
 
 	apiWs := workspaceToAPI(ws)
-	return api.UpdateWorkspace200JSONResponse{
+	return openapi.UpdateWorkspace200JSONResponse{
 		Workspace: &apiWs,
 	}, nil
 }
 
 // ListWorkspaceMembers lists members of a workspace
-func (h *Handler) ListWorkspaceMembers(ctx context.Context, request api.ListWorkspaceMembersRequestObject) (api.ListWorkspaceMembersResponseObject, error) {
+func (h *Handler) ListWorkspaceMembers(ctx context.Context, request openapi.ListWorkspaceMembersRequestObject) (openapi.ListWorkspaceMembersResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -141,18 +141,18 @@ func (h *Handler) ListWorkspaceMembers(ctx context.Context, request api.ListWork
 		return nil, err
 	}
 
-	apiMembers := make([]api.WorkspaceMemberWithUser, len(members))
+	apiMembers := make([]openapi.WorkspaceMemberWithUser, len(members))
 	for i, m := range members {
 		apiMembers[i] = memberWithUserToAPI(m)
 	}
 
-	return api.ListWorkspaceMembers200JSONResponse{
+	return openapi.ListWorkspaceMembers200JSONResponse{
 		Members: &apiMembers,
 	}, nil
 }
 
 // RemoveWorkspaceMember removes a member from a workspace
-func (h *Handler) RemoveWorkspaceMember(ctx context.Context, request api.RemoveWorkspaceMemberRequestObject) (api.RemoveWorkspaceMemberResponseObject, error) {
+func (h *Handler) RemoveWorkspaceMember(ctx context.Context, request openapi.RemoveWorkspaceMemberRequestObject) (openapi.RemoveWorkspaceMemberResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -173,13 +173,13 @@ func (h *Handler) RemoveWorkspaceMember(ctx context.Context, request api.RemoveW
 		return nil, err
 	}
 
-	return api.RemoveWorkspaceMember200JSONResponse{
+	return openapi.RemoveWorkspaceMember200JSONResponse{
 		Success: true,
 	}, nil
 }
 
 // UpdateWorkspaceMemberRole updates a member's role
-func (h *Handler) UpdateWorkspaceMemberRole(ctx context.Context, request api.UpdateWorkspaceMemberRoleRequestObject) (api.UpdateWorkspaceMemberRoleResponseObject, error) {
+func (h *Handler) UpdateWorkspaceMemberRole(ctx context.Context, request openapi.UpdateWorkspaceMemberRoleRequestObject) (openapi.UpdateWorkspaceMemberRoleResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -220,13 +220,13 @@ func (h *Handler) UpdateWorkspaceMemberRole(ctx context.Context, request api.Upd
 		return nil, err
 	}
 
-	return api.UpdateWorkspaceMemberRole200JSONResponse{
+	return openapi.UpdateWorkspaceMemberRole200JSONResponse{
 		Success: true,
 	}, nil
 }
 
 // CreateWorkspaceInvite creates an invite to a workspace
-func (h *Handler) CreateWorkspaceInvite(ctx context.Context, request api.CreateWorkspaceInviteRequestObject) (api.CreateWorkspaceInviteResponseObject, error) {
+func (h *Handler) CreateWorkspaceInvite(ctx context.Context, request openapi.CreateWorkspaceInviteRequestObject) (openapi.CreateWorkspaceInviteResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -273,13 +273,13 @@ func (h *Handler) CreateWorkspaceInvite(ctx context.Context, request api.CreateW
 	}
 
 	apiInvite := inviteToAPI(invite)
-	return api.CreateWorkspaceInvite200JSONResponse{
+	return openapi.CreateWorkspaceInvite200JSONResponse{
 		Invite: &apiInvite,
 	}, nil
 }
 
 // AcceptInvite accepts a workspace invite
-func (h *Handler) AcceptInvite(ctx context.Context, request api.AcceptInviteRequestObject) (api.AcceptInviteResponseObject, error) {
+func (h *Handler) AcceptInvite(ctx context.Context, request openapi.AcceptInviteRequestObject) (openapi.AcceptInviteResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -291,14 +291,14 @@ func (h *Handler) AcceptInvite(ctx context.Context, request api.AcceptInviteRequ
 	}
 
 	apiWs := workspaceToAPI(ws)
-	return api.AcceptInvite200JSONResponse{
+	return openapi.AcceptInvite200JSONResponse{
 		Workspace: &apiWs,
 	}, nil
 }
 
-// workspaceToAPI converts a workspace.Workspace to api.Workspace
-func workspaceToAPI(ws *workspace.Workspace) api.Workspace {
-	return api.Workspace{
+// workspaceToAPI converts a workspace.Workspace to openapi.Workspace
+func workspaceToAPI(ws *workspace.Workspace) openapi.Workspace {
+	return openapi.Workspace{
 		Id:        ws.ID,
 		Slug:      ws.Slug,
 		Name:      ws.Name,
@@ -309,13 +309,13 @@ func workspaceToAPI(ws *workspace.Workspace) api.Workspace {
 	}
 }
 
-// memberWithUserToAPI converts a workspace.MemberWithUser to api.WorkspaceMemberWithUser
-func memberWithUserToAPI(m workspace.MemberWithUser) api.WorkspaceMemberWithUser {
-	return api.WorkspaceMemberWithUser{
+// memberWithUserToAPI converts a workspace.MemberWithUser to openapi.WorkspaceMemberWithUser
+func memberWithUserToAPI(m workspace.MemberWithUser) openapi.WorkspaceMemberWithUser {
+	return openapi.WorkspaceMemberWithUser{
 		Id:                  m.ID,
 		UserId:              m.UserID,
 		WorkspaceId:         m.WorkspaceID,
-		Role:                api.WorkspaceRole(m.Role),
+		Role:                openapi.WorkspaceRole(m.Role),
 		DisplayNameOverride: m.DisplayNameOverride,
 		CreatedAt:           m.CreatedAt,
 		UpdatedAt:           m.UpdatedAt,
@@ -325,13 +325,13 @@ func memberWithUserToAPI(m workspace.MemberWithUser) api.WorkspaceMemberWithUser
 	}
 }
 
-// inviteToAPI converts a workspace.Invite to api.Invite
-func inviteToAPI(invite *workspace.Invite) api.Invite {
-	apiInvite := api.Invite{
+// inviteToAPI converts a workspace.Invite to openapi.Invite
+func inviteToAPI(invite *workspace.Invite) openapi.Invite {
+	apiInvite := openapi.Invite{
 		Id:          invite.ID,
 		WorkspaceId: invite.WorkspaceID,
 		Code:        invite.Code,
-		Role:        api.WorkspaceRole(invite.Role),
+		Role:        openapi.WorkspaceRole(invite.Role),
 		UseCount:    invite.UseCount,
 		CreatedAt:   invite.CreatedAt,
 		CreatedBy:   invite.CreatedBy,

@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/feather/api/internal/api"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/auth"
 	"github.com/feather/api/internal/user"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Register handles user registration
-func (h *Handler) Register(ctx context.Context, request api.RegisterRequestObject) (api.RegisterResponseObject, error) {
+func (h *Handler) Register(ctx context.Context, request openapi.RegisterRequestObject) (openapi.RegisterResponseObject, error) {
 	input := auth.RegisterInput{
 		Email:       string(request.Body.Email),
 		Password:    request.Body.Password,
@@ -33,21 +33,21 @@ func (h *Handler) Register(ctx context.Context, request api.RegisterRequestObjec
 		default:
 			code, msg = ErrCodeInternalError, "An error occurred"
 		}
-		return api.Register400JSONResponse{
-			BadRequestJSONResponse: api.BadRequestJSONResponse(newErrorResponse(code, msg)),
+		return openapi.Register400JSONResponse{
+			BadRequestJSONResponse: openapi.BadRequestJSONResponse(newErrorResponse(code, msg)),
 		}, nil
 	}
 
 	// Auto-login after registration
 	h.setUserID(ctx, u.ID)
 
-	return api.Register200JSONResponse{
+	return openapi.Register200JSONResponse{
 		User: userToAPI(u),
 	}, nil
 }
 
 // Login handles user login
-func (h *Handler) Login(ctx context.Context, request api.LoginRequestObject) (api.LoginResponseObject, error) {
+func (h *Handler) Login(ctx context.Context, request openapi.LoginRequestObject) (openapi.LoginResponseObject, error) {
 	input := auth.LoginInput{
 		Email:    string(request.Body.Email),
 		Password: request.Body.Password,
@@ -64,63 +64,63 @@ func (h *Handler) Login(ctx context.Context, request api.LoginRequestObject) (ap
 		default:
 			code, msg = ErrCodeInternalError, "An error occurred"
 		}
-		return api.Login401JSONResponse{
-			UnauthorizedJSONResponse: api.UnauthorizedJSONResponse(newErrorResponse(code, msg)),
+		return openapi.Login401JSONResponse{
+			UnauthorizedJSONResponse: openapi.UnauthorizedJSONResponse(newErrorResponse(code, msg)),
 		}, nil
 	}
 
 	h.setUserID(ctx, u.ID)
 
-	return api.Login200JSONResponse{
+	return openapi.Login200JSONResponse{
 		User: userToAPI(u),
 	}, nil
 }
 
 // Logout handles user logout
-func (h *Handler) Logout(ctx context.Context, request api.LogoutRequestObject) (api.LogoutResponseObject, error) {
+func (h *Handler) Logout(ctx context.Context, request openapi.LogoutRequestObject) (openapi.LogoutResponseObject, error) {
 	if err := h.destroySession(ctx); err != nil {
 		return nil, err
 	}
 
-	return api.Logout200JSONResponse{
+	return openapi.Logout200JSONResponse{
 		Success: true,
 	}, nil
 }
 
 // GetMe returns the current user's information
-func (h *Handler) GetMe(ctx context.Context, request api.GetMeRequestObject) (api.GetMeResponseObject, error) {
+func (h *Handler) GetMe(ctx context.Context, request openapi.GetMeRequestObject) (openapi.GetMeResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return api.GetMe401JSONResponse{
-			UnauthorizedJSONResponse: api.UnauthorizedJSONResponse(newErrorResponse(ErrCodeNotAuthenticated, "Not authenticated")),
+		return openapi.GetMe401JSONResponse{
+			UnauthorizedJSONResponse: openapi.UnauthorizedJSONResponse(newErrorResponse(ErrCodeNotAuthenticated, "Not authenticated")),
 		}, nil
 	}
 
 	u, err := h.authService.GetCurrentUser(ctx, userID)
 	if err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {
-			return api.GetMe401JSONResponse{
-				UnauthorizedJSONResponse: api.UnauthorizedJSONResponse(newErrorResponse(ErrCodeNotAuthenticated, "Not authenticated")),
+			return openapi.GetMe401JSONResponse{
+				UnauthorizedJSONResponse: openapi.UnauthorizedJSONResponse(newErrorResponse(ErrCodeNotAuthenticated, "Not authenticated")),
 			}, nil
 		}
 		return nil, err
 	}
 
-	response := api.GetMe200JSONResponse{
+	response := openapi.GetMe200JSONResponse{
 		User: userToAPI(u),
 	}
 
 	// Include workspaces
 	workspaces, err := h.workspaceRepo.GetWorkspacesForUser(GetRequest(ctx), userID)
 	if err == nil && len(workspaces) > 0 {
-		apiWorkspaces := make([]api.WorkspaceSummary, len(workspaces))
+		apiWorkspaces := make([]openapi.WorkspaceSummary, len(workspaces))
 		for i, ws := range workspaces {
-			apiWorkspaces[i] = api.WorkspaceSummary{
+			apiWorkspaces[i] = openapi.WorkspaceSummary{
 				Id:      ws.ID,
 				Slug:    ws.Slug,
 				Name:    ws.Name,
 				IconUrl: ws.IconURL,
-				Role:    api.WorkspaceRole(ws.Role),
+				Role:    openapi.WorkspaceRole(ws.Role),
 			}
 		}
 		response.Workspaces = &apiWorkspaces
@@ -130,20 +130,20 @@ func (h *Handler) GetMe(ctx context.Context, request api.GetMeRequestObject) (ap
 }
 
 // ForgotPassword handles password reset requests
-func (h *Handler) ForgotPassword(ctx context.Context, request api.ForgotPasswordRequestObject) (api.ForgotPasswordResponseObject, error) {
+func (h *Handler) ForgotPassword(ctx context.Context, request openapi.ForgotPasswordRequestObject) (openapi.ForgotPasswordResponseObject, error) {
 	// Always return success to not reveal if email exists
 	_, _ = h.authService.CreatePasswordResetToken(ctx, string(request.Body.Email))
 
 	success := true
 	msg := "If the email exists, a reset link will be sent"
-	return api.ForgotPassword200JSONResponse{
+	return openapi.ForgotPassword200JSONResponse{
 		Success: &success,
 		Message: &msg,
 	}, nil
 }
 
 // ResetPassword handles password reset with token
-func (h *Handler) ResetPassword(ctx context.Context, request api.ResetPasswordRequestObject) (api.ResetPasswordResponseObject, error) {
+func (h *Handler) ResetPassword(ctx context.Context, request openapi.ResetPasswordRequestObject) (openapi.ResetPasswordResponseObject, error) {
 	err := h.authService.ResetPassword(ctx, request.Body.Token, request.Body.NewPassword)
 	if err != nil {
 		// For reset password, we return success even on error to not leak info
@@ -159,14 +159,14 @@ func (h *Handler) ResetPassword(ctx context.Context, request api.ResetPasswordRe
 		}
 	}
 
-	return api.ResetPassword200JSONResponse{
+	return openapi.ResetPassword200JSONResponse{
 		Success: true,
 	}, nil
 }
 
-// userToAPI converts a user.User to api.User
-func userToAPI(u *user.User) api.User {
-	apiUser := api.User{
+// userToAPI converts a user.User to openapi.User
+func userToAPI(u *user.User) openapi.User {
+	apiUser := openapi.User{
 		Id:          u.ID,
 		Email:       openapi_types.Email(u.Email),
 		DisplayName: u.DisplayName,

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/feather/api/internal/api"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/channel"
 	"github.com/feather/api/internal/file"
 	"github.com/feather/api/internal/workspace"
@@ -16,7 +16,7 @@ import (
 )
 
 // UploadFile uploads a file to a channel
-func (h *Handler) UploadFile(ctx context.Context, request api.UploadFileRequestObject) (api.UploadFileResponseObject, error) {
+func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequestObject) (openapi.UploadFileResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -103,7 +103,7 @@ func (h *Handler) UploadFile(ctx context.Context, request api.UploadFileRequestO
 	}
 
 	sizeInt := int(size)
-	return api.UploadFile200JSONResponse{
+	return openapi.UploadFile200JSONResponse{
 		File: &struct {
 			ContentType *string `json:"content_type,omitempty"`
 			Filename    *string `json:"filename,omitempty"`
@@ -119,7 +119,7 @@ func (h *Handler) UploadFile(ctx context.Context, request api.UploadFileRequestO
 }
 
 // DownloadFile downloads a file
-func (h *Handler) DownloadFile(ctx context.Context, request api.DownloadFileRequestObject) (api.DownloadFileResponseObject, error) {
+func (h *Handler) DownloadFile(ctx context.Context, request openapi.DownloadFileRequestObject) (openapi.DownloadFileResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -158,14 +158,14 @@ func (h *Handler) DownloadFile(ctx context.Context, request api.DownloadFileRequ
 		return nil, errors.New("file not found on disk")
 	}
 
-	return api.DownloadFile200ApplicationoctetStreamResponse{
+	return openapi.DownloadFile200ApplicationoctetStreamResponse{
 		Body:          f,
 		ContentLength: attachment.SizeBytes,
 	}, nil
 }
 
 // DeleteFile deletes a file
-func (h *Handler) DeleteFile(ctx context.Context, request api.DeleteFileRequestObject) (api.DeleteFileResponseObject, error) {
+func (h *Handler) DeleteFile(ctx context.Context, request openapi.DeleteFileRequestObject) (openapi.DeleteFileResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -203,7 +203,7 @@ func (h *Handler) DeleteFile(ctx context.Context, request api.DeleteFileRequestO
 		return nil, err
 	}
 
-	return api.DeleteFile200JSONResponse{
+	return openapi.DeleteFile200JSONResponse{
 		Success: true,
 	}, nil
 }

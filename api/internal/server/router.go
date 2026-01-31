@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/feather/api/internal/api"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/auth"
 	"github.com/feather/api/internal/handler"
 	"github.com/feather/api/internal/sse"
@@ -39,7 +39,7 @@ func NewRouter(h *handler.Handler, sseHandler *sse.Handler, authHandler *auth.Ha
 	}
 
 	// Create the strict handler with middleware
-	strictHandler := api.NewStrictHandlerWithOptions(h, []api.StrictMiddlewareFunc{strictMiddleware}, api.StrictHTTPServerOptions{
+	strictHandler := openapi.NewStrictHandlerWithOptions(h, []openapi.StrictMiddlewareFunc{strictMiddleware}, openapi.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
@@ -53,7 +53,7 @@ func NewRouter(h *handler.Handler, sseHandler *sse.Handler, authHandler *auth.Ha
 	})
 
 	// Mount generated API routes with /api base URL
-	api.HandlerFromMuxWithBaseURL(strictHandler, r, "/api")
+	openapi.HandlerFromMuxWithBaseURL(strictHandler, r, "/api")
 
 	// Mount SSE routes separately (not generated - requires streaming)
 	r.Route("/api", func(r chi.Router) {

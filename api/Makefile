@@ -4,8 +4,8 @@ BINARY_NAME=feather
 BUILD_DIR=./bin
 
 generate:
-	@mkdir -p internal/api
-	go generate ./internal/api/...
+	@mkdir -p internal/openapi
+	go generate ./internal/openapi/...
 
 generate-types: generate
 

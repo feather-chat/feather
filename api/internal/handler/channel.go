@@ -5,14 +5,14 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/feather/api/internal/api"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/channel"
 	"github.com/feather/api/internal/workspace"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // CreateChannel creates a new channel
-func (h *Handler) CreateChannel(ctx context.Context, request api.CreateChannelRequestObject) (api.CreateChannelResponseObject, error) {
+func (h *Handler) CreateChannel(ctx context.Context, request openapi.CreateChannelRequestObject) (openapi.CreateChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -50,13 +50,13 @@ func (h *Handler) CreateChannel(ctx context.Context, request api.CreateChannelRe
 	}
 
 	apiCh := channelToAPI(ch)
-	return api.CreateChannel200JSONResponse{
+	return openapi.CreateChannel200JSONResponse{
 		Channel: &apiCh,
 	}, nil
 }
 
 // ListChannels lists channels in a workspace
-func (h *Handler) ListChannels(ctx context.Context, request api.ListChannelsRequestObject) (api.ListChannelsResponseObject, error) {
+func (h *Handler) ListChannels(ctx context.Context, request openapi.ListChannelsRequestObject) (openapi.ListChannelsResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -73,18 +73,18 @@ func (h *Handler) ListChannels(ctx context.Context, request api.ListChannelsRequ
 		return nil, err
 	}
 
-	apiChannels := make([]api.ChannelWithMembership, len(channels))
+	apiChannels := make([]openapi.ChannelWithMembership, len(channels))
 	for i, ch := range channels {
 		apiChannels[i] = channelWithMembershipToAPI(ch)
 	}
 
-	return api.ListChannels200JSONResponse{
+	return openapi.ListChannels200JSONResponse{
 		Channels: &apiChannels,
 	}, nil
 }
 
 // CreateDM creates or gets a DM channel
-func (h *Handler) CreateDM(ctx context.Context, request api.CreateDMRequestObject) (api.CreateDMResponseObject, error) {
+func (h *Handler) CreateDM(ctx context.Context, request openapi.CreateDMRequestObject) (openapi.CreateDMResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -117,13 +117,13 @@ func (h *Handler) CreateDM(ctx context.Context, request api.CreateDMRequestObjec
 	}
 
 	apiCh := channelToAPI(ch)
-	return api.CreateDM200JSONResponse{
+	return openapi.CreateDM200JSONResponse{
 		Channel: &apiCh,
 	}, nil
 }
 
 // UpdateChannel updates a channel
-func (h *Handler) UpdateChannel(ctx context.Context, request api.UpdateChannelRequestObject) (api.UpdateChannelResponseObject, error) {
+func (h *Handler) UpdateChannel(ctx context.Context, request openapi.UpdateChannelRequestObject) (openapi.UpdateChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -167,13 +167,13 @@ func (h *Handler) UpdateChannel(ctx context.Context, request api.UpdateChannelRe
 	}
 
 	apiCh := channelToAPI(ch)
-	return api.UpdateChannel200JSONResponse{
+	return openapi.UpdateChannel200JSONResponse{
 		Channel: &apiCh,
 	}, nil
 }
 
 // ArchiveChannel archives a channel
-func (h *Handler) ArchiveChannel(ctx context.Context, request api.ArchiveChannelRequestObject) (api.ArchiveChannelResponseObject, error) {
+func (h *Handler) ArchiveChannel(ctx context.Context, request openapi.ArchiveChannelRequestObject) (openapi.ArchiveChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -203,13 +203,13 @@ func (h *Handler) ArchiveChannel(ctx context.Context, request api.ArchiveChannel
 		return nil, err
 	}
 
-	return api.ArchiveChannel200JSONResponse{
+	return openapi.ArchiveChannel200JSONResponse{
 		Success: true,
 	}, nil
 }
 
 // AddChannelMember adds a member to a channel
-func (h *Handler) AddChannelMember(ctx context.Context, request api.AddChannelMemberRequestObject) (api.AddChannelMemberResponseObject, error) {
+func (h *Handler) AddChannelMember(ctx context.Context, request openapi.AddChannelMemberRequestObject) (openapi.AddChannelMemberResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -250,13 +250,13 @@ func (h *Handler) AddChannelMember(ctx context.Context, request api.AddChannelMe
 		return nil, err
 	}
 
-	return api.AddChannelMember200JSONResponse{
+	return openapi.AddChannelMember200JSONResponse{
 		Success: true,
 	}, nil
 }
 
 // ListChannelMembers lists members of a channel
-func (h *Handler) ListChannelMembers(ctx context.Context, request api.ListChannelMembersRequestObject) (api.ListChannelMembersResponseObject, error) {
+func (h *Handler) ListChannelMembers(ctx context.Context, request openapi.ListChannelMembersRequestObject) (openapi.ListChannelMembersResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -286,18 +286,18 @@ func (h *Handler) ListChannelMembers(ctx context.Context, request api.ListChanne
 		return nil, err
 	}
 
-	apiMembers := make([]api.ChannelMember, len(members))
+	apiMembers := make([]openapi.ChannelMember, len(members))
 	for i, m := range members {
 		apiMembers[i] = channelMemberToAPI(m)
 	}
 
-	return api.ListChannelMembers200JSONResponse{
+	return openapi.ListChannelMembers200JSONResponse{
 		Members: &apiMembers,
 	}, nil
 }
 
 // JoinChannel joins a public channel
-func (h *Handler) JoinChannel(ctx context.Context, request api.JoinChannelRequestObject) (api.JoinChannelResponseObject, error) {
+func (h *Handler) JoinChannel(ctx context.Context, request openapi.JoinChannelRequestObject) (openapi.JoinChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -324,13 +324,13 @@ func (h *Handler) JoinChannel(ctx context.Context, request api.JoinChannelReques
 		return nil, err
 	}
 
-	return api.JoinChannel200JSONResponse{
+	return openapi.JoinChannel200JSONResponse{
 		Success: true,
 	}, nil
 }
 
 // LeaveChannel leaves a channel
-func (h *Handler) LeaveChannel(ctx context.Context, request api.LeaveChannelRequestObject) (api.LeaveChannelResponseObject, error) {
+func (h *Handler) LeaveChannel(ctx context.Context, request openapi.LeaveChannelRequestObject) (openapi.LeaveChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -341,19 +341,19 @@ func (h *Handler) LeaveChannel(ctx context.Context, request api.LeaveChannelRequ
 		return nil, err
 	}
 
-	return api.LeaveChannel200JSONResponse{
+	return openapi.LeaveChannel200JSONResponse{
 		Success: true,
 	}, nil
 }
 
-// channelToAPI converts a channel.Channel to api.Channel
-func channelToAPI(ch *channel.Channel) api.Channel {
-	return api.Channel{
+// channelToAPI converts a channel.Channel to openapi.Channel
+func channelToAPI(ch *channel.Channel) openapi.Channel {
+	return openapi.Channel{
 		Id:                ch.ID,
 		WorkspaceId:       ch.WorkspaceID,
 		Name:              ch.Name,
 		Description:       ch.Description,
-		Type:              api.ChannelType(ch.Type),
+		Type:              openapi.ChannelType(ch.Type),
 		DmParticipantHash: ch.DMParticipantHash,
 		ArchivedAt:        ch.ArchivedAt,
 		CreatedBy:         ch.CreatedBy,
@@ -362,14 +362,14 @@ func channelToAPI(ch *channel.Channel) api.Channel {
 	}
 }
 
-// channelWithMembershipToAPI converts a channel.ChannelWithMembership to api.ChannelWithMembership
-func channelWithMembershipToAPI(ch channel.ChannelWithMembership) api.ChannelWithMembership {
-	apiCh := api.ChannelWithMembership{
+// channelWithMembershipToAPI converts a channel.ChannelWithMembership to openapi.ChannelWithMembership
+func channelWithMembershipToAPI(ch channel.ChannelWithMembership) openapi.ChannelWithMembership {
+	apiCh := openapi.ChannelWithMembership{
 		Id:                ch.ID,
 		WorkspaceId:       ch.WorkspaceID,
 		Name:              ch.Name,
 		Description:       ch.Description,
-		Type:              api.ChannelType(ch.Type),
+		Type:              openapi.ChannelType(ch.Type),
 		DmParticipantHash: ch.DMParticipantHash,
 		ArchivedAt:        ch.ArchivedAt,
 		CreatedBy:         ch.CreatedBy,
@@ -379,22 +379,22 @@ func channelWithMembershipToAPI(ch channel.ChannelWithMembership) api.ChannelWit
 		UnreadCount:       ch.UnreadCount,
 	}
 	if ch.ChannelRole != nil {
-		role := api.ChannelRole(*ch.ChannelRole)
+		role := openapi.ChannelRole(*ch.ChannelRole)
 		apiCh.ChannelRole = &role
 	}
 	return apiCh
 }
 
-// channelMemberToAPI converts a channel.MemberInfo to api.ChannelMember
-func channelMemberToAPI(m channel.MemberInfo) api.ChannelMember {
-	apiMember := api.ChannelMember{
+// channelMemberToAPI converts a channel.MemberInfo to openapi.ChannelMember
+func channelMemberToAPI(m channel.MemberInfo) openapi.ChannelMember {
+	apiMember := openapi.ChannelMember{
 		UserId:      m.UserID,
 		Email:       openapi_types.Email(m.Email),
 		DisplayName: m.DisplayName,
 		AvatarUrl:   m.AvatarURL,
 	}
 	if m.ChannelRole != nil {
-		role := api.ChannelRole(*m.ChannelRole)
+		role := openapi.ChannelRole(*m.ChannelRole)
 		apiMember.ChannelRole = &role
 	}
 	return apiMember

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/feather/api/internal/api"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/channel"
 	"github.com/feather/api/internal/message"
 	"github.com/feather/api/internal/sse"
@@ -13,7 +13,7 @@ import (
 )
 
 // SendMessage sends a message to a channel
-func (h *Handler) SendMessage(ctx context.Context, request api.SendMessageRequestObject) (api.SendMessageResponseObject, error) {
+func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRequestObject) (openapi.SendMessageResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -100,13 +100,13 @@ func (h *Handler) SendMessage(ctx context.Context, request api.SendMessageReques
 	}
 
 	apiMsg := messageWithUserToAPI(msgWithUser)
-	return api.SendMessage200JSONResponse{
+	return openapi.SendMessage200JSONResponse{
 		Message: &apiMsg,
 	}, nil
 }
 
 // ListMessages lists messages in a channel
-func (h *Handler) ListMessages(ctx context.Context, request api.ListMessagesRequestObject) (api.ListMessagesResponseObject, error) {
+func (h *Handler) ListMessages(ctx context.Context, request openapi.ListMessagesRequestObject) (openapi.ListMessagesResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -152,11 +152,11 @@ func (h *Handler) ListMessages(ctx context.Context, request api.ListMessagesRequ
 		return nil, err
 	}
 
-	return api.ListMessages200JSONResponse(messageListResultToAPI(result)), nil
+	return openapi.ListMessages200JSONResponse(messageListResultToAPI(result)), nil
 }
 
 // UpdateMessage updates a message
-func (h *Handler) UpdateMessage(ctx context.Context, request api.UpdateMessageRequestObject) (api.UpdateMessageResponseObject, error) {
+func (h *Handler) UpdateMessage(ctx context.Context, request openapi.UpdateMessageRequestObject) (openapi.UpdateMessageResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -200,13 +200,13 @@ func (h *Handler) UpdateMessage(ctx context.Context, request api.UpdateMessageRe
 	}
 
 	apiMsg := messageWithUserToAPI(msgWithUser)
-	return api.UpdateMessage200JSONResponse{
+	return openapi.UpdateMessage200JSONResponse{
 		Message: &apiMsg,
 	}, nil
 }
 
 // DeleteMessage deletes a message
-func (h *Handler) DeleteMessage(ctx context.Context, request api.DeleteMessageRequestObject) (api.DeleteMessageResponseObject, error) {
+func (h *Handler) DeleteMessage(ctx context.Context, request openapi.DeleteMessageRequestObject) (openapi.DeleteMessageResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -248,13 +248,13 @@ func (h *Handler) DeleteMessage(ctx context.Context, request api.DeleteMessageRe
 		})
 	}
 
-	return api.DeleteMessage200JSONResponse{
+	return openapi.DeleteMessage200JSONResponse{
 		Success: true,
 	}, nil
 }
 
 // AddReaction adds a reaction to a message
-func (h *Handler) AddReaction(ctx context.Context, request api.AddReactionRequestObject) (api.AddReactionResponseObject, error) {
+func (h *Handler) AddReaction(ctx context.Context, request openapi.AddReactionRequestObject) (openapi.AddReactionResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -300,13 +300,13 @@ func (h *Handler) AddReaction(ctx context.Context, request api.AddReactionReques
 	}
 
 	apiReaction := reactionToAPI(reaction)
-	return api.AddReaction200JSONResponse{
+	return openapi.AddReaction200JSONResponse{
 		Reaction: &apiReaction,
 	}, nil
 }
 
 // RemoveReaction removes a reaction from a message
-func (h *Handler) RemoveReaction(ctx context.Context, request api.RemoveReactionRequestObject) (api.RemoveReactionResponseObject, error) {
+func (h *Handler) RemoveReaction(ctx context.Context, request openapi.RemoveReactionRequestObject) (openapi.RemoveReactionResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -337,13 +337,13 @@ func (h *Handler) RemoveReaction(ctx context.Context, request api.RemoveReaction
 		})
 	}
 
-	return api.RemoveReaction200JSONResponse{
+	return openapi.RemoveReaction200JSONResponse{
 		Success: true,
 	}, nil
 }
 
 // ListThread lists thread replies
-func (h *Handler) ListThread(ctx context.Context, request api.ListThreadRequestObject) (api.ListThreadResponseObject, error) {
+func (h *Handler) ListThread(ctx context.Context, request openapi.ListThreadRequestObject) (openapi.ListThreadResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return nil, errors.New("not authenticated")
@@ -391,12 +391,12 @@ func (h *Handler) ListThread(ctx context.Context, request api.ListThreadRequestO
 		return nil, err
 	}
 
-	return api.ListThread200JSONResponse(messageListResultToAPI(result)), nil
+	return openapi.ListThread200JSONResponse(messageListResultToAPI(result)), nil
 }
 
-// messageWithUserToAPI converts a message.MessageWithUser to api.MessageWithUser
-func messageWithUserToAPI(m *message.MessageWithUser) api.MessageWithUser {
-	apiMsg := api.MessageWithUser{
+// messageWithUserToAPI converts a message.MessageWithUser to openapi.MessageWithUser
+func messageWithUserToAPI(m *message.MessageWithUser) openapi.MessageWithUser {
+	apiMsg := openapi.MessageWithUser{
 		Id:             m.ID,
 		ChannelId:      m.ChannelID,
 		UserId:         m.UserID,
@@ -416,7 +416,7 @@ func messageWithUserToAPI(m *message.MessageWithUser) api.MessageWithUser {
 		apiMsg.UserAvatarUrl = m.UserAvatarURL
 	}
 	if len(m.Reactions) > 0 {
-		reactions := make([]api.Reaction, len(m.Reactions))
+		reactions := make([]openapi.Reaction, len(m.Reactions))
 		for i, r := range m.Reactions {
 			reactions[i] = reactionToAPI(&r)
 		}
@@ -425,9 +425,9 @@ func messageWithUserToAPI(m *message.MessageWithUser) api.MessageWithUser {
 	return apiMsg
 }
 
-// reactionToAPI converts a message.Reaction to api.Reaction
-func reactionToAPI(r *message.Reaction) api.Reaction {
-	return api.Reaction{
+// reactionToAPI converts a message.Reaction to openapi.Reaction
+func reactionToAPI(r *message.Reaction) openapi.Reaction {
+	return openapi.Reaction{
 		Id:        r.ID,
 		MessageId: r.MessageID,
 		UserId:    r.UserID,
@@ -436,14 +436,14 @@ func reactionToAPI(r *message.Reaction) api.Reaction {
 	}
 }
 
-// messageListResultToAPI converts a message.ListResult to api.MessageListResult
-func messageListResultToAPI(result *message.ListResult) api.MessageListResult {
-	messages := make([]api.MessageWithUser, len(result.Messages))
+// messageListResultToAPI converts a message.ListResult to openapi.MessageListResult
+func messageListResultToAPI(result *message.ListResult) openapi.MessageListResult {
+	messages := make([]openapi.MessageWithUser, len(result.Messages))
 	for i, m := range result.Messages {
 		messages[i] = messageWithUserToAPI(&m)
 	}
 
-	apiResult := api.MessageListResult{
+	apiResult := openapi.MessageListResult{
 		Messages: messages,
 		HasMore:  result.HasMore,
 	}

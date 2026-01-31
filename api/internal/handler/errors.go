@@ -1,18 +1,18 @@
 package handler
 
-import "github.com/feather/api/internal/api"
+import "github.com/feather/api/internal/openapi"
 
 // newError creates an ApiError with the given code and message
-func newError(code, message string) api.ApiError {
-	return api.ApiError{
+func newError(code, message string) openapi.ApiError {
+	return openapi.ApiError{
 		Code:    code,
 		Message: message,
 	}
 }
 
 // newErrorResponse creates an ApiErrorResponse with the given code and message
-func newErrorResponse(code, message string) api.ApiErrorResponse {
-	return api.ApiErrorResponse{
+func newErrorResponse(code, message string) openapi.ApiErrorResponse {
+	return openapi.ApiErrorResponse{
 		Error: newError(code, message),
 	}
 }

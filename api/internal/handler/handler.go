@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/feather/api/internal/api"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/auth"
 	"github.com/feather/api/internal/channel"
 	"github.com/feather/api/internal/file"
@@ -15,7 +15,7 @@ import (
 )
 
 // Compile-time interface check
-var _ api.StrictServerInterface = (*Handler)(nil)
+var _ openapi.StrictServerInterface = (*Handler)(nil)
 
 // Handler implements the generated StrictServerInterface
 type Handler struct {
