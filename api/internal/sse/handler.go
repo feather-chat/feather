@@ -117,13 +117,11 @@ func (h *Handler) writeEvent(w http.ResponseWriter, flusher http.Flusher, event 
 	if event.ID != "" {
 		fmt.Fprintf(w, "id: %s\n", event.ID)
 	}
-	fmt.Fprintf(w, "event: %s\n", event.Type)
 
-	if event.Data != nil {
-		data, err := json.Marshal(event.Data)
-		if err == nil {
-			fmt.Fprintf(w, "data: %s\n", data)
-		}
+	// Marshal the full event (including type) so the client can dispatch by type
+	data, err := json.Marshal(event)
+	if err == nil {
+		fmt.Fprintf(w, "data: %s\n", data)
 	}
 
 	fmt.Fprintf(w, "\n")
