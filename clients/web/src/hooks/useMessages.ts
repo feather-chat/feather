@@ -168,6 +168,8 @@ export function useAddReaction(channelId: string) {
       await queryClient.cancelQueries({ queryKey: ['messages', channelId] });
 
       const previousData = queryClient.getQueryData(['messages', channelId]);
+      const authData = queryClient.getQueryData<{ user?: { id: string } }>(['auth', 'me']);
+      const userId = authData?.user?.id || 'temp';
 
       queryClient.setQueryData(
         ['messages', channelId],
@@ -184,7 +186,7 @@ export function useAddReaction(channelId: string) {
                   ...msg,
                   reactions: [
                     ...reactions,
-                    { id: 'temp', message_id: messageId, user_id: 'me', emoji, created_at: new Date().toISOString() },
+                    { id: 'temp', message_id: messageId, user_id: userId, emoji, created_at: new Date().toISOString() },
                   ],
                 };
               }),
@@ -213,6 +215,8 @@ export function useRemoveReaction(channelId: string) {
       await queryClient.cancelQueries({ queryKey: ['messages', channelId] });
 
       const previousData = queryClient.getQueryData(['messages', channelId]);
+      const authData = queryClient.getQueryData<{ user?: { id: string } }>(['auth', 'me']);
+      const userId = authData?.user?.id;
 
       queryClient.setQueryData(
         ['messages', channelId],
@@ -228,7 +232,7 @@ export function useRemoveReaction(channelId: string) {
                 return {
                   ...msg,
                   reactions: reactions.filter(
-                    (r) => !(r.emoji === emoji && r.user_id === 'me')
+                    (r) => !(r.emoji === emoji && r.user_id === userId)
                   ),
                 };
               }),
