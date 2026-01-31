@@ -11,6 +11,8 @@ servers:
 tags:
   - name: auth
     description: Authentication endpoints
+  - name: users
+    description: User profile management
   - name: workspaces
     description: Workspace management
   - name: channels
@@ -815,6 +817,64 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
 
+  # User endpoints
+  /users/{id}:
+    get:
+      tags: [users]
+      summary: Get user profile
+      operationId: getUser
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/me/profile:
+    post:
+      tags: [users]
+      summary: Update own profile
+      operationId: updateProfile
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileInput'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
   # SSE endpoints
   /workspaces/{wid}/events:
     get:
@@ -939,6 +999,30 @@ components:
 
   schemas:
     # User schemas
+    UserProfile:
+      type: object
+      required: [id, display_name, status, created_at]
+      properties:
+        id:
+          type: string
+        display_name:
+          type: string
+        avatar_url:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    UpdateProfileInput:
+      type: object
+      properties:
+        display_name:
+          type: string
+        avatar_url:
+          type: string
+
     User:
       type: object
       required: [id, email, display_name, status, created_at, updated_at]

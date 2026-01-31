@@ -10,7 +10,7 @@ export function WorkspaceSwitcher() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { workspaces, user, logout } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { darkMode, toggleDarkMode } = useUIStore();
+  const { darkMode, toggleDarkMode, openProfile } = useUIStore();
 
   return (
     <div className="w-16 bg-sidebar-light dark:bg-sidebar-dark flex flex-col items-center py-3 gap-3">
@@ -74,19 +74,14 @@ export function WorkspaceSwitcher() {
           )}
         </button>
 
-        {/* User menu */}
-        <button
-          onClick={() => logout()}
-          className="relative"
-          title="Logout"
-        >
-          <Avatar
-            src={user?.avatar_url}
-            name={user?.display_name || 'User'}
-            size="md"
-            status="online"
-          />
-        </button>
+        {/* User avatar - opens profile */}
+        <Avatar
+          src={user?.avatar_url}
+          name={user?.display_name || 'User'}
+          size="md"
+          status="online"
+          onClick={user?.id ? () => openProfile(user.id) : undefined}
+        />
       </div>
 
       <CreateWorkspaceModal

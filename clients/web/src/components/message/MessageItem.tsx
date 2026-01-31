@@ -6,6 +6,24 @@ import { useUIStore } from '../../stores/uiStore';
 import { formatTime, cn } from '../../lib/utils';
 import type { MessageWithUser } from '@feather/api-client';
 
+function ClickableName({ userId, displayName }: { userId?: string; displayName: string }) {
+  const { openProfile } = useUIStore();
+
+  if (!userId) {
+    return <span className="font-medium text-gray-900 dark:text-white">{displayName}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => openProfile(userId)}
+      className="font-medium text-gray-900 dark:text-white hover:underline cursor-pointer"
+    >
+      {displayName}
+    </button>
+  );
+}
+
 interface MessageItemProps {
   message: MessageWithUser;
   channelId: string;
@@ -15,7 +33,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
   const [showActions, setShowActions] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const { user } = useAuth();
-  const { openThread } = useUIStore();
+  const { openThread, openProfile } = useUIStore();
   const addReaction = useAddReaction(channelId);
   const removeReaction = useRemoveReaction(channelId);
 
@@ -75,15 +93,17 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
           src={message.user_avatar_url}
           name={message.user_display_name || 'Unknown'}
           size="md"
+          onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
         />
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-baseline gap-2">
-            <span className="font-medium text-gray-900 dark:text-white">
-              {message.user_display_name || 'Unknown User'}
-            </span>
+            <ClickableName
+              userId={message.user_id}
+              displayName={message.user_display_name || 'Unknown User'}
+            />
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
             </span>

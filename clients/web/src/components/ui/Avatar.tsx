@@ -7,9 +7,10 @@ interface AvatarProps {
   size?: 'sm' | 'md' | 'lg';
   status?: PresenceStatus;
   className?: string;
+  onClick?: () => void;
 }
 
-export function Avatar({ src, name, size = 'md', status, className }: AvatarProps) {
+export function Avatar({ src, name, size = 'md', status, className, onClick }: AvatarProps) {
   const sizes = {
     sm: 'w-6 h-6 text-xs',
     md: 'w-8 h-8 text-sm',
@@ -28,8 +29,8 @@ export function Avatar({ src, name, size = 'md', status, className }: AvatarProp
     lg: 'w-3 h-3 right-0 bottom-0',
   };
 
-  return (
-    <div className={cn('relative inline-block', className)}>
+  const content = (
+    <>
       {src ? (
         <img
           src={src}
@@ -59,6 +60,24 @@ export function Avatar({ src, name, size = 'md', status, className }: AvatarProp
           )}
         />
       )}
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn('relative inline-block cursor-pointer', className)}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className={cn('relative inline-block', className)}>
+      {content}
     </div>
   );
 }

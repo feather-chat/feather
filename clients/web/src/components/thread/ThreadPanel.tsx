@@ -6,13 +6,31 @@ import { Avatar, MessageSkeleton } from '../ui';
 import { formatTime, cn } from '../../lib/utils';
 import type { MessageWithUser, MessageListResult } from '@feather/api-client';
 
+function ClickableName({ userId, displayName }: { userId?: string; displayName: string }) {
+  const { openProfile } = useUIStore();
+
+  if (!userId) {
+    return <span className="font-medium text-gray-900 dark:text-white">{displayName}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => openProfile(userId)}
+      className="font-medium text-gray-900 dark:text-white hover:underline cursor-pointer"
+    >
+      {displayName}
+    </button>
+  );
+}
+
 interface ThreadPanelProps {
   messageId: string;
 }
 
 export function ThreadPanel({ messageId }: ThreadPanelProps) {
   const queryClient = useQueryClient();
-  const { closeThread } = useUIStore();
+  const { closeThread, openProfile } = useUIStore();
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useThreadMessages(messageId);
 
   // Get parent message from cache
@@ -44,12 +62,14 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
               src={parentMessage.user_avatar_url}
               name={parentMessage.user_display_name || 'Unknown'}
               size="md"
+              onClick={parentMessage.user_id ? () => openProfile(parentMessage.user_id!) : undefined}
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2">
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {parentMessage.user_display_name || 'Unknown User'}
-                </span>
+                <ClickableName
+                  userId={parentMessage.user_id}
+                  displayName={parentMessage.user_display_name || 'Unknown User'}
+                />
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   {formatTime(parentMessage.created_at)}
                 </span>
@@ -103,6 +123,8 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
 }
 
 function ThreadMessage({ message }: { message: MessageWithUser }) {
+  const { openProfile } = useUIStore();
+
   return (
     <div className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50">
       <div className="flex items-start gap-3">
@@ -110,12 +132,14 @@ function ThreadMessage({ message }: { message: MessageWithUser }) {
           src={message.user_avatar_url}
           name={message.user_display_name || 'Unknown'}
           size="sm"
+          onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
-            <span className="font-medium text-sm text-gray-900 dark:text-white">
-              {message.user_display_name || 'Unknown User'}
-            </span>
+            <ClickableName
+              userId={message.user_id}
+              displayName={message.user_display_name || 'Unknown User'}
+            />
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
             </span>

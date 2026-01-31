@@ -2,6 +2,7 @@ import { Outlet, useParams } from 'react-router-dom';
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher';
 import { ChannelSidebar } from '../channel/ChannelSidebar';
 import { ThreadPanel } from '../thread/ThreadPanel';
+import { ProfilePane } from '../profile/ProfilePane';
 import { useSSE } from '../../hooks';
 import { useUIStore } from '../../stores/uiStore';
 import { cn } from '../../lib/utils';
@@ -9,7 +10,7 @@ import { cn } from '../../lib/utils';
 export function AppLayout() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { isConnected } = useSSE(workspaceId);
-  const { activeThreadId, sidebarCollapsed } = useUIStore();
+  const { activeThreadId, activeProfileUserId, sidebarCollapsed } = useUIStore();
 
   return (
     <div className="h-screen flex bg-white dark:bg-gray-900">
@@ -39,8 +40,13 @@ export function AppLayout() {
       </div>
 
       {/* Thread Panel */}
-      {activeThreadId && (
+      {activeThreadId && !activeProfileUserId && (
         <ThreadPanel messageId={activeThreadId} />
+      )}
+
+      {/* Profile Pane */}
+      {activeProfileUserId && (
+        <ProfilePane userId={activeProfileUserId} />
       )}
     </div>
   );
