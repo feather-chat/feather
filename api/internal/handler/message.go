@@ -40,7 +40,8 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 					return nil, errors.New("not a member of this workspace")
 				}
 				// Auto-join public channel
-				_, _ = h.channelRepo.AddMember(ctx, userID, string(request.Id), nil)
+				memberRole := "poster"
+				_, _ = h.channelRepo.AddMember(ctx, userID, string(request.Id), &memberRole)
 				// Update SSE hub cache
 				if h.hub != nil {
 					h.hub.AddChannelMember(string(request.Id), userID)

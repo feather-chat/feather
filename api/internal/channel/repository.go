@@ -51,12 +51,12 @@ func (r *Repository) Create(ctx context.Context, channel *Channel, creatorID str
 		return err
 	}
 
-	// Add creator as member
+	// Add creator as admin member
 	membershipID := ulid.Make().String()
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO channel_memberships (id, user_id, channel_id, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
-	`, membershipID, creatorID, channel.ID, now.Format(time.RFC3339), now.Format(time.RFC3339))
+		INSERT INTO channel_memberships (id, user_id, channel_id, channel_role, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, membershipID, creatorID, channel.ID, "admin", now.Format(time.RFC3339), now.Format(time.RFC3339))
 	if err != nil {
 		return err
 	}
@@ -114,9 +114,9 @@ func (r *Repository) CreateDM(ctx context.Context, workspaceID string, userIDs [
 	for _, userID := range userIDs {
 		membershipID := ulid.Make().String()
 		_, err = tx.ExecContext(ctx, `
-			INSERT INTO channel_memberships (id, user_id, channel_id, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?)
-		`, membershipID, userID, channel.ID, now.Format(time.RFC3339), now.Format(time.RFC3339))
+			INSERT INTO channel_memberships (id, user_id, channel_id, channel_role, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?)
+		`, membershipID, userID, channel.ID, "poster", now.Format(time.RFC3339), now.Format(time.RFC3339))
 		if err != nil {
 			return nil, err
 		}
@@ -366,6 +366,15 @@ func (r *Repository) AddMember(ctx context.Context, userID, channelID string, ro
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}, nil
+}
+
+func (r *Repository) UpdateMemberRole(ctx context.Context, userID, channelID string, role *string) error {
+	now := time.Now().UTC()
+	_, err := r.db.ExecContext(ctx, `
+		UPDATE channel_memberships SET channel_role = ?, updated_at = ?
+		WHERE user_id = ? AND channel_id = ?
+	`, role, now.Format(time.RFC3339), userID, channelID)
+	return err
 }
 
 func (r *Repository) RemoveMember(ctx context.Context, userID, channelID string) error {

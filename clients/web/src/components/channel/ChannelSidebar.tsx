@@ -4,7 +4,7 @@ import { useChannels, useWorkspace, useAuth } from '../../hooks';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
 import { useUIStore } from '../../stores/uiStore';
 import { ChannelListSkeleton, Modal, Button, Input, toast } from '../ui';
-import { useCreateChannel, useMarkAllChannelsAsRead, useCreateDM } from '../../hooks/useChannels';
+import { useCreateChannel, useMarkAllChannelsAsRead, useCreateDM, useJoinChannel } from '../../hooks/useChannels';
 import { cn, getChannelIcon } from '../../lib/utils';
 import type { ChannelWithMembership, ChannelType } from '@feather/api-client';
 
@@ -32,6 +32,12 @@ export function ChannelSidebar({ workspaceId }: ChannelSidebarProps) {
     };
 
     channels.forEach((channel) => {
+      const isDM = channel.type === 'dm' || channel.type === 'group_dm';
+      const isMember = channel.channel_role !== undefined;
+
+      // DMs always show; other channels only if member
+      if (!isDM && !isMember) return;
+
       if (channel.type === 'public') {
         groups.public.push(channel);
       } else if (channel.type === 'private') {
@@ -116,10 +122,11 @@ export function ChannelSidebar({ workspaceId }: ChannelSidebarProps) {
 
       {workspaceId && (
         <>
-          <CreateChannelModal
+          <ChannelBrowserModal
             isOpen={isCreateModalOpen}
             onClose={() => setIsCreateModalOpen(false)}
             workspaceId={workspaceId}
+            channels={channels}
           />
           <NewDMModal
             isOpen={isNewDMModalOpen}
@@ -251,21 +258,33 @@ function ChannelItem({ channel, workspaceId, isActive }: ChannelItemProps) {
 
 const CHANNEL_NAME_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-function CreateChannelModal({
+function ChannelBrowserModal({
   isOpen,
   onClose,
   workspaceId,
+  channels,
 }: {
   isOpen: boolean;
   onClose: () => void;
   workspaceId: string;
+  channels: ChannelWithMembership[];
 }) {
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<'browse' | 'create'>('browse');
   const [name, setName] = useState('');
   const [type, setType] = useState<ChannelType>('public');
   const createChannel = useCreateChannel(workspaceId);
+  const joinChannel = useJoinChannel(workspaceId);
+  const [joiningId, setJoiningId] = useState<string | null>(null);
+
+  // Public channels the user hasn't joined
+  const unjoinedChannels = useMemo(() => {
+    return channels.filter(
+      (c) => c.type === 'public' && c.channel_role === undefined
+    );
+  }, [channels]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Auto-format: lowercase, replace spaces with dashes, remove invalid chars
     const formatted = e.target.value
       .toLowerCase()
       .replace(/\s+/g, '-')
@@ -275,7 +294,7 @@ function CreateChannelModal({
 
   const isValidName = name.length > 0 && CHANNEL_NAME_REGEX.test(name);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!isValidName) {
@@ -284,69 +303,149 @@ function CreateChannelModal({
     }
 
     try {
-      await createChannel.mutateAsync({ name, type });
+      const result = await createChannel.mutateAsync({ name, type });
       toast('Channel created!', 'success');
       onClose();
       setName('');
       setType('public');
+      setTab('browse');
+      navigate(`/workspaces/${workspaceId}/channels/${result.channel.id}`);
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to create channel', 'error');
     }
   };
 
+  const handleJoin = async (channelId: string) => {
+    setJoiningId(channelId);
+    try {
+      await joinChannel.mutateAsync(channelId);
+      toast('Joined channel', 'success');
+      onClose();
+      navigate(`/workspaces/${workspaceId}/channels/${channelId}`);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to join channel', 'error');
+    } finally {
+      setJoiningId(null);
+    }
+  };
+
+  const handleClose = () => {
+    onClose();
+    setName('');
+    setType('public');
+    setTab('browse');
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Create Channel">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Input
-            label="Channel Name"
-            value={name}
-            onChange={handleNameChange}
-            placeholder="general"
-            required
-          />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Lowercase letters, numbers, and dashes only
-          </p>
-        </div>
+    <Modal isOpen={isOpen} onClose={handleClose} title="Channels">
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+        <button
+          onClick={() => setTab('browse')}
+          className={cn(
+            'px-4 py-2 text-sm font-medium border-b-2 -mb-px',
+            tab === 'browse'
+              ? 'border-primary-600 text-primary-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          )}
+        >
+          Browse
+        </button>
+        <button
+          onClick={() => setTab('create')}
+          className={cn(
+            'px-4 py-2 text-sm font-medium border-b-2 -mb-px',
+            tab === 'create'
+              ? 'border-primary-600 text-primary-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          )}
+        >
+          Create New
+        </button>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Channel Type
-          </label>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                value="public"
-                checked={type === 'public'}
-                onChange={() => setType('public')}
-                className="text-primary-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Public</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                value="private"
-                checked={type === 'private'}
-                onChange={() => setType('private')}
-                className="text-primary-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Private</span>
-            </label>
+      {tab === 'browse' ? (
+        <div className="space-y-1 max-h-64 overflow-y-auto">
+          {unjoinedChannels.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              No channels to join. Create a new one!
+            </p>
+          ) : (
+            unjoinedChannels.map((channel) => (
+              <div
+                key={channel.id}
+                className="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 dark:text-gray-400">#</span>
+                  <span className="text-gray-900 dark:text-white">{channel.name}</span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleJoin(channel.id)}
+                  isLoading={joiningId === channel.id}
+                  disabled={joiningId !== null}
+                >
+                  Join
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div>
+            <Input
+              label="Channel Name"
+              value={name}
+              onChange={handleNameChange}
+              placeholder="general"
+              required
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Lowercase letters, numbers, and dashes only
+            </p>
           </div>
-        </div>
 
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" isLoading={createChannel.isPending}>
-            Create
-          </Button>
-        </div>
-      </form>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Channel Type
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  value="public"
+                  checked={type === 'public'}
+                  onChange={() => setType('public')}
+                  className="text-primary-600"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">Public</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  value="private"
+                  checked={type === 'private'}
+                  onChange={() => setType('private')}
+                  className="text-primary-600"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">Private</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={createChannel.isPending}>
+              Create
+            </Button>
+          </div>
+        </form>
+      )}
     </Modal>
   );
 }

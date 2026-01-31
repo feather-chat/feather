@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useChannels, useArchiveChannel } from '../hooks';
+import { useQueryClient } from '@tanstack/react-query';
+import { useChannels, useArchiveChannel, useLeaveChannel, useJoinChannel } from '../hooks';
 import { useMarkChannelAsRead } from '../hooks/useChannels';
 import { MessageList, MessageComposer } from '../components/message';
 import { Spinner, Modal, Button, toast } from '../components/ui';
@@ -13,13 +14,17 @@ export function ChannelPage() {
   }>();
   const navigate = useNavigate();
 
+  const queryClient = useQueryClient();
   const { data: channelsData, isLoading } = useChannels(workspaceId);
   const channel = channelsData?.channels.find((c) => c.id === channelId);
   const archiveChannel = useArchiveChannel(workspaceId || '');
+  const leaveChannel = useLeaveChannel(workspaceId || '');
+  const joinChannel = useJoinChannel(workspaceId || '');
   const markAsRead = useMarkChannelAsRead(workspaceId || '');
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const markAsReadTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -79,7 +84,42 @@ export function ChannelPage() {
     }
   };
 
+  const handleLeave = async () => {
+    if (!channelId || !workspaceId) return;
+    try {
+      await leaveChannel.mutateAsync(channelId);
+      toast('Left channel', 'success');
+      setIsLeaveModalOpen(false);
+      // Navigate to another joined channel, or workspace root if none
+      const otherChannel = channelsData?.channels.find(
+        (c) => c.id !== channelId && c.channel_role !== undefined
+      );
+      if (otherChannel) {
+        navigate(`/workspaces/${workspaceId}/channels/${otherChannel.id}`);
+      } else {
+        navigate(`/workspaces/${workspaceId}`);
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to leave channel', 'error');
+    }
+  };
+
+  const handleJoin = async () => {
+    if (!channelId || !workspaceId) return;
+    try {
+      await joinChannel.mutateAsync(channelId);
+      // Wait for the channels query to refetch so the UI updates
+      await queryClient.refetchQueries({ queryKey: ['channels', workspaceId] });
+      toast('Joined channel', 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to join channel', 'error');
+    }
+  };
+
+  const isMember = channel?.channel_role !== undefined;
+  const canJoin = channel && channel.type === 'public' && !isMember;
   const canArchive = channel && channel.type !== 'dm' && channel.type !== 'group_dm';
+  const canLeave = channel && channel.type !== 'dm' && channel.type !== 'group_dm' && isMember;
 
   if (isLoading) {
     return (
@@ -120,7 +160,7 @@ export function ChannelPage() {
           </div>
 
           {/* Settings menu */}
-          {canArchive && (
+          {(canArchive || canLeave) && (
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -133,15 +173,28 @@ export function ChannelPage() {
 
               {isMenuOpen && (
                 <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      setIsArchiveModalOpen(true);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    Archive channel
-                  </button>
+                  {canLeave && (
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        setIsLeaveModalOpen(true);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Leave channel
+                    </button>
+                  )}
+                  {canArchive && (
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        setIsArchiveModalOpen(true);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Archive channel
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -153,6 +206,29 @@ export function ChannelPage() {
           </p>
         )}
       </div>
+
+      {/* Leave confirmation modal */}
+      <Modal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
+        title="Leave channel"
+      >
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          Are you sure you want to leave <strong>#{channel.name}</strong>? You can rejoin anytime if it's a public channel.
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={() => setIsLeaveModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleLeave}
+            isLoading={leaveChannel.isPending}
+          >
+            Leave
+          </Button>
+        </div>
+      </Modal>
 
       {/* Archive confirmation modal */}
       <Modal
@@ -177,7 +253,7 @@ export function ChannelPage() {
         </div>
       </Modal>
 
-      {/* Messages */}
+      {/* Messages - always visible */}
       <MessageList
         channelId={channelId}
         lastReadMessageId={channel.last_read_message_id}
@@ -185,12 +261,31 @@ export function ChannelPage() {
         onAtBottomChange={handleAtBottomChange}
       />
 
-      {/* Composer */}
-      <MessageComposer
-        channelId={channelId}
-        workspaceId={workspaceId}
-        placeholder={`Message ${getChannelIcon(channel.type)}${channel.name}`}
-      />
+      {canJoin ? (
+        /* Join banner for non-member channels */
+        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+              <span className="text-gray-400">#</span>
+              <span>You're viewing <strong>{channel.name}</strong></span>
+            </div>
+            <Button
+              onClick={handleJoin}
+              isLoading={joinChannel.isPending}
+              size="sm"
+            >
+              Join Channel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        /* Composer for members */
+        <MessageComposer
+          channelId={channelId}
+          workspaceId={workspaceId}
+          placeholder={`Message ${getChannelIcon(channel.type)}${channel.name}`}
+        />
+      )}
     </div>
   );
 }

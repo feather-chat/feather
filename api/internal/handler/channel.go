@@ -263,13 +263,12 @@ func (h *Handler) AddChannelMember(ctx context.Context, request openapi.AddChann
 		return nil, errors.New("user is not a member of the workspace")
 	}
 
-	var rolePtr *string
+	role := "poster"
 	if request.Body.Role != nil {
-		role := string(*request.Body.Role)
-		rolePtr = &role
+		role = string(*request.Body.Role)
 	}
 
-	_, err = h.channelRepo.AddMember(ctx, request.Body.UserId, string(request.Id), rolePtr)
+	_, err = h.channelRepo.AddMember(ctx, request.Body.UserId, string(request.Id), &role)
 	if err != nil {
 		return nil, err
 	}
@@ -348,8 +347,12 @@ func (h *Handler) JoinChannel(ctx context.Context, request openapi.JoinChannelRe
 		return nil, err
 	}
 
-	_, err = h.channelRepo.AddMember(ctx, userID, string(request.Id), nil)
-	if err != nil && !errors.Is(err, channel.ErrAlreadyMember) {
+	memberRole := "poster"
+	_, err = h.channelRepo.AddMember(ctx, userID, string(request.Id), &memberRole)
+	if errors.Is(err, channel.ErrAlreadyMember) {
+		// Update role if already a member (in case role was NULL)
+		_ = h.channelRepo.UpdateMemberRole(ctx, userID, string(request.Id), &memberRole)
+	} else if err != nil {
 		return nil, err
 	}
 
