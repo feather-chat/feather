@@ -57,6 +57,10 @@ func (h *Handler) Events(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Disable write deadline for SSE (otherwise server's WriteTimeout kills the connection)
+	rc := http.NewResponseController(w)
+	rc.SetWriteDeadline(time.Time{}) // Zero time = no deadline
+
 	// Create client
 	client := &Client{
 		ID:          ulid.Make().String(),

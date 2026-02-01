@@ -13,9 +13,14 @@ export class SSEConnection {
   private reconnectDelay = 3000;
   private isConnecting = false;
   private workspaceId: string;
+  private onDisconnect?: () => void;
 
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId;
+  }
+
+  setOnDisconnect(callback: () => void): void {
+    this.onDisconnect = callback;
   }
 
   connect(): void {
@@ -43,6 +48,7 @@ export class SSEConnection {
 
     this.eventSource.onerror = () => {
       console.error('[SSE] Connection error, reconnecting...');
+      this.onDisconnect?.();
       this.disconnect();
       this.scheduleReconnect();
     };

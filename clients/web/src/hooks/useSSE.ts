@@ -17,6 +17,11 @@ export function useSSE(workspaceId: string | undefined) {
     const connection = new SSEConnection(workspaceId);
     connectionRef.current = connection;
 
+    // Handle disconnect
+    connection.setOnDisconnect(() => {
+      setIsConnected(false);
+    });
+
     // Handle connected event
     connection.on('connected', () => {
       setIsConnected(true);

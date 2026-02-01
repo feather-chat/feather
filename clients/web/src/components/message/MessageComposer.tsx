@@ -7,7 +7,7 @@ import {
   PaperClipIcon,
   PaperAirplaneIcon,
 } from '@heroicons/react/24/outline';
-import { useSendMessage, useTyping, useUploadFile } from '../../hooks';
+import { useSendMessage, useTyping, useUploadFile, useAuth } from '../../hooks';
 import { useTypingUsers } from '../../lib/presenceStore';
 import { cn } from '../../lib/utils';
 
@@ -42,8 +42,10 @@ export function MessageComposer({
   const sendMessage = useSendMessage(channelId);
   const uploadFile = useUploadFile(channelId);
   const { onTyping, onStopTyping } = useTyping(workspaceId, channelId);
+  const { user } = useAuth();
 
   const typingUsers = useTypingUsers(channelId);
+  const otherTypingUsers = typingUsers.filter((u) => u.userId !== user?.id);
 
   const uploadAttachment = useCallback(async (attachment: PendingAttachment) => {
     setPendingAttachments((prev) =>
@@ -165,7 +167,7 @@ export function MessageComposer({
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 p-4">
       {/* Typing indicator */}
-      {typingUsers.length > 0 && (
+      {otherTypingUsers.length > 0 && (
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
           <span className="flex gap-1">
             <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -173,8 +175,8 @@ export function MessageComposer({
             <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
           </span>
           <span>
-            {typingUsers.map((u) => u.displayName).join(', ')}{' '}
-            {typingUsers.length === 1 ? 'is' : 'are'} typing...
+            {otherTypingUsers.map((u) => u.displayName).join(', ')}{' '}
+            {otherTypingUsers.length === 1 ? 'is' : 'are'} typing...
           </span>
         </div>
       )}
