@@ -306,3 +306,8 @@ func (h *Hub) IsUserConnected(workspaceID, userID string) bool {
 	}
 	return false
 }
+
+// IsUserOnline is an alias for IsUserConnected
+func (h *Hub) IsUserOnline(workspaceID, userID string) bool {
+	return h.IsUserConnected(workspaceID, userID)
+}

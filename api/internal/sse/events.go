@@ -17,6 +17,7 @@ const (
 	EventTypingStart     = "typing.start"
 	EventTypingStop      = "typing.stop"
 	EventPresenceChanged = "presence.changed"
+	EventNotification    = "notification"
 )
 
 type Event struct {

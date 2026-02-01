@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { SSEConnection } from '../lib/sse';
 import { addTypingUser, removeTypingUser, setUserPresence } from '../lib/presenceStore';
-import type { MessageListResult, ChannelWithMembership, Channel } from '@feather/api-client';
+import { playNotificationSound, showBrowserNotification, unlockAudio } from '../lib/notificationSound';
+import type { MessageListResult, ChannelWithMembership, Channel, NotificationData } from '@feather/api-client';
 
 export function useSSE(workspaceId: string | undefined) {
   const [isConnected, setIsConnected] = useState(false);
@@ -320,6 +321,29 @@ export function useSSE(workspaceId: string | undefined) {
       setUserPresence(event.data.user_id, event.data.status);
     });
 
+    // Handle notification events
+    connection.on('notification', (event) => {
+      const notification = event.data as NotificationData;
+
+      // Play sound
+      playNotificationSound();
+
+      // Show browser notification if permitted
+      const title = getNotificationTitle(notification);
+      showBrowserNotification(title, notification.preview || '', () => {
+        // Could navigate to the channel/message here
+      });
+    });
+
+    // Unlock audio on first interaction
+    const handleInteraction = () => {
+      unlockAudio();
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('keydown', handleInteraction);
+    };
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('keydown', handleInteraction);
+
     connection.connect();
 
     return () => {
@@ -330,4 +354,27 @@ export function useSSE(workspaceId: string | undefined) {
   }, [workspaceId, queryClient]);
 
   return { isConnected };
+}
+
+// Helper to format notification title
+function getNotificationTitle(notification: NotificationData): string {
+  const prefix = notification.type === 'dm' ? 'DM' : `#${notification.channel_name || 'channel'}`;
+  const sender = notification.sender_name || 'Someone';
+
+  switch (notification.type) {
+    case 'mention':
+      return `${sender} mentioned you in ${prefix}`;
+    case 'dm':
+      return `${sender} sent you a message`;
+    case 'channel':
+      return `${sender} in ${prefix} (@channel)`;
+    case 'here':
+      return `${sender} in ${prefix} (@here)`;
+    case 'everyone':
+      return `${sender} in ${prefix} (@everyone)`;
+    case 'thread_reply':
+      return `${sender} replied to a thread in ${prefix}`;
+    default:
+      return `New message from ${sender}`;
+  }
 }
