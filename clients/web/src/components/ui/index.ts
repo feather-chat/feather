@@ -10,3 +10,4 @@ export { Toaster } from './Toast';
 export { Menu, MenuItem, MenuTrigger } from './Menu';
 export { Tabs, TabList, Tab, TabPanel } from './Tabs';
 export { RadioGroup, Radio } from './RadioGroup';
+export { Tooltip } from './Tooltip';

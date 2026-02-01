@@ -9,10 +9,10 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import { Avatar, AvatarStack, Menu, MenuItem, Modal, Button } from '../ui';
+import { Avatar, AvatarStack, Menu, MenuItem, Modal, Button, Tooltip } from '../ui';
 import { ReactionPicker } from './ReactionPicker';
 import { AttachmentDisplay } from './AttachmentDisplay';
-import { useAuth, useAddReaction, useRemoveReaction } from '../../hooks';
+import { useAuth, useAddReaction, useRemoveReaction, useWorkspaceMembers } from '../../hooks';
 import { useMarkMessageUnread, useUpdateMessage, useDeleteMessage } from '../../hooks/useMessages';
 import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
 import { cn, formatTime, formatRelativeTime } from '../../lib/utils';
@@ -58,6 +58,13 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
   const markUnread = useMarkMessageUnread(workspaceId || '');
   const updateMessage = useUpdateMessage();
   const deleteMessage = useDeleteMessage();
+  const { data: membersData } = useWorkspaceMembers(workspaceId);
+
+  // Create a lookup map from user ID to display name
+  const memberNames = (membersData?.members || []).reduce((acc, member) => {
+    acc[member.user_id] = member.display_name;
+    return acc;
+  }, {} as Record<string, string>);
 
   const isDeleted = !!message.deleted_at;
   const isEdited = !!message.edited_at;
@@ -229,21 +236,27 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
           {/* Reactions */}
           {Object.values(reactionGroups).length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
-              {Object.values(reactionGroups).map(({ emoji, count, hasOwn }) => (
-                <button
-                  key={emoji}
-                  onClick={() => handleReactionClick(emoji, hasOwn)}
-                  className={cn(
-                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors',
-                    hasOwn
-                      ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700'
-                      : 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  )}
-                >
-                  <span>{emoji}</span>
-                  <span className="text-xs text-gray-600 dark:text-gray-300">{count}</span>
-                </button>
-              ))}
+              {Object.values(reactionGroups).map(({ emoji, count, userIds, hasOwn }) => {
+                const userNames = userIds
+                  .map((id) => memberNames[id] || 'Unknown')
+                  .join(', ');
+                return (
+                  <Tooltip key={emoji} content={userNames}>
+                    <AriaButton
+                      onPress={() => handleReactionClick(emoji, hasOwn)}
+                      className={cn(
+                        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors',
+                        hasOwn
+                          ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700'
+                          : 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      )}
+                    >
+                      <span>{emoji}</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-300">{count}</span>
+                    </AriaButton>
+                  </Tooltip>
+                );
+              })}
             </div>
           )}
 
