@@ -11,6 +11,7 @@ type Message struct {
 	ChannelID      string     `json:"channel_id"`
 	UserID         *string    `json:"user_id,omitempty"`
 	Content        string     `json:"content"`
+	Mentions       []string   `json:"mentions,omitempty"`
 	ThreadParentID *string    `json:"thread_parent_id,omitempty"`
 	ReplyCount     int        `json:"reply_count"`
 	LastReplyAt    *time.Time `json:"last_reply_at,omitempty"`
@@ -59,4 +60,16 @@ type ListResult struct {
 	Messages   []MessageWithUser `json:"messages"`
 	HasMore    bool              `json:"has_more"`
 	NextCursor string            `json:"next_cursor,omitempty"`
+}
+
+type UnreadMessage struct {
+	MessageWithUser
+	ChannelName string `json:"channel_name"`
+	ChannelType string `json:"channel_type"`
+}
+
+type UnreadListResult struct {
+	Messages   []UnreadMessage `json:"messages"`
+	HasMore    bool            `json:"has_more"`
+	NextCursor string          `json:"next_cursor,omitempty"`
 }

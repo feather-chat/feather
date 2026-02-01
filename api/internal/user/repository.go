@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/oklog/ulid/v2"
@@ -128,6 +129,48 @@ func formatNullableTime(t *time.Time) *string {
 	}
 	s := t.Format(time.RFC3339)
 	return &s
+}
+
+// ResolveDisplayNames resolves display names to user IDs within a workspace.
+// Returns a map of display_name (lowercase) -> user_id for all matched users.
+func (r *Repository) ResolveDisplayNames(ctx context.Context, workspaceID string, names []string) (map[string]string, error) {
+	if len(names) == 0 {
+		return nil, nil
+	}
+
+	// Build query with LOWER for case-insensitive matching
+	query := `
+		SELECT u.id, LOWER(u.display_name)
+		FROM users u
+		JOIN workspace_memberships wm ON wm.user_id = u.id
+		WHERE wm.workspace_id = ? AND LOWER(u.display_name) IN (?`
+
+	args := make([]interface{}, 0, len(names)+1)
+	args = append(args, workspaceID)
+	args = append(args, strings.ToLower(names[0]))
+
+	for i := 1; i < len(names); i++ {
+		query += ",?"
+		args = append(args, strings.ToLower(names[i]))
+	}
+	query += ")"
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string]string)
+	for rows.Next() {
+		var userID, lowerName string
+		if err := rows.Scan(&userID, &lowerName); err != nil {
+			return nil, err
+		}
+		result[lowerName] = userID
+	}
+
+	return result, rows.Err()
 }
 
 func isUniqueConstraintError(err error) bool {
