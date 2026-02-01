@@ -1,8 +1,9 @@
 import { post, type MessageWithUser, type MessageListResult, type Reaction } from '@feather/api-client';
 
 export interface SendMessageInput {
-  content: string;
+  content?: string;
   thread_parent_id?: string;
+  attachment_ids?: string[];
 }
 
 export interface ListMessagesInput {

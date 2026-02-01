@@ -6,3 +6,4 @@ export { useUserProfile, useUpdateProfile } from './useProfile';
 export { useSSE } from './useSSE';
 export { useTyping } from './useTyping';
 export { useAutoScroll } from './useAutoScroll';
+export { useUploadFile } from './useFiles';

@@ -1333,6 +1333,10 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/ThreadParticipant'
+            attachments:
+              type: array
+              items:
+                $ref: '#/components/schemas/Attachment'
 
     ThreadParticipant:
       type: object
@@ -1344,6 +1348,26 @@ components:
           type: string
         avatar_url:
           type: string
+
+    Attachment:
+      type: object
+      required: [id, filename, content_type, size_bytes, url, created_at]
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        content_type:
+          type: string
+        size_bytes:
+          type: integer
+          format: int64
+        url:
+          type: string
+          description: Download URL for the attachment
+        created_at:
+          type: string
+          format: date-time
 
     Reaction:
       type: object
@@ -1811,12 +1835,16 @@ components:
 
     SendMessageInput:
       type: object
-      required: [content]
       properties:
         content:
           type: string
         thread_parent_id:
           type: string
+        attachment_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of uploaded attachments to include with this message
 
     ListMessagesInput:
       type: object

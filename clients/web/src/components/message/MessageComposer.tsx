@@ -1,5 +1,6 @@
-import { useState, useRef, useMemo, type KeyboardEvent, type FormEvent } from 'react';
-import { useSendMessage, useTyping } from '../../hooks';
+import { useState, useRef, useMemo, useCallback, type KeyboardEvent, type FormEvent } from 'react';
+import { Button as AriaButton, DropZone, FileTrigger } from 'react-aria-components';
+import { useSendMessage, useTyping, useUploadFile } from '../../hooks';
 import { usePresenceStore } from '../../stores/presenceStore';
 import { cn } from '../../lib/utils';
 
@@ -9,17 +10,32 @@ interface MessageComposerProps {
   placeholder?: string;
 }
 
+interface PendingAttachment {
+  id: string;
+  file: File;
+  previewUrl?: string;
+  status: 'pending' | 'uploading' | 'complete' | 'error';
+  uploadedId?: string;
+  progress?: number;
+  error?: string;
+}
+
+const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
 export function MessageComposer({
   channelId,
   workspaceId,
   placeholder = 'Type a message...',
 }: MessageComposerProps) {
   const [content, setContent] = useState('');
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sendMessage = useSendMessage(channelId);
+  const uploadFile = useUploadFile(channelId);
   const { onTyping, onStopTyping } = useTyping(workspaceId, channelId);
 
-  // Select the raw map and filter in useMemo to avoid infinite loops
   const typingUsersMap = usePresenceStore((state) => state.typingUsers);
   const typingUsers = useMemo(() => {
     const now = Date.now();
@@ -27,18 +43,94 @@ export function MessageComposer({
     return typers.filter((t) => t.expiresAt > now);
   }, [typingUsersMap, channelId]);
 
+  const uploadAttachment = useCallback(async (attachment: PendingAttachment) => {
+    setPendingAttachments((prev) =>
+      prev.map((a) => (a.id === attachment.id ? { ...a, status: 'uploading' } : a))
+    );
+
+    try {
+      const result = await uploadFile.mutateAsync(attachment.file);
+      setPendingAttachments((prev) =>
+        prev.map((a) =>
+          a.id === attachment.id
+            ? { ...a, status: 'complete', uploadedId: result.file.id }
+            : a
+        )
+      );
+    } catch {
+      setPendingAttachments((prev) =>
+        prev.map((a) =>
+          a.id === attachment.id
+            ? { ...a, status: 'error', error: 'Upload failed' }
+            : a
+        )
+      );
+    }
+  }, [uploadFile]);
+
+  const handleFilesSelected = useCallback((files: File[]) => {
+    const validFiles = files.filter((file) => {
+      if (file.size > MAX_FILE_SIZE) {
+        return false;
+      }
+      return true;
+    });
+
+    const newAttachments: PendingAttachment[] = validFiles.map((file) => {
+      const isImage = ACCEPTED_IMAGE_TYPES.includes(file.type);
+      return {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        file,
+        previewUrl: isImage ? URL.createObjectURL(file) : undefined,
+        status: 'pending' as const,
+      };
+    });
+
+    setPendingAttachments((prev) => [...prev, ...newAttachments]);
+
+    // Start uploading each file
+    newAttachments.forEach((attachment) => {
+      uploadAttachment(attachment);
+    });
+  }, [uploadAttachment]);
+
+  const removeAttachment = useCallback((id: string) => {
+    setPendingAttachments((prev) => {
+      const attachment = prev.find((a) => a.id === id);
+      if (attachment?.previewUrl) {
+        URL.revokeObjectURL(attachment.previewUrl);
+      }
+      return prev.filter((a) => a.id !== id);
+    });
+  }, []);
+
+  const completedAttachmentIds = pendingAttachments
+    .filter((a) => a.status === 'complete' && a.uploadedId)
+    .map((a) => a.uploadedId!);
+
+  const hasContent = content.trim() !== '';
+  const hasAttachments = completedAttachmentIds.length > 0;
+  const isUploading = pendingAttachments.some((a) => a.status === 'uploading');
+  const canSend = (hasContent || hasAttachments) && !sendMessage.isPending && !isUploading;
+
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
 
-    const trimmedContent = content.trim();
-    if (!trimmedContent || sendMessage.isPending) return;
+    if (!canSend) return;
 
     try {
-      await sendMessage.mutateAsync({ content: trimmedContent });
+      await sendMessage.mutateAsync({
+        content: content.trim() || undefined,
+        attachment_ids: hasAttachments ? completedAttachmentIds : undefined,
+      });
       setContent('');
+      // Clear attachments and revoke preview URLs
+      pendingAttachments.forEach((a) => {
+        if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+      });
+      setPendingAttachments([]);
       onStopTyping();
 
-      // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -58,7 +150,6 @@ export function MessageComposer({
     setContent(value);
     onTyping();
 
-    // Auto-resize textarea
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
@@ -86,38 +177,145 @@ export function MessageComposer({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="relative">
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => handleChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-          placeholder={placeholder}
-          rows={1}
-          className="w-full px-4 py-3 pr-12 resize-none border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 max-h-32"
-        />
+      {/* Pending attachments preview */}
+      {pendingAttachments.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {pendingAttachments.map((attachment) => (
+            <div
+              key={attachment.id}
+              className={cn(
+                'relative group rounded-lg border overflow-hidden',
+                attachment.status === 'error'
+                  ? 'border-red-300 dark:border-red-700'
+                  : 'border-gray-200 dark:border-gray-700'
+              )}
+            >
+              {attachment.previewUrl ? (
+                <img
+                  src={attachment.previewUrl}
+                  alt={attachment.file.name}
+                  className="w-20 h-20 object-cover"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
 
-        <button
-          type="submit"
-          disabled={!content.trim() || sendMessage.isPending}
-          className={cn(
-            'absolute right-2 bottom-2 p-2 rounded-lg transition-colors',
-            content.trim()
-              ? 'text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'
-              : 'text-gray-400 cursor-not-allowed'
-          )}
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-        </button>
-      </form>
+              {/* Upload status overlay */}
+              {attachment.status === 'uploading' && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
 
-      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-        Press <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">Enter</kbd> to send,{' '}
-        <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">Shift+Enter</kbd> for new line
-      </p>
+              {attachment.status === 'error' && (
+                <div className="absolute inset-0 bg-red-500/50 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              )}
+
+              {/* Remove button */}
+              <button
+                type="button"
+                onClick={() => removeAttachment(attachment.id)}
+                className="absolute top-0.5 right-0.5 p-0.5 bg-black/50 hover:bg-black/70 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Remove"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {/* File name tooltip */}
+              <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs px-1 py-0.5 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                {attachment.file.name}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <DropZone
+        onDropEnter={() => setIsDragging(true)}
+        onDropExit={() => setIsDragging(false)}
+        onDrop={async (e) => {
+          setIsDragging(false);
+          const files = await Promise.all(
+            e.items
+              .filter((i) => i.kind === 'file')
+              .map((i) => i.getFile())
+          );
+          handleFilesSelected(files.filter((f): f is File => f !== null));
+        }}
+        className={cn(
+          'relative rounded-lg transition-colors',
+          isDragging && 'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-900/20'
+        )}
+      >
+        {/* Drop overlay */}
+        {isDragging && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary-50/90 dark:bg-primary-900/80 rounded-lg pointer-events-none">
+            <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
+              Drop files to upload
+            </span>
+          </div>
+        )}
+        <form onSubmit={handleSubmit}>
+          <div className="border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
+            {/* Text input */}
+            <textarea
+              ref={textareaRef}
+              value={content}
+              onChange={(e) => handleChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleBlur}
+              placeholder={placeholder}
+              rows={1}
+              className="w-full px-4 py-3 resize-none bg-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none max-h-32"
+            />
+
+            {/* Actions row */}
+            <div className="flex items-center justify-between px-2 py-1">
+              {/* Attachment button */}
+              <FileTrigger
+                acceptedFileTypes={['image/*', '.pdf', '.txt', '.doc', '.docx']}
+                allowsMultiple
+                onSelect={(files) => files && handleFilesSelected(Array.from(files))}
+              >
+                <AriaButton
+                  className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  aria-label="Attach files"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </AriaButton>
+              </FileTrigger>
+
+              {/* Send button */}
+              <button
+                type="submit"
+                disabled={!canSend}
+                className={cn(
+                  'p-1 rounded transition-colors',
+                  canSend
+                    ? 'text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'
+                    : 'text-gray-400 cursor-not-allowed'
+                )}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </form>
+      </DropZone>
     </div>
   );
 }

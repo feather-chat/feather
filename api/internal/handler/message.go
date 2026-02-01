@@ -3,10 +3,12 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/channel"
+	"github.com/feather/api/internal/file"
 	"github.com/feather/api/internal/message"
 	"github.com/feather/api/internal/sse"
 	"github.com/feather/api/internal/workspace"
@@ -56,8 +58,41 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 		return nil, errors.New("permission denied")
 	}
 
-	if strings.TrimSpace(request.Body.Content) == "" {
-		return nil, errors.New("message content is required")
+	// Content is required unless attachments are provided
+	content := ""
+	if request.Body.Content != nil {
+		content = strings.TrimSpace(*request.Body.Content)
+	}
+	hasContent := content != ""
+	hasAttachments := request.Body.AttachmentIds != nil && len(*request.Body.AttachmentIds) > 0
+
+	if !hasContent && !hasAttachments {
+		return nil, errors.New("message content or attachments required")
+	}
+
+	// Validate attachments if provided
+	var attachmentIDs []string
+	if hasAttachments {
+		attachmentIDs = *request.Body.AttachmentIds
+		// Validate each attachment
+		for _, attachmentID := range attachmentIDs {
+			attachment, err := h.fileRepo.GetByID(ctx, attachmentID)
+			if err != nil {
+				return nil, fmt.Errorf("attachment %s not found", attachmentID)
+			}
+			// Verify attachment belongs to this channel
+			if attachment.ChannelID != string(request.Id) {
+				return nil, fmt.Errorf("attachment %s does not belong to this channel", attachmentID)
+			}
+			// Verify user owns the attachment
+			if attachment.UserID == nil || *attachment.UserID != userID {
+				return nil, fmt.Errorf("attachment %s does not belong to you", attachmentID)
+			}
+			// Verify attachment not already linked to a message
+			if attachment.MessageID != nil {
+				return nil, fmt.Errorf("attachment %s is already linked to a message", attachmentID)
+			}
+		}
 	}
 
 	// Validate thread parent if provided
@@ -81,12 +116,21 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 	msg := &message.Message{
 		ChannelID:      string(request.Id),
 		UserID:         &userID,
-		Content:        request.Body.Content,
+		Content:        content,
 		ThreadParentID: request.Body.ThreadParentId,
 	}
 
 	if err := h.messageRepo.Create(ctx, msg); err != nil {
 		return nil, err
+	}
+
+	// Link attachments to the message
+	if len(attachmentIDs) > 0 {
+		for _, attachmentID := range attachmentIDs {
+			if err := h.fileRepo.UpdateMessageID(ctx, attachmentID, msg.ID); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	// Fetch message with user info for response and broadcast
@@ -96,15 +140,22 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 		msgWithUser = &message.MessageWithUser{Message: *msg}
 	}
 
-	// Broadcast message via SSE
-	if h.hub != nil {
-		h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.Event{
-			Type: sse.EventMessageNew,
-			Data: msgWithUser,
-		})
+	// Load attachments for the message
+	if len(attachmentIDs) > 0 {
+		attachments, _ := h.fileRepo.ListForMessage(ctx, msg.ID)
+		msgWithUser.Attachments = attachments
 	}
 
 	apiMsg := messageWithUserToAPI(msgWithUser)
+
+	// Broadcast message via SSE (use API type to include attachment URLs)
+	if h.hub != nil {
+		h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.Event{
+			Type: sse.EventMessageNew,
+			Data: apiMsg,
+		})
+	}
+
 	return openapi.SendMessage200JSONResponse{
 		Message: &apiMsg,
 	}, nil
@@ -157,6 +208,9 @@ func (h *Handler) ListMessages(ctx context.Context, request openapi.ListMessages
 		return nil, err
 	}
 
+	// Load attachments for all messages
+	h.loadAttachmentsForMessages(ctx, result.Messages)
+
 	return openapi.ListMessages200JSONResponse(messageListResultToAPI(result)), nil
 }
 
@@ -196,15 +250,22 @@ func (h *Handler) UpdateMessage(ctx context.Context, request openapi.UpdateMessa
 	// Get channel for workspace ID
 	ch, _ := h.channelRepo.GetByID(ctx, msg.ChannelID)
 
-	// Broadcast update via SSE
-	if h.hub != nil && ch != nil && msgWithUser != nil {
-		h.hub.BroadcastToChannel(ch.WorkspaceID, msg.ChannelID, sse.Event{
-			Type: sse.EventMessageUpdated,
-			Data: msgWithUser,
-		})
+	// Load attachments for the message
+	if msgWithUser != nil {
+		attachments, _ := h.fileRepo.ListForMessage(ctx, msg.ID)
+		msgWithUser.Attachments = attachments
 	}
 
 	apiMsg := messageWithUserToAPI(msgWithUser)
+
+	// Broadcast update via SSE (use API type to include attachment URLs)
+	if h.hub != nil && ch != nil && msgWithUser != nil {
+		h.hub.BroadcastToChannel(ch.WorkspaceID, msg.ChannelID, sse.Event{
+			Type: sse.EventMessageUpdated,
+			Data: apiMsg,
+		})
+	}
+
 	return openapi.UpdateMessage200JSONResponse{
 		Message: &apiMsg,
 	}, nil
@@ -396,6 +457,9 @@ func (h *Handler) ListThread(ctx context.Context, request openapi.ListThreadRequ
 		return nil, err
 	}
 
+	// Load attachments for all messages
+	h.loadAttachmentsForMessages(ctx, result.Messages)
+
 	return openapi.ListThread200JSONResponse(messageListResultToAPI(result)), nil
 }
 
@@ -434,7 +498,50 @@ func messageWithUserToAPI(m *message.MessageWithUser) openapi.MessageWithUser {
 		}
 		apiMsg.ThreadParticipants = &participants
 	}
+	if len(m.Attachments) > 0 {
+		attachments := make([]openapi.Attachment, len(m.Attachments))
+		for i, a := range m.Attachments {
+			attachments[i] = attachmentToAPI(&a)
+		}
+		apiMsg.Attachments = &attachments
+	}
 	return apiMsg
+}
+
+// attachmentToAPI converts a file.Attachment to openapi.Attachment
+func attachmentToAPI(a *file.Attachment) openapi.Attachment {
+	url := fmt.Sprintf("/api/files/%s/download", a.ID)
+	return openapi.Attachment{
+		Id:          a.ID,
+		Filename:    a.Filename,
+		ContentType: a.ContentType,
+		SizeBytes:   a.SizeBytes,
+		Url:         url,
+		CreatedAt:   a.CreatedAt,
+	}
+}
+
+// loadAttachmentsForMessages loads attachments for a slice of messages in batch
+func (h *Handler) loadAttachmentsForMessages(ctx context.Context, messages []message.MessageWithUser) {
+	if len(messages) == 0 {
+		return
+	}
+
+	messageIDs := make([]string, len(messages))
+	for i, m := range messages {
+		messageIDs[i] = m.ID
+	}
+
+	attachmentsMap, err := h.fileRepo.ListForMessages(ctx, messageIDs)
+	if err != nil {
+		return
+	}
+
+	for i := range messages {
+		if attachments, ok := attachmentsMap[messages[i].ID]; ok {
+			messages[i].Attachments = attachments
+		}
+	}
 }
 
 // threadParticipantToAPI converts a message.ThreadParticipant to openapi.ThreadParticipant

@@ -28,6 +28,7 @@ export type MessageWithUser = components['schemas']['MessageWithUser'];
 export type Reaction = components['schemas']['Reaction'];
 export type ReactionSummary = components['schemas']['ReactionSummary'];
 export type MessageListResult = components['schemas']['MessageListResult'];
+export type Attachment = components['schemas']['Attachment'];
 
 // API types
 export type ApiError = components['schemas']['ApiError'];

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Button as AriaButton } from 'react-aria-components';
 import { Avatar, AvatarStack, Menu, MenuItem, Modal, Button } from '../ui';
 import { ReactionPicker } from './ReactionPicker';
+import { AttachmentDisplay } from './AttachmentDisplay';
 import { useAuth, useAddReaction, useRemoveReaction } from '../../hooks';
 import { useMarkMessageUnread, useUpdateMessage, useDeleteMessage } from '../../hooks/useMessages';
 import { useUIStore } from '../../stores/uiStore';
@@ -204,9 +205,16 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
               </div>
             </div>
           ) : (
-            <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
-              {message.content}
-            </div>
+            <>
+              {message.content && (
+                <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+                  {message.content}
+                </div>
+              )}
+              {message.attachments && message.attachments.length > 0 && (
+                <AttachmentDisplay attachments={message.attachments} />
+              )}
+            </>
           )}
 
           {/* Reactions */}

@@ -2,6 +2,8 @@ package message
 
 import (
 	"time"
+
+	"github.com/feather/api/internal/file"
 )
 
 type Message struct {
@@ -24,6 +26,7 @@ type MessageWithUser struct {
 	UserAvatarURL      *string             `json:"user_avatar_url,omitempty"`
 	Reactions          []Reaction          `json:"reactions,omitempty"`
 	ThreadParticipants []ThreadParticipant `json:"thread_participants,omitempty"`
+	Attachments        []file.Attachment   `json:"attachments,omitempty"`
 }
 
 type ThreadParticipant struct {

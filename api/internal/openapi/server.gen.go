@@ -62,6 +62,18 @@ type ApiErrorResponse struct {
 	Error ApiError `json:"error"`
 }
 
+// Attachment defines model for Attachment.
+type Attachment struct {
+	ContentType string    `json:"content_type"`
+	CreatedAt   time.Time `json:"created_at"`
+	Filename    string    `json:"filename"`
+	Id          string    `json:"id"`
+	SizeBytes   int64     `json:"size_bytes"`
+
+	// Url Download URL for the attachment
+	Url string `json:"url"`
+}
+
 // AuthResponse defines model for AuthResponse.
 type AuthResponse struct {
 	User User `json:"user"`
@@ -202,6 +214,7 @@ type MessageListResult struct {
 
 // MessageWithUser defines model for MessageWithUser.
 type MessageWithUser struct {
+	Attachments        *[]Attachment        `json:"attachments,omitempty"`
 	ChannelId          string               `json:"channel_id"`
 	Content            string               `json:"content"`
 	CreatedAt          time.Time            `json:"created_at"`
@@ -237,8 +250,10 @@ type RegisterInput struct {
 
 // SendMessageInput defines model for SendMessageInput.
 type SendMessageInput struct {
-	Content        string  `json:"content"`
-	ThreadParentId *string `json:"thread_parent_id,omitempty"`
+	// AttachmentIds IDs of uploaded attachments to include with this message
+	AttachmentIds  *[]string `json:"attachment_ids,omitempty"`
+	Content        *string   `json:"content,omitempty"`
+	ThreadParentId *string   `json:"thread_parent_id,omitempty"`
 }
 
 // SuccessResponse defines model for SuccessResponse.

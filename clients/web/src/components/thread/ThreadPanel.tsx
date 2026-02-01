@@ -1,9 +1,11 @@
-import { useState, useRef, type KeyboardEvent, type FormEvent } from 'react';
+import { useState, useRef, useCallback, type KeyboardEvent, type FormEvent } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { useThreadMessages, useSendThreadReply, useAuth } from '../../hooks';
+import { Button as AriaButton, DropZone, FileTrigger } from 'react-aria-components';
+import { useThreadMessages, useSendThreadReply, useAuth, useUploadFile } from '../../hooks';
 import { useUIStore } from '../../stores/uiStore';
 import { Avatar, MessageSkeleton } from '../ui';
 import { ReactionPicker } from '../message/ReactionPicker';
+import { AttachmentDisplay } from '../message/AttachmentDisplay';
 import { cn, formatTime } from '../../lib/utils';
 import { messagesApi } from '../../api/messages';
 import type { MessageWithUser, MessageListResult } from '@feather/api-client';
@@ -224,9 +226,14 @@ function ParentMessage({ message }: { message: MessageWithUser }) {
               {formatTime(message.created_at)}
             </span>
           </div>
-          <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
-            {message.content}
-          </div>
+          {message.content && (
+            <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+              {message.content}
+            </div>
+          )}
+          {message.attachments && message.attachments.length > 0 && (
+            <AttachmentDisplay attachments={message.attachments} />
+          )}
 
           {/* Reactions */}
           {Object.values(reactionGroups).length > 0 && (
@@ -397,9 +404,14 @@ function ThreadMessage({ message, parentMessageId }: ThreadMessageProps) {
               {formatTime(message.created_at)}
             </span>
           </div>
-          <div className="text-sm text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
-            {message.content}
-          </div>
+          {message.content && (
+            <div className="text-sm text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+              {message.content}
+            </div>
+          )}
+          {message.attachments && message.attachments.length > 0 && (
+            <AttachmentDisplay attachments={message.attachments} />
+          )}
 
           {/* Reactions */}
           {Object.values(reactionGroups).length > 0 && (
@@ -452,20 +464,95 @@ interface ThreadComposerProps {
   channelId: string;
 }
 
+interface PendingAttachment {
+  id: string;
+  file: File;
+  previewUrl?: string;
+  status: 'pending' | 'uploading' | 'complete' | 'error';
+  uploadedId?: string;
+}
+
+const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
 function ThreadComposer({ parentMessageId, channelId }: ThreadComposerProps) {
   const [content, setContent] = useState('');
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sendReply = useSendThreadReply(parentMessageId, channelId);
+  const uploadFile = useUploadFile(channelId);
+
+  const uploadAttachment = useCallback(async (attachment: PendingAttachment) => {
+    setPendingAttachments((prev) =>
+      prev.map((a) => (a.id === attachment.id ? { ...a, status: 'uploading' } : a))
+    );
+
+    try {
+      const result = await uploadFile.mutateAsync(attachment.file);
+      setPendingAttachments((prev) =>
+        prev.map((a) =>
+          a.id === attachment.id
+            ? { ...a, status: 'complete', uploadedId: result.file.id }
+            : a
+        )
+      );
+    } catch {
+      setPendingAttachments((prev) =>
+        prev.map((a) =>
+          a.id === attachment.id ? { ...a, status: 'error' } : a
+        )
+      );
+    }
+  }, [uploadFile]);
+
+  const handleFilesSelected = useCallback((files: File[]) => {
+    const validFiles = files.filter((file) => file.size <= MAX_FILE_SIZE);
+    const newAttachments: PendingAttachment[] = validFiles.map((file) => {
+      const isImage = ACCEPTED_IMAGE_TYPES.includes(file.type);
+      return {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        file,
+        previewUrl: isImage ? URL.createObjectURL(file) : undefined,
+        status: 'pending' as const,
+      };
+    });
+
+    setPendingAttachments((prev) => [...prev, ...newAttachments]);
+    newAttachments.forEach((attachment) => uploadAttachment(attachment));
+  }, [uploadAttachment]);
+
+  const removeAttachment = useCallback((id: string) => {
+    setPendingAttachments((prev) => {
+      const attachment = prev.find((a) => a.id === id);
+      if (attachment?.previewUrl) URL.revokeObjectURL(attachment.previewUrl);
+      return prev.filter((a) => a.id !== id);
+    });
+  }, []);
+
+  const completedAttachmentIds = pendingAttachments
+    .filter((a) => a.status === 'complete' && a.uploadedId)
+    .map((a) => a.uploadedId!);
+
+  const hasContent = content.trim() !== '';
+  const hasAttachments = completedAttachmentIds.length > 0;
+  const isUploading = pendingAttachments.some((a) => a.status === 'uploading');
+  const canSend = (hasContent || hasAttachments) && !sendReply.isPending && !isUploading;
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
-
-    const trimmedContent = content.trim();
-    if (!trimmedContent || sendReply.isPending) return;
+    if (!canSend) return;
 
     try {
-      await sendReply.mutateAsync(trimmedContent);
+      await sendReply.mutateAsync({
+        content: content.trim() || undefined,
+        attachment_ids: hasAttachments ? completedAttachmentIds : undefined,
+      });
       setContent('');
+      pendingAttachments.forEach((a) => {
+        if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+      });
+      setPendingAttachments([]);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -490,18 +577,104 @@ function ThreadComposer({ parentMessageId, channelId }: ThreadComposerProps) {
   };
 
   return (
-    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-      <form onSubmit={handleSubmit}>
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => handleChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Reply..."
-          rows={1}
-          className="w-full px-3 py-2 resize-none border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-24"
-        />
-      </form>
+    <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+      {/* Pending attachments preview */}
+      {pendingAttachments.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {pendingAttachments.map((attachment) => (
+            <div
+              key={attachment.id}
+              className={cn(
+                'relative group rounded border overflow-hidden',
+                attachment.status === 'error'
+                  ? 'border-red-300 dark:border-red-700'
+                  : 'border-gray-200 dark:border-gray-700'
+              )}
+            >
+              {attachment.previewUrl ? (
+                <img src={attachment.previewUrl} alt={attachment.file.name} className="w-12 h-12 object-cover" />
+              ) : (
+                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+              {attachment.status === 'uploading' && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => removeAttachment(attachment.id)}
+                className="absolute top-0 right-0 p-0.5 bg-black/50 text-white rounded-bl opacity-0 group-hover:opacity-100"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <DropZone
+        onDropEnter={() => setIsDragging(true)}
+        onDropExit={() => setIsDragging(false)}
+        onDrop={async (e) => {
+          setIsDragging(false);
+          const files = await Promise.all(
+            e.items.filter((i) => i.kind === 'file').map((i) => i.getFile())
+          );
+          handleFilesSelected(files.filter((f): f is File => f !== null));
+        }}
+        className={cn('rounded-lg', isDragging && 'ring-2 ring-primary-500')}
+      >
+        <form onSubmit={handleSubmit}>
+          <div className="border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
+            <textarea
+              ref={textareaRef}
+              value={content}
+              onChange={(e) => handleChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Reply..."
+              rows={1}
+              className="w-full px-3 py-2 resize-none bg-transparent text-gray-900 dark:text-white text-sm placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none max-h-24"
+            />
+            <div className="flex items-center justify-between px-1.5 py-1">
+              <FileTrigger
+                acceptedFileTypes={['image/*', '.pdf', '.txt', '.doc', '.docx']}
+                allowsMultiple
+                onSelect={(files) => files && handleFilesSelected(Array.from(files))}
+              >
+                <AriaButton
+                  className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  aria-label="Attach files"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </AriaButton>
+              </FileTrigger>
+              <button
+                type="submit"
+                disabled={!canSend}
+                className={cn(
+                  'p-1 rounded transition-colors',
+                  canSend
+                    ? 'text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'
+                    : 'text-gray-400 cursor-not-allowed'
+                )}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </form>
+      </DropZone>
     </div>
   );
 }

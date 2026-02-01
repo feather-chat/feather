@@ -840,11 +840,23 @@ export interface components {
             user_avatar_url?: string;
             reactions?: components["schemas"]["Reaction"][];
             thread_participants?: components["schemas"]["ThreadParticipant"][];
+            attachments?: components["schemas"]["Attachment"][];
         };
         ThreadParticipant: {
             user_id: string;
             display_name?: string;
             avatar_url?: string;
+        };
+        Attachment: {
+            id: string;
+            filename: string;
+            content_type: string;
+            /** Format: int64 */
+            size_bytes: number;
+            /** @description Download URL for the attachment */
+            url: string;
+            /** Format: date-time */
+            created_at: string;
         };
         Reaction: {
             id: string;
@@ -1090,8 +1102,10 @@ export interface components {
             description?: string;
         };
         SendMessageInput: {
-            content: string;
+            content?: string;
             thread_parent_id?: string;
+            /** @description IDs of uploaded attachments to include with this message */
+            attachment_ids?: string[];
         };
         ListMessagesInput: {
             cursor?: string;

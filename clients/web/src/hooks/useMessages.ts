@@ -68,12 +68,19 @@ export function useSendMessage(channelId: string) {
   });
 }
 
+interface SendThreadReplyInput {
+  content?: string;
+  attachment_ids?: string[];
+}
+
 export function useSendThreadReply(parentMessageId: string, channelId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (content: string) =>
-      messagesApi.send(channelId, { content, thread_parent_id: parentMessageId }),
+    mutationFn: (input: SendThreadReplyInput | string) => {
+      const params = typeof input === 'string' ? { content: input } : input;
+      return messagesApi.send(channelId, { ...params, thread_parent_id: parentMessageId });
+    },
     onSuccess: (data) => {
       // Add to thread cache (threads are ordered ASC, so append to end)
       queryClient.setQueryData(
