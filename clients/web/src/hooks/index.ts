@@ -12,3 +12,4 @@ export { useThreadPanel, useProfilePanel } from './usePanel';
 export { useSidebar } from './useSidebar';
 export { useDarkMode } from './useDarkMode';
 export { useThreadSubscription, useSubscribeToThread, useUnsubscribeFromThread } from './useThreadSubscription';
+export { useMentions } from './useMentions';
