@@ -1,10 +1,14 @@
 import type { SSEEvent, SSEEventType } from '@feather/api-client';
 
-type EventHandler = (event: SSEEvent) => void;
+type EventHandler<T extends SSEEvent = SSEEvent> = (event: T) => void;
+
+// Extract a specific event type from the SSEEvent union by its type property
+type SSEEventByType<T extends SSEEventType> = Extract<SSEEvent, { type: T }>;
 
 export class SSEConnection {
   private eventSource: EventSource | null = null;
-  private handlers: Map<SSEEventType | '*', EventHandler[]> = new Map();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private handlers: Map<SSEEventType | '*', EventHandler<any>[]> = new Map();
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private reconnectDelay = 3000;
   private isConnecting = false;
@@ -66,6 +70,8 @@ export class SSEConnection {
     }, this.reconnectDelay);
   }
 
+  on<T extends SSEEventType>(eventType: T, handler: EventHandler<SSEEventByType<T>>): () => void;
+  on(eventType: '*', handler: EventHandler<SSEEvent>): () => void;
   on(eventType: SSEEventType | '*', handler: EventHandler): () => void {
     const handlers = this.handlers.get(eventType) || [];
     handlers.push(handler);

@@ -1449,15 +1449,250 @@ components:
         - presence.changed
 
     SSEEvent:
+      oneOf:
+        - $ref: '#/components/schemas/SSEEventConnected'
+        - $ref: '#/components/schemas/SSEEventHeartbeat'
+        - $ref: '#/components/schemas/SSEEventMessageNew'
+        - $ref: '#/components/schemas/SSEEventMessageUpdated'
+        - $ref: '#/components/schemas/SSEEventMessageDeleted'
+        - $ref: '#/components/schemas/SSEEventReactionAdded'
+        - $ref: '#/components/schemas/SSEEventReactionRemoved'
+        - $ref: '#/components/schemas/SSEEventChannelCreated'
+        - $ref: '#/components/schemas/SSEEventChannelUpdated'
+        - $ref: '#/components/schemas/SSEEventChannelArchived'
+        - $ref: '#/components/schemas/SSEEventChannelMemberAdded'
+        - $ref: '#/components/schemas/SSEEventChannelMemberRemoved'
+        - $ref: '#/components/schemas/SSEEventChannelRead'
+        - $ref: '#/components/schemas/SSEEventTypingStart'
+        - $ref: '#/components/schemas/SSEEventTypingStop'
+        - $ref: '#/components/schemas/SSEEventPresenceChanged'
+      discriminator:
+        propertyName: type
+        mapping:
+          connected: '#/components/schemas/SSEEventConnected'
+          heartbeat: '#/components/schemas/SSEEventHeartbeat'
+          message.new: '#/components/schemas/SSEEventMessageNew'
+          message.updated: '#/components/schemas/SSEEventMessageUpdated'
+          message.deleted: '#/components/schemas/SSEEventMessageDeleted'
+          reaction.added: '#/components/schemas/SSEEventReactionAdded'
+          reaction.removed: '#/components/schemas/SSEEventReactionRemoved'
+          channel.created: '#/components/schemas/SSEEventChannelCreated'
+          channel.updated: '#/components/schemas/SSEEventChannelUpdated'
+          channel.archived: '#/components/schemas/SSEEventChannelArchived'
+          channel.member_added: '#/components/schemas/SSEEventChannelMemberAdded'
+          channel.member_removed: '#/components/schemas/SSEEventChannelMemberRemoved'
+          channel.read: '#/components/schemas/SSEEventChannelRead'
+          typing.start: '#/components/schemas/SSEEventTypingStart'
+          typing.stop: '#/components/schemas/SSEEventTypingStop'
+          presence.changed: '#/components/schemas/SSEEventPresenceChanged'
+
+    SSEEventConnected:
       type: object
       required: [type]
       properties:
         id:
           type: string
         type:
-          $ref: '#/components/schemas/SSEEventType'
+          type: string
+          enum: [connected]
+
+    SSEEventHeartbeat:
+      type: object
+      required: [type]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [heartbeat]
+
+    SSEEventMessageNew:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [message.new]
+        data:
+          $ref: '#/components/schemas/MessageWithUser'
+
+    SSEEventMessageUpdated:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [message.updated]
+        data:
+          $ref: '#/components/schemas/MessageWithUser'
+
+    SSEEventMessageDeleted:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [message.deleted]
         data:
           type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+
+    SSEEventReactionAdded:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [reaction.added]
+        data:
+          $ref: '#/components/schemas/Reaction'
+
+    SSEEventReactionRemoved:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [reaction.removed]
+        data:
+          type: object
+          required: [message_id, user_id, emoji]
+          properties:
+            message_id:
+              type: string
+            user_id:
+              type: string
+            emoji:
+              type: string
+
+    SSEEventChannelCreated:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [channel.created]
+        data:
+          $ref: '#/components/schemas/Channel'
+
+    SSEEventChannelUpdated:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [channel.updated]
+        data:
+          $ref: '#/components/schemas/Channel'
+
+    SSEEventChannelArchived:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [channel.archived]
+        data:
+          $ref: '#/components/schemas/Channel'
+
+    SSEEventChannelMemberAdded:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [channel.member_added]
+        data:
+          type: object
+          required: [channel_id]
+          properties:
+            channel_id:
+              type: string
+
+    SSEEventChannelMemberRemoved:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [channel.member_removed]
+        data:
+          type: object
+          required: [channel_id]
+          properties:
+            channel_id:
+              type: string
+
+    SSEEventChannelRead:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [channel.read]
+        data:
+          $ref: '#/components/schemas/ChannelReadEventData'
+
+    SSEEventTypingStart:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [typing.start]
+        data:
+          $ref: '#/components/schemas/TypingEventData'
+
+    SSEEventTypingStop:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [typing.stop]
+        data:
+          $ref: '#/components/schemas/TypingEventData'
+
+    SSEEventPresenceChanged:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [presence.changed]
+        data:
+          $ref: '#/components/schemas/PresenceData'
 
     TypingEventData:
       type: object

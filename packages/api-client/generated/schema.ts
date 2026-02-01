@@ -883,10 +883,158 @@ export interface components {
         };
         /** @enum {string} */
         SSEEventType: "connected" | "heartbeat" | "message.new" | "message.updated" | "message.deleted" | "reaction.added" | "reaction.removed" | "channel.created" | "channel.updated" | "channel.archived" | "channel.member_added" | "channel.member_removed" | "channel.read" | "typing.start" | "typing.stop" | "presence.changed";
-        SSEEvent: {
+        SSEEvent: components["schemas"]["SSEEventConnected"] | components["schemas"]["SSEEventHeartbeat"] | components["schemas"]["SSEEventMessageNew"] | components["schemas"]["SSEEventMessageUpdated"] | components["schemas"]["SSEEventMessageDeleted"] | components["schemas"]["SSEEventReactionAdded"] | components["schemas"]["SSEEventReactionRemoved"] | components["schemas"]["SSEEventChannelCreated"] | components["schemas"]["SSEEventChannelUpdated"] | components["schemas"]["SSEEventChannelArchived"] | components["schemas"]["SSEEventChannelMemberAdded"] | components["schemas"]["SSEEventChannelMemberRemoved"] | components["schemas"]["SSEEventChannelRead"] | components["schemas"]["SSEEventTypingStart"] | components["schemas"]["SSEEventTypingStop"] | components["schemas"]["SSEEventPresenceChanged"];
+        SSEEventConnected: {
             id?: string;
-            type: components["schemas"]["SSEEventType"];
-            data?: Record<string, never>;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "connected";
+        };
+        SSEEventHeartbeat: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "heartbeat";
+        };
+        SSEEventMessageNew: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "message.new";
+            data: components["schemas"]["MessageWithUser"];
+        };
+        SSEEventMessageUpdated: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "message.updated";
+            data: components["schemas"]["MessageWithUser"];
+        };
+        SSEEventMessageDeleted: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "message.deleted";
+            data: {
+                id: string;
+            };
+        };
+        SSEEventReactionAdded: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "reaction.added";
+            data: components["schemas"]["Reaction"];
+        };
+        SSEEventReactionRemoved: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "reaction.removed";
+            data: {
+                message_id: string;
+                user_id: string;
+                emoji: string;
+            };
+        };
+        SSEEventChannelCreated: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "channel.created";
+            data: components["schemas"]["Channel"];
+        };
+        SSEEventChannelUpdated: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "channel.updated";
+            data: components["schemas"]["Channel"];
+        };
+        SSEEventChannelArchived: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "channel.archived";
+            data: components["schemas"]["Channel"];
+        };
+        SSEEventChannelMemberAdded: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "channel.member_added";
+            data: {
+                channel_id: string;
+            };
+        };
+        SSEEventChannelMemberRemoved: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "channel.member_removed";
+            data: {
+                channel_id: string;
+            };
+        };
+        SSEEventChannelRead: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "channel.read";
+            data: components["schemas"]["ChannelReadEventData"];
+        };
+        SSEEventTypingStart: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "typing.start";
+            data: components["schemas"]["TypingEventData"];
+        };
+        SSEEventTypingStop: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "typing.stop";
+            data: components["schemas"]["TypingEventData"];
+        };
+        SSEEventPresenceChanged: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "presence.changed";
+            data: components["schemas"]["PresenceData"];
         };
         TypingEventData: {
             user_id: string;
