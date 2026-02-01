@@ -1,12 +1,12 @@
 import { useCallback, useRef } from 'react';
 import { workspacesApi } from '../api/workspaces';
 
-const TYPING_DEBOUNCE = 1000; // 1 second debounce for sending start
-const TYPING_STOP_DELAY = 3000; // 3 seconds before auto-sending stop
+const TYPING_THROTTLE = 2000; // Don't re-send typing.start more than once per 2 seconds
+const TYPING_STOP_DELAY = 3000; // 3 seconds of no typing before auto-sending stop
 
 export function useTyping(workspaceId: string, channelId: string) {
   const isTypingRef = useRef(false);
-  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSentRef = useRef(0);
   const stopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sendTypingStart = useCallback(async () => {
@@ -31,16 +31,13 @@ export function useTyping(workspaceId: string, channelId: string) {
       clearTimeout(stopTimeoutRef.current);
     }
 
-    // If not currently typing, send start after debounce
-    if (!isTypingRef.current) {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
+    const now = Date.now();
 
-      debounceTimeoutRef.current = setTimeout(() => {
-        isTypingRef.current = true;
-        sendTypingStart();
-      }, TYPING_DEBOUNCE);
+    // Send typing.start immediately, but throttle to avoid spamming
+    if (!isTypingRef.current || now - lastSentRef.current > TYPING_THROTTLE) {
+      isTypingRef.current = true;
+      lastSentRef.current = now;
+      sendTypingStart();
     }
 
     // Set up auto-stop
@@ -53,9 +50,6 @@ export function useTyping(workspaceId: string, channelId: string) {
   }, [sendTypingStart, sendTypingStop]);
 
   const onStopTyping = useCallback(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
     if (stopTimeoutRef.current) {
       clearTimeout(stopTimeoutRef.current);
     }
