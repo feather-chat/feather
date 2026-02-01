@@ -3,6 +3,7 @@ package email
 import (
 	"context"
 	"embed"
+	"fmt"
 	"html/template"
 	"log"
 
@@ -97,4 +98,61 @@ func (s *Service) SendEmailVerification(ctx context.Context, to string, data Ver
 	body += data.VerifyURL + "\n"
 
 	return s.sender.Send(ctx, to, subject, body, "")
+}
+
+// NotificationDigestItem represents a single notification in a digest
+type NotificationDigestItem struct {
+	ChannelName string
+	SenderName  string
+	Preview     string
+	Type        string
+}
+
+// NotificationDigestData contains data for notification digest emails
+type NotificationDigestData struct {
+	WorkspaceName string
+	Items         []NotificationDigestItem
+	WorkspaceURL  string
+}
+
+func (s *Service) SendNotificationDigest(ctx context.Context, to string, data NotificationDigestData) error {
+	if !s.enabled {
+		log.Printf("[email] Would send notification digest to %s: %d notifications from %s", to, len(data.Items), data.WorkspaceName)
+		return nil
+	}
+
+	count := len(data.Items)
+	subject := ""
+	if count == 1 {
+		subject = "1 new notification in " + data.WorkspaceName
+	} else {
+		subject = fmt.Sprintf("%d new notifications in %s", count, data.WorkspaceName)
+	}
+
+	// Build plain text body
+	body := "You have new notifications in " + data.WorkspaceName + ":\n\n"
+	for _, item := range data.Items {
+		prefix := ""
+		switch item.Type {
+		case "mention":
+			prefix = "[Mentioned] "
+		case "dm":
+			prefix = "[DM] "
+		case "channel":
+			prefix = "[@channel] "
+		case "here":
+			prefix = "[@here] "
+		case "everyone":
+			prefix = "[@everyone] "
+		}
+		body += prefix + item.SenderName + " in #" + item.ChannelName + ": " + item.Preview + "\n"
+	}
+	body += "\nOpen Feather: " + data.WorkspaceURL + "\n"
+
+	return s.sender.Send(ctx, to, subject, body, "")
+}
+
+// GetPublicURL returns the public URL for the service
+func (s *Service) GetPublicURL() string {
+	return s.publicURL
 }

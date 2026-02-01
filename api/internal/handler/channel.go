@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/feather/api/internal/channel"
+	"github.com/feather/api/internal/notification"
 	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/sse"
 	"github.com/feather/api/internal/workspace"
@@ -549,4 +550,83 @@ func (h *Handler) MarkAllChannelsRead(ctx context.Context, request openapi.MarkA
 	return openapi.MarkAllChannelsRead200JSONResponse{
 		Success: true,
 	}, nil
+}
+
+// GetChannelNotifications returns notification preferences for a channel
+func (h *Handler) GetChannelNotifications(ctx context.Context, request openapi.GetChannelNotificationsRequestObject) (openapi.GetChannelNotificationsResponseObject, error) {
+	userID := h.getUserID(ctx)
+	if userID == "" {
+		return nil, errors.New("not authenticated")
+	}
+
+	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	// Check workspace membership
+	_, err = h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get preferences (will return defaults if not set)
+	pref, err := h.notificationService.GetPreferences(ctx, userID, string(request.Id), ch.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	apiPrefs := notificationPreferencesToAPI(pref)
+	return openapi.GetChannelNotifications200JSONResponse{
+		Preferences: &apiPrefs,
+	}, nil
+}
+
+// UpdateChannelNotifications updates notification preferences for a channel
+func (h *Handler) UpdateChannelNotifications(ctx context.Context, request openapi.UpdateChannelNotificationsRequestObject) (openapi.UpdateChannelNotificationsResponseObject, error) {
+	userID := h.getUserID(ctx)
+	if userID == "" {
+		return nil, errors.New("not authenticated")
+	}
+
+	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	// Check workspace membership
+	_, err = h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate notify level
+	notifyLevel := string(request.Body.NotifyLevel)
+	if notifyLevel != notification.NotifyAll && notifyLevel != notification.NotifyMentions && notifyLevel != notification.NotifyNone {
+		return nil, errors.New("invalid notify_level")
+	}
+
+	pref := &notification.NotificationPreference{
+		UserID:       userID,
+		ChannelID:    string(request.Id),
+		NotifyLevel:  notifyLevel,
+		EmailEnabled: request.Body.EmailEnabled,
+	}
+
+	if err := h.notificationService.SetPreferences(ctx, pref); err != nil {
+		return nil, err
+	}
+
+	apiPrefs := notificationPreferencesToAPI(pref)
+	return openapi.UpdateChannelNotifications200JSONResponse{
+		Preferences: &apiPrefs,
+	}, nil
+}
+
+// notificationPreferencesToAPI converts notification preferences to API type
+func notificationPreferencesToAPI(pref *notification.NotificationPreference) openapi.NotificationPreferences {
+	return openapi.NotificationPreferences{
+		NotifyLevel:  openapi.NotifyLevel(pref.NotifyLevel),
+		EmailEnabled: pref.EmailEnabled,
+	}
 }
