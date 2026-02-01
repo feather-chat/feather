@@ -79,7 +79,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
   return (
     <div className="w-96 border-l border-gray-200 dark:border-gray-700 flex flex-col bg-white dark:bg-gray-900">
       {/* Header */}
-      <div className="flex items-center justify-between py-3 px-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         <h3 className="font-semibold text-gray-900 dark:text-white">Thread</h3>
         <button
           onClick={closeThread}
