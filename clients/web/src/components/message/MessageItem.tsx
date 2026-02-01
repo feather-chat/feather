@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Avatar } from '../ui';
+import { Avatar, Dropdown, DropdownItem, Modal, Button } from '../ui';
 import { ReactionPicker } from './ReactionPicker';
 import { useAuth, useAddReaction, useRemoveReaction } from '../../hooks';
-import { useMarkMessageUnread } from '../../hooks/useMessages';
+import { useMarkMessageUnread, useUpdateMessage, useDeleteMessage } from '../../hooks/useMessages';
 import { useUIStore } from '../../stores/uiStore';
 import { formatTime, formatRelativeTime, cn } from '../../lib/utils';
 import type { MessageWithUser } from '@feather/api-client';
@@ -35,11 +35,18 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [showActions, setShowActions] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const { user } = useAuth();
   const { openThread, openProfile } = useUIStore();
   const addReaction = useAddReaction(channelId);
   const removeReaction = useRemoveReaction(channelId);
   const markUnread = useMarkMessageUnread(workspaceId || '');
+  const updateMessage = useUpdateMessage();
+  const deleteMessage = useDeleteMessage();
 
   const isDeleted = !!message.deleted_at;
   const isEdited = !!message.edited_at;
@@ -71,6 +78,53 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
     setShowReactionPicker(false);
   };
 
+  const handleStartEdit = () => {
+    setEditContent(message.content);
+    setIsEditing(true);
+    setShowDropdown(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent('');
+  };
+
+  const handleSaveEdit = () => {
+    if (editContent.trim() && editContent.trim() !== message.content) {
+      updateMessage.mutate({ messageId: message.id, content: editContent.trim() });
+    }
+    setIsEditing(false);
+    setEditContent('');
+  };
+
+  const handleDeleteClick = () => {
+    setShowDropdown(false);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    deleteMessage.mutate(message.id);
+    setShowDeleteModal(false);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Escape') {
+      handleCancelEdit();
+    } else if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    }
+  };
+
+  // Auto-focus textarea when entering edit mode
+  useEffect(() => {
+    if (isEditing && editTextareaRef.current) {
+      editTextareaRef.current.focus();
+      // Move cursor to end
+      editTextareaRef.current.selectionStart = editTextareaRef.current.value.length;
+    }
+  }, [isEditing]);
+
   if (isDeleted) {
     return (
       <div className="px-4 py-2 text-gray-400 dark:text-gray-500 italic text-sm">
@@ -87,7 +141,9 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
       )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
-        setShowActions(false);
+        if (!showDropdown) {
+          setShowActions(false);
+        }
         setShowReactionPicker(false);
       }}
     >
@@ -117,9 +173,40 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
           </div>
 
           {/* Message content */}
-          <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
-            {message.content}
-          </div>
+          {isEditing ? (
+            <div className="space-y-2 mt-1">
+              <textarea
+                ref={editTextareaRef}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={handleEditKeyDown}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                rows={3}
+              />
+              <div className="flex items-center gap-2 text-sm">
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={updateMessage.isPending || !editContent.trim()}
+                  className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updateMessage.isPending ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  Cancel
+                </button>
+                <span className="text-gray-500 dark:text-gray-400 text-xs">
+                  Escape to cancel, Enter to save
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+              {message.content}
+            </div>
+          )}
 
           {/* Reactions */}
           {Object.values(reactionGroups).length > 0 && (
@@ -177,7 +264,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
       </div>
 
       {/* Action buttons */}
-      {showActions && (
+      {showActions && !isEditing && (
         <div className="absolute right-4 top-0 -translate-y-1/2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm flex items-center">
           <button
             onClick={() => setShowReactionPicker(!showReactionPicker)}
@@ -210,14 +297,47 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
           </button>
 
           {isOwnMessage && (
-            <button
-              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg"
-              title="More actions"
+            <Dropdown
+              open={showDropdown}
+              onOpenChange={setShowDropdown}
+              align="right"
+              trigger={
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className={cn(
+                    'p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg',
+                    showDropdown && 'bg-gray-100 dark:bg-gray-700'
+                  )}
+                  title="More actions"
+                >
+                  <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                  </svg>
+                </button>
+              }
             >
-              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-              </svg>
-            </button>
+              <DropdownItem
+                onClick={handleStartEdit}
+                icon={
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                }
+              >
+                Edit message
+              </DropdownItem>
+              <DropdownItem
+                onClick={handleDeleteClick}
+                variant="danger"
+                icon={
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                }
+              >
+                Delete message
+              </DropdownItem>
+            </Dropdown>
           )}
         </div>
       )}
@@ -228,6 +348,33 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
           <ReactionPicker onSelect={handleAddReaction} />
         </div>
       )}
+
+      {/* Delete confirmation modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete message"
+        size="sm"
+      >
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          Are you sure you want to delete this message? This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDeleteConfirm}
+            isLoading={deleteMessage.isPending}
+          >
+            Delete
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

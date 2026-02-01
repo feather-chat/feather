@@ -5,3 +5,4 @@ export { Avatar } from './Avatar';
 export { Modal } from './Modal';
 export { Skeleton, MessageSkeleton, ChannelListSkeleton } from './Skeleton';
 export { toast, Toaster } from './Toast';
+export { Dropdown, DropdownItem } from './Dropdown';
