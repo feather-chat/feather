@@ -49,7 +49,7 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          required
+          isRequired
           autoComplete="email"
         />
 
@@ -59,7 +59,7 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Your password"
-          required
+          isRequired
           autoComplete="current-password"
         />
 

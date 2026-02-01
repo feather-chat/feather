@@ -154,7 +154,7 @@ function CreateWorkspaceModal({
           value={name}
           onChange={(e) => handleNameChange(e.target.value)}
           placeholder="My Workspace"
-          required
+          isRequired
         />
 
         <Input
@@ -162,14 +162,14 @@ function CreateWorkspaceModal({
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
           placeholder="my-workspace"
-          required
+          isRequired
         />
         <p className="text-xs text-gray-500 dark:text-gray-400">
           3-50 characters, lowercase letters, numbers, and hyphens only
         </p>
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="secondary" onPress={onClose}>
             Cancel
           </Button>
           <Button type="submit" isLoading={createWorkspace.isPending}>

@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useChannels, useWorkspace, useAuth } from '../../hooks';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
 import { useUIStore } from '../../stores/uiStore';
-import { ChannelListSkeleton, Modal, Button, Input, toast } from '../ui';
+import { ChannelListSkeleton, Modal, Button, Input, toast, Tabs, TabList, Tab, TabPanel, RadioGroup, Radio } from '../ui';
 import { useCreateChannel, useMarkAllChannelsAsRead, useCreateDM, useJoinChannel } from '../../hooks/useChannels';
 import { cn, getChannelIcon } from '../../lib/utils';
 import type { ChannelWithMembership, ChannelType } from '@feather/api-client';
@@ -164,10 +164,7 @@ function ChannelSection({
           className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
         >
           <svg
-            className={cn(
-              'w-3 h-3 transition-transform',
-              isExpanded ? 'rotate-90' : ''
-            )}
+            className={cn('w-3 h-3 transition-transform', isExpanded && 'rotate-90')}
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -224,8 +221,7 @@ function ChannelItem({ channel, workspaceId, isActive }: ChannelItemProps) {
     <Link
       to={`/workspaces/${workspaceId}/channels/${channel.id}`}
       className={cn(
-        'flex items-center gap-2 px-2 py-1.5 rounded text-sm',
-        'hover:bg-gray-200 dark:hover:bg-gray-700',
+        'flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-gray-200 dark:hover:bg-gray-700',
         isActive
           ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
           : 'text-gray-700 dark:text-gray-300'
@@ -338,114 +334,76 @@ function ChannelBrowserModal({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Channels">
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
-        <button
-          onClick={() => setTab('browse')}
-          className={cn(
-            'px-4 py-2 text-sm font-medium border-b-2 -mb-px',
-            tab === 'browse'
-              ? 'border-primary-600 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-          )}
-        >
-          Browse
-        </button>
-        <button
-          onClick={() => setTab('create')}
-          className={cn(
-            'px-4 py-2 text-sm font-medium border-b-2 -mb-px',
-            tab === 'create'
-              ? 'border-primary-600 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-          )}
-        >
-          Create New
-        </button>
-      </div>
-
-      {tab === 'browse' ? (
-        <div className="space-y-1 max-h-64 overflow-y-auto">
-          {unjoinedChannels.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-              No channels to join. Create a new one!
-            </p>
-          ) : (
-            unjoinedChannels.map((channel) => (
-              <div
-                key={channel.id}
-                className="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-500 dark:text-gray-400">#</span>
-                  <span className="text-gray-900 dark:text-white">{channel.name}</span>
-                </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => handleJoin(channel.id)}
-                  isLoading={joiningId === channel.id}
-                  disabled={joiningId !== null}
+      <Tabs selectedKey={tab} onSelectionChange={(key) => setTab(key as 'browse' | 'create')} className="mb-4">
+        <TabList>
+          <Tab id="browse">Browse</Tab>
+          <Tab id="create">Create New</Tab>
+        </TabList>
+        <TabPanel id="browse" className="mt-4">
+          <div className="space-y-1 max-h-64 overflow-y-auto">
+            {unjoinedChannels.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                No channels to join. Create a new one!
+              </p>
+            ) : (
+              unjoinedChannels.map((channel) => (
+                <div
+                  key={channel.id}
+                  className="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  Join
-                </Button>
-              </div>
-            ))
-          )}
-        </div>
-      ) : (
-        <form onSubmit={handleCreate} className="space-y-4">
-          <div>
-            <Input
-              label="Channel Name"
-              value={name}
-              onChange={handleNameChange}
-              placeholder="general"
-              required
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Lowercase letters, numbers, and dashes only
-            </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500 dark:text-gray-400">#</span>
+                    <span className="text-gray-900 dark:text-white">{channel.name}</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onPress={() => handleJoin(channel.id)}
+                    isLoading={joiningId === channel.id}
+                    isDisabled={joiningId !== null}
+                  >
+                    Join
+                  </Button>
+                </div>
+              ))
+            )}
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Channel Type
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  value="public"
-                  checked={type === 'public'}
-                  onChange={() => setType('public')}
-                  className="text-primary-600"
-                />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Public</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  value="private"
-                  checked={type === 'private'}
-                  onChange={() => setType('private')}
-                  className="text-primary-600"
-                />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Private</span>
-              </label>
+        </TabPanel>
+        <TabPanel id="create" className="mt-4">
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div>
+              <Input
+                label="Channel Name"
+                value={name}
+                onChange={handleNameChange}
+                placeholder="general"
+                isRequired
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Lowercase letters, numbers, and dashes only
+              </p>
             </div>
-          </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button type="submit" isLoading={createChannel.isPending}>
-              Create
-            </Button>
-          </div>
-        </form>
-      )}
+            <RadioGroup
+              label="Channel Type"
+              value={type}
+              onChange={(value) => setType(value as ChannelType)}
+            >
+              <Radio value="public">Public</Radio>
+              <Radio value="private">Private</Radio>
+            </RadioGroup>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="secondary" onPress={handleClose}>
+                Cancel
+              </Button>
+              <Button type="submit" isLoading={createChannel.isPending}>
+                Create
+              </Button>
+            </div>
+          </form>
+        </TabPanel>
+      </Tabs>
     </Modal>
   );
 }
@@ -532,10 +490,10 @@ function NewDMModal({
         </div>
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={handleClose}>
+          <Button type="button" variant="secondary" onPress={handleClose}>
             Cancel
           </Button>
-          <Button type="submit" disabled={!selectedUserId} isLoading={createDM.isPending}>
+          <Button type="submit" isDisabled={!selectedUserId} isLoading={createDM.isPending}>
             Start Conversation
           </Button>
         </div>

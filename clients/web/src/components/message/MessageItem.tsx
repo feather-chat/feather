@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Avatar, Dropdown, DropdownItem, Modal, Button } from '../ui';
+import { Button as AriaButton } from 'react-aria-components';
+import { Avatar, Menu, MenuItem, Modal, Button } from '../ui';
 import { ReactionPicker } from './ReactionPicker';
 import { useAuth, useAddReaction, useRemoveReaction } from '../../hooks';
 import { useMarkMessageUnread, useUpdateMessage, useDeleteMessage } from '../../hooks/useMessages';
 import { useUIStore } from '../../stores/uiStore';
-import { formatTime, formatRelativeTime, cn } from '../../lib/utils';
+import { cn, formatTime, formatRelativeTime } from '../../lib/utils';
 import type { MessageWithUser } from '@feather/api-client';
 
 function ClickableName({ userId, displayName }: { userId?: string; displayName: string }) {
@@ -135,10 +136,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
 
   return (
     <div
-      className={cn(
-        'group px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800/50',
-        'relative'
-      )}
+      className="group px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 relative"
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
         if (!showDropdown) {
@@ -216,8 +214,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
                   key={emoji}
                   onClick={() => handleReactionClick(emoji, hasOwn)}
                   className={cn(
-                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm',
-                    'border transition-colors',
+                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors',
                     hasOwn
                       ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700'
                       : 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -297,27 +294,26 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
           </button>
 
           {isOwnMessage && (
-            <Dropdown
+            <Menu
               open={showDropdown}
               onOpenChange={setShowDropdown}
-              align="right"
+              align="end"
               trigger={
-                <button
-                  onClick={() => setShowDropdown(!showDropdown)}
+                <AriaButton
                   className={cn(
                     'p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg',
                     showDropdown && 'bg-gray-100 dark:bg-gray-700'
                   )}
-                  title="More actions"
+                  aria-label="More actions"
                 >
                   <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                   </svg>
-                </button>
+                </AriaButton>
               }
             >
-              <DropdownItem
-                onClick={handleStartEdit}
+              <MenuItem
+                onAction={handleStartEdit}
                 icon={
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -325,9 +321,9 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
                 }
               >
                 Edit message
-              </DropdownItem>
-              <DropdownItem
-                onClick={handleDeleteClick}
+              </MenuItem>
+              <MenuItem
+                onAction={handleDeleteClick}
                 variant="danger"
                 icon={
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -336,8 +332,8 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
                 }
               >
                 Delete message
-              </DropdownItem>
-            </Dropdown>
+              </MenuItem>
+            </Menu>
           )}
         </div>
       )}
@@ -362,13 +358,13 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
         <div className="flex justify-end gap-3">
           <Button
             variant="secondary"
-            onClick={() => setShowDeleteModal(false)}
+            onPress={() => setShowDeleteModal(false)}
           >
             Cancel
           </Button>
           <Button
             variant="danger"
-            onClick={handleDeleteConfirm}
+            onPress={handleDeleteConfirm}
             isLoading={deleteMessage.isPending}
           >
             Delete

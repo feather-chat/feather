@@ -1,73 +1,89 @@
-import { useEffect, type ReactNode } from 'react';
-import { cn } from '../../lib/utils';
+import { type ReactNode } from 'react';
+import {
+  Dialog,
+  DialogTrigger,
+  Modal as AriaModal,
+  ModalOverlay,
+  Heading,
+} from 'react-aria-components';
+import { tv, type VariantProps } from 'tailwind-variants';
 
-interface ModalProps {
+const modal = tv({
+  slots: {
+    overlay: [
+      'fixed inset-0 z-50 flex items-center justify-center',
+      'bg-black/50',
+      'entering:animate-in entering:fade-in entering:duration-200',
+      'exiting:animate-out exiting:fade-out exiting:duration-150',
+    ],
+    container: [
+      'relative w-full mx-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl',
+      'entering:animate-in entering:zoom-in-95 entering:duration-200',
+      'exiting:animate-out exiting:zoom-out-95 exiting:duration-150',
+    ],
+    header: 'flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700',
+    title: 'text-lg font-semibold text-gray-900 dark:text-white',
+    closeButton: 'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+    content: 'p-6',
+  },
+  variants: {
+    size: {
+      sm: { container: 'max-w-sm' },
+      md: { container: 'max-w-md' },
+      lg: { container: 'max-w-lg' },
+    },
+  },
+  defaultVariants: {
+    size: 'md',
+  },
+});
+
+type ModalVariants = VariantProps<typeof modal>;
+
+interface ModalProps extends ModalVariants {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
   children: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
 }
 
-export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
-  const sizes = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-  };
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
+export function Modal({ isOpen, onClose, title, children, size }: ModalProps) {
+  const styles = modal({ size });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div
-        className={cn(
-          'relative w-full mx-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl',
-          sizes[size]
-        )}
-      >
-        {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {title}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-        <div className="p-6">{children}</div>
-      </div>
-    </div>
+    <ModalOverlay
+      isOpen={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      isDismissable
+      className={styles.overlay()}
+    >
+      <AriaModal className={styles.container()}>
+        <Dialog className="outline-none">
+          {({ close }) => (
+            <>
+              {title && (
+                <div className={styles.header()}>
+                  <Heading slot="title" className={styles.title()}>
+                    {title}
+                  </Heading>
+                  <button
+                    onClick={close}
+                    className={styles.closeButton()}
+                    aria-label="Close"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              <div className={styles.content()}>{children}</div>
+            </>
+          )}
+        </Dialog>
+      </AriaModal>
+    </ModalOverlay>
   );
 }
+
+export { DialogTrigger };

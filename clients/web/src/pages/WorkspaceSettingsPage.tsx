@@ -117,19 +117,19 @@ export function WorkspaceSettingsPage() {
               >
                 <div className="flex items-center gap-3">
                   <Avatar
-                    src={member.user_avatar_url}
-                    name={member.user_display_name || 'User'}
+                    src={member.avatar_url}
+                    name={member.display_name || 'User'}
                     size="md"
                   />
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {member.user_display_name}
+                      {member.display_name}
                       {member.user_id === user?.id && (
                         <span className="ml-2 text-xs text-gray-500">(you)</span>
                       )}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {member.user_email}
+                      {member.email}
                     </p>
                   </div>
                 </div>
@@ -150,7 +150,7 @@ export function WorkspaceSettingsPage() {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => handleRemoveMember(member.user_id)}
+                      onPress={() => handleRemoveMember(member.user_id)}
                     >
                       Remove
                     </Button>

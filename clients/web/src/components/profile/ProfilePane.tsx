@@ -122,7 +122,7 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
         <Button
           variant="secondary"
           className="w-full"
-          onClick={onEdit}
+          onPress={onEdit}
         >
           Edit Profile
         </Button>
@@ -185,7 +185,7 @@ function EditProfileForm({ profile, onCancel, onSuccess }: EditProfileFormProps)
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           placeholder="Your name"
-          required
+          isRequired
         />
 
         <Input
@@ -203,7 +203,7 @@ function EditProfileForm({ profile, onCancel, onSuccess }: EditProfileFormProps)
           type="button"
           variant="secondary"
           className="flex-1"
-          onClick={onCancel}
+          onPress={onCancel}
         >
           Cancel
         </Button>

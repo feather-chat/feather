@@ -37,29 +37,18 @@ export function Avatar({ src, name, size = 'md', status, className, onClick }: A
         <img
           src={src}
           alt={name}
-          className={cn(
-            'rounded-full object-cover',
-            sizes[size]
-          )}
+          className={cn('rounded-full object-cover', sizes[size])}
         />
       ) : (
         <div
-          className={cn(
-            'rounded-full flex items-center justify-center font-medium',
-            'bg-primary-500 text-white',
-            sizes[size]
-          )}
+          className={cn('rounded-full flex items-center justify-center font-medium bg-primary-500 text-white', sizes[size])}
         >
           {getInitials(name)}
         </div>
       )}
       {status && (
         <span
-          className={cn(
-            'absolute rounded-full border-2 border-white dark:border-gray-900',
-            statusColors[status],
-            statusSizes[size]
-          )}
+          className={cn('absolute rounded-full border-2 border-white dark:border-gray-900', statusColors[status], statusSizes[size])}
         />
       )}
     </>

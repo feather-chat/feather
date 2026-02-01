@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCreateInvite } from '../hooks/useWorkspaces';
-import { Button, Input, toast } from '../components/ui';
+import { Button, toast } from '../components/ui';
 
 export function InvitePage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -74,17 +74,18 @@ export function InvitePage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Max uses
               </label>
-              <Input
+              <input
                 type="number"
                 value={maxUses}
                 onChange={(e) => setMaxUses(e.target.value)}
                 placeholder="Unlimited"
                 min="1"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               />
             </div>
           </div>
 
-          <Button onClick={handleCreateInvite} isLoading={createInvite.isPending}>
+          <Button onPress={handleCreateInvite} isLoading={createInvite.isPending}>
             Generate Invite Link
           </Button>
 
@@ -100,7 +101,7 @@ export function InvitePage() {
                   readOnly
                   className="flex-1 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white text-sm"
                 />
-                <Button onClick={handleCopyLink} variant="secondary">
+                <Button onPress={handleCopyLink} variant="secondary">
                   Copy
                 </Button>
               </div>

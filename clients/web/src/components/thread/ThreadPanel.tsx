@@ -4,9 +4,9 @@ import { useThreadMessages, useSendThreadReply, useAuth } from '../../hooks';
 import { useUIStore } from '../../stores/uiStore';
 import { Avatar, MessageSkeleton } from '../ui';
 import { ReactionPicker } from '../message/ReactionPicker';
-import { formatTime, cn } from '../../lib/utils';
+import { cn, formatTime } from '../../lib/utils';
 import { messagesApi } from '../../api/messages';
-import type { MessageWithUser, MessageListResult, Reaction } from '@feather/api-client';
+import type { MessageWithUser, MessageListResult } from '@feather/api-client';
 
 function ClickableName({ userId, displayName }: { userId?: string; displayName: string }) {
   const { openProfile } = useUIStore();
@@ -236,8 +236,7 @@ function ParentMessage({ message }: { message: MessageWithUser }) {
                   key={emoji}
                   onClick={() => handleReactionClick(emoji, hasOwn)}
                   className={cn(
-                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm',
-                    'border transition-colors',
+                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors',
                     hasOwn
                       ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700'
                       : 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -410,8 +409,7 @@ function ThreadMessage({ message, parentMessageId }: ThreadMessageProps) {
                   key={emoji}
                   onClick={() => handleReactionClick(emoji, hasOwn)}
                   className={cn(
-                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs',
-                    'border transition-colors',
+                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs border transition-colors',
                     hasOwn
                       ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700'
                       : 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -501,14 +499,7 @@ function ThreadComposer({ parentMessageId, channelId }: ThreadComposerProps) {
           onKeyDown={handleKeyDown}
           placeholder="Reply..."
           rows={1}
-          className={cn(
-            'w-full px-3 py-2 resize-none',
-            'border border-gray-300 dark:border-gray-600 rounded-lg',
-            'bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm',
-            'placeholder-gray-500 dark:placeholder-gray-400',
-            'focus:outline-none focus:ring-2 focus:ring-primary-500',
-            'max-h-24'
-          )}
+          className="w-full px-3 py-2 resize-none border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 max-h-24"
         />
       </form>
     </div>

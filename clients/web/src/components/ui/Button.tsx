@@ -1,47 +1,59 @@
-import { forwardRef, type ButtonHTMLAttributes } from 'react';
-import { cn } from '../../lib/utils';
+import { type ReactNode } from 'react';
+import { Button as AriaButton, type ButtonProps as AriaButtonProps } from 'react-aria-components';
+import { tv, type VariantProps } from 'tailwind-variants';
 import { Spinner } from './Spinner';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-  isLoading?: boolean;
-}
-
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
-    const variants = {
-      primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
-      secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600',
+const button = tv({
+  base: [
+    'inline-flex items-center justify-center rounded font-medium transition-colors',
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'disabled:opacity-50 disabled:cursor-not-allowed',
+    'data-[pressed]:opacity-90',
+  ],
+  variants: {
+    variant: {
+      primary: 'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500',
+      secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:ring-gray-500 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600',
       ghost: 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800',
-      danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    };
-
-    const sizes = {
+      danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
+    },
+    size: {
       sm: 'px-3 py-1.5 text-sm',
       md: 'px-4 py-2',
       lg: 'px-6 py-3 text-lg',
-    };
+    },
+  },
+  defaultVariants: {
+    variant: 'primary',
+    size: 'md',
+  },
+});
 
-    return (
-      <button
-        ref={ref}
-        className={cn(
-          'inline-flex items-center justify-center rounded font-medium transition-colors',
-          'focus:outline-none focus:ring-2 focus:ring-offset-2',
-          'disabled:opacity-50 disabled:cursor-not-allowed',
-          variants[variant],
-          sizes[size],
-          className
-        )}
-        disabled={disabled || isLoading}
-        {...props}
-      >
-        {isLoading && <Spinner size="sm" className="mr-2" />}
-        {children}
-      </button>
-    );
-  }
-);
+type ButtonVariants = VariantProps<typeof button>;
 
-Button.displayName = 'Button';
+interface ButtonProps extends Omit<AriaButtonProps, 'className' | 'children'>, ButtonVariants {
+  className?: string;
+  isLoading?: boolean;
+  children: ReactNode;
+}
+
+export function Button({
+  className,
+  variant,
+  size,
+  isLoading,
+  children,
+  isDisabled,
+  ...props
+}: ButtonProps) {
+  return (
+    <AriaButton
+      className={button({ variant, size, className })}
+      isDisabled={isDisabled || isLoading}
+      {...props}
+    >
+      {isLoading && <Spinner size="sm" className="mr-2" />}
+      {children}
+    </AriaButton>
+  );
+}

@@ -1,8 +1,5 @@
-import { clsx, type ClassValue } from 'clsx';
-
-export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs);
-}
+// Re-export cn from tailwind-variants for class name merging
+export { cn } from 'tailwind-variants';
 
 export function formatTime(dateString: string): string {
   const date = new Date(dateString);

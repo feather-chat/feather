@@ -11,6 +11,8 @@ React frontend for Feather, a self-hostable Slack alternative.
 - **Vite** for fast development and bundling
 - **TanStack Query** for server state (caching, fetching, background refetch)
 - **Zustand** for client state (UI state, presence)
+- **React Aria Components** for accessible UI primitives (buttons, inputs, modals, menus, tabs)
+- **tailwind-variants** for component styling with variants
 - **Tailwind CSS** for styling
 - **React Router v6** for routing
 
@@ -134,6 +136,32 @@ Types are imported from the shared `@feather/api-client` package (see `../../pac
 - Toast notifications
 - Custom scrollbars
 
+### UI Components (React Aria)
+
+All interactive components use React Aria Components for built-in accessibility:
+
+| Component | Description |
+|-----------|-------------|
+| `Button` | Accessible button with variants (primary, secondary, ghost, danger) |
+| `Input` | Text field with label and error handling |
+| `Modal` | Dialog with focus trapping and backdrop |
+| `Menu` | Dropdown menu with keyboard navigation |
+| `Tabs` | Tab list with panels |
+| `RadioGroup` | Radio button group |
+
+Usage:
+```tsx
+import { Button, Input, Modal, Menu, MenuItem } from '../components/ui';
+
+// Button uses onPress, not onClick
+<Button variant="primary" onPress={() => save()} isLoading={saving}>
+  Save
+</Button>
+
+// Input uses isRequired, not required
+<Input label="Email" value={email} onChange={e => setEmail(e.target.value)} isRequired />
+```
+
 ## Routes
 
 | Route | Component | Description |
@@ -151,7 +179,8 @@ Types are imported from the shared `@feather/api-client` package (see `../../pac
 |----------|--------|-----------|
 | Server state | TanStack Query | Automatic caching, background refetch, request deduplication |
 | Client state | Zustand | Simple, minimal boilerplate, no context providers needed |
-| Styling | Tailwind CSS | Utility-first, no component library overhead, full control |
+| UI primitives | React Aria Components | Accessible by default, keyboard nav, focus management, ARIA built-in |
+| Styling | Tailwind + tailwind-variants | Utility-first with variant support via `tv()`, class merging via `cn()` |
 | Real-time | SSE → update cache | Instant UI updates without refetch flicker |
 | Threads | Side panel | Matches Slack UX, main channel stays visible |
 | Auth | Session cookies | Backend handles session; `credentials: 'include'` on all requests |

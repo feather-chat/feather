@@ -243,6 +243,12 @@ curl -X POST http://localhost:8080/api/workspaces/create \
 
 **Styling**: Tailwind CSS, dark mode via `dark:` prefix
 
+**UI Components**: React Aria Components (RAC) for accessible, keyboard-navigable UI primitives
+- Wrapper components in `src/components/ui/` use RAC + `tailwind-variants` for styling
+- RAC provides focus management, keyboard nav, ARIA attributes out of the box
+- Use `onPress` instead of `onClick`, `isDisabled` instead of `disabled`
+- Use `cn()` from `lib/utils` for conditional class merging (re-exported from `tailwind-variants`)
+
 ### Key Web Files
 
 | File | Purpose |
@@ -264,6 +270,18 @@ curl -X POST http://localhost:8080/api/workspaces/create \
 **Add SSE event**: Add to OpenAPI SSEEventType enum, regenerate, add handler in `useSSE.ts`
 
 **Add page**: Create in `src/pages/`, add route in `App.tsx`, wrap with `<RequireAuth>` if needed
+
+**Add UI component**: Create in `src/components/ui/`, use React Aria Components + `tv()` for styling:
+```tsx
+import { Button as AriaButton } from 'react-aria-components';
+import { tv } from 'tailwind-variants';
+
+const styles = tv({ base: '...', variants: { size: { sm: '...', md: '...' } } });
+export function MyComponent({ size = 'md' }) {
+  return <AriaButton className={styles({ size })}>...</AriaButton>;
+}
+```
+Export from `src/components/ui/index.ts`
 
 ### Patterns
 

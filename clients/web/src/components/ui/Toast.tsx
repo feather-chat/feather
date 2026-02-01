@@ -49,11 +49,7 @@ export function Toaster() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={cn(
-            'flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white',
-            'animate-in slide-in-from-right fade-in duration-200',
-            typeStyles[t.type]
-          )}
+          className={cn('flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white animate-in slide-in-from-right fade-in duration-200', typeStyles[t.type])}
         >
           <span>{t.message}</span>
           <button

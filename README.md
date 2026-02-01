@@ -74,6 +74,7 @@ docker-compose up --build
 |-----------|------------|
 | Backend | Go, Chi, SQLite |
 | Frontend | React, TypeScript, Vite, TanStack Query, Zustand, Tailwind |
+| UI Components | React Aria Components, tailwind-variants |
 | Real-time | Server-Sent Events |
 | Types | OpenAPI 3.0, oapi-codegen, openapi-typescript |
 

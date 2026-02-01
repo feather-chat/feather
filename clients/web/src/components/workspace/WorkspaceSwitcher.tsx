@@ -3,8 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../hooks';
 import { Avatar, Modal, Button, Input, toast } from '../ui';
 import { useCreateWorkspace } from '../../hooks/useWorkspaces';
-import { cn } from '../../lib/utils';
 import { useUIStore } from '../../stores/uiStore';
+import { cn } from '../../lib/utils';
 
 export function WorkspaceSwitcher() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -21,8 +21,7 @@ export function WorkspaceSwitcher() {
             key={ws.id}
             to={`/workspaces/${ws.id}`}
             className={cn(
-              'w-10 h-10 rounded-lg flex items-center justify-center transition-all',
-              'hover:rounded-xl',
+              'w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:rounded-xl',
               ws.id === workspaceId
                 ? 'bg-primary-600 rounded-xl'
                 : 'bg-gray-600 hover:bg-gray-500'
@@ -247,7 +246,7 @@ function CreateWorkspaceModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           value={name}
           onChange={(e) => handleNameChange(e.target.value)}
           placeholder="My Workspace"
-          required
+          isRequired
         />
 
         <Input
@@ -255,11 +254,11 @@ function CreateWorkspaceModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
           placeholder="my-workspace"
-          required
+          isRequired
         />
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="secondary" onPress={onClose}>
             Cancel
           </Button>
           <Button type="submit" isLoading={createWorkspace.isPending}>
