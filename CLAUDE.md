@@ -54,11 +54,10 @@ feather/
 │   └── web/                    # React frontend (@feather/web)
 │       └── src/
 │           ├── api/            # API client functions
-│           ├── hooks/          # React Query hooks
-│           ├── stores/         # Zustand stores (uiStore, presenceStore)
+│           ├── hooks/          # React Query hooks + UI state hooks
 │           ├── components/     # UI components
 │           ├── pages/          # Route pages
-│           └── lib/            # Utilities, SSE client
+│           └── lib/            # Utilities, SSE client, presence store
 ├── packages/
 │   └── api-client/             # Shared types package (@feather/api-client)
 │       ├── src/                # Type aliases, fetch client
@@ -237,7 +236,8 @@ curl -X POST http://localhost:8080/api/workspaces/create \
 
 **State Management**
 - **Server state**: TanStack Query - hooks in `src/hooks/`, cache keys like `['messages', channelId]`
-- **Client state**: Zustand - `uiStore` (sidebar, threads, dark mode), `presenceStore` (typing, presence)
+- **UI state**: URL search params (thread/profile panels via `usePanel.ts`) and localStorage (sidebar via `useSidebar.ts`)
+- **Ephemeral state**: `useSyncExternalStore` in `lib/presenceStore.ts` for typing indicators and presence
 
 **Real-time**: SSE in `src/lib/sse.ts`, `useSSE` hook updates React Query cache on events
 
@@ -257,7 +257,8 @@ curl -X POST http://localhost:8080/api/workspaces/create \
 | `src/hooks/useAuth.ts` | Auth state |
 | `src/hooks/useMessages.ts` | Messages, reactions |
 | `src/hooks/useSSE.ts` | SSE → cache updates |
-| `src/stores/uiStore.ts` | UI state |
+| `src/hooks/usePanel.ts` | Thread/profile panel state (URL-based) |
+| `src/lib/presenceStore.ts` | Typing indicators, user presence |
 
 ### Common Web Tasks
 
@@ -292,7 +293,7 @@ Export from `src/components/ui/index.ts`
 
 **Infinite scroll**: `MessageList` uses `useInfiniteQuery`, messages reversed for display, scroll preserved
 
-**Thread panel**: Slide-out controlled by `activeThreadId` in `uiStore`
+**Thread panel**: Slide-out controlled by `?thread=` URL search param (see `useThreadPanel` hook)
 
 ---
 

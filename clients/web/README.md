@@ -10,7 +10,6 @@ React frontend for Feather, a self-hostable Slack alternative.
 - **TypeScript** for type safety
 - **Vite** for fast development and bundling
 - **TanStack Query** for server state (caching, fetching, background refetch)
-- **Zustand** for client state (UI state, presence)
 - **React Aria Components** for accessible UI primitives (buttons, inputs, modals, menus, tabs)
 - **tailwind-variants** for component styling with variants
 - **Tailwind CSS** for styling
@@ -57,10 +56,9 @@ src/
 │   ├── useSSE.ts     # SSE connection with React Query cache updates
 │   ├── useMessages.ts # Infinite scroll + optimistic updates
 │   ├── useTyping.ts  # Debounced typing indicators
+│   ├── usePanel.ts   # URL-based thread/profile panel state
+│   ├── useSidebar.ts # localStorage-based sidebar state
 │   └── useAutoScroll.ts # Scroll position management
-├── stores/           # Zustand stores
-│   ├── uiStore.ts    # Sidebar state, active thread, dark mode
-│   └── presenceStore.ts # User presence + typing indicators
 ├── components/
 │   ├── ui/           # Reusable UI components
 │   ├── auth/         # LoginForm, RegisterForm, RequireAuth
@@ -73,6 +71,7 @@ src/
 └── lib/              # Utilities and shared code
     ├── queryClient.ts # TanStack Query client config
     ├── sse.ts        # SSE connection class with auto-reconnect
+    ├── presenceStore.ts # Typing indicators + presence (useSyncExternalStore)
     └── utils.ts      # Helper functions
 ```
 
@@ -178,7 +177,8 @@ import { Button, Input, Modal, Menu, MenuItem } from '../components/ui';
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Server state | TanStack Query | Automatic caching, background refetch, request deduplication |
-| Client state | Zustand | Simple, minimal boilerplate, no context providers needed |
+| UI state | URL search params + localStorage | Shareable URLs for panels, persisted preferences, zero dependencies |
+| Ephemeral state | `useSyncExternalStore` | Built-in React 18 API for presence/typing, no external libraries |
 | UI primitives | React Aria Components | Accessible by default, keyboard nav, focus management, ARIA built-in |
 | Styling | Tailwind + tailwind-variants | Utility-first with variant support via `tv()`, class merging via `cn()` |
 | Real-time | SSE → update cache | Instant UI updates without refetch flicker |
@@ -207,8 +207,8 @@ import type { User, Message } from '@feather/api-client';
 | `reaction.added` | Add reaction to message |
 | `reaction.removed` | Remove reaction from message |
 | `channel.*` | Invalidate channel list |
-| `typing.start/stop` | Update presence store |
-| `presence.changed` | Update user presence |
+| `typing.start/stop` | Update typing state in `lib/presenceStore` |
+| `presence.changed` | Update user presence in `lib/presenceStore` |
 
 ## Environment
 

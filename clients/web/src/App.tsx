@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
@@ -16,26 +15,11 @@ import {
   InvitePage,
   ServerSettingsPage,
 } from './pages';
-import { useUIStore } from './stores/uiStore';
+import { useDarkMode } from './hooks/useDarkMode';
 
 function DarkModeInitializer() {
-  const { darkMode, setDarkMode } = useUIStore();
-
-  useEffect(() => {
-    // Check system preference on mount
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setDarkMode(mediaQuery.matches);
-
-    // Listen for changes
-    const handler = (e: MediaQueryListEvent) => setDarkMode(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, [setDarkMode]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
-
+  // Hook handles localStorage persistence, system preference fallback, and DOM updates
+  useDarkMode();
   return null;
 }
 

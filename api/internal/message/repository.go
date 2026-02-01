@@ -359,6 +359,24 @@ func (r *Repository) RemoveReaction(ctx context.Context, messageID, userID, emoj
 	return nil
 }
 
+// GetReactionsForMessage returns reactions for a single message
+func (r *Repository) GetReactionsForMessage(ctx context.Context, messageID string) ([]Reaction, error) {
+	reactions, err := r.getReactionsForMessages(ctx, []string{messageID})
+	if err != nil {
+		return nil, err
+	}
+	return reactions[messageID], nil
+}
+
+// GetThreadParticipants returns thread participants for a single parent message
+func (r *Repository) GetThreadParticipants(ctx context.Context, parentID string) ([]ThreadParticipant, error) {
+	participants, err := r.getThreadParticipantsForMessages(ctx, []string{parentID})
+	if err != nil {
+		return nil, err
+	}
+	return participants[parentID], nil
+}
+
 func (r *Repository) getThreadParticipantsForMessages(ctx context.Context, messageIDs []string) (map[string][]ThreadParticipant, error) {
 	if len(messageIDs) == 0 {
 		return nil, nil

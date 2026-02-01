@@ -1,9 +1,13 @@
 export { useAuth } from './useAuth';
 export { useWorkspace, useWorkspaceMembers, useCreateWorkspace, useAcceptInvite, useCreateInvite } from './useWorkspaces';
 export { useChannels, useChannelMembers, useCreateChannel, useCreateDM, useJoinChannel, useLeaveChannel, useArchiveChannel, useAddChannelMember } from './useChannels';
-export { useMessages, useThreadMessages, useSendMessage, useSendThreadReply, useAddReaction, useRemoveReaction } from './useMessages';
+export { useMessage, useMessages, useThreadMessages, useSendMessage, useSendThreadReply, useAddReaction, useRemoveReaction } from './useMessages';
 export { useUserProfile, useUpdateProfile } from './useProfile';
 export { useSSE } from './useSSE';
 export { useTyping } from './useTyping';
 export { useAutoScroll } from './useAutoScroll';
 export { useUploadFile } from './useFiles';
+export { useLocalStorage } from './useLocalStorage';
+export { useThreadPanel, useProfilePanel } from './usePanel';
+export { useSidebar } from './useSidebar';
+export { useDarkMode } from './useDarkMode';

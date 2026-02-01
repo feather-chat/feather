@@ -14,12 +14,12 @@ import { ReactionPicker } from './ReactionPicker';
 import { AttachmentDisplay } from './AttachmentDisplay';
 import { useAuth, useAddReaction, useRemoveReaction } from '../../hooks';
 import { useMarkMessageUnread, useUpdateMessage, useDeleteMessage } from '../../hooks/useMessages';
-import { useUIStore } from '../../stores/uiStore';
+import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
 import { cn, formatTime, formatRelativeTime } from '../../lib/utils';
 import type { MessageWithUser } from '@feather/api-client';
 
 function ClickableName({ userId, displayName }: { userId?: string; displayName: string }) {
-  const { openProfile } = useUIStore();
+  const { openProfile } = useProfilePanel();
 
   if (!userId) {
     return <span className="font-medium text-gray-900 dark:text-white">{displayName}</span>;
@@ -51,7 +51,8 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const { user } = useAuth();
-  const { openThread, openProfile } = useUIStore();
+  const { openThread } = useThreadPanel();
+  const { openProfile } = useProfilePanel();
   const addReaction = useAddReaction(channelId);
   const removeReaction = useRemoveReaction(channelId);
   const markUnread = useMarkMessageUnread(workspaceId || '');

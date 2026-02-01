@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { SSEConnection } from '../lib/sse';
-import { usePresenceStore } from '../stores/presenceStore';
+import { addTypingUser, removeTypingUser, setUserPresence } from '../lib/presenceStore';
 import type { MessageListResult, ChannelWithMembership, Channel } from '@feather/api-client';
 
 export function useSSE(workspaceId: string | undefined) {
   const [isConnected, setIsConnected] = useState(false);
   const connectionRef = useRef<SSEConnection | null>(null);
   const queryClient = useQueryClient();
-  const { addTypingUser, removeTypingUser, setUserPresence } = usePresenceStore();
 
   useEffect(() => {
     if (!workspaceId) {
@@ -323,7 +322,7 @@ export function useSSE(workspaceId: string | undefined) {
       connectionRef.current = null;
       setIsConnected(false);
     };
-  }, [workspaceId, queryClient, addTypingUser, removeTypingUser, setUserPresence]);
+  }, [workspaceId, queryClient]);
 
   return { isConnected };
 }

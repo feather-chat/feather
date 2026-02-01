@@ -557,6 +557,9 @@ type ServerInterface interface {
 	// Accept an invite
 	// (POST /invites/{code}/accept)
 	AcceptInvite(w http.ResponseWriter, r *http.Request, code string)
+	// Get a single message
+	// (GET /messages/{id})
+	GetMessage(w http.ResponseWriter, r *http.Request, id MessageId)
 	// Delete a message
 	// (POST /messages/{id}/delete)
 	DeleteMessage(w http.ResponseWriter, r *http.Request, id MessageId)
@@ -731,6 +734,12 @@ func (_ Unimplemented) DownloadFile(w http.ResponseWriter, r *http.Request, id s
 // Accept an invite
 // (POST /invites/{code}/accept)
 func (_ Unimplemented) AcceptInvite(w http.ResponseWriter, r *http.Request, code string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get a single message
+// (GET /messages/{id})
+func (_ Unimplemented) GetMessage(w http.ResponseWriter, r *http.Request, id MessageId) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1335,6 +1344,37 @@ func (siw *ServerInterfaceWrapper) AcceptInvite(w http.ResponseWriter, r *http.R
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AcceptInvite(w, r, code)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMessage operation middleware
+func (siw *ServerInterfaceWrapper) GetMessage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id MessageId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMessage(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2082,6 +2122,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/invites/{code}/accept", wrapper.AcceptInvite)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/messages/{id}", wrapper.GetMessage)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/messages/{id}/delete", wrapper.DeleteMessage)
 	})
 	r.Group(func(r chi.Router) {
@@ -2526,6 +2569,43 @@ type AcceptInvite200JSONResponse struct {
 func (response AcceptInvite200JSONResponse) VisitAcceptInviteResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMessageRequestObject struct {
+	Id MessageId `json:"id"`
+}
+
+type GetMessageResponseObject interface {
+	VisitGetMessageResponse(w http.ResponseWriter) error
+}
+
+type GetMessage200JSONResponse struct {
+	Message *MessageWithUser `json:"message,omitempty"`
+}
+
+func (response GetMessage200JSONResponse) VisitGetMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMessage401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetMessage401JSONResponse) VisitGetMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMessage404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetMessage404JSONResponse) VisitGetMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -2982,6 +3062,9 @@ type StrictServerInterface interface {
 	// Accept an invite
 	// (POST /invites/{code}/accept)
 	AcceptInvite(ctx context.Context, request AcceptInviteRequestObject) (AcceptInviteResponseObject, error)
+	// Get a single message
+	// (GET /messages/{id})
+	GetMessage(ctx context.Context, request GetMessageRequestObject) (GetMessageResponseObject, error)
 	// Delete a message
 	// (POST /messages/{id}/delete)
 	DeleteMessage(ctx context.Context, request DeleteMessageRequestObject) (DeleteMessageResponseObject, error)
@@ -3615,6 +3698,32 @@ func (sh *strictHandler) AcceptInvite(w http.ResponseWriter, r *http.Request, co
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AcceptInviteResponseObject); ok {
 		if err := validResponse.VisitAcceptInviteResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMessage operation middleware
+func (sh *strictHandler) GetMessage(w http.ResponseWriter, r *http.Request, id MessageId) {
+	var request GetMessageRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMessage(ctx, request.(GetMessageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMessage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMessageResponseObject); ok {
+		if err := validResponse.VisitGetMessageResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

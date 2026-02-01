@@ -12,8 +12,10 @@ export function InvitePage() {
 
   const handleCreateInvite = async () => {
     try {
+      const days = parseInt(expiresIn);
       const result = await createInvite.mutateAsync({
-        expires_in_days: parseInt(expiresIn) || undefined,
+        role: 'member',
+        expires_in_hours: days ? days * 24 : undefined,
         max_uses: maxUses ? parseInt(maxUses) : undefined,
       });
       const link = `${window.location.origin}/invites/${result.invite.code}`;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useUserProfile, useUpdateProfile, useAuth } from "../../hooks";
-import { useUIStore } from "../../stores/uiStore";
+import { useProfilePanel } from "../../hooks/usePanel";
 import { Avatar, Button, Input, Spinner, toast } from "../ui";
 import { cn } from "../../lib/utils";
 
@@ -10,7 +10,7 @@ interface ProfilePaneProps {
 }
 
 export function ProfilePane({ userId }: ProfilePaneProps) {
-  const { closeProfile } = useUIStore();
+  const { closeProfile } = useProfilePanel();
   const { user: currentUser } = useAuth();
   const { data, isLoading } = useUserProfile(userId);
   const [isEditing, setIsEditing] = useState(false);

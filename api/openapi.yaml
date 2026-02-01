@@ -602,6 +602,30 @@ paths:
                 $ref: '#/components/schemas/SuccessResponse'
 
   # Message endpoints
+  /messages/{id}:
+    get:
+      tags: [messages]
+      summary: Get a single message
+      operationId: getMessage
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/messageId'
+      responses:
+        '200':
+          description: Message details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    $ref: '#/components/schemas/MessageWithUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /channels/{id}/messages/send:
     post:
       tags: [messages]

@@ -21,10 +21,11 @@ import {
 import {
   useThreadMessages,
   useSendThreadReply,
+  useMessage,
   useAuth,
   useUploadFile,
 } from "../../hooks";
-import { useUIStore } from "../../stores/uiStore";
+import { useThreadPanel, useProfilePanel } from "../../hooks/usePanel";
 import { Avatar, MessageSkeleton } from "../ui";
 import { ReactionPicker } from "../message/ReactionPicker";
 import { AttachmentDisplay } from "../message/AttachmentDisplay";
@@ -39,7 +40,7 @@ function ClickableName({
   userId?: string;
   displayName: string;
 }) {
-  const { openProfile } = useUIStore();
+  const { openProfile } = useProfilePanel();
 
   if (!userId) {
     return (
@@ -66,12 +67,22 @@ interface ThreadPanelProps {
 
 export function ThreadPanel({ messageId }: ThreadPanelProps) {
   const queryClient = useQueryClient();
-  const { closeThread } = useUIStore();
+  const { closeThread } = useThreadPanel();
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useThreadMessages(messageId);
 
-  // Get parent message from cache
-  const parentMessage = getParentMessageFromCache(queryClient, messageId);
+  // Try to get parent message from cache first
+  const cachedMessage = getParentMessageFromCache(queryClient, messageId);
+
+  // Fetch from API if not in cache (for deep links)
+  const {
+    data: fetchedData,
+    isLoading: isLoadingParent,
+    error: parentError,
+  } = useMessage(cachedMessage ? undefined : messageId);
+
+  // Use cached message if available, otherwise use fetched
+  const parentMessage = cachedMessage || fetchedData?.message;
 
   // Flatten thread messages (already in chronological order from API)
   const threadMessages = data?.pages.flatMap((page) => page.messages) || [];
@@ -88,6 +99,22 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
           <XMarkIcon className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Loading state for parent message */}
+      {isLoadingParent && !cachedMessage && (
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <MessageSkeleton />
+        </div>
+      )}
+
+      {/* Error state for parent message */}
+      {parentError && !parentMessage && (
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Message not found or you don't have access.
+          </p>
+        </div>
+      )}
 
       {/* Parent message */}
       {parentMessage && <ParentMessage message={parentMessage} />}
@@ -134,7 +161,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
 }
 
 function ParentMessage({ message }: { message: MessageWithUser }) {
-  const { openProfile } = useUIStore();
+  const { openProfile } = useProfilePanel();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showActions, setShowActions] = useState(false);
@@ -370,7 +397,7 @@ interface ThreadMessageProps {
 }
 
 function ThreadMessage({ message, parentMessageId }: ThreadMessageProps) {
-  const { openProfile } = useUIStore();
+  const { openProfile } = useProfilePanel();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showActions, setShowActions] = useState(false);

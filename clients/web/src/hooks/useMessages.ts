@@ -1,8 +1,17 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { messagesApi, type SendMessageInput } from '../api/messages';
 import type { MessageWithUser, MessageListResult } from '@feather/api-client';
 
 const PAGE_SIZE = 50;
+
+export function useMessage(messageId: string | undefined) {
+  return useQuery({
+    queryKey: ['message', messageId],
+    queryFn: () => messagesApi.get(messageId!),
+    enabled: !!messageId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
 
 export function useMessages(channelId: string | undefined) {
   return useInfiniteQuery({

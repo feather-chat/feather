@@ -1,4 +1,4 @@
-import { post, type MessageWithUser, type MessageListResult, type Reaction } from '@feather/api-client';
+import { get, post, type MessageWithUser, type MessageListResult, type Reaction } from '@feather/api-client';
 
 export interface SendMessageInput {
   content?: string;
@@ -13,6 +13,9 @@ export interface ListMessagesInput {
 }
 
 export const messagesApi = {
+  get: (messageId: string) =>
+    get<{ message: MessageWithUser }>(`/messages/${messageId}`),
+
   send: (channelId: string, input: SendMessageInput) =>
     post<{ message: MessageWithUser }>(`/channels/${channelId}/messages/send`, input),
 

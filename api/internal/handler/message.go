@@ -586,6 +586,68 @@ func messageListResultToAPI(result *message.ListResult) openapi.MessageListResul
 	return apiResult
 }
 
+// GetMessage retrieves a single message by ID
+func (h *Handler) GetMessage(ctx context.Context, request openapi.GetMessageRequestObject) (openapi.GetMessageResponseObject, error) {
+	userID := h.getUserID(ctx)
+	if userID == "" {
+		return openapi.GetMessage401JSONResponse{}, nil
+	}
+
+	// Get the message with user info
+	msgWithUser, err := h.messageRepo.GetByIDWithUser(ctx, string(request.Id))
+	if err != nil {
+		if errors.Is(err, message.ErrMessageNotFound) {
+			return openapi.GetMessage404JSONResponse{}, nil
+		}
+		return nil, err
+	}
+
+	// Check channel access
+	ch, err := h.channelRepo.GetByID(ctx, msgWithUser.ChannelID)
+	if err != nil {
+		return openapi.GetMessage404JSONResponse{}, nil
+	}
+
+	_, err = h.channelRepo.GetMembership(ctx, userID, msgWithUser.ChannelID)
+	if err != nil {
+		if errors.Is(err, channel.ErrNotChannelMember) {
+			if ch.Type != channel.TypePublic {
+				return openapi.GetMessage404JSONResponse{}, nil
+			}
+			// Verify workspace membership for public channels
+			_, err = h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
+			if err != nil {
+				return openapi.GetMessage404JSONResponse{}, nil
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	// Load reactions for the message
+	reactions, err := h.messageRepo.GetReactionsForMessage(ctx, msgWithUser.ID)
+	if err == nil {
+		msgWithUser.Reactions = reactions
+	}
+
+	// Load attachments for the message
+	attachments, _ := h.fileRepo.ListForMessage(ctx, msgWithUser.ID)
+	msgWithUser.Attachments = attachments
+
+	// Load thread participants if this is a parent message with replies
+	if msgWithUser.ReplyCount > 0 {
+		participants, err := h.messageRepo.GetThreadParticipants(ctx, msgWithUser.ID)
+		if err == nil {
+			msgWithUser.ThreadParticipants = participants
+		}
+	}
+
+	apiMsg := messageWithUserToAPI(msgWithUser)
+	return openapi.GetMessage200JSONResponse{
+		Message: &apiMsg,
+	}, nil
+}
+
 // MarkMessageUnread marks a message as unread by setting last_read to the previous message
 func (h *Handler) MarkMessageUnread(ctx context.Context, request openapi.MarkMessageUnreadRequestObject) (openapi.MarkMessageUnreadResponseObject, error) {
 	userID := h.getUserID(ctx)

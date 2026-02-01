@@ -4,13 +4,16 @@ import { ChannelSidebar } from '../channel/ChannelSidebar';
 import { ThreadPanel } from '../thread/ThreadPanel';
 import { ProfilePane } from '../profile/ProfilePane';
 import { useSSE } from '../../hooks';
-import { useUIStore } from '../../stores/uiStore';
+import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
+import { useSidebar } from '../../hooks/useSidebar';
 import { cn } from '../../lib/utils';
 
 export function AppLayout() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { isConnected } = useSSE(workspaceId);
-  const { activeThreadId, activeProfileUserId, sidebarCollapsed } = useUIStore();
+  const { threadId } = useThreadPanel();
+  const { profileUserId } = useProfilePanel();
+  const { collapsed: sidebarCollapsed } = useSidebar();
 
   return (
     <div className="h-screen flex bg-white dark:bg-gray-900">
@@ -40,13 +43,13 @@ export function AppLayout() {
       </div>
 
       {/* Thread Panel */}
-      {activeThreadId && !activeProfileUserId && (
-        <ThreadPanel messageId={activeThreadId} />
+      {threadId && !profileUserId && (
+        <ThreadPanel messageId={threadId} />
       )}
 
       {/* Profile Pane */}
-      {activeProfileUserId && (
-        <ProfilePane userId={activeProfileUserId} />
+      {profileUserId && (
+        <ProfilePane userId={profileUserId} />
       )}
     </div>
   );

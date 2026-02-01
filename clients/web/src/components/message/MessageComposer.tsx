@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, type KeyboardEvent, type FormEvent } from 'react';
+import { useState, useRef, useCallback, type KeyboardEvent, type FormEvent } from 'react';
 import { Button as AriaButton, DropZone, FileTrigger } from 'react-aria-components';
 import {
   DocumentIcon,
@@ -8,7 +8,7 @@ import {
   PaperAirplaneIcon,
 } from '@heroicons/react/24/outline';
 import { useSendMessage, useTyping, useUploadFile } from '../../hooks';
-import { usePresenceStore } from '../../stores/presenceStore';
+import { useTypingUsers } from '../../lib/presenceStore';
 import { cn } from '../../lib/utils';
 
 interface MessageComposerProps {
@@ -43,18 +43,7 @@ export function MessageComposer({
   const uploadFile = useUploadFile(channelId);
   const { onTyping, onStopTyping } = useTyping(workspaceId, channelId);
 
-  const typingUsersMap = usePresenceStore((state) => state.typingUsers);
-  const typers = typingUsersMap.get(channelId) || [];
-  const [now, setNow] = useState(() => Date.now());
-
-  // Update timestamp periodically to filter expired typing indicators
-  useEffect(() => {
-    if (typers.length === 0) return;
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, [typers.length]);
-
-  const typingUsers = typers.filter((t) => t.expiresAt > now);
+  const typingUsers = useTypingUsers(channelId);
 
   const uploadAttachment = useCallback(async (attachment: PendingAttachment) => {
     setPendingAttachments((prev) =>

@@ -13,14 +13,15 @@ import {
 import { useAuth } from '../../hooks';
 import { Avatar, Modal, Button, Input, toast } from '../ui';
 import { useCreateWorkspace } from '../../hooks/useWorkspaces';
-import { useUIStore } from '../../stores/uiStore';
+import { useDarkMode } from '../../hooks/useDarkMode';
+import { useProfilePanel } from '../../hooks/usePanel';
 import { cn } from '../../lib/utils';
 
 export function WorkspaceSwitcher() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { workspaces } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { darkMode, toggleDarkMode } = useUIStore();
+  const { darkMode, toggle: toggleDarkMode } = useDarkMode();
 
   return (
     <div className="w-16 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-3 gap-3">
@@ -91,7 +92,7 @@ export function WorkspaceSwitcher() {
 
 function UserMenu() {
   const { user, logout } = useAuth();
-  const { openProfile } = useUIStore();
+  const { openProfile } = useProfilePanel();
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
