@@ -1,0 +1,162 @@
+import { useMemo } from 'react';
+import { tv } from 'tailwind-variants';
+import { parseMrkdwn, type MrkdwnSegment } from './parser';
+import { UserMentionBadge, SpecialMentionBadge } from '../../components/message/MentionBadge';
+import { ChannelMentionBadge } from '../../components/message/ChannelMentionBadge';
+import type { WorkspaceMemberWithUser, ChannelWithMembership } from '@feather/api-client';
+
+const styles = tv({
+  slots: {
+    code: [
+      'bg-gray-100 dark:bg-gray-700',
+      'px-1 py-0.5 rounded',
+      'text-sm font-mono',
+      'text-pink-600 dark:text-pink-400',
+    ],
+    codeBlock: [
+      'block bg-gray-100 dark:bg-gray-900',
+      'p-3 rounded-lg my-2',
+      'overflow-x-auto',
+      'text-sm font-mono',
+      'whitespace-pre',
+    ],
+    blockquote: [
+      'border-l-4 border-gray-300 dark:border-gray-600',
+      'pl-3 my-1',
+      'text-gray-600 dark:text-gray-400',
+      'italic',
+    ],
+    list: [
+      'my-1 pl-5',
+    ],
+    link: [
+      'text-primary-600 dark:text-primary-400',
+      'underline hover:no-underline',
+    ],
+  },
+});
+
+interface MrkdwnRendererProps {
+  content: string;
+  members?: WorkspaceMemberWithUser[];
+  channels?: ChannelWithMembership[];
+}
+
+export function MrkdwnRenderer({ content, members = [], channels = [] }: MrkdwnRendererProps) {
+  const memberMap = useMemo(() => {
+    return members.reduce((acc, member) => {
+      acc[member.user_id] = member;
+      return acc;
+    }, {} as Record<string, WorkspaceMemberWithUser>);
+  }, [members]);
+
+  const segments = useMemo(() => parseMrkdwn(content), [content]);
+
+  return <>{renderSegments(segments, memberMap, channels)}</>;
+}
+
+function renderSegments(
+  segments: MrkdwnSegment[],
+  memberMap: Record<string, WorkspaceMemberWithUser>,
+  channels: ChannelWithMembership[]
+): React.ReactNode[] {
+  const s = styles();
+
+  return segments.map((segment, index) => {
+    const key = `${segment.type}-${index}`;
+
+    switch (segment.type) {
+      case 'text':
+        return <span key={key}>{segment.content}</span>;
+
+      case 'bold':
+        return <strong key={key}>{segment.content}</strong>;
+
+      case 'italic':
+        return <em key={key}>{segment.content}</em>;
+
+      case 'strike':
+        return <s key={key}>{segment.content}</s>;
+
+      case 'code':
+        return <code key={key} className={s.code()}>{segment.content}</code>;
+
+      case 'code_block':
+        return (
+          <pre key={key} className={s.codeBlock()}>
+            <code>{segment.content}</code>
+          </pre>
+        );
+
+      case 'blockquote':
+        return (
+          <blockquote key={key} className={s.blockquote()}>
+            {renderSegments(segment.segments, memberMap, channels)}
+          </blockquote>
+        );
+
+      case 'bullet_list':
+        return (
+          <ul key={key} className={`${s.list()} list-disc`}>
+            {segment.items.map((item, i) => (
+              <li key={i}>{renderSegments(item, memberMap, channels)}</li>
+            ))}
+          </ul>
+        );
+
+      case 'ordered_list':
+        return (
+          <ol key={key} className={`${s.list()} list-decimal`}>
+            {segment.items.map((item, i) => (
+              <li key={i}>{renderSegments(item, memberMap, channels)}</li>
+            ))}
+          </ol>
+        );
+
+      case 'user_mention':
+        return (
+          <UserMentionBadge
+            key={key}
+            userId={segment.userId}
+            member={memberMap[segment.userId]}
+          />
+        );
+
+      case 'special_mention':
+        return (
+          <SpecialMentionBadge
+            key={key}
+            type={segment.mentionType}
+          />
+        );
+
+      case 'channel_mention':
+        return (
+          <ChannelMentionBadge
+            key={key}
+            channelId={segment.channelId}
+            channels={channels}
+          />
+        );
+
+      case 'link':
+        return (
+          <a
+            key={key}
+            href={segment.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={s.link()}
+          >
+            {segment.text}
+          </a>
+        );
+
+      case 'line_break':
+        return <br key={key} />;
+
+      default:
+        return null;
+    }
+  });
+}
