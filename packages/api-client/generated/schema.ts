@@ -753,6 +753,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload avatar image */
+        post: operations["uploadAvatar"];
+        /** Remove avatar */
+        delete: operations["deleteAvatar"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{wid}/events": {
         parameters: {
             query?: never;
@@ -818,7 +836,9 @@ export interface components {
         };
         UpdateProfileInput: {
             display_name?: string;
-            avatar_url?: string;
+        };
+        AvatarUploadResponse: {
+            avatar_url: string;
         };
         User: {
             id: string;
@@ -2498,6 +2518,56 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    uploadAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Avatar uploaded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvatarUploadResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    deleteAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Avatar removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
             401: components["responses"]["Unauthorized"];
         };
     };

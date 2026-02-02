@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { useUserProfile, useUpdateProfile, useAuth } from "../../hooks";
+import { useState, useRef } from "react";
+import { XMarkIcon, PhotoIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useUserProfile, useUpdateProfile, useUploadAvatar, useDeleteAvatar, useAuth } from "../../hooks";
 import { useProfilePanel } from "../../hooks/usePanel";
 import { Avatar, Button, Input, Spinner, toast } from "../ui";
 import { cn } from "../../lib/utils";
@@ -147,8 +147,56 @@ function EditProfileForm({
   onSuccess,
 }: EditProfileFormProps) {
   const [displayName, setDisplayName] = useState(profile.display_name);
-  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || "");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const updateProfile = useUpdateProfile();
+  const uploadAvatar = useUploadAvatar();
+  const deleteAvatar = useDeleteAvatar();
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast("Invalid file type. Please use JPEG, PNG, GIF, or WebP.", "error");
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast("File too large. Maximum size is 5MB.", "error");
+      return;
+    }
+
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      await deleteAvatar.mutateAsync();
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      toast("Avatar removed", "success");
+    } catch {
+      toast("Failed to remove avatar", "error");
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,10 +208,16 @@ function EditProfileForm({
     }
 
     try {
+      // Upload avatar file if selected
+      if (selectedFile) {
+        await uploadAvatar.mutateAsync(selectedFile);
+      }
+
+      // Update profile display name
       await updateProfile.mutateAsync({
         display_name: trimmedName,
-        avatar_url: avatarUrl.trim() || undefined,
       });
+
       toast("Profile updated", "success");
       onSuccess();
     } catch {
@@ -171,16 +225,72 @@ function EditProfileForm({
     }
   };
 
+  // Determine which avatar to show in preview
+  const displayAvatarUrl = previewUrl || profile.avatar_url;
+  const hasExistingAvatar = !!profile.avatar_url;
+  const isPending = updateProfile.isPending || uploadAvatar.isPending || deleteAvatar.isPending;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Avatar preview */}
-      <div className="flex flex-col items-center">
+      {/* Avatar preview and upload */}
+      <div className="flex flex-col items-center gap-3">
         <Avatar
-          src={avatarUrl || undefined}
+          src={displayAvatarUrl || undefined}
           name={displayName || "User"}
           size="lg"
           className="w-24 h-24 text-3xl"
         />
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+
+        <div className="flex flex-wrap justify-center gap-2">
+          {selectedFile ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onPress={handleClearSelection}
+            >
+              <XMarkIcon className="w-4 h-4 mr-1" />
+              Clear
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onPress={() => fileInputRef.current?.click()}
+            >
+              <PhotoIcon className="w-4 h-4 mr-1" />
+              Upload Photo
+            </Button>
+          )}
+
+          {hasExistingAvatar && !selectedFile && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onPress={handleRemoveAvatar}
+              isLoading={deleteAvatar.isPending}
+            >
+              <TrashIcon className="w-4 h-4 mr-1" />
+              Remove
+            </Button>
+          )}
+        </div>
+
+        {selectedFile && (
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Selected: {selectedFile.name}
+          </p>
+        )}
       </div>
 
       {/* Form fields */}
@@ -192,14 +302,6 @@ function EditProfileForm({
           placeholder="Your name"
           isRequired
         />
-
-        <Input
-          label="Avatar URL"
-          value={avatarUrl}
-          onChange={(e) => setAvatarUrl(e.target.value)}
-          placeholder="https://example.com/avatar.jpg"
-          type="url"
-        />
       </div>
 
       {/* Actions */}
@@ -209,13 +311,14 @@ function EditProfileForm({
           variant="secondary"
           className="flex-1"
           onPress={onCancel}
+          isDisabled={isPending}
         >
           Cancel
         </Button>
         <Button
           type="submit"
           className="flex-1"
-          isLoading={updateProfile.isPending}
+          isLoading={isPending}
         >
           Save
         </Button>

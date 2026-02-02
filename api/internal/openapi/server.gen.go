@@ -93,6 +93,11 @@ type AuthResponse struct {
 	User User `json:"user"`
 }
 
+// AvatarUploadResponse defines model for AvatarUploadResponse.
+type AvatarUploadResponse struct {
+	AvatarUrl string `json:"avatar_url"`
+}
+
 // Channel defines model for Channel.
 type Channel struct {
 	ArchivedAt        *time.Time  `json:"archived_at,omitempty"`
@@ -331,7 +336,6 @@ type UpdateChannelInput struct {
 
 // UpdateProfileInput defines model for UpdateProfileInput.
 type UpdateProfileInput struct {
-	AvatarUrl   *string `json:"avatar_url,omitempty"`
 	DisplayName *string `json:"display_name,omitempty"`
 }
 
@@ -471,6 +475,11 @@ type UpdateMessageJSONBody struct {
 	Content string `json:"content"`
 }
 
+// UploadAvatarMultipartBody defines parameters for UploadAvatar.
+type UploadAvatarMultipartBody struct {
+	File openapi_types.File `json:"file"`
+}
+
 // CreateDMJSONBody defines parameters for CreateDM.
 type CreateDMJSONBody struct {
 	UserIds []string `json:"user_ids"`
@@ -537,6 +546,9 @@ type ListThreadJSONRequestBody = ListMessagesInput
 
 // UpdateMessageJSONRequestBody defines body for UpdateMessage for application/json ContentType.
 type UpdateMessageJSONRequestBody UpdateMessageJSONBody
+
+// UploadAvatarMultipartRequestBody defines body for UploadAvatar for multipart/form-data ContentType.
+type UploadAvatarMultipartRequestBody UploadAvatarMultipartBody
 
 // UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
 type UpdateProfileJSONRequestBody = UpdateProfileInput
@@ -660,6 +672,12 @@ type ServerInterface interface {
 	// Update a message
 	// (POST /messages/{id}/update)
 	UpdateMessage(w http.ResponseWriter, r *http.Request, id MessageId)
+	// Remove avatar
+	// (DELETE /users/me/avatar)
+	DeleteAvatar(w http.ResponseWriter, r *http.Request)
+	// Upload avatar image
+	// (POST /users/me/avatar)
+	UploadAvatar(w http.ResponseWriter, r *http.Request)
 	// Update own profile
 	// (POST /users/me/profile)
 	UpdateProfile(w http.ResponseWriter, r *http.Request)
@@ -891,6 +909,18 @@ func (_ Unimplemented) UnsubscribeFromThread(w http.ResponseWriter, r *http.Requ
 // Update a message
 // (POST /messages/{id}/update)
 func (_ Unimplemented) UpdateMessage(w http.ResponseWriter, r *http.Request, id MessageId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove avatar
+// (DELETE /users/me/avatar)
+func (_ Unimplemented) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Upload avatar image
+// (POST /users/me/avatar)
+func (_ Unimplemented) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1846,6 +1876,46 @@ func (siw *ServerInterfaceWrapper) UpdateMessage(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// DeleteAvatar operation middleware
+func (siw *ServerInterfaceWrapper) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteAvatar(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UploadAvatar operation middleware
+func (siw *ServerInterfaceWrapper) UploadAvatar(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UploadAvatar(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // UpdateProfile operation middleware
 func (siw *ServerInterfaceWrapper) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
@@ -2463,6 +2533,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/messages/{id}/update", wrapper.UpdateMessage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/users/me/avatar", wrapper.DeleteAvatar)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/users/me/avatar", wrapper.UploadAvatar)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/users/me/profile", wrapper.UpdateProfile)
@@ -3195,6 +3271,66 @@ func (response UpdateMessage200JSONResponse) VisitUpdateMessageResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DeleteAvatarRequestObject struct {
+}
+
+type DeleteAvatarResponseObject interface {
+	VisitDeleteAvatarResponse(w http.ResponseWriter) error
+}
+
+type DeleteAvatar200JSONResponse SuccessResponse
+
+func (response DeleteAvatar200JSONResponse) VisitDeleteAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteAvatar401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteAvatar401JSONResponse) VisitDeleteAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadAvatarRequestObject struct {
+	Body *multipart.Reader
+}
+
+type UploadAvatarResponseObject interface {
+	VisitUploadAvatarResponse(w http.ResponseWriter) error
+}
+
+type UploadAvatar200JSONResponse AvatarUploadResponse
+
+func (response UploadAvatar200JSONResponse) VisitUploadAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadAvatar400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UploadAvatar400JSONResponse) VisitUploadAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadAvatar401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UploadAvatar401JSONResponse) VisitUploadAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type UpdateProfileRequestObject struct {
 	Body *UpdateProfileJSONRequestBody
 }
@@ -3591,6 +3727,12 @@ type StrictServerInterface interface {
 	// Update a message
 	// (POST /messages/{id}/update)
 	UpdateMessage(ctx context.Context, request UpdateMessageRequestObject) (UpdateMessageResponseObject, error)
+	// Remove avatar
+	// (DELETE /users/me/avatar)
+	DeleteAvatar(ctx context.Context, request DeleteAvatarRequestObject) (DeleteAvatarResponseObject, error)
+	// Upload avatar image
+	// (POST /users/me/avatar)
+	UploadAvatar(ctx context.Context, request UploadAvatarRequestObject) (UploadAvatarResponseObject, error)
 	// Update own profile
 	// (POST /users/me/profile)
 	UpdateProfile(ctx context.Context, request UpdateProfileRequestObject) (UpdateProfileResponseObject, error)
@@ -4556,6 +4698,61 @@ func (sh *strictHandler) UpdateMessage(w http.ResponseWriter, r *http.Request, i
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateMessageResponseObject); ok {
 		if err := validResponse.VisitUpdateMessageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteAvatar operation middleware
+func (sh *strictHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
+	var request DeleteAvatarRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteAvatar(ctx, request.(DeleteAvatarRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteAvatar")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteAvatarResponseObject); ok {
+		if err := validResponse.VisitDeleteAvatarResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UploadAvatar operation middleware
+func (sh *strictHandler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
+	var request UploadAvatarRequestObject
+
+	if reader, err := r.MultipartReader(); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode multipart body: %w", err))
+		return
+	} else {
+		request.Body = reader
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UploadAvatar(ctx, request.(UploadAvatarRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UploadAvatar")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UploadAvatarResponseObject); ok {
+		if err := validResponse.VisitUploadAvatarResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

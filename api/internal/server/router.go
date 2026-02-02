@@ -57,6 +57,9 @@ func NewRouter(h *handler.Handler, sseHandler *sse.Handler, authHandler *auth.Ha
 
 	// Mount SSE routes separately (not generated - requires streaming)
 	r.Route("/api", func(r chi.Router) {
+		// Public routes (no auth required)
+		r.Get("/avatars/{filename}", h.ServeAvatar)
+
 		r.Group(func(r chi.Router) {
 			r.Use(authHandler.RequireAuth)
 			r.Get("/workspaces/{wid}/events", sseHandler.Events)

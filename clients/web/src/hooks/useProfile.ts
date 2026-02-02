@@ -28,3 +28,39 @@ export function useUpdateProfile() {
     },
   });
 }
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => usersApi.uploadAvatar(file),
+    onSuccess: () => {
+      // Invalidate auth cache to update current user's avatar
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      // Invalidate user profile caches
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      // Invalidate messages cache so updated avatar appears
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      // Also invalidate thread messages
+      queryClient.invalidateQueries({ queryKey: ['thread'] });
+    },
+  });
+}
+
+export function useDeleteAvatar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => usersApi.deleteAvatar(),
+    onSuccess: () => {
+      // Invalidate auth cache to update current user's avatar
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      // Invalidate user profile caches
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      // Invalidate messages cache so updated avatar appears
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      // Also invalidate thread messages
+      queryClient.invalidateQueries({ queryKey: ['thread'] });
+    },
+  });
+}
