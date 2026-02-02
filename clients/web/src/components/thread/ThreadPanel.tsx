@@ -1,39 +1,27 @@
-import {
-  useState,
-  useRef,
-  useCallback,
-  type FormEvent,
-} from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import {
-  DropZone,
-} from "react-aria-components";
-import {
   XMarkIcon,
   FaceSmileIcon,
-  DocumentIcon,
   BellIcon,
   BellSlashIcon,
 } from "@heroicons/react/24/outline";
-import { RichTextEditor, type RichTextEditorRef } from "../editor";
 import {
   useThreadMessages,
-  useSendThreadReply,
   useMessage,
   useAuth,
-  useUploadFile,
   useThreadSubscription,
   useSubscribeToThread,
   useUnsubscribeFromThread,
   useWorkspaceMembers,
-  useChannels,
 } from "../../hooks";
 import { useThreadPanel, useProfilePanel } from "../../hooks/usePanel";
 import { Avatar, MessageSkeleton } from "../ui";
 import { ReactionPicker } from "../message/ReactionPicker";
 import { AttachmentDisplay } from "../message/AttachmentDisplay";
 import { MessageContent } from "../message/MessageContent";
+import { MessageComposer } from "../message/MessageComposer";
 import { cn, formatTime } from "../../lib/utils";
 import { messagesApi } from "../../api/messages";
 import type { MessageWithUser, MessageListResult, WorkspaceMemberWithUser } from "@feather/api-client";
@@ -196,10 +184,13 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
       </div>
 
       {/* Reply composer */}
-      {parentMessage && (
-        <ThreadComposer
-          parentMessageId={messageId}
+      {parentMessage && workspaceId && (
+        <MessageComposer
           channelId={parentMessage.channel_id}
+          workspaceId={workspaceId}
+          parentMessageId={messageId}
+          variant="thread"
+          placeholder="Reply..."
         />
       )}
     </div>
@@ -647,216 +638,6 @@ function ThreadMessage({ message, parentMessageId, members }: ThreadMessageProps
           <ReactionPicker onSelect={handleAddReaction} />
         </div>
       )}
-    </div>
-  );
-}
-
-interface ThreadComposerProps {
-  parentMessageId: string;
-  channelId: string;
-}
-
-interface PendingAttachment {
-  id: string;
-  file: File;
-  previewUrl?: string;
-  status: "pending" | "uploading" | "complete" | "error";
-  uploadedId?: string;
-}
-
-const ACCEPTED_IMAGE_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "image/gif",
-  "image/webp",
-];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-function ThreadComposer({ parentMessageId, channelId }: ThreadComposerProps) {
-  const { workspaceId } = useParams<{ workspaceId: string }>();
-  const [pendingAttachments, setPendingAttachments] = useState<
-    PendingAttachment[]
-  >([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const editorRef = useRef<RichTextEditorRef>(null);
-  const sendReply = useSendThreadReply(parentMessageId, channelId);
-  const uploadFile = useUploadFile(channelId);
-  const { data: membersData } = useWorkspaceMembers(workspaceId);
-  const { data: channelsData } = useChannels(workspaceId);
-
-  const uploadAttachment = useCallback(
-    async (attachment: PendingAttachment) => {
-      setPendingAttachments((prev) =>
-        prev.map((a) =>
-          a.id === attachment.id ? { ...a, status: "uploading" } : a,
-        ),
-      );
-
-      try {
-        const result = await uploadFile.mutateAsync(attachment.file);
-        setPendingAttachments((prev) =>
-          prev.map((a) =>
-            a.id === attachment.id
-              ? { ...a, status: "complete", uploadedId: result.file.id }
-              : a,
-          ),
-        );
-      } catch {
-        setPendingAttachments((prev) =>
-          prev.map((a) =>
-            a.id === attachment.id ? { ...a, status: "error" } : a,
-          ),
-        );
-      }
-    },
-    [uploadFile],
-  );
-
-  const handleFilesSelected = useCallback(
-    (files: File[]) => {
-      const validFiles = files.filter((file) => file.size <= MAX_FILE_SIZE);
-      const newAttachments: PendingAttachment[] = validFiles.map((file) => {
-        const isImage = ACCEPTED_IMAGE_TYPES.includes(file.type);
-        return {
-          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          file,
-          previewUrl: isImage ? URL.createObjectURL(file) : undefined,
-          status: "pending" as const,
-        };
-      });
-
-      setPendingAttachments((prev) => [...prev, ...newAttachments]);
-      newAttachments.forEach((attachment) => uploadAttachment(attachment));
-    },
-    [uploadAttachment],
-  );
-
-  const removeAttachment = useCallback((id: string) => {
-    setPendingAttachments((prev) => {
-      const attachment = prev.find((a) => a.id === id);
-      if (attachment?.previewUrl) URL.revokeObjectURL(attachment.previewUrl);
-      return prev.filter((a) => a.id !== id);
-    });
-  }, []);
-
-  const completedAttachmentIds = pendingAttachments
-    .filter((a) => a.status === "complete" && a.uploadedId)
-    .map((a) => a.uploadedId!);
-
-  const hasAttachments = completedAttachmentIds.length > 0;
-  const isUploading = pendingAttachments.some((a) => a.status === "uploading");
-
-  const handleSubmit = async (content: string) => {
-    const hasContent = content.trim() !== "";
-    const canSend =
-      (hasContent || hasAttachments) && !sendReply.isPending && !isUploading;
-
-    if (!canSend) return;
-
-    try {
-      await sendReply.mutateAsync({
-        content: hasContent ? content : undefined,
-        attachment_ids: hasAttachments ? completedAttachmentIds : undefined,
-      });
-      pendingAttachments.forEach((a) => {
-        if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
-      });
-      setPendingAttachments([]);
-    } catch {
-      // Error handled by mutation
-    }
-  };
-
-  const handleFormSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const content = editorRef.current?.getContent() || "";
-    handleSubmit(content);
-    editorRef.current?.clear();
-  };
-
-  // Convert workspace members to the format expected by RichTextEditor
-  const workspaceMembers = membersData?.members.map((m) => ({
-    user_id: m.user_id,
-    display_name: m.display_name,
-    avatar_url: m.avatar_url,
-  })) || [];
-
-  // Convert channels to the format expected by RichTextEditor
-  const workspaceChannels = channelsData?.channels.map((c) => ({
-    id: c.id,
-    name: c.name,
-    type: c.type as 'public' | 'private' | 'dm',
-  })) || [];
-
-  return (
-    <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-      {/* Pending attachments preview */}
-      {pendingAttachments.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-2">
-          {pendingAttachments.map((attachment) => (
-            <div
-              key={attachment.id}
-              className={cn(
-                "relative group rounded border overflow-hidden",
-                attachment.status === "error"
-                  ? "border-red-300 dark:border-red-700"
-                  : "border-gray-200 dark:border-gray-700",
-              )}
-            >
-              {attachment.previewUrl ? (
-                <img
-                  src={attachment.previewUrl}
-                  alt={attachment.file.name}
-                  className="w-12 h-12 object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                  <DocumentIcon className="w-5 h-5 text-gray-400" />
-                </div>
-              )}
-              {attachment.status === "uploading" && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => removeAttachment(attachment.id)}
-                className="absolute top-0 right-0 p-0.5 bg-black/50 text-white rounded-bl opacity-0 group-hover:opacity-100"
-              >
-                <XMarkIcon className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <DropZone
-        onDropEnter={() => setIsDragging(true)}
-        onDropExit={() => setIsDragging(false)}
-        onDrop={async (e) => {
-          setIsDragging(false);
-          const files = await Promise.all(
-            e.items.filter((i) => i.kind === "file").map((i) => i.getFile()),
-          );
-          handleFilesSelected(files.filter((f): f is File => f !== null));
-        }}
-        className={cn("rounded-lg", isDragging && "ring-2 ring-primary-500")}
-      >
-        <form onSubmit={handleFormSubmit}>
-          <RichTextEditor
-            ref={editorRef}
-            placeholder="Reply..."
-            onSubmit={handleSubmit}
-            workspaceMembers={workspaceMembers}
-            workspaceChannels={workspaceChannels}
-            showToolbar={false}
-            disabled={sendReply.isPending}
-            isPending={sendReply.isPending || isUploading}
-            onAttachmentClick={handleFilesSelected}
-          />
-        </form>
-      </DropZone>
     </div>
   );
 }

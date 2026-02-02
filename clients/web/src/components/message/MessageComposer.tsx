@@ -5,7 +5,7 @@ import {
   ExclamationCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { useSendMessage, useTyping, useUploadFile, useAuth, useWorkspaceMembers, useChannels } from '../../hooks';
+import { useSendMessage, useSendThreadReply, useTyping, useUploadFile, useAuth, useWorkspaceMembers, useChannels } from '../../hooks';
 import { useTypingUsers } from '../../lib/presenceStore';
 import { cn } from '../../lib/utils';
 import { RichTextEditor, type RichTextEditorRef } from '../editor';
@@ -13,6 +13,8 @@ import { RichTextEditor, type RichTextEditorRef } from '../editor';
 interface MessageComposerProps {
   channelId: string;
   workspaceId: string;
+  parentMessageId?: string;
+  variant?: 'channel' | 'thread';
   placeholder?: string;
 }
 
@@ -32,17 +34,23 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export function MessageComposer({
   channelId,
   workspaceId,
+  parentMessageId,
+  variant = 'channel',
   placeholder = 'Type a message...',
 }: MessageComposerProps) {
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const editorRef = useRef<RichTextEditorRef>(null);
   const sendMessage = useSendMessage(channelId);
+  const sendThreadReply = useSendThreadReply(parentMessageId ?? '', channelId);
   const uploadFile = useUploadFile(channelId);
   const { onTyping, onStopTyping } = useTyping(workspaceId, channelId);
   const { user } = useAuth();
   const { data: membersData } = useWorkspaceMembers(workspaceId);
   const { data: channelsData } = useChannels(workspaceId);
+
+  const isThreadVariant = variant === 'thread';
+  const activeMutation = parentMessageId ? sendThreadReply : sendMessage;
 
   const typingUsers = useTypingUsers(channelId);
   const otherTypingUsers = typingUsers.filter((u) => u.userId !== user?.id);
@@ -117,12 +125,12 @@ export function MessageComposer({
 
   const handleSubmit = async (content: string) => {
     const hasContent = content.trim() !== '';
-    const canSend = (hasContent || hasAttachments) && !sendMessage.isPending && !isUploading;
+    const canSend = (hasContent || hasAttachments) && !activeMutation.isPending && !isUploading;
 
     if (!canSend) return;
 
     try {
-      await sendMessage.mutateAsync({
+      await activeMutation.mutateAsync({
         content: hasContent ? content : undefined,
         attachment_ids: hasAttachments ? completedAttachmentIds : undefined,
       });
@@ -159,10 +167,14 @@ export function MessageComposer({
     type: c.type as 'public' | 'private' | 'dm',
   })) || [];
 
+  // Attachment size classes based on variant
+  const attachmentSizeClass = isThreadVariant ? 'w-12 h-12' : 'w-20 h-20';
+  const attachmentIconClass = isThreadVariant ? 'w-5 h-5' : 'w-8 h-8';
+
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-      {/* Typing indicator */}
-      {otherTypingUsers.length > 0 && (
+      {/* Typing indicator - only show for channel variant */}
+      {!isThreadVariant && otherTypingUsers.length > 0 && (
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
           <span className="flex gap-1">
             <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -193,11 +205,11 @@ export function MessageComposer({
                 <img
                   src={attachment.previewUrl}
                   alt={attachment.file.name}
-                  className="w-20 h-20 object-cover"
+                  className={cn(attachmentSizeClass, 'object-cover')}
                 />
               ) : (
-                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                  <DocumentIcon className="w-8 h-8 text-gray-400" />
+                <div className={cn(attachmentSizeClass, 'bg-gray-100 dark:bg-gray-800 flex items-center justify-center')}>
+                  <DocumentIcon className={cn(attachmentIconClass, 'text-gray-400')} />
                 </div>
               )}
 
@@ -263,12 +275,13 @@ export function MessageComposer({
             ref={editorRef}
             placeholder={placeholder}
             onSubmit={handleSubmit}
-            onTyping={onTyping}
-            onBlur={onStopTyping}
+            onTyping={isThreadVariant ? undefined : onTyping}
+            onBlur={isThreadVariant ? undefined : onStopTyping}
             workspaceMembers={workspaceMembers}
             workspaceChannels={workspaceChannels}
-            disabled={sendMessage.isPending}
-            isPending={sendMessage.isPending || isUploading}
+            showToolbar
+            disabled={activeMutation.isPending}
+            isPending={activeMutation.isPending || isUploading}
             onAttachmentClick={handleFilesSelected}
           />
         </form>
