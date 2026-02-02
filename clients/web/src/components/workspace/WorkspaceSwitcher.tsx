@@ -15,7 +15,7 @@ import { Avatar, Modal, Button, Input, toast } from '../ui';
 import { useCreateWorkspace } from '../../hooks/useWorkspaces';
 import { useDarkMode } from '../../hooks/useDarkMode';
 import { useProfilePanel } from '../../hooks/usePanel';
-import { cn } from '../../lib/utils';
+import { cn, getAvatarColor } from '../../lib/utils';
 
 export function WorkspaceSwitcher() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -35,7 +35,9 @@ export function WorkspaceSwitcher() {
               'w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:rounded-xl',
               ws.id === workspaceId
                 ? 'bg-primary-600 rounded-xl'
-                : 'bg-gray-600 hover:bg-gray-500'
+                : ws.icon_url
+                  ? ''
+                  : `${getAvatarColor(ws.id)} hover:opacity-80`
             )}
             title={ws.name}
           >
@@ -124,6 +126,7 @@ function UserMenu() {
         <Avatar
           src={user?.avatar_url}
           name={user?.display_name || 'User'}
+          id={user?.id}
           size="md"
           status="online"
         />

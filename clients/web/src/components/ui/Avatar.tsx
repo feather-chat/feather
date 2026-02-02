@@ -1,9 +1,10 @@
-import { cn, getInitials } from '../../lib/utils';
+import { cn, getInitials, getAvatarColor } from '../../lib/utils';
 import type { PresenceStatus } from '@feather/api-client';
 
 interface AvatarProps {
   src?: string | null;
   name: string;
+  id?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   status?: PresenceStatus;
   className?: string;
@@ -11,7 +12,7 @@ interface AvatarProps {
   onClick?: () => void;
 }
 
-export function Avatar({ src, name, size = 'md', status, className, style, onClick }: AvatarProps) {
+export function Avatar({ src, name, id, size = 'md', status, className, style, onClick }: AvatarProps) {
   const sizes = {
     xs: 'w-5 h-5 text-[10px]',
     sm: 'w-6 h-6 text-xs',
@@ -42,7 +43,7 @@ export function Avatar({ src, name, size = 'md', status, className, style, onCli
         />
       ) : (
         <div
-          className={cn('rounded-full flex items-center justify-center font-medium bg-primary-500 text-white', sizes[size])}
+          className={cn('rounded-full flex items-center justify-center font-medium text-white', id ? getAvatarColor(id) : 'bg-primary-500', sizes[size])}
         >
           {getInitials(name)}
         </div>

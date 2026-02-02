@@ -60,3 +60,14 @@ export async function uploadFile(endpoint: string, file: File): Promise<unknown>
   });
   return handleResponse(response);
 }
+
+export async function del<T>(endpoint: string): Promise<T> {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return handleResponse<T>(response);
+}

@@ -3,6 +3,10 @@ package handler
 import (
 	"context"
 	"errors"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -10,6 +14,8 @@ import (
 	"github.com/feather/api/internal/message"
 	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/workspace"
+	"github.com/go-chi/chi/v5"
+	"github.com/oklog/ulid/v2"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -344,6 +350,186 @@ func inviteToAPI(invite *workspace.Invite) openapi.Invite {
 		apiInvite.InvitedEmail = &email
 	}
 	return apiInvite
+}
+
+// Allowed icon content types
+var iconAllowedTypes = map[string]string{
+	"image/jpeg": ".jpg",
+	"image/png":  ".png",
+	"image/gif":  ".gif",
+	"image/webp": ".webp",
+}
+
+const maxIconSize = 5 * 1024 * 1024 // 5MB
+
+// UploadWorkspaceIcon uploads an icon image for a workspace
+func (h *Handler) UploadWorkspaceIcon(ctx context.Context, request openapi.UploadWorkspaceIconRequestObject) (openapi.UploadWorkspaceIconResponseObject, error) {
+	userID := h.getUserID(ctx)
+	if userID == "" {
+		return openapi.UploadWorkspaceIcon401JSONResponse{
+			UnauthorizedJSONResponse: openapi.UnauthorizedJSONResponse(newErrorResponse(ErrCodeNotAuthenticated, "Not authenticated")),
+		}, nil
+	}
+
+	workspaceID := string(request.Wid)
+
+	// Check permissions - must be owner or admin
+	membership, err := h.workspaceRepo.GetMembership(ctx, userID, workspaceID)
+	if err != nil {
+		return openapi.UploadWorkspaceIcon401JSONResponse{
+			UnauthorizedJSONResponse: openapi.UnauthorizedJSONResponse(newErrorResponse(ErrCodeNotAuthenticated, "Not a workspace member")),
+		}, nil
+	}
+
+	if !workspace.CanManageMembers(membership.Role) {
+		return openapi.UploadWorkspaceIcon403JSONResponse{}, nil
+	}
+
+	// Get workspace
+	ws, err := h.workspaceRepo.GetByID(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse multipart form
+	part, err := request.Body.NextPart()
+	if err != nil {
+		return openapi.UploadWorkspaceIcon400JSONResponse{
+			BadRequestJSONResponse: openapi.BadRequestJSONResponse(newErrorResponse(ErrCodeValidationError, "No file provided")),
+		}, nil
+	}
+	defer part.Close()
+
+	// Validate content type
+	contentType := part.Header.Get("Content-Type")
+	ext, ok := iconAllowedTypes[contentType]
+	if !ok {
+		return openapi.UploadWorkspaceIcon400JSONResponse{
+			BadRequestJSONResponse: openapi.BadRequestJSONResponse(newErrorResponse(ErrCodeValidationError, "Invalid file type. Allowed: JPEG, PNG, GIF, WebP")),
+		}, nil
+	}
+
+	// Generate filename and storage path
+	fileID := ulid.Make().String()
+	filename := fileID + ext
+	iconDir := filepath.Join(h.storagePath, "workspace-icons", workspaceID)
+	storagePath := filepath.Join(iconDir, filename)
+
+	// Ensure directory exists
+	if err := os.MkdirAll(iconDir, 0755); err != nil {
+		return nil, err
+	}
+
+	// Create file
+	dst, err := os.Create(storagePath)
+	if err != nil {
+		return nil, err
+	}
+	defer dst.Close()
+
+	// Copy file content with size limit
+	size, err := io.Copy(dst, io.LimitReader(part, maxIconSize+1))
+	if err != nil {
+		os.Remove(storagePath)
+		return nil, err
+	}
+
+	// Check if file exceeds max size
+	if size > maxIconSize {
+		os.Remove(storagePath)
+		return openapi.UploadWorkspaceIcon400JSONResponse{
+			BadRequestJSONResponse: openapi.BadRequestJSONResponse(newErrorResponse(ErrCodeValidationError, "File too large. Maximum size is 5MB")),
+		}, nil
+	}
+
+	// Delete old icon file if it exists and is a local icon
+	if ws.IconURL != nil && strings.HasPrefix(*ws.IconURL, "/api/workspace-icons/") {
+		oldPath := strings.TrimPrefix(*ws.IconURL, "/api/workspace-icons/")
+		oldFullPath := filepath.Join(h.storagePath, "workspace-icons", oldPath)
+		os.Remove(oldFullPath) // Ignore errors - file may not exist
+	}
+
+	// Update workspace's icon URL
+	iconURL := "/api/workspace-icons/" + workspaceID + "/" + filename
+	ws.IconURL = &iconURL
+	if err := h.workspaceRepo.Update(ctx, ws); err != nil {
+		os.Remove(storagePath)
+		return nil, err
+	}
+
+	return openapi.UploadWorkspaceIcon200JSONResponse{
+		IconUrl: iconURL,
+	}, nil
+}
+
+// DeleteWorkspaceIcon removes a workspace's icon
+func (h *Handler) DeleteWorkspaceIcon(ctx context.Context, request openapi.DeleteWorkspaceIconRequestObject) (openapi.DeleteWorkspaceIconResponseObject, error) {
+	userID := h.getUserID(ctx)
+	if userID == "" {
+		return openapi.DeleteWorkspaceIcon401JSONResponse{
+			UnauthorizedJSONResponse: openapi.UnauthorizedJSONResponse(newErrorResponse(ErrCodeNotAuthenticated, "Not authenticated")),
+		}, nil
+	}
+
+	workspaceID := string(request.Wid)
+
+	// Check permissions - must be owner or admin
+	membership, err := h.workspaceRepo.GetMembership(ctx, userID, workspaceID)
+	if err != nil {
+		return openapi.DeleteWorkspaceIcon401JSONResponse{
+			UnauthorizedJSONResponse: openapi.UnauthorizedJSONResponse(newErrorResponse(ErrCodeNotAuthenticated, "Not a workspace member")),
+		}, nil
+	}
+
+	if !workspace.CanManageMembers(membership.Role) {
+		return openapi.DeleteWorkspaceIcon403JSONResponse{}, nil
+	}
+
+	// Get workspace
+	ws, err := h.workspaceRepo.GetByID(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Delete icon file if it's a local icon
+	if ws.IconURL != nil && strings.HasPrefix(*ws.IconURL, "/api/workspace-icons/") {
+		oldPath := strings.TrimPrefix(*ws.IconURL, "/api/workspace-icons/")
+		oldFullPath := filepath.Join(h.storagePath, "workspace-icons", oldPath)
+		os.Remove(oldFullPath) // Ignore errors - file may not exist
+	}
+
+	// Clear workspace's icon URL
+	ws.IconURL = nil
+	if err := h.workspaceRepo.Update(ctx, ws); err != nil {
+		return nil, err
+	}
+
+	return openapi.DeleteWorkspaceIcon200JSONResponse{
+		Success: true,
+	}, nil
+}
+
+// ServeWorkspaceIcon serves workspace icon files (called manually from router, not generated)
+func (h *Handler) ServeWorkspaceIcon(w http.ResponseWriter, r *http.Request) {
+	workspaceID := chi.URLParam(r, "workspaceId")
+	filename := chi.URLParam(r, "filename")
+	if workspaceID == "" || filename == "" {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+
+	// Sanitize to prevent directory traversal
+	workspaceID = filepath.Base(workspaceID)
+	filename = filepath.Base(filename)
+	iconPath := filepath.Join(h.storagePath, "workspace-icons", workspaceID, filename)
+
+	// Check if file exists
+	if _, err := os.Stat(iconPath); os.IsNotExist(err) {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+
+	http.ServeFile(w, r, iconPath)
 }
 
 // ListAllUnreads lists all unread messages across channels in a workspace

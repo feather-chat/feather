@@ -171,6 +171,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
         <Avatar
           src={message.user_avatar_url}
           name={message.user_display_name || 'Unknown'}
+          id={message.user_id}
           size="md"
           onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
         />

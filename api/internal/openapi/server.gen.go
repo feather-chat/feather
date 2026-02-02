@@ -377,6 +377,11 @@ type Workspace struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// WorkspaceIconUploadResponse defines model for WorkspaceIconUploadResponse.
+type WorkspaceIconUploadResponse struct {
+	IconUrl string `json:"icon_url"`
+}
+
 // WorkspaceMemberWithUser defines model for WorkspaceMemberWithUser.
 type WorkspaceMemberWithUser struct {
 	AvatarUrl           *string             `json:"avatar_url,omitempty"`
@@ -425,6 +430,9 @@ type WorkspaceId = string
 
 // BadRequest defines model for BadRequest.
 type BadRequest = ApiErrorResponse
+
+// Forbidden defines model for Forbidden.
+type Forbidden = ApiErrorResponse
 
 // NotFound defines model for NotFound.
 type NotFound = ApiErrorResponse
@@ -483,6 +491,11 @@ type UploadAvatarMultipartBody struct {
 // CreateDMJSONBody defines parameters for CreateDM.
 type CreateDMJSONBody struct {
 	UserIds []string `json:"user_ids"`
+}
+
+// UploadWorkspaceIconMultipartBody defines parameters for UploadWorkspaceIcon.
+type UploadWorkspaceIconMultipartBody struct {
+	File openapi_types.File `json:"file"`
 }
 
 // RemoveWorkspaceMemberJSONBody defines parameters for RemoveWorkspaceMember.
@@ -561,6 +574,9 @@ type CreateChannelJSONRequestBody = CreateChannelInput
 
 // CreateDMJSONRequestBody defines body for CreateDM for application/json ContentType.
 type CreateDMJSONRequestBody CreateDMJSONBody
+
+// UploadWorkspaceIconMultipartRequestBody defines body for UploadWorkspaceIcon for multipart/form-data ContentType.
+type UploadWorkspaceIconMultipartRequestBody UploadWorkspaceIconMultipartBody
 
 // CreateWorkspaceInviteJSONRequestBody defines body for CreateWorkspaceInvite for application/json ContentType.
 type CreateWorkspaceInviteJSONRequestBody = CreateInviteInput
@@ -702,6 +718,12 @@ type ServerInterface interface {
 	// Mark all channels as read
 	// (POST /workspaces/{wid}/channels/mark-all-read)
 	MarkAllChannelsRead(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
+	// Remove workspace icon
+	// (DELETE /workspaces/{wid}/icon)
+	DeleteWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
+	// Upload workspace icon
+	// (POST /workspaces/{wid}/icon)
+	UploadWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
 	// Create an invite
 	// (POST /workspaces/{wid}/invites/create)
 	CreateWorkspaceInvite(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
@@ -969,6 +991,18 @@ func (_ Unimplemented) ListChannels(w http.ResponseWriter, r *http.Request, wid 
 // Mark all channels as read
 // (POST /workspaces/{wid}/channels/mark-all-read)
 func (_ Unimplemented) MarkAllChannelsRead(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove workspace icon
+// (DELETE /workspaces/{wid}/icon)
+func (_ Unimplemented) DeleteWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Upload workspace icon
+// (POST /workspaces/{wid}/icon)
+func (_ Unimplemented) UploadWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2142,6 +2176,68 @@ func (siw *ServerInterfaceWrapper) MarkAllChannelsRead(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
+// DeleteWorkspaceIcon operation middleware
+func (siw *ServerInterfaceWrapper) DeleteWorkspaceIcon(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "wid" -------------
+	var wid WorkspaceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "wid", chi.URLParam(r, "wid"), &wid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "wid", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteWorkspaceIcon(w, r, wid)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UploadWorkspaceIcon operation middleware
+func (siw *ServerInterfaceWrapper) UploadWorkspaceIcon(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "wid" -------------
+	var wid WorkspaceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "wid", chi.URLParam(r, "wid"), &wid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "wid", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UploadWorkspaceIcon(w, r, wid)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // CreateWorkspaceInvite operation middleware
 func (siw *ServerInterfaceWrapper) CreateWorkspaceInvite(w http.ResponseWriter, r *http.Request) {
 
@@ -2565,6 +2661,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/workspaces/{wid}/channels/mark-all-read", wrapper.MarkAllChannelsRead)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/workspaces/{wid}/icon", wrapper.DeleteWorkspaceIcon)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/workspaces/{wid}/icon", wrapper.UploadWorkspaceIcon)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/workspaces/{wid}/invites/create", wrapper.CreateWorkspaceInvite)
 	})
 	r.Group(func(r chi.Router) {
@@ -2587,6 +2689,8 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 }
 
 type BadRequestJSONResponse ApiErrorResponse
+
+type ForbiddenJSONResponse ApiErrorResponse
 
 type NotFoundJSONResponse ApiErrorResponse
 
@@ -3519,6 +3623,86 @@ func (response MarkAllChannelsRead200JSONResponse) VisitMarkAllChannelsReadRespo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DeleteWorkspaceIconRequestObject struct {
+	Wid WorkspaceId `json:"wid"`
+}
+
+type DeleteWorkspaceIconResponseObject interface {
+	VisitDeleteWorkspaceIconResponse(w http.ResponseWriter) error
+}
+
+type DeleteWorkspaceIcon200JSONResponse SuccessResponse
+
+func (response DeleteWorkspaceIcon200JSONResponse) VisitDeleteWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteWorkspaceIcon401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteWorkspaceIcon401JSONResponse) VisitDeleteWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteWorkspaceIcon403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteWorkspaceIcon403JSONResponse) VisitDeleteWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadWorkspaceIconRequestObject struct {
+	Wid  WorkspaceId `json:"wid"`
+	Body *multipart.Reader
+}
+
+type UploadWorkspaceIconResponseObject interface {
+	VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error
+}
+
+type UploadWorkspaceIcon200JSONResponse WorkspaceIconUploadResponse
+
+func (response UploadWorkspaceIcon200JSONResponse) VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadWorkspaceIcon400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UploadWorkspaceIcon400JSONResponse) VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadWorkspaceIcon401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UploadWorkspaceIcon401JSONResponse) VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadWorkspaceIcon403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UploadWorkspaceIcon403JSONResponse) VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type CreateWorkspaceInviteRequestObject struct {
 	Wid  WorkspaceId `json:"wid"`
 	Body *CreateWorkspaceInviteJSONRequestBody
@@ -3757,6 +3941,12 @@ type StrictServerInterface interface {
 	// Mark all channels as read
 	// (POST /workspaces/{wid}/channels/mark-all-read)
 	MarkAllChannelsRead(ctx context.Context, request MarkAllChannelsReadRequestObject) (MarkAllChannelsReadResponseObject, error)
+	// Remove workspace icon
+	// (DELETE /workspaces/{wid}/icon)
+	DeleteWorkspaceIcon(ctx context.Context, request DeleteWorkspaceIconRequestObject) (DeleteWorkspaceIconResponseObject, error)
+	// Upload workspace icon
+	// (POST /workspaces/{wid}/icon)
+	UploadWorkspaceIcon(ctx context.Context, request UploadWorkspaceIconRequestObject) (UploadWorkspaceIconResponseObject, error)
 	// Create an invite
 	// (POST /workspaces/{wid}/invites/create)
 	CreateWorkspaceInvite(ctx context.Context, request CreateWorkspaceInviteRequestObject) (CreateWorkspaceInviteResponseObject, error)
@@ -4985,6 +5175,65 @@ func (sh *strictHandler) MarkAllChannelsRead(w http.ResponseWriter, r *http.Requ
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(MarkAllChannelsReadResponseObject); ok {
 		if err := validResponse.VisitMarkAllChannelsReadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteWorkspaceIcon operation middleware
+func (sh *strictHandler) DeleteWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	var request DeleteWorkspaceIconRequestObject
+
+	request.Wid = wid
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteWorkspaceIcon(ctx, request.(DeleteWorkspaceIconRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteWorkspaceIcon")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteWorkspaceIconResponseObject); ok {
+		if err := validResponse.VisitDeleteWorkspaceIconResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UploadWorkspaceIcon operation middleware
+func (sh *strictHandler) UploadWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	var request UploadWorkspaceIconRequestObject
+
+	request.Wid = wid
+
+	if reader, err := r.MultipartReader(); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode multipart body: %w", err))
+		return
+	} else {
+		request.Body = reader
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UploadWorkspaceIcon(ctx, request.(UploadWorkspaceIconRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UploadWorkspaceIcon")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UploadWorkspaceIconResponseObject); ok {
+		if err := validResponse.VisitUploadWorkspaceIconResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

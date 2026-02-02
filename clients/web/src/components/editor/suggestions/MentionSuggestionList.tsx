@@ -141,6 +141,7 @@ export const MentionSuggestionList = forwardRef<MentionSuggestionRef, MentionSug
               <Avatar
                 src={item.avatarUrl}
                 name={item.displayName}
+                id={item.id}
                 size="sm"
               />
             ) : (

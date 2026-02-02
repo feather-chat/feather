@@ -59,6 +59,7 @@ func NewRouter(h *handler.Handler, sseHandler *sse.Handler, authHandler *auth.Ha
 	r.Route("/api", func(r chi.Router) {
 		// Public routes (no auth required)
 		r.Get("/avatars/{filename}", h.ServeAvatar)
+		r.Get("/workspace-icons/{workspaceId}/{filename}", h.ServeWorkspaceIcon)
 
 		r.Group(func(r chi.Router) {
 			r.Use(authHandler.RequireAuth)

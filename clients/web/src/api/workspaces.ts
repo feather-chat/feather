@@ -1,4 +1,4 @@
-import { get, post, type Workspace, type WorkspaceMemberWithUser, type Invite, type WorkspaceRole } from '@feather/api-client';
+import { get, post, del, uploadFile, type Workspace, type WorkspaceMemberWithUser, type Invite, type WorkspaceRole } from '@feather/api-client';
 
 export interface CreateWorkspaceInput {
   slug: string;
@@ -48,4 +48,11 @@ export const workspacesApi = {
 
   stopTyping: (workspaceId: string, channelId: string) =>
     post<{ success: boolean }>(`/workspaces/${workspaceId}/typing/stop`, { channel_id: channelId }),
+
+  // Icon endpoints
+  uploadIcon: (workspaceId: string, file: File) =>
+    uploadFile(`/workspaces/${workspaceId}/icon`, file) as Promise<{ icon_url: string }>,
+
+  deleteIcon: (workspaceId: string) =>
+    del<{ success: boolean }>(`/workspaces/${workspaceId}/icon`),
 };

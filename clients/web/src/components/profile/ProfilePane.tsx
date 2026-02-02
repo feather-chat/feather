@@ -40,6 +40,7 @@ export function ProfilePane({ userId }: ProfilePaneProps) {
         ) : profile ? (
           isEditing && isOwnProfile ? (
             <EditProfileForm
+              userId={userId}
               profile={profile}
               onCancel={() => setIsEditing(false)}
               onSuccess={() => setIsEditing(false)}
@@ -86,6 +87,7 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
         <Avatar
           src={profile.avatar_url}
           name={profile.display_name}
+          id={profile.id}
           size="lg"
           className="w-24 h-24 text-3xl"
         />
@@ -133,6 +135,7 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
 }
 
 interface EditProfileFormProps {
+  userId: string;
   profile: {
     display_name: string;
     avatar_url?: string;
@@ -142,6 +145,7 @@ interface EditProfileFormProps {
 }
 
 function EditProfileForm({
+  userId,
   profile,
   onCancel,
   onSuccess,
@@ -237,6 +241,7 @@ function EditProfileForm({
         <Avatar
           src={displayAvatarUrl || undefined}
           name={displayName || "User"}
+          id={userId}
           size="lg"
           className="w-24 h-24 text-3xl"
         />

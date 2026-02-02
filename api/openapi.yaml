@@ -1151,6 +1151,59 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /workspaces/{wid}/icon:
+    post:
+      tags: [workspaces]
+      summary: Upload workspace icon
+      operationId: uploadWorkspaceIcon
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Icon uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceIconUploadResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    delete:
+      tags: [workspaces]
+      summary: Remove workspace icon
+      operationId: deleteWorkspaceIcon
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+      responses:
+        '200':
+          description: Icon removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   # SSE endpoints
   /workspaces/{wid}/events:
     get:
@@ -1272,6 +1325,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiErrorResponse'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
 
   schemas:
     # User schemas
@@ -1302,6 +1361,13 @@ components:
       required: [avatar_url]
       properties:
         avatar_url:
+          type: string
+
+    WorkspaceIconUploadResponse:
+      type: object
+      required: [icon_url]
+      properties:
+        icon_url:
           type: string
 
     User:

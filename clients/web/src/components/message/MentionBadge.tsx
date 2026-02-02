@@ -63,6 +63,7 @@ export function UserMentionBadge({ userId, member }: UserMentionBadgeProps) {
           <Avatar
             src={member?.avatar_url}
             name={displayName}
+            id={userId}
             size="lg"
           />
           <div className={styles.info()}>

@@ -32,6 +32,7 @@ export function AvatarStack({
           key={user.user_id}
           src={user.avatar_url}
           name={user.display_name || 'User'}
+          id={user.user_id}
           size={size}
           className="ring-2 ring-white dark:ring-gray-900"
           style={{ zIndex: visibleUsers.length - index }}

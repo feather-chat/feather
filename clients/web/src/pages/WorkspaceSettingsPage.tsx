@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { useWorkspace, useWorkspaceMembers, useUpdateMemberRole, useRemoveMember } from '../hooks/useWorkspaces';
+import { XMarkIcon, PhotoIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useWorkspace, useWorkspaceMembers, useUpdateMemberRole, useRemoveMember, useUploadWorkspaceIcon, useDeleteWorkspaceIcon } from '../hooks/useWorkspaces';
 import { useAuth } from '../hooks';
 import { Avatar, Button, Spinner, toast } from '../components/ui';
-import { cn } from '../lib/utils';
+import { cn, getAvatarColor } from '../lib/utils';
 import type { WorkspaceRole } from '@feather/api-client';
 
 export function WorkspaceSettingsPage() {
@@ -14,8 +14,13 @@ export function WorkspaceSettingsPage() {
   const { data: membersData, isLoading: membersLoading } = useWorkspaceMembers(workspaceId);
   const updateRole = useUpdateMemberRole(workspaceId!);
   const removeMember = useRemoveMember(workspaceId!);
+  const uploadIcon = useUploadWorkspaceIcon(workspaceId!);
+  const deleteIcon = useDeleteWorkspaceIcon(workspaceId!);
 
   const [activeTab, setActiveTab] = useState<'general' | 'members'>('general');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const members = membersData?.members ?? [];
   const isLoading = workspaceLoading || membersLoading;
@@ -36,6 +41,56 @@ export function WorkspaceSettingsPage() {
       toast('Member removed', 'success');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to remove member', 'error');
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast('Invalid file type. Please use JPEG, PNG, GIF, or WebP.', 'error');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast('File too large. Maximum size is 5MB.', 'error');
+      return;
+    }
+
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleClearSelection = () => {
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleUploadIcon = async () => {
+    if (!selectedFile) return;
+    try {
+      await uploadIcon.mutateAsync(selectedFile);
+      toast('Workspace icon updated', 'success');
+      handleClearSelection();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to upload icon', 'error');
+    }
+  };
+
+  const handleRemoveIcon = async () => {
+    try {
+      await deleteIcon.mutateAsync();
+      toast('Workspace icon removed', 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to remove icon', 'error');
     }
   };
 
@@ -92,6 +147,98 @@ export function WorkspaceSettingsPage() {
 
         {activeTab === 'general' && (
           <div className="space-y-6">
+            {/* Workspace Icon */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                Workspace Icon
+              </label>
+              <div className="flex items-start gap-4">
+                {/* Icon preview */}
+                <div
+                  className={cn(
+                    'w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden',
+                    !previewUrl && !workspace?.workspace.icon_url && workspaceId && getAvatarColor(workspaceId)
+                  )}
+                >
+                  {previewUrl || workspace?.workspace.icon_url ? (
+                    <img
+                      src={previewUrl || workspace?.workspace.icon_url}
+                      alt={workspace?.workspace.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-bold text-2xl">
+                      {workspace?.workspace.name?.slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+
+                {/* Upload controls */}
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+
+                  {selectedFile ? (
+                    <>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                        Selected: {selectedFile.name}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onPress={handleUploadIcon}
+                          isLoading={uploadIcon.isPending}
+                        >
+                          <PhotoIcon className="w-4 h-4 mr-1" />
+                          Save Icon
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onPress={handleClearSelection}
+                          isDisabled={uploadIcon.isPending}
+                        >
+                          <XMarkIcon className="w-4 h-4 mr-1" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onPress={() => fileInputRef.current?.click()}
+                      >
+                        <PhotoIcon className="w-4 h-4 mr-1" />
+                        Upload Icon
+                      </Button>
+                      {workspace?.workspace.icon_url && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onPress={handleRemoveIcon}
+                          isLoading={deleteIcon.isPending}
+                        >
+                          <TrashIcon className="w-4 h-4 mr-1" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    JPEG, PNG, GIF, or WebP. Max 5MB.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Workspace Name
@@ -118,6 +265,7 @@ export function WorkspaceSettingsPage() {
                   <Avatar
                     src={member.avatar_url}
                     name={member.display_name || 'User'}
+                    id={member.user_id}
                     size="md"
                   />
                   <div>

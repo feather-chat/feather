@@ -5,7 +5,7 @@ import { useChannels, useWorkspace, useAuth } from '../../hooks';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
 import { ChannelListSkeleton, Modal, Button, Input, toast, Tabs, TabList, Tab, TabPanel, RadioGroup, Radio } from '../ui';
 import { useCreateChannel, useMarkAllChannelsAsRead, useCreateDM, useJoinChannel } from '../../hooks/useChannels';
-import { cn } from '../../lib/utils';
+import { cn, getAvatarColor } from '../../lib/utils';
 import type { ChannelWithMembership, ChannelType } from '@feather/api-client';
 
 function ChannelIcon({ type, className }: { type: string; className?: string }) {
@@ -249,7 +249,7 @@ function ChannelItem({ channel, workspaceId, isActive }: ChannelItemProps) {
             className="w-5 h-5 rounded-full"
           />
         ) : (
-          <div className="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
+          <div className={cn('w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white', getAvatarColor(dmParticipant.user_id))}>
             {dmParticipant.display_name.charAt(0).toUpperCase()}
           </div>
         )
@@ -489,7 +489,7 @@ function NewDMModal({
                     className="w-8 h-8 rounded-full"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                  <div className={cn('w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-white', getAvatarColor(member.user_id))}>
                     {displayName.charAt(0).toUpperCase()}
                   </div>
                 )}

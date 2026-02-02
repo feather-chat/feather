@@ -67,6 +67,7 @@ export function ChannelMembersModal({
           <Avatar
             src={member.avatar_url}
             name={member.display_name}
+            id={member.user_id}
             size="sm"
           />
           <span className="flex-1 text-gray-900 dark:text-white">
@@ -97,6 +98,7 @@ export function ChannelMembersModal({
             <Avatar
               src={member.avatar_url}
               name={displayName}
+              id={member.user_id}
               size="sm"
             />
             <span className="flex-1 text-gray-900 dark:text-white">
