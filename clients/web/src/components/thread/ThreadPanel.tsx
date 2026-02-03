@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import {
@@ -10,6 +10,7 @@ import {
   useMessage,
   useAuth,
   useWorkspaceMembers,
+  useAutoFocusComposer,
 } from "../../hooks";
 import { useThreadPanel, useProfilePanel } from "../../hooks/usePanel";
 import { Avatar, MessageSkeleton } from "../ui";
@@ -17,7 +18,7 @@ import { ThreadNotificationButton } from "./ThreadNotificationButton";
 import { ReactionPicker } from "../message/ReactionPicker";
 import { AttachmentDisplay } from "../message/AttachmentDisplay";
 import { MessageContent } from "../message/MessageContent";
-import { MessageComposer } from "../message/MessageComposer";
+import { MessageComposer, type MessageComposerRef } from "../message/MessageComposer";
 import { cn, formatTime } from "../../lib/utils";
 import { messagesApi } from "../../api/messages";
 import type { MessageWithUser, MessageListResult, WorkspaceMemberWithUser } from "@feather/api-client";
@@ -61,6 +62,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useThreadMessages(messageId);
   const { data: membersData } = useWorkspaceMembers(workspaceId);
+  const composerRef = useRef<MessageComposerRef>(null);
 
   // Try to get parent message from cache first
   const cachedMessage = getParentMessageFromCache(queryClient, messageId);
@@ -77,6 +79,15 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
 
   // Flatten thread messages (already in chronological order from API)
   const threadMessages = data?.pages.flatMap((page) => page.messages) || [];
+
+  // Focus composer when thread opens
+  useEffect(() => {
+    const timer = setTimeout(() => composerRef.current?.focus(), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Auto-focus for typing while thread is open
+  useAutoFocusComposer(composerRef, true);
 
   return (
     <div className="w-96 border-l border-gray-200 dark:border-gray-700 flex flex-col bg-white dark:bg-gray-900">
@@ -147,6 +158,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
       {/* Reply composer */}
       {parentMessage && workspaceId && (
         <MessageComposer
+          ref={composerRef}
           channelId={parentMessage.channel_id}
           workspaceId={workspaceId}
           parentMessageId={messageId}

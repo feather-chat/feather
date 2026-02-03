@@ -122,6 +122,7 @@ export interface RichTextEditorRef {
   getContent: () => string;
   insertAtSymbol: () => void;
   insertHashSymbol: () => void;
+  insertText: (text: string) => void;
 }
 
 export interface RichTextEditorProps {
@@ -457,6 +458,10 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       editor?.chain().focus().insertContent('#').run();
     }, [editor]);
 
+    const insertText = useCallback((text: string) => {
+      editor?.chain().focus().insertContent(text).run();
+    }, [editor]);
+
     useImperativeHandle(
       ref,
       () => ({
@@ -475,8 +480,9 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         },
         insertAtSymbol,
         insertHashSymbol,
+        insertText,
       }),
-      [editor, insertAtSymbol, insertHashSymbol]
+      [editor, insertAtSymbol, insertHashSymbol, insertText]
     );
 
     useEffect(() => {

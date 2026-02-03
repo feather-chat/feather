@@ -14,3 +14,4 @@ export { useDarkMode } from './useDarkMode';
 export { useThreadSubscription, useSubscribeToThread, useUnsubscribeFromThread } from './useThreadSubscription';
 export { useMentions } from './useMentions';
 export { useChannelNotifications, useUpdateChannelNotifications } from './useChannelNotifications';
+export { useAutoFocusComposer } from './useAutoFocusComposer';

@@ -4,10 +4,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { EllipsisVerticalIcon, LockClosedIcon, HashtagIcon, StarIcon } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { Button as AriaButton } from 'react-aria-components';
-import { useChannels, useArchiveChannel, useLeaveChannel, useJoinChannel, useAuth } from '../hooks';
+import { useChannels, useArchiveChannel, useLeaveChannel, useJoinChannel, useAuth, useAutoFocusComposer } from '../hooks';
 import { useThreadPanel } from '../hooks/usePanel';
 import { useMarkChannelAsRead, useStarChannel, useUnstarChannel } from '../hooks/useChannels';
-import { MessageList, MessageComposer } from '../components/message';
+import { MessageList, MessageComposer, type MessageComposerRef } from '../components/message';
 import { ChannelMembersButton } from '../components/channel/ChannelMembersButton';
 import { ChannelNotificationButton } from '../components/channel/ChannelNotificationButton';
 import { ChannelDetailsModal } from '../components/channel/ChannelDetailsModal';
@@ -37,7 +37,8 @@ export function ChannelPage() {
   const queryClient = useQueryClient();
   const { workspaces } = useAuth();
   const { data: channelsData, isLoading } = useChannels(workspaceId);
-  const { closeThread } = useThreadPanel();
+  const { threadId, closeThread } = useThreadPanel();
+  const composerRef = useRef<MessageComposerRef>(null);
 
   const channel = channelsData?.channels.find((c) => c.id === channelId);
   const archiveChannel = useArchiveChannel(workspaceId || '');
@@ -180,6 +181,9 @@ export function ChannelPage() {
     channel.type !== 'dm' &&
     channel.type !== 'group_dm' &&
     channel.channel_role !== undefined;
+
+  // Auto-focus main composer only when no thread is open and user is a member
+  useAutoFocusComposer(composerRef, isMember && !threadId);
 
   const openDetailsModal = (tab: 'about' | 'members' | 'add') => {
     setDetailsModalTab(tab);
@@ -396,6 +400,7 @@ export function ChannelPage() {
       ) : (
         /* Composer for members */
         <MessageComposer
+          ref={composerRef}
           channelId={channelId}
           workspaceId={workspaceId}
           placeholder={`Message ${getChannelPrefix(channel.type)}${channel.name}`}

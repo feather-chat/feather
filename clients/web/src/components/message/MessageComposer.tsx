@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, type FormEvent } from 'react';
+import { useState, useRef, useCallback, forwardRef, useImperativeHandle, type FormEvent } from 'react';
 import { DropZone } from 'react-aria-components';
 import {
   DocumentIcon,
@@ -9,6 +9,11 @@ import { useSendMessage, useSendThreadReply, useTyping, useUploadFile, useAuth, 
 import { useTypingUsers } from '../../lib/presenceStore';
 import { cn } from '../../lib/utils';
 import { RichTextEditor, type RichTextEditorRef } from '../editor';
+
+export interface MessageComposerRef {
+  focus: () => void;
+  insertText: (text: string) => void;
+}
 
 interface MessageComposerProps {
   channelId: string;
@@ -31,16 +36,25 @@ interface PendingAttachment {
 const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-export function MessageComposer({
-  channelId,
-  workspaceId,
-  parentMessageId,
-  variant = 'channel',
-  placeholder = 'Type a message...',
-}: MessageComposerProps) {
+export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerProps>(
+  function MessageComposer(
+    {
+      channelId,
+      workspaceId,
+      parentMessageId,
+      variant = 'channel',
+      placeholder = 'Type a message...',
+    },
+    ref
+  ) {
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const editorRef = useRef<RichTextEditorRef>(null);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => editorRef.current?.focus(),
+    insertText: (text: string) => editorRef.current?.insertText(text),
+  }));
   const sendMessage = useSendMessage(channelId);
   const sendThreadReply = useSendThreadReply(parentMessageId ?? '', channelId);
   const uploadFile = useUploadFile(channelId);
@@ -288,4 +302,4 @@ export function MessageComposer({
       </DropZone>
     </div>
   );
-}
+});
