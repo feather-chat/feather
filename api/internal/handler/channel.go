@@ -420,6 +420,7 @@ func channelWithMembershipToAPI(ch channel.ChannelWithMembership) openapi.Channe
 		UpdatedAt:         ch.UpdatedAt,
 		LastReadMessageId: ch.LastReadMessageID,
 		UnreadCount:       ch.UnreadCount,
+		IsStarred:         ch.IsStarred,
 	}
 	if ch.ChannelRole != nil {
 		role := openapi.ChannelRole(*ch.ChannelRole)
@@ -629,4 +630,42 @@ func notificationPreferencesToAPI(pref *notification.NotificationPreference) ope
 		NotifyLevel:  openapi.NotifyLevel(pref.NotifyLevel),
 		EmailEnabled: pref.EmailEnabled,
 	}
+}
+
+// StarChannel stars a channel for the current user
+func (h *Handler) StarChannel(ctx context.Context, request openapi.StarChannelRequestObject) (openapi.StarChannelResponseObject, error) {
+	userID := h.getUserID(ctx)
+	if userID == "" {
+		return nil, errors.New("not authenticated")
+	}
+
+	if err := h.channelRepo.StarChannel(ctx, userID, string(request.Id)); err != nil {
+		if errors.Is(err, channel.ErrNotChannelMember) {
+			return nil, errors.New("not a member of this channel")
+		}
+		return nil, err
+	}
+
+	return openapi.StarChannel200JSONResponse{
+		Success: true,
+	}, nil
+}
+
+// UnstarChannel unstars a channel for the current user
+func (h *Handler) UnstarChannel(ctx context.Context, request openapi.UnstarChannelRequestObject) (openapi.UnstarChannelResponseObject, error) {
+	userID := h.getUserID(ctx)
+	if userID == "" {
+		return nil, errors.New("not authenticated")
+	}
+
+	if err := h.channelRepo.UnstarChannel(ctx, userID, string(request.Id)); err != nil {
+		if errors.Is(err, channel.ErrNotChannelMember) {
+			return nil, errors.New("not a member of this channel")
+		}
+		return nil, err
+	}
+
+	return openapi.UnstarChannel200JSONResponse{
+		Success: true,
+	}, nil
 }

@@ -1,4 +1,4 @@
-import { get, post, type Channel, type ChannelWithMembership, type ChannelMember, type ChannelType, type MarkReadResponse, type NotificationPreferences } from '@feather/api-client';
+import { get, post, del, type Channel, type ChannelWithMembership, type ChannelMember, type ChannelType, type MarkReadResponse, type NotificationPreferences } from '@feather/api-client';
 
 export interface CreateChannelInput {
   name: string;
@@ -54,4 +54,10 @@ export const channelsApi = {
 
   updateNotifications: (channelId: string, preferences: NotificationPreferences) =>
     post<{ preferences: NotificationPreferences }>(`/channels/${channelId}/notifications`, preferences),
+
+  star: (channelId: string) =>
+    post<{ success: boolean }>(`/channels/${channelId}/star`),
+
+  unstar: (channelId: string) =>
+    del<{ success: boolean }>(`/channels/${channelId}/star`),
 };

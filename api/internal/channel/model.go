@@ -23,6 +23,7 @@ type ChannelMembership struct {
 	ChannelID         string    `json:"channel_id"`
 	ChannelRole       *string   `json:"channel_role,omitempty"`
 	LastReadMessageID *string   `json:"last_read_message_id,omitempty"`
+	IsStarred         bool      `json:"is_starred"`
 	CreatedAt         time.Time `json:"created_at"`
 	UpdatedAt         time.Time `json:"updated_at"`
 }
@@ -32,6 +33,7 @@ type ChannelWithMembership struct {
 	ChannelRole       *string      `json:"channel_role,omitempty"`
 	LastReadMessageID *string      `json:"last_read_message_id,omitempty"`
 	UnreadCount       int          `json:"unread_count"`
+	IsStarred         bool         `json:"is_starred"`
 	DMParticipants    []MemberInfo `json:"dm_participants,omitempty"`
 }
 

@@ -153,3 +153,75 @@ export function useUpdateChannel(workspaceId: string, channelId: string) {
     },
   });
 }
+
+export function useStarChannel(workspaceId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (channelId: string) => channelsApi.star(channelId),
+    onMutate: async (channelId) => {
+      await queryClient.cancelQueries({ queryKey: ['channels', workspaceId] });
+
+      const previousData = queryClient.getQueryData<{ channels: ChannelWithMembership[] }>(['channels', workspaceId]);
+
+      queryClient.setQueryData(
+        ['channels', workspaceId],
+        (old: { channels: ChannelWithMembership[] } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            channels: old.channels.map((c) =>
+              c.id === channelId ? { ...c, is_starred: true } : c
+            ),
+          };
+        }
+      );
+
+      return { previousData };
+    },
+    onError: (_err, _channelId, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(['channels', workspaceId], context.previousData);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels', workspaceId] });
+    },
+  });
+}
+
+export function useUnstarChannel(workspaceId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (channelId: string) => channelsApi.unstar(channelId),
+    onMutate: async (channelId) => {
+      await queryClient.cancelQueries({ queryKey: ['channels', workspaceId] });
+
+      const previousData = queryClient.getQueryData<{ channels: ChannelWithMembership[] }>(['channels', workspaceId]);
+
+      queryClient.setQueryData(
+        ['channels', workspaceId],
+        (old: { channels: ChannelWithMembership[] } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            channels: old.channels.map((c) =>
+              c.id === channelId ? { ...c, is_starred: false } : c
+            ),
+          };
+        }
+      );
+
+      return { previousData };
+    },
+    onError: (_err, _channelId, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(['channels', workspaceId], context.previousData);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels', workspaceId] });
+    },
+  });
+}

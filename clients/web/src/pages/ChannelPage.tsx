@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { EllipsisVerticalIcon, LockClosedIcon, HashtagIcon } from '@heroicons/react/24/outline';
+import { EllipsisVerticalIcon, LockClosedIcon, HashtagIcon, StarIcon } from '@heroicons/react/24/outline';
+import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { Button as AriaButton } from 'react-aria-components';
 import { useChannels, useArchiveChannel, useLeaveChannel, useJoinChannel, useAuth } from '../hooks';
 import { useThreadPanel } from '../hooks/usePanel';
-import { useMarkChannelAsRead } from '../hooks/useChannels';
+import { useMarkChannelAsRead, useStarChannel, useUnstarChannel } from '../hooks/useChannels';
 import { MessageList, MessageComposer } from '../components/message';
 import { ChannelMembersButton } from '../components/channel/ChannelMembersButton';
 import { ChannelNotificationButton } from '../components/channel/ChannelNotificationButton';
@@ -43,6 +44,8 @@ export function ChannelPage() {
   const leaveChannel = useLeaveChannel(workspaceId || '');
   const joinChannel = useJoinChannel(workspaceId || '');
   const markAsRead = useMarkChannelAsRead(workspaceId || '');
+  const starChannel = useStarChannel(workspaceId || '');
+  const unstarChannel = useUnstarChannel(workspaceId || '');
 
   // Get user's role in this workspace
   const workspaceMembership = workspaces?.find((w) => w.id === workspaceId);
@@ -213,6 +216,25 @@ export function ChannelPage() {
       <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
+            {isMember && (
+              <button
+                onClick={() => {
+                  if (channel.is_starred) {
+                    unstarChannel.mutate(channelId);
+                  } else {
+                    starChannel.mutate(channelId);
+                  }
+                }}
+                className="p-1 text-gray-400 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors flex-shrink-0"
+                title={channel.is_starred ? 'Unstar channel' : 'Star channel'}
+              >
+                {channel.is_starred ? (
+                  <StarIconSolid className="w-5 h-5 text-yellow-500" />
+                ) : (
+                  <StarIcon className="w-5 h-5" />
+                )}
+              </button>
+            )}
             <button
               onClick={() => openDetailsModal('about')}
               className="flex items-center gap-2 flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-1.5 py-0.5 -ml-1.5 transition-colors"

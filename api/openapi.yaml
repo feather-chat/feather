@@ -558,6 +558,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
 
+  /channels/{id}/star:
+    post:
+      tags: [channels]
+      summary: Star a channel
+      operationId: starChannel
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      responses:
+        '200':
+          description: Channel starred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [channels]
+      summary: Unstar a channel
+      operationId: unstarChannel
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      responses:
+        '200':
+          description: Channel unstarred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /channels/{id}/mark-read:
     post:
       tags: [channels]
@@ -1532,7 +1572,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/Channel'
         - type: object
-          required: [unread_count]
+          required: [unread_count, is_starred]
           properties:
             channel_role:
               $ref: '#/components/schemas/ChannelRole'
@@ -1540,6 +1580,8 @@ components:
               type: string
             unread_count:
               type: integer
+            is_starred:
+              type: boolean
             dm_participants:
               type: array
               items:

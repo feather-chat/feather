@@ -139,6 +139,7 @@ type ChannelWithMembership struct {
 	// DmParticipants For DM channels, the other participants (excluding current user)
 	DmParticipants    *[]ChannelMember `json:"dm_participants,omitempty"`
 	Id                string           `json:"id"`
+	IsStarred         bool             `json:"is_starred"`
 	LastReadMessageId *string          `json:"last_read_message_id,omitempty"`
 	Name              string           `json:"name"`
 	Type              ChannelType      `json:"type"`
@@ -646,6 +647,12 @@ type ServerInterface interface {
 	// Update channel notification preferences
 	// (POST /channels/{id}/notifications)
 	UpdateChannelNotifications(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Unstar a channel
+	// (DELETE /channels/{id}/star)
+	UnstarChannel(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Star a channel
+	// (POST /channels/{id}/star)
+	StarChannel(w http.ResponseWriter, r *http.Request, id ChannelId)
 	// Update channel
 	// (POST /channels/{id}/update)
 	UpdateChannel(w http.ResponseWriter, r *http.Request, id ChannelId)
@@ -847,6 +854,18 @@ func (_ Unimplemented) GetChannelNotifications(w http.ResponseWriter, r *http.Re
 // Update channel notification preferences
 // (POST /channels/{id}/notifications)
 func (_ Unimplemented) UpdateChannelNotifications(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Unstar a channel
+// (DELETE /channels/{id}/star)
+func (_ Unimplemented) UnstarChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Star a channel
+// (POST /channels/{id}/star)
+func (_ Unimplemented) StarChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1467,6 +1486,68 @@ func (siw *ServerInterfaceWrapper) UpdateChannelNotifications(w http.ResponseWri
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateChannelNotifications(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnstarChannel operation middleware
+func (siw *ServerInterfaceWrapper) UnstarChannel(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnstarChannel(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StarChannel operation middleware
+func (siw *ServerInterfaceWrapper) StarChannel(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StarChannel(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2589,6 +2670,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/channels/{id}/notifications", wrapper.UpdateChannelNotifications)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/channels/{id}/star", wrapper.UnstarChannel)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/channels/{id}/star", wrapper.StarChannel)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/channels/{id}/update", wrapper.UpdateChannel)
 	})
 	r.Group(func(r chi.Router) {
@@ -3030,6 +3117,76 @@ type UpdateChannelNotifications200JSONResponse struct {
 func (response UpdateChannelNotifications200JSONResponse) VisitUpdateChannelNotificationsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnstarChannelRequestObject struct {
+	Id ChannelId `json:"id"`
+}
+
+type UnstarChannelResponseObject interface {
+	VisitUnstarChannelResponse(w http.ResponseWriter) error
+}
+
+type UnstarChannel200JSONResponse SuccessResponse
+
+func (response UnstarChannel200JSONResponse) VisitUnstarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnstarChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UnstarChannel401JSONResponse) VisitUnstarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnstarChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UnstarChannel404JSONResponse) VisitUnstarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StarChannelRequestObject struct {
+	Id ChannelId `json:"id"`
+}
+
+type StarChannelResponseObject interface {
+	VisitStarChannelResponse(w http.ResponseWriter) error
+}
+
+type StarChannel200JSONResponse SuccessResponse
+
+func (response StarChannel200JSONResponse) VisitStarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StarChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response StarChannel401JSONResponse) VisitStarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StarChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response StarChannel404JSONResponse) VisitStarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3869,6 +4026,12 @@ type StrictServerInterface interface {
 	// Update channel notification preferences
 	// (POST /channels/{id}/notifications)
 	UpdateChannelNotifications(ctx context.Context, request UpdateChannelNotificationsRequestObject) (UpdateChannelNotificationsResponseObject, error)
+	// Unstar a channel
+	// (DELETE /channels/{id}/star)
+	UnstarChannel(ctx context.Context, request UnstarChannelRequestObject) (UnstarChannelResponseObject, error)
+	// Star a channel
+	// (POST /channels/{id}/star)
+	StarChannel(ctx context.Context, request StarChannelRequestObject) (StarChannelResponseObject, error)
 	// Update channel
 	// (POST /channels/{id}/update)
 	UpdateChannel(ctx context.Context, request UpdateChannelRequestObject) (UpdateChannelResponseObject, error)
@@ -4489,6 +4652,58 @@ func (sh *strictHandler) UpdateChannelNotifications(w http.ResponseWriter, r *ht
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateChannelNotificationsResponseObject); ok {
 		if err := validResponse.VisitUpdateChannelNotificationsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UnstarChannel operation middleware
+func (sh *strictHandler) UnstarChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request UnstarChannelRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnstarChannel(ctx, request.(UnstarChannelRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnstarChannel")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnstarChannelResponseObject); ok {
+		if err := validResponse.VisitUnstarChannelResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// StarChannel operation middleware
+func (sh *strictHandler) StarChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request StarChannelRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.StarChannel(ctx, request.(StarChannelRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "StarChannel")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(StarChannelResponseObject); ok {
+		if err := validResponse.VisitStarChannelResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

@@ -395,6 +395,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/channels/{id}/star": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Star a channel */
+        post: operations["starChannel"];
+        /** Unstar a channel */
+        delete: operations["unstarChannel"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/channels/{id}/mark-read": {
         parameters: {
             query?: never;
@@ -946,6 +964,7 @@ export interface components {
             channel_role?: components["schemas"]["ChannelRole"];
             last_read_message_id?: string;
             unread_count: number;
+            is_starred: boolean;
             /** @description For DM channels, the other participants (excluding current user) */
             dm_participants?: components["schemas"]["ChannelMember"][];
         };
@@ -1960,6 +1979,56 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+        };
+    };
+    starChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Channel starred */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    unstarChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Channel unstarred */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     markChannelRead: {

@@ -39,6 +39,7 @@ export function ChannelSidebar({ workspaceId }: ChannelSidebarProps) {
 
   const groupedChannels = useMemo(() => {
     const groups = {
+      starred: [] as ChannelWithMembership[],
       public: [] as ChannelWithMembership[],
       private: [] as ChannelWithMembership[],
       dm: [] as ChannelWithMembership[],
@@ -50,6 +51,12 @@ export function ChannelSidebar({ workspaceId }: ChannelSidebarProps) {
 
       // DMs always show; other channels only if member
       if (!isDM && !isMember) return;
+
+      // Starred channels go to starred section
+      if (channel.is_starred) {
+        groups.starred.push(channel);
+        return;
+      }
 
       if (channel.type === 'public') {
         groups.public.push(channel);
@@ -114,6 +121,15 @@ export function ChannelSidebar({ workspaceId }: ChannelSidebarProps) {
           <ChannelListSkeleton />
         ) : (
           <>
+            {groupedChannels.starred.length > 0 && (
+              <ChannelSection
+                title="Starred"
+                channels={groupedChannels.starred}
+                workspaceId={workspaceId}
+                activeChannelId={channelId}
+              />
+            )}
+
             <ChannelSection
               title="Channels"
               channels={groupedChannels.public}

@@ -171,7 +171,7 @@ func (r *Repository) Archive(ctx context.Context, channelID string) error {
 func (r *Repository) ListForWorkspace(ctx context.Context, workspaceID, userID string) ([]ChannelWithMembership, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT c.id, c.workspace_id, c.name, c.description, c.type, c.dm_participant_hash, c.archived_at, c.created_by, c.created_at, c.updated_at,
-		       cm.channel_role, cm.last_read_message_id,
+		       cm.channel_role, cm.last_read_message_id, COALESCE(cm.is_starred, 0) as is_starred,
 		       COALESCE((
 		           SELECT COUNT(*) FROM messages m
 		           WHERE m.channel_id = c.id
@@ -198,10 +198,11 @@ func (r *Repository) ListForWorkspace(ctx context.Context, workspaceID, userID s
 		var c ChannelWithMembership
 		var description, dmHash, archivedAt, createdBy, channelRole, lastReadID sql.NullString
 		var createdAt, updatedAt string
+		var isStarred int
 		var unreadCount int
 
 		err := rows.Scan(&c.ID, &c.WorkspaceID, &c.Name, &description, &c.Type, &dmHash, &archivedAt, &createdBy, &createdAt, &updatedAt,
-			&channelRole, &lastReadID, &unreadCount)
+			&channelRole, &lastReadID, &isStarred, &unreadCount)
 		if err != nil {
 			return nil, err
 		}
@@ -228,6 +229,7 @@ func (r *Repository) ListForWorkspace(ctx context.Context, workspaceID, userID s
 		c.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 		c.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
 		c.UnreadCount = unreadCount
+		c.IsStarred = isStarred != 0
 
 		// Track DM channels for participant lookup
 		if c.Type == TypeDM || c.Type == TypeGroupDM {
@@ -442,6 +444,38 @@ func (r *Repository) UpdateLastRead(ctx context.Context, userID, channelID, mess
 		WHERE user_id = ? AND channel_id = ?
 	`, messageID, now.Format(time.RFC3339), userID, channelID)
 	return err
+}
+
+func (r *Repository) StarChannel(ctx context.Context, userID, channelID string) error {
+	now := time.Now().UTC()
+	result, err := r.db.ExecContext(ctx, `
+		UPDATE channel_memberships SET is_starred = 1, updated_at = ?
+		WHERE user_id = ? AND channel_id = ?
+	`, now.Format(time.RFC3339), userID, channelID)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return ErrNotChannelMember
+	}
+	return nil
+}
+
+func (r *Repository) UnstarChannel(ctx context.Context, userID, channelID string) error {
+	now := time.Now().UTC()
+	result, err := r.db.ExecContext(ctx, `
+		UPDATE channel_memberships SET is_starred = 0, updated_at = ?
+		WHERE user_id = ? AND channel_id = ?
+	`, now.Format(time.RFC3339), userID, channelID)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return ErrNotChannelMember
+	}
+	return nil
 }
 
 func (r *Repository) GetLatestMessageID(ctx context.Context, channelID string) (string, error) {
