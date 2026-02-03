@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, type Key } from 'react';
 import {
   Menu as AriaMenu,
   MenuItem as AriaMenuItem,
@@ -9,9 +9,10 @@ import {
   Header,
   Separator as AriaSeparator,
   type MenuItemProps as AriaMenuItemProps,
+  type Selection,
 } from 'react-aria-components';
 import { tv, type VariantProps } from 'tailwind-variants';
-import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 const menu = tv({
   slots: {
@@ -168,6 +169,80 @@ export function MenuSeparator() {
   const styles = menu();
 
   return <AriaSeparator className={styles.separator()} />;
+}
+
+interface SelectMenuProps {
+  trigger: ReactNode;
+  children: ReactNode;
+  selectedKey: Key;
+  onSelectionChange: (key: Key) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  align?: 'start' | 'end';
+  placement?: 'bottom' | 'top' | 'left' | 'right';
+}
+
+export function SelectMenu({
+  trigger,
+  children,
+  selectedKey,
+  onSelectionChange,
+  open,
+  onOpenChange,
+  align = 'end',
+  placement = 'bottom',
+}: SelectMenuProps) {
+  const styles = menu();
+  const popoverPlacement = `${placement} ${align}` as const;
+
+  const handleSelectionChange = (keys: Selection) => {
+    const selected = [...keys][0];
+    if (selected !== undefined) {
+      onSelectionChange(selected);
+    }
+  };
+
+  return (
+    <MenuTrigger isOpen={open} onOpenChange={onOpenChange}>
+      {trigger}
+      <Popover placement={popoverPlacement} className={styles.popover()}>
+        <AriaMenu
+          className={styles.menu()}
+          selectionMode="single"
+          selectedKeys={[selectedKey]}
+          onSelectionChange={handleSelectionChange}
+        >
+          {children}
+        </AriaMenu>
+      </Popover>
+    </MenuTrigger>
+  );
+}
+
+interface SelectMenuItemProps extends Omit<AriaMenuItemProps, 'className'>, MenuVariants {
+  icon?: ReactNode;
+  children: ReactNode;
+}
+
+export function SelectMenuItem({
+  children,
+  variant,
+  icon,
+  ...props
+}: SelectMenuItemProps) {
+  const styles = menu({ variant });
+
+  return (
+    <AriaMenuItem className={styles.item()} {...props}>
+      {({ isSelected }) => (
+        <>
+          {icon}
+          <span className="flex-1">{children}</span>
+          {isSelected && <CheckIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />}
+        </>
+      )}
+    </AriaMenuItem>
+  );
 }
 
 export { MenuTrigger };
