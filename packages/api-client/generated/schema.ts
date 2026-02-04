@@ -293,6 +293,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{wid}/dm-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get DM suggestions for sidebar
+         * @description Returns recent DMs and suggested users to start conversations with
+         */
+        post: operations["getDMSuggestions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/channels/{id}/update": {
         parameters: {
             query?: never;
@@ -895,7 +915,6 @@ export interface components {
         };
         Workspace: {
             id: string;
-            slug: string;
             name: string;
             icon_url?: string;
             settings: string;
@@ -906,7 +925,6 @@ export interface components {
         };
         WorkspaceSummary: {
             id: string;
-            slug: string;
             name: string;
             icon_url?: string;
             role: components["schemas"]["WorkspaceRole"];
@@ -951,6 +969,8 @@ export interface components {
             name: string;
             description?: string;
             type: components["schemas"]["ChannelType"];
+            /** @description Whether this is the default channel (like */
+            is_default: boolean;
             dm_participant_hash?: string;
             /** Format: date-time */
             archived_at?: string;
@@ -979,6 +999,19 @@ export interface components {
             display_name: string;
             avatar_url?: string;
             channel_role?: components["schemas"]["ChannelRole"];
+        };
+        DMSuggestionsResponse: {
+            /** @description DM channels with recent activity */
+            recent_dms: components["schemas"]["ChannelWithMembership"][];
+            /** @description Workspace members suggested for starting new conversations */
+            suggested_users: components["schemas"]["SuggestedUser"][];
+        };
+        SuggestedUser: {
+            id: string;
+            /** Format: email */
+            email?: string;
+            display_name: string;
+            avatar_url?: string;
         };
         Message: {
             id: string;
@@ -1290,11 +1323,9 @@ export interface components {
             workspaces?: components["schemas"]["WorkspaceSummary"][];
         };
         CreateWorkspaceInput: {
-            slug: string;
             name: string;
         };
         UpdateWorkspaceInput: {
-            slug?: string;
             name?: string;
         };
         CreateInviteInput: {
@@ -1824,6 +1855,29 @@ export interface operations {
                     "application/json": {
                         channel?: components["schemas"]["Channel"];
                     };
+                };
+            };
+        };
+    };
+    getDMSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                wid: components["parameters"]["workspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description DM suggestions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DMSuggestionsResponse"];
                 };
             };
         };

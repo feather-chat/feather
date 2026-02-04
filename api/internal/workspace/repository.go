@@ -15,7 +15,6 @@ import (
 
 var (
 	ErrWorkspaceNotFound = errors.New("workspace not found")
-	ErrSlugAlreadyInUse  = errors.New("slug already in use")
 	ErrMembershipExists  = errors.New("user is already a member")
 	ErrNotAMember        = errors.New("user is not a member of this workspace")
 	ErrInviteNotFound    = errors.New("invite not found")
@@ -45,13 +44,10 @@ func (r *Repository) Create(ctx context.Context, workspace *Workspace, ownerUser
 	defer tx.Rollback()
 
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO workspaces (id, slug, name, icon_url, settings, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
-	`, workspace.ID, workspace.Slug, workspace.Name, workspace.IconURL, workspace.Settings, now.Format(time.RFC3339), now.Format(time.RFC3339))
+		INSERT INTO workspaces (id, name, icon_url, settings, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, workspace.ID, workspace.Name, workspace.IconURL, workspace.Settings, now.Format(time.RFC3339), now.Format(time.RFC3339))
 	if err != nil {
-		if isUniqueConstraintError(err) {
-			return ErrSlugAlreadyInUse
-		}
 		return err
 	}
 
@@ -70,28 +66,18 @@ func (r *Repository) Create(ctx context.Context, workspace *Workspace, ownerUser
 
 func (r *Repository) GetByID(ctx context.Context, id string) (*Workspace, error) {
 	return r.scanWorkspace(r.db.QueryRowContext(ctx, `
-		SELECT id, slug, name, icon_url, settings, created_at, updated_at
+		SELECT id, name, icon_url, settings, created_at, updated_at
 		FROM workspaces WHERE id = ?
 	`, id))
-}
-
-func (r *Repository) GetBySlug(ctx context.Context, slug string) (*Workspace, error) {
-	return r.scanWorkspace(r.db.QueryRowContext(ctx, `
-		SELECT id, slug, name, icon_url, settings, created_at, updated_at
-		FROM workspaces WHERE slug = ?
-	`, slug))
 }
 
 func (r *Repository) Update(ctx context.Context, workspace *Workspace) error {
 	workspace.UpdatedAt = time.Now().UTC()
 	result, err := r.db.ExecContext(ctx, `
-		UPDATE workspaces SET slug = ?, name = ?, icon_url = ?, settings = ?, updated_at = ?
+		UPDATE workspaces SET name = ?, icon_url = ?, settings = ?, updated_at = ?
 		WHERE id = ?
-	`, workspace.Slug, workspace.Name, workspace.IconURL, workspace.Settings, workspace.UpdatedAt.Format(time.RFC3339), workspace.ID)
+	`, workspace.Name, workspace.IconURL, workspace.Settings, workspace.UpdatedAt.Format(time.RFC3339), workspace.ID)
 	if err != nil {
-		if isUniqueConstraintError(err) {
-			return ErrSlugAlreadyInUse
-		}
 		return err
 	}
 
@@ -233,7 +219,7 @@ func (r *Repository) ListMembers(ctx context.Context, workspaceID string) ([]Mem
 
 func (r *Repository) GetWorkspacesForUser(req *http.Request, userID string) ([]auth.WorkspaceSummary, error) {
 	rows, err := r.db.QueryContext(req.Context(), `
-		SELECT w.id, w.slug, w.name, w.icon_url, wm.role
+		SELECT w.id, w.name, w.icon_url, wm.role
 		FROM workspaces w
 		JOIN workspace_memberships wm ON wm.workspace_id = w.id
 		WHERE wm.user_id = ?
@@ -249,7 +235,7 @@ func (r *Repository) GetWorkspacesForUser(req *http.Request, userID string) ([]a
 		var ws auth.WorkspaceSummary
 		var iconURL sql.NullString
 
-		err := rows.Scan(&ws.ID, &ws.Slug, &ws.Name, &iconURL, &ws.Role)
+		err := rows.Scan(&ws.ID, &ws.Name, &iconURL, &ws.Role)
 		if err != nil {
 			return nil, err
 		}
@@ -363,7 +349,7 @@ func (r *Repository) scanWorkspace(row *sql.Row) (*Workspace, error) {
 	var iconURL sql.NullString
 	var createdAt, updatedAt string
 
-	err := row.Scan(&w.ID, &w.Slug, &w.Name, &iconURL, &w.Settings, &createdAt, &updatedAt)
+	err := row.Scan(&w.ID, &w.Name, &iconURL, &w.Settings, &createdAt, &updatedAt)
 	if err == sql.ErrNoRows {
 		return nil, ErrWorkspaceNotFound
 	}

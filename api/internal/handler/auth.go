@@ -117,7 +117,6 @@ func (h *Handler) GetMe(ctx context.Context, request openapi.GetMeRequestObject)
 		for i, ws := range workspaces {
 			apiWorkspaces[i] = openapi.WorkspaceSummary{
 				Id:      ws.ID,
-				Slug:    ws.Slug,
 				Name:    ws.Name,
 				IconUrl: ws.IconURL,
 				Role:    openapi.WorkspaceRole(ws.Role),

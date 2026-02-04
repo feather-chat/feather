@@ -45,9 +45,16 @@ const (
 
 // Defines values for NotifyLevel.
 const (
-	All      NotifyLevel = "all"
-	Mentions NotifyLevel = "mentions"
-	None     NotifyLevel = "none"
+	NotifyLevelAll      NotifyLevel = "all"
+	NotifyLevelMentions NotifyLevel = "mentions"
+	NotifyLevelNone     NotifyLevel = "none"
+)
+
+// Defines values for ThreadSubscriptionStatus.
+const (
+	ThreadSubscriptionStatusNone         ThreadSubscriptionStatus = "none"
+	ThreadSubscriptionStatusSubscribed   ThreadSubscriptionStatus = "subscribed"
+	ThreadSubscriptionStatusUnsubscribed ThreadSubscriptionStatus = "unsubscribed"
 )
 
 // Defines values for WorkspaceRole.
@@ -84,6 +91,11 @@ type Attachment struct {
 // AuthResponse defines model for AuthResponse.
 type AuthResponse struct {
 	User User `json:"user"`
+}
+
+// AvatarUploadResponse defines model for AvatarUploadResponse.
+type AvatarUploadResponse struct {
+	AvatarUrl string `json:"avatar_url"`
 }
 
 // Channel defines model for Channel.
@@ -127,6 +139,7 @@ type ChannelWithMembership struct {
 	// DmParticipants For DM channels, the other participants (excluding current user)
 	DmParticipants    *[]ChannelMember `json:"dm_participants,omitempty"`
 	Id                string           `json:"id"`
+	IsStarred         bool             `json:"is_starred"`
 	LastReadMessageId *string          `json:"last_read_message_id,omitempty"`
 	Name              string           `json:"name"`
 	Type              ChannelType      `json:"type"`
@@ -153,7 +166,6 @@ type CreateInviteInput struct {
 // CreateWorkspaceInput defines model for CreateWorkspaceInput.
 type CreateWorkspaceInput struct {
 	Name string `json:"name"`
-	Slug string `json:"slug"`
 }
 
 // Invite defines model for Invite.
@@ -284,6 +296,9 @@ type ThreadParticipant struct {
 	UserId      string  `json:"user_id"`
 }
 
+// ThreadSubscriptionStatus defines model for ThreadSubscriptionStatus.
+type ThreadSubscriptionStatus string
+
 // UnreadMessage defines model for UnreadMessage.
 type UnreadMessage struct {
 	Attachments        *[]Attachment        `json:"attachments,omitempty"`
@@ -321,14 +336,12 @@ type UpdateChannelInput struct {
 
 // UpdateProfileInput defines model for UpdateProfileInput.
 type UpdateProfileInput struct {
-	AvatarUrl   *string `json:"avatar_url,omitempty"`
 	DisplayName *string `json:"display_name,omitempty"`
 }
 
 // UpdateWorkspaceInput defines model for UpdateWorkspaceInput.
 type UpdateWorkspaceInput struct {
 	Name *string `json:"name,omitempty"`
-	Slug *string `json:"slug,omitempty"`
 }
 
 // User defines model for User.
@@ -359,8 +372,12 @@ type Workspace struct {
 	Id        string    `json:"id"`
 	Name      string    `json:"name"`
 	Settings  string    `json:"settings"`
-	Slug      string    `json:"slug"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// WorkspaceIconUploadResponse defines model for WorkspaceIconUploadResponse.
+type WorkspaceIconUploadResponse struct {
+	IconUrl string `json:"icon_url"`
 }
 
 // WorkspaceMemberWithUser defines model for WorkspaceMemberWithUser.
@@ -397,7 +414,6 @@ type WorkspaceSummary struct {
 	Id      string        `json:"id"`
 	Name    string        `json:"name"`
 	Role    WorkspaceRole `json:"role"`
-	Slug    string        `json:"slug"`
 }
 
 // ChannelId defines model for channelId.
@@ -411,6 +427,9 @@ type WorkspaceId = string
 
 // BadRequest defines model for BadRequest.
 type BadRequest = ApiErrorResponse
+
+// Forbidden defines model for Forbidden.
+type Forbidden = ApiErrorResponse
 
 // NotFound defines model for NotFound.
 type NotFound = ApiErrorResponse
@@ -461,9 +480,19 @@ type UpdateMessageJSONBody struct {
 	Content string `json:"content"`
 }
 
+// UploadAvatarMultipartBody defines parameters for UploadAvatar.
+type UploadAvatarMultipartBody struct {
+	File openapi_types.File `json:"file"`
+}
+
 // CreateDMJSONBody defines parameters for CreateDM.
 type CreateDMJSONBody struct {
 	UserIds []string `json:"user_ids"`
+}
+
+// UploadWorkspaceIconMultipartBody defines parameters for UploadWorkspaceIcon.
+type UploadWorkspaceIconMultipartBody struct {
+	File openapi_types.File `json:"file"`
 }
 
 // RemoveWorkspaceMemberJSONBody defines parameters for RemoveWorkspaceMember.
@@ -528,6 +557,9 @@ type ListThreadJSONRequestBody = ListMessagesInput
 // UpdateMessageJSONRequestBody defines body for UpdateMessage for application/json ContentType.
 type UpdateMessageJSONRequestBody UpdateMessageJSONBody
 
+// UploadAvatarMultipartRequestBody defines body for UploadAvatar for multipart/form-data ContentType.
+type UploadAvatarMultipartRequestBody UploadAvatarMultipartBody
+
 // UpdateProfileJSONRequestBody defines body for UpdateProfile for application/json ContentType.
 type UpdateProfileJSONRequestBody = UpdateProfileInput
 
@@ -539,6 +571,9 @@ type CreateChannelJSONRequestBody = CreateChannelInput
 
 // CreateDMJSONRequestBody defines body for CreateDM for application/json ContentType.
 type CreateDMJSONRequestBody CreateDMJSONBody
+
+// UploadWorkspaceIconMultipartRequestBody defines body for UploadWorkspaceIcon for multipart/form-data ContentType.
+type UploadWorkspaceIconMultipartRequestBody UploadWorkspaceIconMultipartBody
 
 // CreateWorkspaceInviteJSONRequestBody defines body for CreateWorkspaceInvite for application/json ContentType.
 type CreateWorkspaceInviteJSONRequestBody = CreateInviteInput
@@ -608,6 +643,12 @@ type ServerInterface interface {
 	// Update channel notification preferences
 	// (POST /channels/{id}/notifications)
 	UpdateChannelNotifications(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Unstar a channel
+	// (DELETE /channels/{id}/star)
+	UnstarChannel(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Star a channel
+	// (POST /channels/{id}/star)
+	StarChannel(w http.ResponseWriter, r *http.Request, id ChannelId)
 	// Update channel
 	// (POST /channels/{id}/update)
 	UpdateChannel(w http.ResponseWriter, r *http.Request, id ChannelId)
@@ -635,12 +676,27 @@ type ServerInterface interface {
 	// Remove reaction from message
 	// (POST /messages/{id}/reactions/remove)
 	RemoveReaction(w http.ResponseWriter, r *http.Request, id MessageId)
+	// Subscribe to thread
+	// (POST /messages/{id}/subscribe)
+	SubscribeToThread(w http.ResponseWriter, r *http.Request, id MessageId)
+	// Get thread subscription status
+	// (GET /messages/{id}/subscription)
+	GetThreadSubscription(w http.ResponseWriter, r *http.Request, id MessageId)
 	// List thread replies
 	// (POST /messages/{id}/thread/list)
 	ListThread(w http.ResponseWriter, r *http.Request, id MessageId)
+	// Unsubscribe from thread
+	// (POST /messages/{id}/unsubscribe)
+	UnsubscribeFromThread(w http.ResponseWriter, r *http.Request, id MessageId)
 	// Update a message
 	// (POST /messages/{id}/update)
 	UpdateMessage(w http.ResponseWriter, r *http.Request, id MessageId)
+	// Remove avatar
+	// (DELETE /users/me/avatar)
+	DeleteAvatar(w http.ResponseWriter, r *http.Request)
+	// Upload avatar image
+	// (POST /users/me/avatar)
+	UploadAvatar(w http.ResponseWriter, r *http.Request)
 	// Update own profile
 	// (POST /users/me/profile)
 	UpdateProfile(w http.ResponseWriter, r *http.Request)
@@ -665,6 +721,12 @@ type ServerInterface interface {
 	// Mark all channels as read
 	// (POST /workspaces/{wid}/channels/mark-all-read)
 	MarkAllChannelsRead(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
+	// Remove workspace icon
+	// (DELETE /workspaces/{wid}/icon)
+	DeleteWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
+	// Upload workspace icon
+	// (POST /workspaces/{wid}/icon)
+	UploadWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
 	// Create an invite
 	// (POST /workspaces/{wid}/invites/create)
 	CreateWorkspaceInvite(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
@@ -791,6 +853,18 @@ func (_ Unimplemented) UpdateChannelNotifications(w http.ResponseWriter, r *http
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Unstar a channel
+// (DELETE /channels/{id}/star)
+func (_ Unimplemented) UnstarChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Star a channel
+// (POST /channels/{id}/star)
+func (_ Unimplemented) StarChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Update channel
 // (POST /channels/{id}/update)
 func (_ Unimplemented) UpdateChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
@@ -845,15 +919,45 @@ func (_ Unimplemented) RemoveReaction(w http.ResponseWriter, r *http.Request, id
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Subscribe to thread
+// (POST /messages/{id}/subscribe)
+func (_ Unimplemented) SubscribeToThread(w http.ResponseWriter, r *http.Request, id MessageId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get thread subscription status
+// (GET /messages/{id}/subscription)
+func (_ Unimplemented) GetThreadSubscription(w http.ResponseWriter, r *http.Request, id MessageId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // List thread replies
 // (POST /messages/{id}/thread/list)
 func (_ Unimplemented) ListThread(w http.ResponseWriter, r *http.Request, id MessageId) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Unsubscribe from thread
+// (POST /messages/{id}/unsubscribe)
+func (_ Unimplemented) UnsubscribeFromThread(w http.ResponseWriter, r *http.Request, id MessageId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Update a message
 // (POST /messages/{id}/update)
 func (_ Unimplemented) UpdateMessage(w http.ResponseWriter, r *http.Request, id MessageId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove avatar
+// (DELETE /users/me/avatar)
+func (_ Unimplemented) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Upload avatar image
+// (POST /users/me/avatar)
+func (_ Unimplemented) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -902,6 +1006,18 @@ func (_ Unimplemented) ListChannels(w http.ResponseWriter, r *http.Request, wid 
 // Mark all channels as read
 // (POST /workspaces/{wid}/channels/mark-all-read)
 func (_ Unimplemented) MarkAllChannelsRead(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove workspace icon
+// (DELETE /workspaces/{wid}/icon)
+func (_ Unimplemented) DeleteWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Upload workspace icon
+// (POST /workspaces/{wid}/icon)
+func (_ Unimplemented) UploadWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1375,6 +1491,68 @@ func (siw *ServerInterfaceWrapper) UpdateChannelNotifications(w http.ResponseWri
 	handler.ServeHTTP(w, r)
 }
 
+// UnstarChannel operation middleware
+func (siw *ServerInterfaceWrapper) UnstarChannel(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnstarChannel(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StarChannel operation middleware
+func (siw *ServerInterfaceWrapper) StarChannel(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StarChannel(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // UpdateChannel operation middleware
 func (siw *ServerInterfaceWrapper) UpdateChannel(w http.ResponseWriter, r *http.Request) {
 
@@ -1654,6 +1832,68 @@ func (siw *ServerInterfaceWrapper) RemoveReaction(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
+// SubscribeToThread operation middleware
+func (siw *ServerInterfaceWrapper) SubscribeToThread(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id MessageId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SubscribeToThread(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetThreadSubscription operation middleware
+func (siw *ServerInterfaceWrapper) GetThreadSubscription(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id MessageId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetThreadSubscription(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListThread operation middleware
 func (siw *ServerInterfaceWrapper) ListThread(w http.ResponseWriter, r *http.Request) {
 
@@ -1685,6 +1925,37 @@ func (siw *ServerInterfaceWrapper) ListThread(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
+// UnsubscribeFromThread operation middleware
+func (siw *ServerInterfaceWrapper) UnsubscribeFromThread(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id MessageId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnsubscribeFromThread(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // UpdateMessage operation middleware
 func (siw *ServerInterfaceWrapper) UpdateMessage(w http.ResponseWriter, r *http.Request) {
 
@@ -1707,6 +1978,46 @@ func (siw *ServerInterfaceWrapper) UpdateMessage(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateMessage(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteAvatar operation middleware
+func (siw *ServerInterfaceWrapper) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteAvatar(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UploadAvatar operation middleware
+func (siw *ServerInterfaceWrapper) UploadAvatar(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UploadAvatar(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1933,6 +2244,68 @@ func (siw *ServerInterfaceWrapper) MarkAllChannelsRead(w http.ResponseWriter, r 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.MarkAllChannelsRead(w, r, wid)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteWorkspaceIcon operation middleware
+func (siw *ServerInterfaceWrapper) DeleteWorkspaceIcon(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "wid" -------------
+	var wid WorkspaceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "wid", chi.URLParam(r, "wid"), &wid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "wid", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteWorkspaceIcon(w, r, wid)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UploadWorkspaceIcon operation middleware
+func (siw *ServerInterfaceWrapper) UploadWorkspaceIcon(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "wid" -------------
+	var wid WorkspaceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "wid", chi.URLParam(r, "wid"), &wid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "wid", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UploadWorkspaceIcon(w, r, wid)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2293,6 +2666,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/channels/{id}/notifications", wrapper.UpdateChannelNotifications)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/channels/{id}/star", wrapper.UnstarChannel)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/channels/{id}/star", wrapper.StarChannel)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/channels/{id}/update", wrapper.UpdateChannel)
 	})
 	r.Group(func(r chi.Router) {
@@ -2320,10 +2699,25 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/messages/{id}/reactions/remove", wrapper.RemoveReaction)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/messages/{id}/subscribe", wrapper.SubscribeToThread)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/messages/{id}/subscription", wrapper.GetThreadSubscription)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/messages/{id}/thread/list", wrapper.ListThread)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/messages/{id}/unsubscribe", wrapper.UnsubscribeFromThread)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/messages/{id}/update", wrapper.UpdateMessage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/users/me/avatar", wrapper.DeleteAvatar)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/users/me/avatar", wrapper.UploadAvatar)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/users/me/profile", wrapper.UpdateProfile)
@@ -2350,6 +2744,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/workspaces/{wid}/channels/mark-all-read", wrapper.MarkAllChannelsRead)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/workspaces/{wid}/icon", wrapper.DeleteWorkspaceIcon)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/workspaces/{wid}/icon", wrapper.UploadWorkspaceIcon)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/workspaces/{wid}/invites/create", wrapper.CreateWorkspaceInvite)
 	})
 	r.Group(func(r chi.Router) {
@@ -2372,6 +2772,8 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 }
 
 type BadRequestJSONResponse ApiErrorResponse
+
+type ForbiddenJSONResponse ApiErrorResponse
 
 type NotFoundJSONResponse ApiErrorResponse
 
@@ -2715,6 +3117,76 @@ func (response UpdateChannelNotifications200JSONResponse) VisitUpdateChannelNoti
 	return json.NewEncoder(w).Encode(response)
 }
 
+type UnstarChannelRequestObject struct {
+	Id ChannelId `json:"id"`
+}
+
+type UnstarChannelResponseObject interface {
+	VisitUnstarChannelResponse(w http.ResponseWriter) error
+}
+
+type UnstarChannel200JSONResponse SuccessResponse
+
+func (response UnstarChannel200JSONResponse) VisitUnstarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnstarChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UnstarChannel401JSONResponse) VisitUnstarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnstarChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UnstarChannel404JSONResponse) VisitUnstarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StarChannelRequestObject struct {
+	Id ChannelId `json:"id"`
+}
+
+type StarChannelResponseObject interface {
+	VisitStarChannelResponse(w http.ResponseWriter) error
+}
+
+type StarChannel200JSONResponse SuccessResponse
+
+func (response StarChannel200JSONResponse) VisitStarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StarChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response StarChannel401JSONResponse) VisitStarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StarChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response StarChannel404JSONResponse) VisitStarChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type UpdateChannelRequestObject struct {
 	Id   ChannelId `json:"id"`
 	Body *UpdateChannelJSONRequestBody
@@ -2907,6 +3379,80 @@ func (response RemoveReaction200JSONResponse) VisitRemoveReactionResponse(w http
 	return json.NewEncoder(w).Encode(response)
 }
 
+type SubscribeToThreadRequestObject struct {
+	Id MessageId `json:"id"`
+}
+
+type SubscribeToThreadResponseObject interface {
+	VisitSubscribeToThreadResponse(w http.ResponseWriter) error
+}
+
+type SubscribeToThread200JSONResponse struct {
+	Status ThreadSubscriptionStatus `json:"status"`
+}
+
+func (response SubscribeToThread200JSONResponse) VisitSubscribeToThreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SubscribeToThread401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response SubscribeToThread401JSONResponse) VisitSubscribeToThreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SubscribeToThread404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response SubscribeToThread404JSONResponse) VisitSubscribeToThreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetThreadSubscriptionRequestObject struct {
+	Id MessageId `json:"id"`
+}
+
+type GetThreadSubscriptionResponseObject interface {
+	VisitGetThreadSubscriptionResponse(w http.ResponseWriter) error
+}
+
+type GetThreadSubscription200JSONResponse struct {
+	Status ThreadSubscriptionStatus `json:"status"`
+}
+
+func (response GetThreadSubscription200JSONResponse) VisitGetThreadSubscriptionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetThreadSubscription401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetThreadSubscription401JSONResponse) VisitGetThreadSubscriptionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetThreadSubscription404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetThreadSubscription404JSONResponse) VisitGetThreadSubscriptionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ListThreadRequestObject struct {
 	Id   MessageId `json:"id"`
 	Body *ListThreadJSONRequestBody
@@ -2921,6 +3467,43 @@ type ListThread200JSONResponse MessageListResult
 func (response ListThread200JSONResponse) VisitListThreadResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnsubscribeFromThreadRequestObject struct {
+	Id MessageId `json:"id"`
+}
+
+type UnsubscribeFromThreadResponseObject interface {
+	VisitUnsubscribeFromThreadResponse(w http.ResponseWriter) error
+}
+
+type UnsubscribeFromThread200JSONResponse struct {
+	Status ThreadSubscriptionStatus `json:"status"`
+}
+
+func (response UnsubscribeFromThread200JSONResponse) VisitUnsubscribeFromThreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnsubscribeFromThread401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UnsubscribeFromThread401JSONResponse) VisitUnsubscribeFromThreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnsubscribeFromThread404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UnsubscribeFromThread404JSONResponse) VisitUnsubscribeFromThreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -2941,6 +3524,66 @@ type UpdateMessage200JSONResponse struct {
 func (response UpdateMessage200JSONResponse) VisitUpdateMessageResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteAvatarRequestObject struct {
+}
+
+type DeleteAvatarResponseObject interface {
+	VisitDeleteAvatarResponse(w http.ResponseWriter) error
+}
+
+type DeleteAvatar200JSONResponse SuccessResponse
+
+func (response DeleteAvatar200JSONResponse) VisitDeleteAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteAvatar401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteAvatar401JSONResponse) VisitDeleteAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadAvatarRequestObject struct {
+	Body *multipart.Reader
+}
+
+type UploadAvatarResponseObject interface {
+	VisitUploadAvatarResponse(w http.ResponseWriter) error
+}
+
+type UploadAvatar200JSONResponse AvatarUploadResponse
+
+func (response UploadAvatar200JSONResponse) VisitUploadAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadAvatar400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UploadAvatar400JSONResponse) VisitUploadAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadAvatar401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UploadAvatar401JSONResponse) VisitUploadAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3133,6 +3776,86 @@ func (response MarkAllChannelsRead200JSONResponse) VisitMarkAllChannelsReadRespo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DeleteWorkspaceIconRequestObject struct {
+	Wid WorkspaceId `json:"wid"`
+}
+
+type DeleteWorkspaceIconResponseObject interface {
+	VisitDeleteWorkspaceIconResponse(w http.ResponseWriter) error
+}
+
+type DeleteWorkspaceIcon200JSONResponse SuccessResponse
+
+func (response DeleteWorkspaceIcon200JSONResponse) VisitDeleteWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteWorkspaceIcon401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteWorkspaceIcon401JSONResponse) VisitDeleteWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteWorkspaceIcon403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteWorkspaceIcon403JSONResponse) VisitDeleteWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadWorkspaceIconRequestObject struct {
+	Wid  WorkspaceId `json:"wid"`
+	Body *multipart.Reader
+}
+
+type UploadWorkspaceIconResponseObject interface {
+	VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error
+}
+
+type UploadWorkspaceIcon200JSONResponse WorkspaceIconUploadResponse
+
+func (response UploadWorkspaceIcon200JSONResponse) VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadWorkspaceIcon400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UploadWorkspaceIcon400JSONResponse) VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadWorkspaceIcon401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UploadWorkspaceIcon401JSONResponse) VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadWorkspaceIcon403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UploadWorkspaceIcon403JSONResponse) VisitUploadWorkspaceIconResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type CreateWorkspaceInviteRequestObject struct {
 	Wid  WorkspaceId `json:"wid"`
 	Body *CreateWorkspaceInviteJSONRequestBody
@@ -3299,6 +4022,12 @@ type StrictServerInterface interface {
 	// Update channel notification preferences
 	// (POST /channels/{id}/notifications)
 	UpdateChannelNotifications(ctx context.Context, request UpdateChannelNotificationsRequestObject) (UpdateChannelNotificationsResponseObject, error)
+	// Unstar a channel
+	// (DELETE /channels/{id}/star)
+	UnstarChannel(ctx context.Context, request UnstarChannelRequestObject) (UnstarChannelResponseObject, error)
+	// Star a channel
+	// (POST /channels/{id}/star)
+	StarChannel(ctx context.Context, request StarChannelRequestObject) (StarChannelResponseObject, error)
 	// Update channel
 	// (POST /channels/{id}/update)
 	UpdateChannel(ctx context.Context, request UpdateChannelRequestObject) (UpdateChannelResponseObject, error)
@@ -3326,12 +4055,27 @@ type StrictServerInterface interface {
 	// Remove reaction from message
 	// (POST /messages/{id}/reactions/remove)
 	RemoveReaction(ctx context.Context, request RemoveReactionRequestObject) (RemoveReactionResponseObject, error)
+	// Subscribe to thread
+	// (POST /messages/{id}/subscribe)
+	SubscribeToThread(ctx context.Context, request SubscribeToThreadRequestObject) (SubscribeToThreadResponseObject, error)
+	// Get thread subscription status
+	// (GET /messages/{id}/subscription)
+	GetThreadSubscription(ctx context.Context, request GetThreadSubscriptionRequestObject) (GetThreadSubscriptionResponseObject, error)
 	// List thread replies
 	// (POST /messages/{id}/thread/list)
 	ListThread(ctx context.Context, request ListThreadRequestObject) (ListThreadResponseObject, error)
+	// Unsubscribe from thread
+	// (POST /messages/{id}/unsubscribe)
+	UnsubscribeFromThread(ctx context.Context, request UnsubscribeFromThreadRequestObject) (UnsubscribeFromThreadResponseObject, error)
 	// Update a message
 	// (POST /messages/{id}/update)
 	UpdateMessage(ctx context.Context, request UpdateMessageRequestObject) (UpdateMessageResponseObject, error)
+	// Remove avatar
+	// (DELETE /users/me/avatar)
+	DeleteAvatar(ctx context.Context, request DeleteAvatarRequestObject) (DeleteAvatarResponseObject, error)
+	// Upload avatar image
+	// (POST /users/me/avatar)
+	UploadAvatar(ctx context.Context, request UploadAvatarRequestObject) (UploadAvatarResponseObject, error)
 	// Update own profile
 	// (POST /users/me/profile)
 	UpdateProfile(ctx context.Context, request UpdateProfileRequestObject) (UpdateProfileResponseObject, error)
@@ -3356,6 +4100,12 @@ type StrictServerInterface interface {
 	// Mark all channels as read
 	// (POST /workspaces/{wid}/channels/mark-all-read)
 	MarkAllChannelsRead(ctx context.Context, request MarkAllChannelsReadRequestObject) (MarkAllChannelsReadResponseObject, error)
+	// Remove workspace icon
+	// (DELETE /workspaces/{wid}/icon)
+	DeleteWorkspaceIcon(ctx context.Context, request DeleteWorkspaceIconRequestObject) (DeleteWorkspaceIconResponseObject, error)
+	// Upload workspace icon
+	// (POST /workspaces/{wid}/icon)
+	UploadWorkspaceIcon(ctx context.Context, request UploadWorkspaceIconRequestObject) (UploadWorkspaceIconResponseObject, error)
 	// Create an invite
 	// (POST /workspaces/{wid}/invites/create)
 	CreateWorkspaceInvite(ctx context.Context, request CreateWorkspaceInviteRequestObject) (CreateWorkspaceInviteResponseObject, error)
@@ -3905,6 +4655,58 @@ func (sh *strictHandler) UpdateChannelNotifications(w http.ResponseWriter, r *ht
 	}
 }
 
+// UnstarChannel operation middleware
+func (sh *strictHandler) UnstarChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request UnstarChannelRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnstarChannel(ctx, request.(UnstarChannelRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnstarChannel")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnstarChannelResponseObject); ok {
+		if err := validResponse.VisitUnstarChannelResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// StarChannel operation middleware
+func (sh *strictHandler) StarChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request StarChannelRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.StarChannel(ctx, request.(StarChannelRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "StarChannel")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(StarChannelResponseObject); ok {
+		if err := validResponse.VisitStarChannelResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // UpdateChannel operation middleware
 func (sh *strictHandler) UpdateChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
 	var request UpdateChannelRequestObject
@@ -4160,6 +4962,58 @@ func (sh *strictHandler) RemoveReaction(w http.ResponseWriter, r *http.Request, 
 	}
 }
 
+// SubscribeToThread operation middleware
+func (sh *strictHandler) SubscribeToThread(w http.ResponseWriter, r *http.Request, id MessageId) {
+	var request SubscribeToThreadRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SubscribeToThread(ctx, request.(SubscribeToThreadRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SubscribeToThread")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SubscribeToThreadResponseObject); ok {
+		if err := validResponse.VisitSubscribeToThreadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetThreadSubscription operation middleware
+func (sh *strictHandler) GetThreadSubscription(w http.ResponseWriter, r *http.Request, id MessageId) {
+	var request GetThreadSubscriptionRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetThreadSubscription(ctx, request.(GetThreadSubscriptionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetThreadSubscription")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetThreadSubscriptionResponseObject); ok {
+		if err := validResponse.VisitGetThreadSubscriptionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListThread operation middleware
 func (sh *strictHandler) ListThread(w http.ResponseWriter, r *http.Request, id MessageId) {
 	var request ListThreadRequestObject
@@ -4193,6 +5047,32 @@ func (sh *strictHandler) ListThread(w http.ResponseWriter, r *http.Request, id M
 	}
 }
 
+// UnsubscribeFromThread operation middleware
+func (sh *strictHandler) UnsubscribeFromThread(w http.ResponseWriter, r *http.Request, id MessageId) {
+	var request UnsubscribeFromThreadRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnsubscribeFromThread(ctx, request.(UnsubscribeFromThreadRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnsubscribeFromThread")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnsubscribeFromThreadResponseObject); ok {
+		if err := validResponse.VisitUnsubscribeFromThreadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // UpdateMessage operation middleware
 func (sh *strictHandler) UpdateMessage(w http.ResponseWriter, r *http.Request, id MessageId) {
 	var request UpdateMessageRequestObject
@@ -4219,6 +5099,61 @@ func (sh *strictHandler) UpdateMessage(w http.ResponseWriter, r *http.Request, i
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateMessageResponseObject); ok {
 		if err := validResponse.VisitUpdateMessageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteAvatar operation middleware
+func (sh *strictHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
+	var request DeleteAvatarRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteAvatar(ctx, request.(DeleteAvatarRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteAvatar")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteAvatarResponseObject); ok {
+		if err := validResponse.VisitDeleteAvatarResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UploadAvatar operation middleware
+func (sh *strictHandler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
+	var request UploadAvatarRequestObject
+
+	if reader, err := r.MultipartReader(); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode multipart body: %w", err))
+		return
+	} else {
+		request.Body = reader
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UploadAvatar(ctx, request.(UploadAvatarRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UploadAvatar")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UploadAvatarResponseObject); ok {
+		if err := validResponse.VisitUploadAvatarResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4451,6 +5386,65 @@ func (sh *strictHandler) MarkAllChannelsRead(w http.ResponseWriter, r *http.Requ
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(MarkAllChannelsReadResponseObject); ok {
 		if err := validResponse.VisitMarkAllChannelsReadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteWorkspaceIcon operation middleware
+func (sh *strictHandler) DeleteWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	var request DeleteWorkspaceIconRequestObject
+
+	request.Wid = wid
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteWorkspaceIcon(ctx, request.(DeleteWorkspaceIconRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteWorkspaceIcon")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteWorkspaceIconResponseObject); ok {
+		if err := validResponse.VisitDeleteWorkspaceIconResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UploadWorkspaceIcon operation middleware
+func (sh *strictHandler) UploadWorkspaceIcon(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	var request UploadWorkspaceIconRequestObject
+
+	request.Wid = wid
+
+	if reader, err := r.MultipartReader(); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode multipart body: %w", err))
+		return
+	} else {
+		request.Body = reader
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UploadWorkspaceIcon(ctx, request.(UploadWorkspaceIconRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UploadWorkspaceIcon")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UploadWorkspaceIconResponseObject); ok {
+		if err := validResponse.VisitUploadWorkspaceIconResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

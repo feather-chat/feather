@@ -430,6 +430,24 @@ paths:
                   channel:
                     $ref: '#/components/schemas/Channel'
 
+  /workspaces/{wid}/dm-suggestions:
+    post:
+      tags: [channels]
+      summary: Get DM suggestions for sidebar
+      description: Returns recent DMs and suggested users to start conversations with
+      operationId: getDMSuggestions
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+      responses:
+        '200':
+          description: DM suggestions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DMSuggestionsResponse'
+
   /channels/{id}/update:
     post:
       tags: [channels]
@@ -1438,11 +1456,9 @@ components:
     # Workspace schemas
     Workspace:
       type: object
-      required: [id, slug, name, settings, created_at, updated_at]
+      required: [id, name, settings, created_at, updated_at]
       properties:
         id:
-          type: string
-        slug:
           type: string
         name:
           type: string
@@ -1459,11 +1475,9 @@ components:
 
     WorkspaceSummary:
       type: object
-      required: [id, slug, name, role]
+      required: [id, name, role]
       properties:
         id:
-          type: string
-        slug:
           type: string
         name:
           type: string
@@ -1542,7 +1556,7 @@ components:
     # Channel schemas
     Channel:
       type: object
-      required: [id, workspace_id, name, type, created_at, updated_at]
+      required: [id, workspace_id, name, type, is_default, created_at, updated_at]
       properties:
         id:
           type: string
@@ -1554,6 +1568,9 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/ChannelType'
+        is_default:
+          type: boolean
+          description: Whether this is the default channel (like #general in Slack)
         dm_participant_hash:
           type: string
         archived_at:
@@ -1611,6 +1628,35 @@ components:
           type: string
         channel_role:
           $ref: '#/components/schemas/ChannelRole'
+
+    DMSuggestionsResponse:
+      type: object
+      required: [recent_dms, suggested_users]
+      properties:
+        recent_dms:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelWithMembership'
+          description: DM channels with recent activity
+        suggested_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuggestedUser'
+          description: Workspace members suggested for starting new conversations
+
+    SuggestedUser:
+      type: object
+      required: [id, display_name]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        display_name:
+          type: string
+        avatar_url:
+          type: string
 
     # Message schemas
     Message:
@@ -2215,18 +2261,14 @@ components:
 
     CreateWorkspaceInput:
       type: object
-      required: [slug, name]
+      required: [name]
       properties:
-        slug:
-          type: string
         name:
           type: string
 
     UpdateWorkspaceInput:
       type: object
       properties:
-        slug:
-          type: string
         name:
           type: string
 

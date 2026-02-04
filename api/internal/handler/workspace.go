@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
+	"github.com/feather/api/internal/channel"
 	"github.com/feather/api/internal/message"
 	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/workspace"
@@ -19,15 +19,6 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-var slugRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$`)
-
-func validateSlug(slug string) error {
-	if !slugRegex.MatchString(slug) {
-		return errors.New("slug must be 3-50 characters, lowercase letters, numbers, and hyphens only")
-	}
-	return nil
-}
-
 // CreateWorkspace creates a new workspace
 func (h *Handler) CreateWorkspace(ctx context.Context, request openapi.CreateWorkspaceRequestObject) (openapi.CreateWorkspaceResponseObject, error) {
 	userID := h.getUserID(ctx)
@@ -35,24 +26,28 @@ func (h *Handler) CreateWorkspace(ctx context.Context, request openapi.CreateWor
 		return nil, errors.New("not authenticated")
 	}
 
-	if err := validateSlug(request.Body.Slug); err != nil {
-		return nil, err
-	}
 	if strings.TrimSpace(request.Body.Name) == "" {
 		return nil, errors.New("name is required")
 	}
 
 	ws := &workspace.Workspace{
-		Slug:     request.Body.Slug,
 		Name:     request.Body.Name,
 		Settings: "{}",
 	}
 
 	if err := h.workspaceRepo.Create(ctx, ws, userID); err != nil {
-		if errors.Is(err, workspace.ErrSlugAlreadyInUse) {
-			return nil, err
-		}
 		return nil, err
+	}
+
+	// Create the default #general channel
+	defaultChannel, err := h.channelRepo.CreateDefaultChannel(ctx, ws.ID, userID)
+	if err != nil {
+		// Log but don't fail workspace creation
+		// The channel can be created later if needed
+		_ = err
+	} else if h.hub != nil {
+		// Update SSE hub cache with creator as first member
+		h.hub.AddChannelMember(defaultChannel.ID, userID)
 	}
 
 	apiWs := workspaceToAPI(ws)
@@ -107,12 +102,6 @@ func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWor
 		return nil, err
 	}
 
-	if request.Body.Slug != nil {
-		if err := validateSlug(*request.Body.Slug); err != nil {
-			return nil, err
-		}
-		ws.Slug = *request.Body.Slug
-	}
 	if request.Body.Name != nil {
 		if strings.TrimSpace(*request.Body.Name) == "" {
 			return nil, errors.New("name cannot be empty")
@@ -297,6 +286,16 @@ func (h *Handler) AcceptInvite(ctx context.Context, request openapi.AcceptInvite
 		return nil, err
 	}
 
+	// Add user to the default #general channel
+	defaultChannel, err := h.channelRepo.GetDefaultChannel(ctx, ws.ID)
+	if err == nil {
+		memberRole := channel.ChannelRolePoster
+		_, addErr := h.channelRepo.AddMember(ctx, userID, defaultChannel.ID, &memberRole)
+		if addErr == nil && h.hub != nil {
+			h.hub.AddChannelMember(defaultChannel.ID, userID)
+		}
+	}
+
 	apiWs := workspaceToAPI(ws)
 	return openapi.AcceptInvite200JSONResponse{
 		Workspace: &apiWs,
@@ -307,7 +306,6 @@ func (h *Handler) AcceptInvite(ctx context.Context, request openapi.AcceptInvite
 func workspaceToAPI(ws *workspace.Workspace) openapi.Workspace {
 	return openapi.Workspace{
 		Id:        ws.ID,
-		Slug:      ws.Slug,
 		Name:      ws.Name,
 		IconUrl:   ws.IconURL,
 		Settings:  ws.Settings,

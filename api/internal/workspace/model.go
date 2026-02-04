@@ -6,7 +6,6 @@ import (
 
 type Workspace struct {
 	ID        string    `json:"id"`
-	Slug      string    `json:"slug"`
 	Name      string    `json:"name"`
 	IconURL   *string   `json:"icon_url,omitempty"`
 	Settings  string    `json:"settings"`

@@ -20,7 +20,6 @@ type WorkspaceRepoForAuth interface {
 
 type WorkspaceSummary struct {
 	ID      string  `json:"id"`
-	Slug    string  `json:"slug"`
 	Name    string  `json:"name"`
 	IconURL *string `json:"icon_url,omitempty"`
 	Role    string  `json:"role"`

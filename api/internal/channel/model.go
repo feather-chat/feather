@@ -10,6 +10,7 @@ type Channel struct {
 	Name              string     `json:"name"`
 	Description       *string    `json:"description,omitempty"`
 	Type              string     `json:"type"`
+	IsDefault         bool       `json:"is_default"`
 	DMParticipantHash *string    `json:"dm_participant_hash,omitempty"`
 	ArchivedAt        *time.Time `json:"archived_at,omitempty"`
 	CreatedBy         *string    `json:"created_by,omitempty"`
@@ -34,6 +35,7 @@ type ChannelWithMembership struct {
 	LastReadMessageID *string      `json:"last_read_message_id,omitempty"`
 	UnreadCount       int          `json:"unread_count"`
 	IsStarred         bool         `json:"is_starred"`
+	IsDefault         bool         `json:"is_default"`
 	DMParticipants    []MemberInfo `json:"dm_participants,omitempty"`
 }
 
@@ -51,6 +53,9 @@ const (
 	TypeDM      = "dm"
 	TypeGroupDM = "group_dm"
 )
+
+// DefaultChannelName is the name of the default channel created for every workspace
+const DefaultChannelName = "general"
 
 const (
 	ChannelRoleAdmin  = "admin"

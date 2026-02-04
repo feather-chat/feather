@@ -14,12 +14,14 @@ import (
 )
 
 var (
-	ErrChannelNotFound     = errors.New("channel not found")
-	ErrNotChannelMember    = errors.New("not a member of this channel")
-	ErrAlreadyMember       = errors.New("already a member of this channel")
-	ErrChannelArchived     = errors.New("channel is archived")
-	ErrCannotLeaveChannel  = errors.New("cannot leave this channel")
-	ErrDMAlreadyExists     = errors.New("DM channel already exists")
+	ErrChannelNotFound       = errors.New("channel not found")
+	ErrNotChannelMember      = errors.New("not a member of this channel")
+	ErrAlreadyMember         = errors.New("already a member of this channel")
+	ErrChannelArchived       = errors.New("channel is archived")
+	ErrCannotLeaveChannel    = errors.New("cannot leave this channel")
+	ErrDMAlreadyExists       = errors.New("DM channel already exists")
+	ErrCannotLeaveDefault    = errors.New("cannot leave the default channel")
+	ErrCannotArchiveDefault  = errors.New("cannot archive the default channel")
 )
 
 type Repository struct {
@@ -43,10 +45,14 @@ func (r *Repository) Create(ctx context.Context, channel *Channel, creatorID str
 	}
 	defer tx.Rollback()
 
+	isDefault := 0
+	if channel.IsDefault {
+		isDefault = 1
+	}
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO channels (id, workspace_id, name, description, type, dm_participant_hash, created_by, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`, channel.ID, channel.WorkspaceID, channel.Name, channel.Description, channel.Type, channel.DMParticipantHash, channel.CreatedBy, now.Format(time.RFC3339), now.Format(time.RFC3339))
+		INSERT INTO channels (id, workspace_id, name, description, type, dm_participant_hash, is_default, created_by, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, channel.ID, channel.WorkspaceID, channel.Name, channel.Description, channel.Type, channel.DMParticipantHash, isDefault, channel.CreatedBy, now.Format(time.RFC3339), now.Format(time.RFC3339))
 	if err != nil {
 		return err
 	}
@@ -131,7 +137,7 @@ func (r *Repository) CreateDM(ctx context.Context, workspaceID string, userIDs [
 
 func (r *Repository) GetByID(ctx context.Context, id string) (*Channel, error) {
 	return r.scanChannel(r.db.QueryRowContext(ctx, `
-		SELECT id, workspace_id, name, description, type, dm_participant_hash, archived_at, created_by, created_at, updated_at
+		SELECT id, workspace_id, name, description, type, dm_participant_hash, is_default, archived_at, created_by, created_at, updated_at
 		FROM channels WHERE id = ?
 	`, id))
 }
@@ -153,6 +159,15 @@ func (r *Repository) Update(ctx context.Context, channel *Channel) error {
 }
 
 func (r *Repository) Archive(ctx context.Context, channelID string) error {
+	// Check if channel is default
+	channel, err := r.GetByID(ctx, channelID)
+	if err != nil {
+		return err
+	}
+	if channel.IsDefault {
+		return ErrCannotArchiveDefault
+	}
+
 	now := time.Now().UTC()
 	result, err := r.db.ExecContext(ctx, `
 		UPDATE channels SET archived_at = ?, updated_at = ?
@@ -170,7 +185,7 @@ func (r *Repository) Archive(ctx context.Context, channelID string) error {
 
 func (r *Repository) ListForWorkspace(ctx context.Context, workspaceID, userID string) ([]ChannelWithMembership, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT c.id, c.workspace_id, c.name, c.description, c.type, c.dm_participant_hash, c.archived_at, c.created_by, c.created_at, c.updated_at,
+		SELECT c.id, c.workspace_id, c.name, c.description, c.type, c.dm_participant_hash, c.is_default, c.archived_at, c.created_by, c.created_at, c.updated_at,
 		       cm.channel_role, cm.last_read_message_id, COALESCE(cm.is_starred, 0) as is_starred,
 		       COALESCE((
 		           SELECT COUNT(*) FROM messages m
@@ -198,10 +213,11 @@ func (r *Repository) ListForWorkspace(ctx context.Context, workspaceID, userID s
 		var c ChannelWithMembership
 		var description, dmHash, archivedAt, createdBy, channelRole, lastReadID sql.NullString
 		var createdAt, updatedAt string
+		var isDefault int
 		var isStarred int
 		var unreadCount int
 
-		err := rows.Scan(&c.ID, &c.WorkspaceID, &c.Name, &description, &c.Type, &dmHash, &archivedAt, &createdBy, &createdAt, &updatedAt,
+		err := rows.Scan(&c.ID, &c.WorkspaceID, &c.Name, &description, &c.Type, &dmHash, &isDefault, &archivedAt, &createdBy, &createdAt, &updatedAt,
 			&channelRole, &lastReadID, &isStarred, &unreadCount)
 		if err != nil {
 			return nil, err
@@ -230,6 +246,7 @@ func (r *Repository) ListForWorkspace(ctx context.Context, workspaceID, userID s
 		c.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
 		c.UnreadCount = unreadCount
 		c.IsStarred = isStarred != 0
+		c.IsDefault = isDefault != 0
 
 		// Track DM channels for participant lookup
 		if c.Type == TypeDM || c.Type == TypeGroupDM {
@@ -380,13 +397,16 @@ func (r *Repository) UpdateMemberRole(ctx context.Context, userID, channelID str
 }
 
 func (r *Repository) RemoveMember(ctx context.Context, userID, channelID string) error {
-	// Check channel type - can't leave DMs
+	// Check channel type - can't leave DMs or default channels
 	channel, err := r.GetByID(ctx, channelID)
 	if err != nil {
 		return err
 	}
 	if channel.Type == TypeDM {
 		return ErrCannotLeaveChannel
+	}
+	if channel.IsDefault {
+		return ErrCannotLeaveDefault
 	}
 
 	result, err := r.db.ExecContext(ctx, `
@@ -556,12 +576,128 @@ func (r *Repository) GetMemberUserIDs(ctx context.Context, channelID string) ([]
 	return userIDs, rows.Err()
 }
 
+// GetDefaultChannel returns the default channel for a workspace
+func (r *Repository) GetDefaultChannel(ctx context.Context, workspaceID string) (*Channel, error) {
+	return r.scanChannel(r.db.QueryRowContext(ctx, `
+		SELECT id, workspace_id, name, description, type, dm_participant_hash, is_default, archived_at, created_by, created_at, updated_at
+		FROM channels WHERE workspace_id = ? AND is_default = 1
+	`, workspaceID))
+}
+
+// ListRecentDMs returns DM channels that have messages since the given time
+func (r *Repository) ListRecentDMs(ctx context.Context, workspaceID, userID string, since time.Time, limit int) ([]ChannelWithMembership, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT c.id, c.workspace_id, c.name, c.description, c.type, c.dm_participant_hash, c.is_default, c.archived_at, c.created_by, c.created_at, c.updated_at,
+		       cm.channel_role, cm.last_read_message_id, COALESCE(cm.is_starred, 0) as is_starred,
+		       COALESCE((
+		           SELECT COUNT(*) FROM messages m
+		           WHERE m.channel_id = c.id
+		             AND m.thread_parent_id IS NULL
+		             AND m.deleted_at IS NULL
+		             AND (cm.last_read_message_id IS NULL OR m.id > cm.last_read_message_id)
+		       ), 0) as unread_count,
+		       (SELECT MAX(m.created_at) FROM messages m WHERE m.channel_id = c.id AND m.deleted_at IS NULL) as last_message_at
+		FROM channels c
+		JOIN channel_memberships cm ON cm.channel_id = c.id AND cm.user_id = ?
+		WHERE c.workspace_id = ? AND c.archived_at IS NULL
+		  AND c.type IN ('dm', 'group_dm')
+		  AND EXISTS (
+		      SELECT 1 FROM messages m
+		      WHERE m.channel_id = c.id
+		        AND m.deleted_at IS NULL
+		        AND m.created_at >= ?
+		  )
+		ORDER BY last_message_at DESC
+		LIMIT ?
+	`, userID, workspaceID, since.Format(time.RFC3339), limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var channels []ChannelWithMembership
+	var dmChannelIDs []string
+	channelIndex := make(map[string]int)
+
+	for rows.Next() {
+		var c ChannelWithMembership
+		var description, dmHash, archivedAt, createdBy, channelRole, lastReadID, lastMsgAt sql.NullString
+		var createdAt, updatedAt string
+		var isDefault int
+		var isStarred int
+		var unreadCount int
+
+		err := rows.Scan(&c.ID, &c.WorkspaceID, &c.Name, &description, &c.Type, &dmHash, &isDefault, &archivedAt, &createdBy, &createdAt, &updatedAt,
+			&channelRole, &lastReadID, &isStarred, &unreadCount, &lastMsgAt)
+		if err != nil {
+			return nil, err
+		}
+
+		if description.Valid {
+			c.Description = &description.String
+		}
+		if dmHash.Valid {
+			c.DMParticipantHash = &dmHash.String
+		}
+		if archivedAt.Valid {
+			t, _ := time.Parse(time.RFC3339, archivedAt.String)
+			c.ArchivedAt = &t
+		}
+		if createdBy.Valid {
+			c.CreatedBy = &createdBy.String
+		}
+		if channelRole.Valid {
+			c.ChannelRole = &channelRole.String
+		}
+		if lastReadID.Valid {
+			c.LastReadMessageID = &lastReadID.String
+		}
+		c.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
+		c.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
+		c.UnreadCount = unreadCount
+		c.IsStarred = isStarred != 0
+		c.IsDefault = isDefault != 0
+
+		channelIndex[c.ID] = len(channels)
+		dmChannelIDs = append(dmChannelIDs, c.ID)
+		channels = append(channels, c)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Fetch DM participants
+	if len(dmChannelIDs) > 0 {
+		if err := r.fetchDMParticipants(ctx, channels, dmChannelIDs, channelIndex, userID); err != nil {
+			return nil, err
+		}
+	}
+
+	return channels, nil
+}
+
+// CreateDefaultChannel creates the default #general channel for a workspace
+func (r *Repository) CreateDefaultChannel(ctx context.Context, workspaceID, creatorID string) (*Channel, error) {
+	ch := &Channel{
+		WorkspaceID: workspaceID,
+		Name:        DefaultChannelName,
+		Type:        TypePublic,
+		IsDefault:   true,
+	}
+	if err := r.Create(ctx, ch, creatorID); err != nil {
+		return nil, err
+	}
+	return ch, nil
+}
+
 func (r *Repository) scanChannel(row *sql.Row) (*Channel, error) {
 	var c Channel
 	var description, dmHash, archivedAt, createdBy sql.NullString
 	var createdAt, updatedAt string
+	var isDefault int
 
-	err := row.Scan(&c.ID, &c.WorkspaceID, &c.Name, &description, &c.Type, &dmHash, &archivedAt, &createdBy, &createdAt, &updatedAt)
+	err := row.Scan(&c.ID, &c.WorkspaceID, &c.Name, &description, &c.Type, &dmHash, &isDefault, &archivedAt, &createdBy, &createdAt, &updatedAt)
 	if err == sql.ErrNoRows {
 		return nil, ErrChannelNotFound
 	}
@@ -584,6 +720,7 @@ func (r *Repository) scanChannel(row *sql.Row) (*Channel, error) {
 	}
 	c.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 	c.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
+	c.IsDefault = isDefault != 0
 
 	return &c, nil
 }

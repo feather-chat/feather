@@ -312,7 +312,7 @@ func (h *Hub) GetConnectedUserIDs(workspaceID string) []string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	var userIDs []string
+	userIDs := []string{}
 	if workspace, ok := h.workspaces[workspaceID]; ok {
 		for userID := range workspace {
 			userIDs = append(userIDs, userID)
