@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.5"
+          cache-dependency-path: api/go.sum
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Generate types
+        run: make generate-types
+
+      - name: Lint Go
+        run: cd api && make lint
+
+      - name: Test Go
+        run: cd api && make test
+
+      - name: TypeScript typecheck
+        run: pnpm -r typecheck
+
+      - name: ESLint
+        run: pnpm -r lint
+
+      - name: Build verification
+        run: |
+          cd api && go build -o /dev/null ./cmd/feather
+          pnpm --filter @feather/web build
