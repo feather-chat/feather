@@ -328,6 +328,7 @@ function ParentMessage({ message, members }: { message: MessageWithUser; members
         <Avatar
           src={message.user_avatar_url}
           name={message.user_display_name || "Unknown"}
+          id={message.user_id}
           size="md"
           onClick={
             message.user_id ? () => openProfile(message.user_id!) : undefined
@@ -545,6 +546,7 @@ function ThreadMessage({ message, parentMessageId, members }: ThreadMessageProps
         <Avatar
           src={message.user_avatar_url}
           name={message.user_display_name || "Unknown"}
+          id={message.user_id}
           size="sm"
           onClick={
             message.user_id ? () => openProfile(message.user_id!) : undefined
