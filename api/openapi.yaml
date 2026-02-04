@@ -1454,6 +1454,14 @@ components:
           format: date-time
 
     # Workspace schemas
+    WorkspaceSettings:
+      type: object
+      properties:
+        show_join_leave_messages:
+          type: boolean
+          default: true
+          description: Whether to show system messages when users join or leave channels
+
     Workspace:
       type: object
       required: [id, name, settings, created_at, updated_at]
@@ -1466,6 +1474,9 @@ components:
           type: string
         settings:
           type: string
+          description: JSON string containing workspace settings (for backward compatibility)
+        parsed_settings:
+          $ref: '#/components/schemas/WorkspaceSettings'
         created_at:
           type: string
           format: date-time
@@ -1659,6 +1670,36 @@ components:
           type: string
 
     # Message schemas
+    MessageType:
+      type: string
+      enum: [user, system]
+
+    SystemEventType:
+      type: string
+      enum: [user_joined, user_left, user_added]
+
+    SystemEventData:
+      type: object
+      required: [event_type, user_id, user_display_name, channel_name]
+      properties:
+        event_type:
+          $ref: '#/components/schemas/SystemEventType'
+        user_id:
+          type: string
+          description: The user who joined/left/was added
+        user_display_name:
+          type: string
+          description: Display name of the user at the time of the event
+        channel_name:
+          type: string
+          description: Name of the channel
+        actor_id:
+          type: string
+          description: The user who performed the action (for user_added)
+        actor_display_name:
+          type: string
+          description: Display name of the actor
+
     Message:
       type: object
       required: [id, channel_id, content, reply_count, created_at, updated_at]
@@ -1671,6 +1712,10 @@ components:
           type: string
         content:
           type: string
+        type:
+          $ref: '#/components/schemas/MessageType'
+        system_event:
+          $ref: '#/components/schemas/SystemEventData'
         thread_parent_id:
           type: string
         reply_count:
@@ -2271,6 +2316,8 @@ components:
       properties:
         name:
           type: string
+        settings:
+          $ref: '#/components/schemas/WorkspaceSettings'
 
     CreateInviteInput:
       type: object

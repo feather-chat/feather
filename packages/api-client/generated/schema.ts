@@ -913,11 +913,20 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
+        WorkspaceSettings: {
+            /**
+             * @description Whether to show system messages when users join or leave channels
+             * @default true
+             */
+            show_join_leave_messages: boolean;
+        };
         Workspace: {
             id: string;
             name: string;
             icon_url?: string;
+            /** @description JSON string containing workspace settings (for backward compatibility) */
             settings: string;
+            parsed_settings?: components["schemas"]["WorkspaceSettings"];
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
@@ -1013,11 +1022,30 @@ export interface components {
             display_name: string;
             avatar_url?: string;
         };
+        /** @enum {string} */
+        MessageType: "user" | "system";
+        /** @enum {string} */
+        SystemEventType: "user_joined" | "user_left" | "user_added";
+        SystemEventData: {
+            event_type: components["schemas"]["SystemEventType"];
+            /** @description The user who joined/left/was added */
+            user_id: string;
+            /** @description Display name of the user at the time of the event */
+            user_display_name: string;
+            /** @description Name of the channel */
+            channel_name: string;
+            /** @description The user who performed the action (for user_added) */
+            actor_id?: string;
+            /** @description Display name of the actor */
+            actor_display_name?: string;
+        };
         Message: {
             id: string;
             channel_id: string;
             user_id?: string;
             content: string;
+            type?: components["schemas"]["MessageType"];
+            system_event?: components["schemas"]["SystemEventData"];
             thread_parent_id?: string;
             reply_count: number;
             /** Format: date-time */
@@ -1327,6 +1355,7 @@ export interface components {
         };
         UpdateWorkspaceInput: {
             name?: string;
+            settings?: components["schemas"]["WorkspaceSettings"];
         };
         CreateInviteInput: {
             /** Format: email */

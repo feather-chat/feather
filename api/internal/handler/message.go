@@ -276,6 +276,11 @@ func (h *Handler) UpdateMessage(ctx context.Context, request openapi.UpdateMessa
 		return nil, err
 	}
 
+	// Can't edit system messages
+	if msg.Type == message.MessageTypeSystem {
+		return nil, message.ErrCannotEditSystemMsg
+	}
+
 	// Only message author can edit
 	if msg.UserID == nil || *msg.UserID != userID {
 		return nil, errors.New("you can only edit your own messages")
@@ -331,6 +336,11 @@ func (h *Handler) DeleteMessage(ctx context.Context, request openapi.DeleteMessa
 	msg, err := h.messageRepo.GetByID(ctx, string(request.Id))
 	if err != nil {
 		return nil, err
+	}
+
+	// Can't delete system messages
+	if msg.Type == message.MessageTypeSystem {
+		return nil, message.ErrCannotDeleteSystemMsg
 	}
 
 	// Check permissions: author or workspace admin
@@ -527,6 +537,27 @@ func messageWithUserToAPI(m *message.MessageWithUser) openapi.MessageWithUser {
 		DeletedAt:      m.DeletedAt,
 		CreatedAt:      m.CreatedAt,
 		UpdatedAt:      m.UpdatedAt,
+	}
+	// Add type field (default to user if empty)
+	if m.Type != "" {
+		msgType := openapi.MessageType(m.Type)
+		apiMsg.Type = &msgType
+	}
+	// Add system_event field
+	if m.SystemEvent != nil {
+		eventType := openapi.SystemEventType(m.SystemEvent.EventType)
+		apiMsg.SystemEvent = &openapi.SystemEventData{
+			EventType:       eventType,
+			UserId:          m.SystemEvent.UserID,
+			UserDisplayName: m.SystemEvent.UserDisplayName,
+			ChannelName:     m.SystemEvent.ChannelName,
+		}
+		if m.SystemEvent.ActorID != nil {
+			apiMsg.SystemEvent.ActorId = m.SystemEvent.ActorID
+		}
+		if m.SystemEvent.ActorDisplayName != nil {
+			apiMsg.SystemEvent.ActorDisplayName = m.SystemEvent.ActorDisplayName
+		}
 	}
 	if m.UserDisplayName != "" {
 		apiMsg.UserDisplayName = &m.UserDisplayName

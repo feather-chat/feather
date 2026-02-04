@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useMessages } from '../../hooks';
 import { MessageItem } from './MessageItem';
+import { SystemMessage } from './SystemMessage';
 import { MessageSkeleton } from '../ui';
 import { formatDate } from '../../lib/utils';
 import type { MessageWithUser } from '@feather/api-client';
@@ -171,12 +172,22 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
                 messageIndex === lastReadIndex &&
                 messageIndex < messages.length - 1; // There are messages after this one
 
+              // Check if this is a system message
+              const isSystemMessage = message.type === 'system';
+
               return (
                 <div key={message.id}>
-                  <MessageItem
-                    message={message}
-                    channelId={channelId}
-                  />
+                  {isSystemMessage ? (
+                    <SystemMessage
+                      message={message}
+                      channelId={channelId}
+                    />
+                  ) : (
+                    <MessageItem
+                      message={message}
+                      channelId={channelId}
+                    />
+                  )}
                   {showUnreadDivider && (
                     <div className="flex items-center gap-4 px-4 py-2">
                       <div className="flex-1 h-px bg-red-500" />

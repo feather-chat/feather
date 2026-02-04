@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/feather/api/internal/channel"
+	"github.com/feather/api/internal/message"
 	"github.com/feather/api/internal/notification"
 	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/sse"
@@ -277,6 +278,12 @@ func (h *Handler) AddChannelMember(ctx context.Context, request openapi.AddChann
 
 	_, err = h.channelRepo.AddMember(ctx, request.Body.UserId, string(request.Id), &role)
 	if err != nil {
+		if errors.Is(err, channel.ErrAlreadyMember) {
+			// User is already a member, no need to create system message
+			return openapi.AddChannelMember200JSONResponse{
+				Success: true,
+			}, nil
+		}
 		return nil, err
 	}
 
@@ -284,6 +291,9 @@ func (h *Handler) AddChannelMember(ctx context.Context, request openapi.AddChann
 	if h.hub != nil {
 		h.hub.AddChannelMember(string(request.Id), request.Body.UserId)
 	}
+
+	// Create system message for user being added
+	h.createAddedSystemMessage(ctx, ch, request.Body.UserId, userID)
 
 	return openapi.AddChannelMember200JSONResponse{
 		Success: true,
@@ -356,7 +366,8 @@ func (h *Handler) JoinChannel(ctx context.Context, request openapi.JoinChannelRe
 
 	memberRole := "poster"
 	_, err = h.channelRepo.AddMember(ctx, userID, string(request.Id), &memberRole)
-	if errors.Is(err, channel.ErrAlreadyMember) {
+	wasAlreadyMember := errors.Is(err, channel.ErrAlreadyMember)
+	if wasAlreadyMember {
 		// Update role if already a member (in case role was NULL)
 		_ = h.channelRepo.UpdateMemberRole(ctx, userID, string(request.Id), &memberRole)
 	} else if err != nil {
@@ -366,6 +377,11 @@ func (h *Handler) JoinChannel(ctx context.Context, request openapi.JoinChannelRe
 	// Update SSE hub cache for channel membership
 	if h.hub != nil {
 		h.hub.AddChannelMember(string(request.Id), userID)
+	}
+
+	// Create system message if this is a new join (not already a member)
+	if !wasAlreadyMember {
+		h.createJoinSystemMessage(ctx, ch, userID)
 	}
 
 	return openapi.JoinChannel200JSONResponse{
@@ -380,7 +396,13 @@ func (h *Handler) LeaveChannel(ctx context.Context, request openapi.LeaveChannel
 		return nil, errors.New("not authenticated")
 	}
 
-	err := h.channelRepo.RemoveMember(ctx, userID, string(request.Id))
+	// Get channel for system message (before leaving)
+	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.channelRepo.RemoveMember(ctx, userID, string(request.Id))
 	if err != nil {
 		if errors.Is(err, channel.ErrCannotLeaveDefault) {
 			return nil, errors.New("cannot leave the default channel")
@@ -392,6 +414,9 @@ func (h *Handler) LeaveChannel(ctx context.Context, request openapi.LeaveChannel
 	if h.hub != nil {
 		h.hub.RemoveChannelMember(string(request.Id), userID)
 	}
+
+	// Create system message
+	h.createLeaveSystemMessage(ctx, ch, userID)
 
 	return openapi.LeaveChannel200JSONResponse{
 		Success: true,
@@ -753,4 +778,142 @@ func (h *Handler) GetDMSuggestions(ctx context.Context, request openapi.GetDMSug
 		RecentDms:      apiRecentDMs,
 		SuggestedUsers: apiSuggestedUsers,
 	}, nil
+}
+
+// createJoinSystemMessage creates a system message when a user joins a channel
+func (h *Handler) createJoinSystemMessage(ctx context.Context, ch *channel.Channel, userID string) {
+	// Check workspace settings
+	ws, err := h.workspaceRepo.GetByID(ctx, ch.WorkspaceID)
+	if err != nil {
+		return
+	}
+	settings := ws.ParsedSettings()
+	if !settings.ShowJoinLeaveMessages {
+		return
+	}
+
+	// Get user's display name
+	user, err := h.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return
+	}
+
+	event := &message.SystemEventData{
+		EventType:       message.SystemEventUserJoined,
+		UserID:          userID,
+		UserDisplayName: user.DisplayName,
+		ChannelName:     ch.Name,
+	}
+
+	msg, err := h.messageRepo.CreateSystemMessage(ctx, ch.ID, event)
+	if err != nil {
+		return
+	}
+
+	// Broadcast via SSE
+	if h.hub != nil {
+		msgWithUser, _ := h.messageRepo.GetByIDWithUser(ctx, msg.ID)
+		if msgWithUser != nil {
+			apiMsg := messageWithUserToAPI(msgWithUser)
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.Event{
+				Type: sse.EventMessageNew,
+				Data: apiMsg,
+			})
+		}
+	}
+}
+
+// createLeaveSystemMessage creates a system message when a user leaves a channel
+func (h *Handler) createLeaveSystemMessage(ctx context.Context, ch *channel.Channel, userID string) {
+	// Check workspace settings
+	ws, err := h.workspaceRepo.GetByID(ctx, ch.WorkspaceID)
+	if err != nil {
+		return
+	}
+	settings := ws.ParsedSettings()
+	if !settings.ShowJoinLeaveMessages {
+		return
+	}
+
+	// Get user's display name
+	user, err := h.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return
+	}
+
+	event := &message.SystemEventData{
+		EventType:       message.SystemEventUserLeft,
+		UserID:          userID,
+		UserDisplayName: user.DisplayName,
+		ChannelName:     ch.Name,
+	}
+
+	msg, err := h.messageRepo.CreateSystemMessage(ctx, ch.ID, event)
+	if err != nil {
+		return
+	}
+
+	// Broadcast via SSE
+	if h.hub != nil {
+		msgWithUser, _ := h.messageRepo.GetByIDWithUser(ctx, msg.ID)
+		if msgWithUser != nil {
+			apiMsg := messageWithUserToAPI(msgWithUser)
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.Event{
+				Type: sse.EventMessageNew,
+				Data: apiMsg,
+			})
+		}
+	}
+}
+
+// createAddedSystemMessage creates a system message when a user is added to a channel
+func (h *Handler) createAddedSystemMessage(ctx context.Context, ch *channel.Channel, addedUserID, actorID string) {
+	// Check workspace settings
+	ws, err := h.workspaceRepo.GetByID(ctx, ch.WorkspaceID)
+	if err != nil {
+		return
+	}
+	settings := ws.ParsedSettings()
+	if !settings.ShowJoinLeaveMessages {
+		return
+	}
+
+	// Get added user's display name
+	addedUser, err := h.userRepo.GetByID(ctx, addedUserID)
+	if err != nil {
+		return
+	}
+
+	event := &message.SystemEventData{
+		EventType:       message.SystemEventUserAdded,
+		UserID:          addedUserID,
+		UserDisplayName: addedUser.DisplayName,
+		ChannelName:     ch.Name,
+	}
+
+	// Get actor's display name if different from added user
+	if actorID != addedUserID {
+		actor, err := h.userRepo.GetByID(ctx, actorID)
+		if err == nil {
+			event.ActorID = &actorID
+			event.ActorDisplayName = &actor.DisplayName
+		}
+	}
+
+	msg, err := h.messageRepo.CreateSystemMessage(ctx, ch.ID, event)
+	if err != nil {
+		return
+	}
+
+	// Broadcast via SSE
+	if h.hub != nil {
+		msgWithUser, _ := h.messageRepo.GetByIDWithUser(ctx, msg.ID)
+		if msgWithUser != nil {
+			apiMsg := messageWithUserToAPI(msgWithUser)
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.Event{
+				Type: sse.EventMessageNew,
+				Data: apiMsg,
+			})
+		}
+	}
 }

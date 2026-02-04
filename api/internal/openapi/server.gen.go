@@ -43,11 +43,24 @@ const (
 	Before ListMessagesInputDirection = "before"
 )
 
+// Defines values for MessageType.
+const (
+	MessageTypeSystem MessageType = "system"
+	MessageTypeUser   MessageType = "user"
+)
+
 // Defines values for NotifyLevel.
 const (
 	NotifyLevelAll      NotifyLevel = "all"
 	NotifyLevelMentions NotifyLevel = "mentions"
 	NotifyLevelNone     NotifyLevel = "none"
+)
+
+// Defines values for SystemEventType.
+const (
+	UserAdded  SystemEventType = "user_added"
+	UserJoined SystemEventType = "user_joined"
+	UserLeft   SystemEventType = "user_left"
 )
 
 // Defines values for ThreadSubscriptionStatus.
@@ -226,17 +239,19 @@ type MeResponse struct {
 
 // Message defines model for Message.
 type Message struct {
-	ChannelId      string     `json:"channel_id"`
-	Content        string     `json:"content"`
-	CreatedAt      time.Time  `json:"created_at"`
-	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
-	EditedAt       *time.Time `json:"edited_at,omitempty"`
-	Id             string     `json:"id"`
-	LastReplyAt    *time.Time `json:"last_reply_at,omitempty"`
-	ReplyCount     int        `json:"reply_count"`
-	ThreadParentId *string    `json:"thread_parent_id,omitempty"`
-	UpdatedAt      time.Time  `json:"updated_at"`
-	UserId         *string    `json:"user_id,omitempty"`
+	ChannelId      string           `json:"channel_id"`
+	Content        string           `json:"content"`
+	CreatedAt      time.Time        `json:"created_at"`
+	DeletedAt      *time.Time       `json:"deleted_at,omitempty"`
+	EditedAt       *time.Time       `json:"edited_at,omitempty"`
+	Id             string           `json:"id"`
+	LastReplyAt    *time.Time       `json:"last_reply_at,omitempty"`
+	ReplyCount     int              `json:"reply_count"`
+	SystemEvent    *SystemEventData `json:"system_event,omitempty"`
+	ThreadParentId *string          `json:"thread_parent_id,omitempty"`
+	Type           *MessageType     `json:"type,omitempty"`
+	UpdatedAt      time.Time        `json:"updated_at"`
+	UserId         *string          `json:"user_id,omitempty"`
 }
 
 // MessageListResult defines model for MessageListResult.
@@ -245,6 +260,9 @@ type MessageListResult struct {
 	Messages   []MessageWithUser `json:"messages"`
 	NextCursor *string           `json:"next_cursor,omitempty"`
 }
+
+// MessageType defines model for MessageType.
+type MessageType string
 
 // MessageWithUser defines model for MessageWithUser.
 type MessageWithUser struct {
@@ -258,8 +276,10 @@ type MessageWithUser struct {
 	LastReplyAt        *time.Time           `json:"last_reply_at,omitempty"`
 	Reactions          *[]Reaction          `json:"reactions,omitempty"`
 	ReplyCount         int                  `json:"reply_count"`
+	SystemEvent        *SystemEventData     `json:"system_event,omitempty"`
 	ThreadParentId     *string              `json:"thread_parent_id,omitempty"`
 	ThreadParticipants *[]ThreadParticipant `json:"thread_participants,omitempty"`
+	Type               *MessageType         `json:"type,omitempty"`
 	UpdatedAt          time.Time            `json:"updated_at"`
 	UserAvatarUrl      *string              `json:"user_avatar_url,omitempty"`
 	UserDisplayName    *string              `json:"user_display_name,omitempty"`
@@ -312,6 +332,28 @@ type SuggestedUser struct {
 	Id          string               `json:"id"`
 }
 
+// SystemEventData defines model for SystemEventData.
+type SystemEventData struct {
+	// ActorDisplayName Display name of the actor
+	ActorDisplayName *string `json:"actor_display_name,omitempty"`
+
+	// ActorId The user who performed the action (for user_added)
+	ActorId *string `json:"actor_id,omitempty"`
+
+	// ChannelName Name of the channel
+	ChannelName string          `json:"channel_name"`
+	EventType   SystemEventType `json:"event_type"`
+
+	// UserDisplayName Display name of the user at the time of the event
+	UserDisplayName string `json:"user_display_name"`
+
+	// UserId The user who joined/left/was added
+	UserId string `json:"user_id"`
+}
+
+// SystemEventType defines model for SystemEventType.
+type SystemEventType string
+
 // ThreadParticipant defines model for ThreadParticipant.
 type ThreadParticipant struct {
 	AvatarUrl   *string `json:"avatar_url,omitempty"`
@@ -336,8 +378,10 @@ type UnreadMessage struct {
 	LastReplyAt        *time.Time           `json:"last_reply_at,omitempty"`
 	Reactions          *[]Reaction          `json:"reactions,omitempty"`
 	ReplyCount         int                  `json:"reply_count"`
+	SystemEvent        *SystemEventData     `json:"system_event,omitempty"`
 	ThreadParentId     *string              `json:"thread_parent_id,omitempty"`
 	ThreadParticipants *[]ThreadParticipant `json:"thread_participants,omitempty"`
+	Type               *MessageType         `json:"type,omitempty"`
 	UpdatedAt          time.Time            `json:"updated_at"`
 	UserAvatarUrl      *string              `json:"user_avatar_url,omitempty"`
 	UserDisplayName    *string              `json:"user_display_name,omitempty"`
@@ -364,7 +408,8 @@ type UpdateProfileInput struct {
 
 // UpdateWorkspaceInput defines model for UpdateWorkspaceInput.
 type UpdateWorkspaceInput struct {
-	Name *string `json:"name,omitempty"`
+	Name     *string            `json:"name,omitempty"`
+	Settings *WorkspaceSettings `json:"settings,omitempty"`
 }
 
 // User defines model for User.
@@ -390,10 +435,13 @@ type UserProfile struct {
 
 // Workspace defines model for Workspace.
 type Workspace struct {
-	CreatedAt time.Time `json:"created_at"`
-	IconUrl   *string   `json:"icon_url,omitempty"`
-	Id        string    `json:"id"`
-	Name      string    `json:"name"`
+	CreatedAt      time.Time          `json:"created_at"`
+	IconUrl        *string            `json:"icon_url,omitempty"`
+	Id             string             `json:"id"`
+	Name           string             `json:"name"`
+	ParsedSettings *WorkspaceSettings `json:"parsed_settings,omitempty"`
+
+	// Settings JSON string containing workspace settings (for backward compatibility)
 	Settings  string    `json:"settings"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -430,6 +478,12 @@ type WorkspaceMembership struct {
 
 // WorkspaceRole defines model for WorkspaceRole.
 type WorkspaceRole string
+
+// WorkspaceSettings defines model for WorkspaceSettings.
+type WorkspaceSettings struct {
+	// ShowJoinLeaveMessages Whether to show system messages when users join or leave channels
+	ShowJoinLeaveMessages *bool `json:"show_join_leave_messages,omitempty"`
+}
 
 // WorkspaceSummary defines model for WorkspaceSummary.
 type WorkspaceSummary struct {

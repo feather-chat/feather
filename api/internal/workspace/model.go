@@ -1,8 +1,39 @@
 package workspace
 
 import (
+	"encoding/json"
 	"time"
 )
+
+// WorkspaceSettings contains parsed workspace settings
+type WorkspaceSettings struct {
+	ShowJoinLeaveMessages bool `json:"show_join_leave_messages"`
+}
+
+// DefaultSettings returns the default workspace settings
+func DefaultSettings() WorkspaceSettings {
+	return WorkspaceSettings{
+		ShowJoinLeaveMessages: true,
+	}
+}
+
+// ParseSettings parses the settings JSON string into WorkspaceSettings
+func ParseSettings(settingsJSON string) WorkspaceSettings {
+	settings := DefaultSettings()
+	if settingsJSON != "" && settingsJSON != "{}" {
+		_ = json.Unmarshal([]byte(settingsJSON), &settings)
+	}
+	return settings
+}
+
+// ToJSON serializes WorkspaceSettings to a JSON string
+func (s WorkspaceSettings) ToJSON() string {
+	data, err := json.Marshal(s)
+	if err != nil {
+		return "{}"
+	}
+	return string(data)
+}
 
 type Workspace struct {
 	ID        string    `json:"id"`
@@ -11,6 +42,11 @@ type Workspace struct {
 	Settings  string    `json:"settings"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// ParsedSettings returns the parsed workspace settings
+func (w *Workspace) ParsedSettings() WorkspaceSettings {
+	return ParseSettings(w.Settings)
 }
 
 type Membership struct {

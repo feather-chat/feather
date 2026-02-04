@@ -6,19 +6,44 @@ import (
 	"github.com/feather/api/internal/file"
 )
 
+// Message types
+const (
+	MessageTypeUser   = "user"
+	MessageTypeSystem = "system"
+)
+
+// System event types
+const (
+	SystemEventUserJoined = "user_joined"
+	SystemEventUserLeft   = "user_left"
+	SystemEventUserAdded  = "user_added"
+)
+
+// SystemEventData contains metadata for system messages
+type SystemEventData struct {
+	EventType        string  `json:"event_type"`
+	UserID           string  `json:"user_id"`
+	UserDisplayName  string  `json:"user_display_name"`
+	ChannelName      string  `json:"channel_name"`
+	ActorID          *string `json:"actor_id,omitempty"`
+	ActorDisplayName *string `json:"actor_display_name,omitempty"`
+}
+
 type Message struct {
-	ID             string     `json:"id"`
-	ChannelID      string     `json:"channel_id"`
-	UserID         *string    `json:"user_id,omitempty"`
-	Content        string     `json:"content"`
-	Mentions       []string   `json:"mentions,omitempty"`
-	ThreadParentID *string    `json:"thread_parent_id,omitempty"`
-	ReplyCount     int        `json:"reply_count"`
-	LastReplyAt    *time.Time `json:"last_reply_at,omitempty"`
-	EditedAt       *time.Time `json:"edited_at,omitempty"`
-	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
-	CreatedAt      time.Time  `json:"created_at"`
-	UpdatedAt      time.Time  `json:"updated_at"`
+	ID             string           `json:"id"`
+	ChannelID      string           `json:"channel_id"`
+	UserID         *string          `json:"user_id,omitempty"`
+	Content        string           `json:"content"`
+	Type           string           `json:"type"`
+	SystemEvent    *SystemEventData `json:"system_event,omitempty"`
+	Mentions       []string         `json:"mentions,omitempty"`
+	ThreadParentID *string          `json:"thread_parent_id,omitempty"`
+	ReplyCount     int              `json:"reply_count"`
+	LastReplyAt    *time.Time       `json:"last_reply_at,omitempty"`
+	EditedAt       *time.Time       `json:"edited_at,omitempty"`
+	DeletedAt      *time.Time       `json:"deleted_at,omitempty"`
+	CreatedAt      time.Time        `json:"created_at"`
+	UpdatedAt      time.Time        `json:"updated_at"`
 }
 
 type MessageWithUser struct {

@@ -126,3 +126,75 @@ func TestRoleRank_Ordering(t *testing.T) {
 		t.Error("guest should rank higher than invalid")
 	}
 }
+
+func TestParseSettings(t *testing.T) {
+	tests := []struct {
+		name     string
+		json     string
+		expected WorkspaceSettings
+	}{
+		{
+			name:     "empty string returns defaults",
+			json:     "",
+			expected: DefaultSettings(),
+		},
+		{
+			name:     "empty object returns defaults",
+			json:     "{}",
+			expected: DefaultSettings(),
+		},
+		{
+			name:     "show_join_leave_messages true",
+			json:     `{"show_join_leave_messages":true}`,
+			expected: WorkspaceSettings{ShowJoinLeaveMessages: true},
+		},
+		{
+			name:     "show_join_leave_messages false",
+			json:     `{"show_join_leave_messages":false}`,
+			expected: WorkspaceSettings{ShowJoinLeaveMessages: false},
+		},
+		{
+			name:     "invalid json returns defaults",
+			json:     "not json",
+			expected: DefaultSettings(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ParseSettings(tt.json)
+			if got != tt.expected {
+				t.Errorf("ParseSettings(%q) = %+v, want %+v", tt.json, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestWorkspaceSettings_ToJSON(t *testing.T) {
+	settings := WorkspaceSettings{ShowJoinLeaveMessages: false}
+	json := settings.ToJSON()
+	if json != `{"show_join_leave_messages":false}` {
+		t.Errorf("ToJSON() = %q, want %q", json, `{"show_join_leave_messages":false}`)
+	}
+
+	// Verify round-trip
+	parsed := ParseSettings(json)
+	if parsed != settings {
+		t.Errorf("Round-trip failed: got %+v, want %+v", parsed, settings)
+	}
+}
+
+func TestDefaultSettings(t *testing.T) {
+	defaults := DefaultSettings()
+	if !defaults.ShowJoinLeaveMessages {
+		t.Error("default ShowJoinLeaveMessages should be true")
+	}
+}
+
+func TestWorkspace_ParsedSettings(t *testing.T) {
+	ws := &Workspace{Settings: `{"show_join_leave_messages":false}`}
+	settings := ws.ParsedSettings()
+	if settings.ShowJoinLeaveMessages {
+		t.Error("ParsedSettings should return false for show_join_leave_messages")
+	}
+}

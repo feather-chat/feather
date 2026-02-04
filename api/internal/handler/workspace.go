@@ -109,6 +109,20 @@ func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWor
 		ws.Name = *request.Body.Name
 	}
 
+	// Handle settings update
+	if request.Body.Settings != nil {
+		// Start with existing settings
+		settings := ws.ParsedSettings()
+
+		// Update only provided fields
+		if request.Body.Settings.ShowJoinLeaveMessages != nil {
+			settings.ShowJoinLeaveMessages = *request.Body.Settings.ShowJoinLeaveMessages
+		}
+
+		// Serialize back to JSON string
+		ws.Settings = settings.ToJSON()
+	}
+
 	if err := h.workspaceRepo.Update(ctx, ws); err != nil {
 		return nil, err
 	}
@@ -304,7 +318,7 @@ func (h *Handler) AcceptInvite(ctx context.Context, request openapi.AcceptInvite
 
 // workspaceToAPI converts a workspace.Workspace to openapi.Workspace
 func workspaceToAPI(ws *workspace.Workspace) openapi.Workspace {
-	return openapi.Workspace{
+	apiWs := openapi.Workspace{
 		Id:        ws.ID,
 		Name:      ws.Name,
 		IconUrl:   ws.IconURL,
@@ -312,6 +326,14 @@ func workspaceToAPI(ws *workspace.Workspace) openapi.Workspace {
 		CreatedAt: ws.CreatedAt,
 		UpdatedAt: ws.UpdatedAt,
 	}
+
+	// Add parsed settings
+	settings := ws.ParsedSettings()
+	apiWs.ParsedSettings = &openapi.WorkspaceSettings{
+		ShowJoinLeaveMessages: &settings.ShowJoinLeaveMessages,
+	}
+
+	return apiWs
 }
 
 // memberWithUserToAPI converts a workspace.MemberWithUser to openapi.WorkspaceMemberWithUser

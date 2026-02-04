@@ -12,10 +12,12 @@ import (
 )
 
 var (
-	ErrMessageNotFound   = errors.New("message not found")
-	ErrReactionExists    = errors.New("reaction already exists")
-	ErrReactionNotFound  = errors.New("reaction not found")
-	ErrCannotEditMessage = errors.New("cannot edit this message")
+	ErrMessageNotFound       = errors.New("message not found")
+	ErrReactionExists        = errors.New("reaction already exists")
+	ErrReactionNotFound      = errors.New("reaction not found")
+	ErrCannotEditMessage     = errors.New("cannot edit this message")
+	ErrCannotEditSystemMsg   = errors.New("cannot edit system messages")
+	ErrCannotDeleteSystemMsg = errors.New("cannot delete system messages")
 )
 
 type Repository struct {
@@ -32,12 +34,27 @@ func (r *Repository) Create(ctx context.Context, msg *Message) error {
 	msg.CreatedAt = now
 	msg.UpdatedAt = now
 
+	// Default type to user
+	if msg.Type == "" {
+		msg.Type = MessageTypeUser
+	}
+
 	// Serialize mentions to JSON
 	mentionsJSON := "[]"
 	if len(msg.Mentions) > 0 {
 		data, err := json.Marshal(msg.Mentions)
 		if err == nil {
 			mentionsJSON = string(data)
+		}
+	}
+
+	// Serialize system_event to JSON
+	var systemEventJSON *string
+	if msg.SystemEvent != nil {
+		data, err := json.Marshal(msg.SystemEvent)
+		if err == nil {
+			s := string(data)
+			systemEventJSON = &s
 		}
 	}
 
@@ -48,9 +65,9 @@ func (r *Repository) Create(ctx context.Context, msg *Message) error {
 	defer tx.Rollback()
 
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO messages (id, channel_id, user_id, content, mentions, thread_parent_id, reply_count, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)
-	`, msg.ID, msg.ChannelID, msg.UserID, msg.Content, mentionsJSON, msg.ThreadParentID, now.Format(time.RFC3339), now.Format(time.RFC3339))
+		INSERT INTO messages (id, channel_id, user_id, content, type, system_event, mentions, thread_parent_id, reply_count, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+	`, msg.ID, msg.ChannelID, msg.UserID, msg.Content, msg.Type, systemEventJSON, mentionsJSON, msg.ThreadParentID, now.Format(time.RFC3339), now.Format(time.RFC3339))
 	if err != nil {
 		return err
 	}
@@ -69,16 +86,48 @@ func (r *Repository) Create(ctx context.Context, msg *Message) error {
 	return tx.Commit()
 }
 
+// CreateSystemMessage creates a system message for channel events
+func (r *Repository) CreateSystemMessage(ctx context.Context, channelID string, event *SystemEventData) (*Message, error) {
+	// Build content based on event type
+	content := ""
+	switch event.EventType {
+	case SystemEventUserJoined:
+		content = "joined #" + event.ChannelName
+	case SystemEventUserLeft:
+		content = "left #" + event.ChannelName
+	case SystemEventUserAdded:
+		if event.ActorDisplayName != nil {
+			content = "was added by " + *event.ActorDisplayName
+		} else {
+			content = "was added to #" + event.ChannelName
+		}
+	}
+
+	msg := &Message{
+		ChannelID:   channelID,
+		UserID:      &event.UserID,
+		Content:     content,
+		Type:        MessageTypeSystem,
+		SystemEvent: event,
+	}
+
+	if err := r.Create(ctx, msg); err != nil {
+		return nil, err
+	}
+
+	return msg, nil
+}
+
 func (r *Repository) GetByID(ctx context.Context, id string) (*Message, error) {
 	return r.scanMessage(r.db.QueryRowContext(ctx, `
-		SELECT id, channel_id, user_id, content, thread_parent_id, reply_count, last_reply_at, edited_at, deleted_at, created_at, updated_at
+		SELECT id, channel_id, user_id, content, type, system_event, thread_parent_id, reply_count, last_reply_at, edited_at, deleted_at, created_at, updated_at
 		FROM messages WHERE id = ?
 	`, id))
 }
 
 func (r *Repository) GetByIDWithUser(ctx context.Context, id string) (*MessageWithUser, error) {
 	row := r.db.QueryRowContext(ctx, `
-		SELECT m.id, m.channel_id, m.user_id, m.content, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+		SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
 		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
 		FROM messages m
 		LEFT JOIN users u ON u.id = m.user_id
@@ -135,7 +184,7 @@ func (r *Repository) List(ctx context.Context, channelID string, opts ListOption
 	// Only get top-level messages (not thread replies)
 	if opts.Cursor == "" {
 		query = `
-			SELECT m.id, m.channel_id, m.user_id, m.content, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
 			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
@@ -146,7 +195,7 @@ func (r *Repository) List(ctx context.Context, channelID string, opts ListOption
 		args = []interface{}{channelID, opts.Limit + 1}
 	} else if opts.Direction == "after" {
 		query = `
-			SELECT m.id, m.channel_id, m.user_id, m.content, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
 			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
@@ -157,7 +206,7 @@ func (r *Repository) List(ctx context.Context, channelID string, opts ListOption
 		args = []interface{}{channelID, opts.Cursor, opts.Limit + 1}
 	} else {
 		query = `
-			SELECT m.id, m.channel_id, m.user_id, m.content, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
 			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
@@ -252,7 +301,7 @@ func (r *Repository) ListThread(ctx context.Context, parentID string, opts ListO
 
 	if opts.Cursor == "" {
 		query = `
-			SELECT m.id, m.channel_id, m.user_id, m.content, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
 			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
@@ -263,7 +312,7 @@ func (r *Repository) ListThread(ctx context.Context, parentID string, opts ListO
 		args = []interface{}{parentID, opts.Limit + 1}
 	} else {
 		query = `
-			SELECT m.id, m.channel_id, m.user_id, m.content, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
 			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
@@ -483,10 +532,10 @@ func (r *Repository) getReactionsForMessages(ctx context.Context, messageIDs []s
 
 func (r *Repository) scanMessage(row *sql.Row) (*Message, error) {
 	var msg Message
-	var userID, threadParentID, lastReplyAt, editedAt, deletedAt sql.NullString
+	var userID, threadParentID, lastReplyAt, editedAt, deletedAt, systemEventJSON sql.NullString
 	var createdAt, updatedAt string
 
-	err := row.Scan(&msg.ID, &msg.ChannelID, &userID, &msg.Content, &threadParentID, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt)
+	err := row.Scan(&msg.ID, &msg.ChannelID, &userID, &msg.Content, &msg.Type, &systemEventJSON, &threadParentID, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt)
 	if err == sql.ErrNoRows {
 		return nil, ErrMessageNotFound
 	}
@@ -494,8 +543,19 @@ func (r *Repository) scanMessage(row *sql.Row) (*Message, error) {
 		return nil, err
 	}
 
+	// Default type if empty
+	if msg.Type == "" {
+		msg.Type = MessageTypeUser
+	}
+
 	if userID.Valid {
 		msg.UserID = &userID.String
+	}
+	if systemEventJSON.Valid {
+		var eventData SystemEventData
+		if err := json.Unmarshal([]byte(systemEventJSON.String), &eventData); err == nil {
+			msg.SystemEvent = &eventData
+		}
 	}
 	if threadParentID.Valid {
 		msg.ThreadParentID = &threadParentID.String
@@ -524,17 +584,28 @@ type rowScanner interface {
 
 func (r *Repository) scanMessageWithUser(row rowScanner) (*MessageWithUser, error) {
 	var msg MessageWithUser
-	var userID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL sql.NullString
+	var userID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL, systemEventJSON sql.NullString
 	var createdAt, updatedAt string
 
-	err := row.Scan(&msg.ID, &msg.ChannelID, &userID, &msg.Content, &threadParentID, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt,
+	err := row.Scan(&msg.ID, &msg.ChannelID, &userID, &msg.Content, &msg.Type, &systemEventJSON, &threadParentID, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt,
 		&msg.UserDisplayName, &avatarURL)
 	if err != nil {
 		return nil, err
 	}
 
+	// Default type if empty
+	if msg.Type == "" {
+		msg.Type = MessageTypeUser
+	}
+
 	if userID.Valid {
 		msg.UserID = &userID.String
+	}
+	if systemEventJSON.Valid {
+		var eventData SystemEventData
+		if err := json.Unmarshal([]byte(systemEventJSON.String), &eventData); err == nil {
+			msg.SystemEvent = &eventData
+		}
 	}
 	if threadParentID.Valid {
 		msg.ThreadParentID = &threadParentID.String
@@ -576,7 +647,7 @@ func (r *Repository) ListAllUnreads(ctx context.Context, workspaceID, userID str
 	// Get messages from channels user is a member of that are newer than last_read_message_id
 	if opts.Cursor == "" {
 		query = `
-			SELECT m.id, m.channel_id, m.user_id, m.content, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
 			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url,
 			       c.name as channel_name, c.type as channel_type
 			FROM messages m
@@ -593,7 +664,7 @@ func (r *Repository) ListAllUnreads(ctx context.Context, workspaceID, userID str
 		args = []interface{}{userID, workspaceID, opts.Limit + 1}
 	} else {
 		query = `
-			SELECT m.id, m.channel_id, m.user_id, m.content, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
 			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url,
 			       c.name as channel_name, c.type as channel_type
 			FROM messages m
@@ -672,17 +743,28 @@ func (r *Repository) ListAllUnreads(ctx context.Context, workspaceID, userID str
 
 func (r *Repository) scanUnreadMessage(row rowScanner) (*UnreadMessage, string, string, error) {
 	var msg UnreadMessage
-	var userID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL sql.NullString
+	var userID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL, systemEventJSON sql.NullString
 	var createdAt, updatedAt, channelName, channelType string
 
-	err := row.Scan(&msg.ID, &msg.ChannelID, &userID, &msg.Content, &threadParentID, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt,
+	err := row.Scan(&msg.ID, &msg.ChannelID, &userID, &msg.Content, &msg.Type, &systemEventJSON, &threadParentID, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt,
 		&msg.UserDisplayName, &avatarURL, &channelName, &channelType)
 	if err != nil {
 		return nil, "", "", err
 	}
 
+	// Default type if empty
+	if msg.Type == "" {
+		msg.Type = MessageTypeUser
+	}
+
 	if userID.Valid {
 		msg.UserID = &userID.String
+	}
+	if systemEventJSON.Valid {
+		var eventData SystemEventData
+		if err := json.Unmarshal([]byte(systemEventJSON.String), &eventData); err == nil {
+			msg.SystemEvent = &eventData
+		}
 	}
 	if threadParentID.Valid {
 		msg.ThreadParentID = &threadParentID.String
