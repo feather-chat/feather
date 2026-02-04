@@ -308,7 +308,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
           suggestion: {
             ...emojiSuggestion,
             command: ({ editor, range, props }) => {
-              const emojiProps = props as EmojiOption;
+              const emojiProps = props as unknown as EmojiOption;
               editor
                 .chain()
                 .focus()
@@ -323,7 +323,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
           suggestion: {
             ...channelSuggestion,
             command: ({ editor, range, props }) => {
-              const channelProps = props as ChannelOption;
+              const channelProps = props as unknown as ChannelOption;
               editor.chain().focus().deleteRange(range).run();
               editor
                 .chain()
@@ -423,7 +423,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       },
     });
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = () => {
       if (!editor || submittingRef.current) return;
 
       const isEmpty = editor.isEmpty;
@@ -440,7 +440,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       }
 
       submittingRef.current = false;
-    }, [editor, onSubmit]);
+    };
 
     const handleEmojiSelect = useCallback(
       (emoji: string) => {

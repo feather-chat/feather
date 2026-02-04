@@ -12,7 +12,7 @@ const TYPING_TIMEOUT = 5000; // 5 seconds
 // Module-level state
 let typingUsers = new Map<string, TypingUser[]>();
 let userPresence = new Map<string, PresenceStatus>();
-let listeners = new Set<() => void>();
+const listeners = new Set<() => void>();
 
 // Notify all subscribers
 function emitChange() {
@@ -103,9 +103,8 @@ setInterval(cleanupExpiredTyping, 1000);
 // Hooks
 export function useTypingUsers(channelId: string): TypingUser[] {
   const map = useSyncExternalStore(subscribe, getTypingSnapshot, getTypingSnapshot);
-  const now = Date.now();
-  const typers = map.get(channelId) || [];
-  return typers.filter((t) => t.expiresAt > now);
+  // Expired typers are cleaned up by the interval timer, so no need to filter here
+  return map.get(channelId) || [];
 }
 
 export function useUserPresence(userId: string): PresenceStatus | undefined {

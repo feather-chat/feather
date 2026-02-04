@@ -45,3 +45,8 @@ export type PresenceData = components['schemas']['PresenceData'];
 export type NotifyLevel = components['schemas']['NotifyLevel'];
 export type NotificationPreferences = components['schemas']['NotificationPreferences'];
 export type ThreadSubscriptionStatus = components['schemas']['ThreadSubscriptionStatus'];
+export type NotificationData = components['schemas']['NotificationData'];
+
+// Unreads types
+export type UnreadMessage = components['schemas']['UnreadMessage'];
+export type UnreadMessagesResult = components['schemas']['UnreadMessagesResult'];

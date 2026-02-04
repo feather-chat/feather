@@ -35,7 +35,7 @@ function UnreadMessageItem({ message, workspaceId }: { message: UnreadMessage; w
                 : `#${message.channel_name}`}
             </span>
             <span className="text-xs text-zinc-500">
-              {formatRelativeTime(new Date(message.created_at))}
+              {formatRelativeTime(message.created_at)}
             </span>
           </div>
           <div className="flex items-start gap-2">

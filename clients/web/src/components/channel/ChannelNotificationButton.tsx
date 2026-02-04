@@ -34,11 +34,15 @@ export function ChannelNotificationButton({
   }
 
   const currentLevel = data?.preferences?.notify_level || 'all';
-  const CurrentIcon = getIconForLevel(currentLevel);
+  const currentEmailEnabled = data?.preferences?.email_enabled ?? true;
+  const currentIcon = getIconForLevel(currentLevel);
   const isMuted = currentLevel === 'none';
 
   const handleSelect = (key: React.Key) => {
-    updateNotifications.mutate({ notify_level: key as NotifyLevel });
+    updateNotifications.mutate({
+      notify_level: key as NotifyLevel,
+      email_enabled: currentEmailEnabled,
+    });
   };
 
   if (isLoading) {
@@ -63,7 +67,7 @@ export function ChannelNotificationButton({
           )}
           aria-label="Channel notification settings"
         >
-          <CurrentIcon className="w-5 h-5" />
+          {currentIcon({ className: 'w-5 h-5' })}
         </AriaButton>
       }
       align="end"
