@@ -18,15 +18,17 @@ vi.mock('../api/auth', () => ({
   authApi: mockAuthApi,
 }));
 
-// Mock ApiError
+// Mock ApiError with correct 3-arg signature: (code, message, status)
 vi.mock('@feather/api-client', async (importOriginal) => {
   const original = await importOriginal<typeof import('@feather/api-client')>();
   return {
     ...original,
     ApiError: class ApiError extends Error {
+      code: string;
       status: number;
-      constructor(message: string, status: number) {
+      constructor(code: string, message: string, status: number) {
         super(message);
+        this.code = code;
         this.status = status;
       }
     },

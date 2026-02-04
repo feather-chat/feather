@@ -14,9 +14,11 @@ const mockAuthApi = vi.hoisted(() => ({
 
 const MockApiError = vi.hoisted(() => {
   return class MockApiError extends Error {
+    code: string;
     status: number;
-    constructor(message: string, status: number = 400) {
+    constructor(code: string, message: string, status: number = 400) {
       super(message);
+      this.code = code;
       this.status = status;
     }
   };
@@ -88,6 +90,7 @@ describe('RegisterForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'john@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(screen.getByLabelText(/workspace name/i), 'My Workspace');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
@@ -107,6 +110,7 @@ describe('RegisterForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'john@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'differentpassword');
+    await user.type(screen.getByLabelText(/workspace name/i), 'My Workspace');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
@@ -121,6 +125,7 @@ describe('RegisterForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'john@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'short');
     await user.type(screen.getByLabelText(/confirm password/i), 'short');
+    await user.type(screen.getByLabelText(/workspace name/i), 'My Workspace');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
@@ -128,7 +133,7 @@ describe('RegisterForm', () => {
   });
 
   it('shows error message on registration failure', async () => {
-    mockRegister.mockRejectedValue(new MockApiError('Email already exists', 409));
+    mockRegister.mockRejectedValue(new MockApiError('EMAIL_EXISTS', 'Email already exists', 409));
     const user = userEvent.setup();
     render(<RegisterForm />);
 
@@ -136,6 +141,7 @@ describe('RegisterForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'existing@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(screen.getByLabelText(/workspace name/i), 'My Workspace');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
@@ -152,6 +158,7 @@ describe('RegisterForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'john@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(screen.getByLabelText(/workspace name/i), 'My Workspace');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
@@ -161,7 +168,7 @@ describe('RegisterForm', () => {
 
   it('clears error when form is resubmitted', async () => {
     mockRegister
-      .mockRejectedValueOnce(new MockApiError('Email already exists', 409))
+      .mockRejectedValueOnce(new MockApiError('EMAIL_EXISTS', 'Email already exists', 409))
       .mockResolvedValueOnce({ user: { id: 'user-1' } });
     const user = userEvent.setup();
     render(<RegisterForm />);
@@ -171,6 +178,7 @@ describe('RegisterForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'existing@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(screen.getByLabelText(/workspace name/i), 'My Workspace');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
@@ -200,6 +208,7 @@ describe('RegisterForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'john@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(screen.getByLabelText(/workspace name/i), 'My Workspace');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     // Button should be disabled while registering
