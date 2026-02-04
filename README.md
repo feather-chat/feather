@@ -55,6 +55,33 @@ Types are generated from `api/openapi.yaml` and shared via the `@feather/api-cli
 make generate-types
 ```
 
+## CI/CD
+
+### Continuous Integration
+
+CI runs automatically on every push to `main` and on pull requests:
+
+- Linting (Go vet, ESLint)
+- Tests (Go tests)
+- Type checking (TypeScript)
+- Build verification
+
+### Releases
+
+Releases are triggered manually by pushing a version tag:
+
+```bash
+# Create and push a release tag
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+This builds binaries for 6 platforms and creates a GitHub Release with:
+- `feather-linux-amd64`, `feather-linux-arm64`
+- `feather-darwin-amd64`, `feather-darwin-arm64`
+- `feather-windows-amd64.exe`, `feather-windows-arm64.exe`
+- `feather-web.tar.gz` (frontend bundle)
+
 ## Docker
 
 ```bash
