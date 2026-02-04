@@ -22,6 +22,7 @@ build: generate-types
 # Run all tests
 test:
 	cd api && make test
+	pnpm --filter @feather/web test:run
 	pnpm -r typecheck
 
 # Clean build artifacts

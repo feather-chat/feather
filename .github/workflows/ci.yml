@@ -55,6 +55,9 @@ jobs:
       - name: ESLint
         run: pnpm -r lint
 
+      - name: Test web client
+        run: pnpm --filter @feather/web test:run
+
       - name: Build verification
         run: |
           cd api && go build -o /dev/null ./cmd/feather
