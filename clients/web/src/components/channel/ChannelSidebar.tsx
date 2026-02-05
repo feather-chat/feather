@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircleIcon, ChevronRightIcon, PlusIcon, LockClosedIcon, HashtagIcon, InboxIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, PlusIcon, LockClosedIcon, HashtagIcon, InboxIcon } from '@heroicons/react/24/outline';
 import {
   DndContext,
   DragOverlay,
@@ -20,13 +20,29 @@ import { useUserPresence } from '../../lib/presenceStore';
 import type { ChannelWithMembership, ChannelType, SuggestedUser } from '@feather/api-client';
 
 function ChannelIcon({ type, className }: { type: string; className?: string }) {
-  if (type === 'private') {
-    return <LockClosedIcon className={cn('w-4 h-4', className)} />;
-  }
-  if (type === 'public') {
-    return <HashtagIcon className={cn('w-4 h-4', className)} />;
-  }
-  return null;
+  const icon = type === 'private'
+    ? <LockClosedIcon className="w-4 h-4" />
+    : type === 'public'
+    ? <HashtagIcon className="w-4 h-4" />
+    : null;
+
+  return (
+    <span className={cn('w-5 flex items-center justify-center', className)}>
+      {icon}
+    </span>
+  );
+}
+
+function DisclosureCaret({ isExpanded, className }: { isExpanded: boolean; className?: string }) {
+  return (
+    <svg
+      className={cn('w-3 h-3 transition-transform', isExpanded && 'rotate-90', className)}
+      viewBox="0 0 12 12"
+      fill="currentColor"
+    >
+      <path d="M4 2 L8 6 L4 10 Z" />
+    </svg>
+  );
 }
 
 interface ChannelSidebarProps {
@@ -186,13 +202,15 @@ export function ChannelSidebar({ workspaceId }: ChannelSidebarProps) {
           <Link
             to={`/workspaces/${workspaceId}/unreads`}
             className={cn(
-              'flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-800/50',
+              'flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-800/50',
               isUnreadsPage
                 ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                 : 'text-gray-700 dark:text-gray-300'
             )}
           >
-            <InboxIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <span className="w-5 flex items-center justify-center">
+              <InboxIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            </span>
             <span className={cn('truncate', hasUnread && 'font-semibold')}>All Unreads</span>
             {hasUnread && (
               <span className="ml-auto bg-primary-600 text-white text-xs px-1.5 py-0.5 rounded-full">
@@ -242,7 +260,7 @@ export function ChannelSidebar({ workspaceId }: ChannelSidebarProps) {
 
             <DragOverlay>
               {activeChannel && (
-                <div className="bg-white dark:bg-gray-800 shadow-lg rounded px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <div className="bg-white dark:bg-gray-800 shadow-lg rounded px-2 py-1.5 text-gray-700 dark:text-gray-300 flex items-center gap-2">
                   <ChannelItemContent channel={activeChannel} />
                 </div>
               )}
@@ -312,20 +330,20 @@ function DroppableChannelSection({
         showDropHighlight && 'bg-primary-50 dark:bg-primary-900/20'
       )}
     >
-      <div className="w-full flex items-center justify-between px-4 py-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+      <div className="w-full flex items-center justify-between px-2 py-1 text-gray-500 dark:text-gray-400">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
+          className="flex items-center gap-2 px-2 hover:text-gray-700 dark:hover:text-gray-300"
         >
-          <ChevronRightIcon
-            className={cn('w-3 h-3 transition-transform', isExpanded && 'rotate-90')}
-          />
+          <span className="w-5 flex items-center justify-center">
+            <DisclosureCaret isExpanded={isExpanded} />
+          </span>
           <span>{title}</span>
         </button>
         {onAddClick && (
           <button
             onClick={onAddClick}
-            className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded hover:text-gray-700 dark:hover:text-gray-300"
+            className="p-0.5 mr-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded hover:text-gray-700 dark:hover:text-gray-300"
           >
             <PlusIcon className="w-4 h-4" />
           </button>
@@ -333,7 +351,7 @@ function DroppableChannelSection({
       </div>
 
       {isExpanded && (
-        <div className="mt-1 space-y-0.5 px-2">
+        <div className="px-2">
           {channels.length === 0 && showWhenEmpty && (
             <div className="px-2 py-3 text-xs text-gray-400 dark:text-gray-500 text-center border border-dashed border-gray-300 dark:border-gray-600 rounded">
               Drop here to star
@@ -424,20 +442,20 @@ function DroppableDMSection({
         showDropHighlight && 'bg-primary-50 dark:bg-primary-900/20'
       )}
     >
-      <div className="w-full flex items-center justify-between px-4 py-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+      <div className="w-full flex items-center justify-between px-2 py-1 text-gray-500 dark:text-gray-400">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
+          className="flex items-center gap-2 px-2 hover:text-gray-700 dark:hover:text-gray-300"
         >
-          <ChevronRightIcon
-            className={cn('w-3 h-3 transition-transform', isExpanded && 'rotate-90')}
-          />
+          <span className="w-5 flex items-center justify-center">
+            <DisclosureCaret isExpanded={isExpanded} />
+          </span>
           <span>Direct Messages</span>
         </button>
         {onAddClick && (
           <button
             onClick={onAddClick}
-            className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded hover:text-gray-700 dark:hover:text-gray-300"
+            className="p-0.5 mr-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded hover:text-gray-700 dark:hover:text-gray-300"
           >
             <PlusIcon className="w-4 h-4" />
           </button>
@@ -445,7 +463,7 @@ function DroppableDMSection({
       </div>
 
       {isExpanded && (
-        <div className="mt-1 space-y-0.5 px-2">
+        <div className="px-2">
           {channels.map((channel) => (
             <DraggableChannelItem
               key={channel.id}
@@ -482,7 +500,7 @@ function SuggestedUserItem({ user, onClick, isLoading }: SuggestedUserItemProps)
       onClick={onClick}
       disabled={isLoading}
       className={cn(
-        'w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-left',
+        'w-full flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-left',
         isLoading && 'opacity-50 cursor-not-allowed'
       )}
     >
@@ -534,13 +552,13 @@ function ChannelItemLink({ channel, workspaceId, isActive }: ChannelItemLinkProp
     <Link
       to={`/workspaces/${workspaceId}/channels/${channel.id}`}
       className={cn(
-        'flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-800/50',
+        'flex items-center gap-2 px-2 py-1 rounded',
         isActive
           ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-          : 'text-gray-700 dark:text-gray-300'
+          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
       )}
     >
-      <ChannelItemContent channel={channel} />
+      <ChannelItemContent channel={channel} isActive={isActive} />
       {hasUnread && (
         <span className="ml-auto bg-primary-600 text-white text-xs px-1.5 py-0.5 rounded-full">
           {channel.unread_count}
@@ -552,9 +570,10 @@ function ChannelItemLink({ channel, workspaceId, isActive }: ChannelItemLinkProp
 
 interface ChannelItemContentProps {
   channel: ChannelWithMembership;
+  isActive?: boolean;
 }
 
-function ChannelItemContent({ channel }: ChannelItemContentProps) {
+function ChannelItemContent({ channel, isActive }: ChannelItemContentProps) {
   const isDM = channel.type === 'dm' || channel.type === 'group_dm';
   const dmParticipant = isDM && channel.dm_participants?.[0];
 
@@ -582,7 +601,7 @@ function ChannelItemContent({ channel }: ChannelItemContentProps) {
           status={participantPresence}
         />
       ) : (
-        <ChannelIcon type={channel.type} className="text-gray-500 dark:text-gray-400" />
+        <ChannelIcon type={channel.type} className={isActive ? 'text-primary-700 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400'} />
       )}
       <span className={cn('truncate', hasUnread && 'font-semibold')}>{displayName}</span>
     </>
