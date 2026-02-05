@@ -37,18 +37,18 @@ const toolbar = tv({
   slots: {
     container: [
       "flex items-center gap-0.5 px-2 py-1",
-      "bg-gray-50 dark:bg-gray-700",
+      "bg-gray-50 dark:bg-gray-800",
       "rounded-t-lg",
     ],
     button: [
       "p-1.5 rounded transition-colors text-gray-500 dark:text-gray-400",
-      "hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200",
-      "data-[selected=true]:bg-gray-200 dark:data-[selected=true]:bg-gray-600",
+      "hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200",
+      "data-[selected=true]:bg-gray-200 dark:data-[selected=true]:bg-gray-700",
       "data-[selected=true]:text-gray-900 dark:data-[selected=true]:text-white",
       "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
       "disabled:opacity-50 disabled:cursor-not-allowed",
     ],
-    separator: ["w-px h-5 bg-gray-200 dark:bg-gray-600 mx-1"],
+    separator: ["w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1"],
     icon: "w-4 h-4",
   },
 });

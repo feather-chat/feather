@@ -14,7 +14,7 @@ const styles = tv({
       'text-pink-600 dark:text-pink-400',
     ],
     codeBlock: [
-      'block bg-gray-100 dark:bg-gray-900',
+      'block bg-gray-100 dark:bg-gray-800',
       'p-3 rounded-lg my-2',
       'overflow-x-auto',
       'text-sm font-mono',

@@ -56,8 +56,12 @@ function serializeNode(node: JSONContent): string {
       return serializeBlockquote(node);
 
     case 'codeBlock': {
-      const code = serializeChildren(node);
+      let code = serializeChildren(node);
       const lang = node.attrs?.language || '';
+      // Ensure code ends with newline so closing ``` is on its own line
+      if (code && !code.endsWith('\n')) {
+        code += '\n';
+      }
       return '```' + lang + '\n' + code + '```\n';
     }
 

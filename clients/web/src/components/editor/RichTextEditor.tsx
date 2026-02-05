@@ -37,8 +37,8 @@ import { cn } from '../../lib/utils';
 const editorStyles = tv({
   slots: {
     container: [
-      'border border-gray-300 dark:border-gray-600 rounded-lg',
-      'bg-white dark:bg-gray-800',
+      'border border-gray-300 dark:border-gray-700 rounded-lg',
+      'bg-white dark:bg-gray-900',
       'focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500',
       'transition-shadow',
     ],
@@ -48,6 +48,8 @@ const editorStyles = tv({
       // Editor content styles
       '[&_.ProseMirror]:outline-none',
       '[&_.ProseMirror]:min-h-[1.5rem]',
+      '[&_.ProseMirror]:text-gray-900',
+      '[&_.ProseMirror]:dark:text-gray-100',
       '[&_.ProseMirror_p]:my-0',
       '[&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',
       '[&_.ProseMirror_p.is-editor-empty:first-child::before]:text-gray-400',
@@ -70,14 +72,18 @@ const editorStyles = tv({
       '[&_.ProseMirror_code]:rounded',
       '[&_.ProseMirror_code]:text-sm',
       '[&_.ProseMirror_code]:font-mono',
+      '[&_.ProseMirror_code]:text-pink-600',
+      '[&_.ProseMirror_code]:dark:text-pink-400',
       // Code block styles
       '[&_.ProseMirror_pre]:bg-gray-100',
-      '[&_.ProseMirror_pre]:dark:bg-gray-900',
+      '[&_.ProseMirror_pre]:dark:bg-gray-800',
       '[&_.ProseMirror_pre]:p-3',
       '[&_.ProseMirror_pre]:rounded-lg',
       '[&_.ProseMirror_pre]:overflow-x-auto',
       '[&_.ProseMirror_pre_code]:bg-transparent',
       '[&_.ProseMirror_pre_code]:p-0',
+      '[&_.ProseMirror_pre_code]:text-gray-900',
+      '[&_.ProseMirror_pre_code]:dark:text-gray-100',
       // Blockquote styles
       '[&_.ProseMirror_blockquote]:border-l-4',
       '[&_.ProseMirror_blockquote]:border-gray-300',
@@ -96,7 +102,7 @@ const editorStyles = tv({
     ],
     actionRow: [
       'flex items-center justify-between px-2 py-1',
-      'bg-white dark:bg-gray-800 rounded-b-lg',
+      'bg-white dark:bg-gray-900 rounded-b-lg',
     ],
     actionButton: [
       'p-1.5 rounded transition-colors',
@@ -388,6 +394,50 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                 editor?.chain().focus().splitListItem('listItem').run();
                 return true;
               }
+            }
+          }
+
+          // Handle ``` to create code block immediately
+          if (event.key === '`') {
+            const { state } = view;
+            const { selection, doc } = state;
+            const { $from } = selection;
+            const textBefore = doc.textBetween(
+              Math.max(0, selection.from - 2),
+              selection.from
+            );
+
+            // If we just typed `` and are about to type the third backtick
+            if (textBefore === '``') {
+              event.preventDefault();
+
+              // Check if there's text before the backticks on this line
+              const lineStart = $from.start();
+              const textBeforeBackticks = doc.textBetween(lineStart, selection.from - 2);
+
+              if (textBeforeBackticks.trim()) {
+                // There's text before - delete backticks, add line break, then code block
+                editor
+                  ?.chain()
+                  .focus()
+                  .deleteRange({ from: selection.from - 2, to: selection.from })
+                  .insertContent([
+                    { type: 'paragraph' },
+                    { type: 'codeBlock' },
+                  ])
+                  .run();
+              } else {
+                // Empty/whitespace-only line - select entire paragraph and replace with code block
+                const paragraphStart = $from.start();
+                const paragraphEnd = $from.end();
+                editor
+                  ?.chain()
+                  .focus()
+                  .deleteRange({ from: paragraphStart, to: paragraphEnd })
+                  .setCodeBlock()
+                  .run();
+              }
+              return true;
             }
           }
 
