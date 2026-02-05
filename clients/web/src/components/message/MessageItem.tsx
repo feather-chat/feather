@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Button as AriaButton } from 'react-aria-components';
+import { useState, useRef, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Button as AriaButton } from "react-aria-components";
 import {
   FaceSmileIcon,
   ChatBubbleBottomCenterTextIcon,
@@ -9,23 +9,42 @@ import {
   PencilSquareIcon,
   TrashIcon,
   LinkIcon,
-} from '@heroicons/react/24/outline';
-import { Avatar, Menu, MenuItem, Modal, Button, Tooltip, toast } from '../ui';
-import { ReactionPicker } from './ReactionPicker';
-import { AttachmentDisplay } from './AttachmentDisplay';
-import { MessageContent } from './MessageContent';
-import { ThreadRepliesIndicator } from './ThreadRepliesIndicator';
-import { useAuth, useAddReaction, useRemoveReaction, useWorkspaceMembers } from '../../hooks';
-import { useMarkMessageUnread, useUpdateMessage, useDeleteMessage } from '../../hooks/useMessages';
-import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
-import { cn, formatTime } from '../../lib/utils';
-import type { MessageWithUser } from '@feather/api-client';
+} from "@heroicons/react/24/outline";
+import { Avatar, Menu, MenuItem, Modal, Button, Tooltip, toast } from "../ui";
+import { ReactionPicker } from "./ReactionPicker";
+import { AttachmentDisplay } from "./AttachmentDisplay";
+import { MessageContent } from "./MessageContent";
+import { ThreadRepliesIndicator } from "./ThreadRepliesIndicator";
+import {
+  useAuth,
+  useAddReaction,
+  useRemoveReaction,
+  useWorkspaceMembers,
+} from "../../hooks";
+import {
+  useMarkMessageUnread,
+  useUpdateMessage,
+  useDeleteMessage,
+} from "../../hooks/useMessages";
+import { useThreadPanel, useProfilePanel } from "../../hooks/usePanel";
+import { cn, formatTime } from "../../lib/utils";
+import type { MessageWithUser } from "@feather/api-client";
 
-function ClickableName({ userId, displayName }: { userId?: string; displayName: string }) {
+function ClickableName({
+  userId,
+  displayName,
+}: {
+  userId?: string;
+  displayName: string;
+}) {
   const { openProfile } = useProfilePanel();
 
   if (!userId) {
-    return <span className="font-medium text-gray-900 dark:text-white">{displayName}</span>;
+    return (
+      <span className="font-medium text-gray-900 dark:text-white">
+        {displayName}
+      </span>
+    );
   }
 
   return (
@@ -50,7 +69,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState('');
+  const [editContent, setEditContent] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -60,33 +79,47 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
   const { openProfile } = useProfilePanel();
   const addReaction = useAddReaction(channelId);
   const removeReaction = useRemoveReaction(channelId);
-  const markUnread = useMarkMessageUnread(workspaceId || '');
+  const markUnread = useMarkMessageUnread(workspaceId || "");
   const updateMessage = useUpdateMessage();
   const deleteMessage = useDeleteMessage();
   const { data: membersData } = useWorkspaceMembers(workspaceId);
 
   // Create a lookup map from user ID to display name
-  const memberNames = (membersData?.members || []).reduce((acc, member) => {
-    acc[member.user_id] = member.display_name;
-    return acc;
-  }, {} as Record<string, string>);
+  const memberNames = (membersData?.members || []).reduce(
+    (acc, member) => {
+      acc[member.user_id] = member.display_name;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 
   const isDeleted = !!message.deleted_at;
   const isEdited = !!message.edited_at;
   const isOwnMessage = user?.id === message.user_id;
 
   // Group reactions by emoji
-  const reactionGroups = (message.reactions || []).reduce((acc, reaction) => {
-    if (!acc[reaction.emoji]) {
-      acc[reaction.emoji] = { emoji: reaction.emoji, count: 0, userIds: [], hasOwn: false };
-    }
-    acc[reaction.emoji].count++;
-    acc[reaction.emoji].userIds.push(reaction.user_id);
-    if (reaction.user_id === user?.id) {
-      acc[reaction.emoji].hasOwn = true;
-    }
-    return acc;
-  }, {} as Record<string, { emoji: string; count: number; userIds: string[]; hasOwn: boolean }>);
+  const reactionGroups = (message.reactions || []).reduce(
+    (acc, reaction) => {
+      if (!acc[reaction.emoji]) {
+        acc[reaction.emoji] = {
+          emoji: reaction.emoji,
+          count: 0,
+          userIds: [],
+          hasOwn: false,
+        };
+      }
+      acc[reaction.emoji].count++;
+      acc[reaction.emoji].userIds.push(reaction.user_id);
+      if (reaction.user_id === user?.id) {
+        acc[reaction.emoji].hasOwn = true;
+      }
+      return acc;
+    },
+    {} as Record<
+      string,
+      { emoji: string; count: number; userIds: string[]; hasOwn: boolean }
+    >,
+  );
 
   const handleReactionClick = (emoji: string, hasOwn: boolean) => {
     if (hasOwn) {
@@ -109,15 +142,18 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditContent('');
+    setEditContent("");
   };
 
   const handleSaveEdit = () => {
     if (editContent.trim() && editContent.trim() !== message.content) {
-      updateMessage.mutate({ messageId: message.id, content: editContent.trim() });
+      updateMessage.mutate({
+        messageId: message.id,
+        content: editContent.trim(),
+      });
     }
     setIsEditing(false);
-    setEditContent('');
+    setEditContent("");
   };
 
   const handleDeleteClick = () => {
@@ -128,7 +164,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
   const handleCopyLink = () => {
     const url = `${window.location.origin}/w/${workspaceId}/c/${channelId}?msg=${message.id}`;
     navigator.clipboard.writeText(url);
-    toast('Link copied to clipboard', 'success');
+    toast("Link copied to clipboard", "success");
     setShowDropdown(false);
   };
 
@@ -155,9 +191,9 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
   };
 
   const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       handleCancelEdit();
-    } else if (e.key === 'Enter' && !e.shiftKey) {
+    } else if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSaveEdit();
     }
@@ -168,7 +204,8 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
     if (isEditing && editTextareaRef.current) {
       editTextareaRef.current.focus();
       // Move cursor to end
-      editTextareaRef.current.selectionStart = editTextareaRef.current.value.length;
+      editTextareaRef.current.selectionStart =
+        editTextareaRef.current.value.length;
     }
   }, [isEditing]);
 
@@ -214,7 +251,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
         isDeleting
           ? "bg-red-400 dark:bg-red-700 !max-h-0 opacity-0 !py-0 overflow-hidden transition-all duration-500"
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50",
-        showDropdown && !isDeleting && "bg-gray-50 dark:bg-gray-800/50"
+        showDropdown && !isDeleting && "bg-gray-50 dark:bg-gray-800/50",
       )}
       style={isDeleting ? { marginTop: 0, marginBottom: 0 } : undefined}
       onMouseEnter={() => setShowActions(true)}
@@ -229,10 +266,12 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
         {/* Avatar */}
         <Avatar
           src={message.user_avatar_url}
-          name={message.user_display_name || 'Unknown'}
+          name={message.user_display_name || "Unknown"}
           id={message.user_id}
           size="md"
-          onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
+          onClick={
+            message.user_id ? () => openProfile(message.user_id!) : undefined
+          }
         />
 
         {/* Content */}
@@ -241,13 +280,15 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
           <div className="flex items-baseline gap-2">
             <ClickableName
               userId={message.user_id}
-              displayName={message.user_display_name || 'Unknown User'}
+              displayName={message.user_display_name || "Unknown User"}
             />
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
             </span>
             {isEdited && (
-              <span className="text-xs text-gray-400 dark:text-gray-500">(edited)</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                (edited)
+              </span>
             )}
           </div>
 
@@ -268,7 +309,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
                   disabled={updateMessage.isPending || !editContent.trim()}
                   className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {updateMessage.isPending ? 'Saving...' : 'Save'}
+                  {updateMessage.isPending ? "Saving..." : "Save"}
                 </button>
                 <button
                   onClick={handleCancelEdit}
@@ -300,27 +341,31 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
           {/* Reactions */}
           {Object.values(reactionGroups).length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
-              {Object.values(reactionGroups).map(({ emoji, count, userIds, hasOwn }) => {
-                const userNames = userIds
-                  .map((id) => memberNames[id] || 'Unknown')
-                  .join(', ');
-                return (
-                  <Tooltip key={emoji} content={userNames}>
-                    <AriaButton
-                      onPress={() => handleReactionClick(emoji, hasOwn)}
-                      className={cn(
-                        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors',
-                        hasOwn
-                          ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700'
-                          : 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      )}
-                    >
-                      <span>{emoji}</span>
-                      <span className="text-xs text-gray-600 dark:text-gray-300">{count}</span>
-                    </AriaButton>
-                  </Tooltip>
-                );
-              })}
+              {Object.values(reactionGroups).map(
+                ({ emoji, count, userIds, hasOwn }) => {
+                  const userNames = userIds
+                    .map((id) => memberNames[id] || "Unknown")
+                    .join(", ");
+                  return (
+                    <Tooltip key={emoji} content={userNames}>
+                      <AriaButton
+                        onPress={() => handleReactionClick(emoji, hasOwn)}
+                        className={cn(
+                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors",
+                          hasOwn
+                            ? "bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700"
+                            : "bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600",
+                        )}
+                      >
+                        <span>{emoji}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-300">
+                          {count}
+                        </span>
+                      </AriaButton>
+                    </Tooltip>
+                  );
+                },
+              )}
             </div>
           )}
 
@@ -336,7 +381,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
 
       {/* Action buttons */}
       {showActions && !isEditing && (
-        <div className="absolute right-4 top-0 -translate-y-1/2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm flex items-center">
+        <div className="absolute right-4 top-0 -translate-y-1/2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm flex items-center">
           <Tooltip content="Add reaction">
             <AriaButton
               onPress={() => setShowReactionPicker(!showReactionPicker)}
@@ -363,8 +408,8 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
               trigger={
                 <AriaButton
                   className={cn(
-                    'group/btn p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg',
-                    showDropdown && 'bg-gray-100 dark:bg-gray-700'
+                    "group/btn p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg",
+                    showDropdown && "bg-gray-100 dark:bg-gray-700",
                   )}
                   aria-label="More options"
                 >
@@ -421,13 +466,11 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-300 mb-4">
-          Are you sure you want to delete this message? This action cannot be undone.
+          Are you sure you want to delete this message? This action cannot be
+          undone.
         </p>
         <div className="flex justify-end gap-3">
-          <Button
-            variant="secondary"
-            onPress={() => setShowDeleteModal(false)}
-          >
+          <Button variant="secondary" onPress={() => setShowDeleteModal(false)}>
             Cancel
           </Button>
           <Button
