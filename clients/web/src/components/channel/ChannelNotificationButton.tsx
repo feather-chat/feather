@@ -16,11 +16,6 @@ const NOTIFICATION_OPTIONS: { level: NotifyLevel; label: string; icon: typeof Be
   { level: 'none', label: 'Muted', icon: BellSlashIcon },
 ];
 
-function getIconForLevel(level: NotifyLevel) {
-  const option = NOTIFICATION_OPTIONS.find((o) => o.level === level);
-  return option?.icon || BellIcon;
-}
-
 export function ChannelNotificationButton({
   channelId,
   channelType,
@@ -35,7 +30,6 @@ export function ChannelNotificationButton({
 
   const currentLevel = data?.preferences?.notify_level || 'all';
   const currentEmailEnabled = data?.preferences?.email_enabled ?? true;
-  const CurrentIcon = getIconForLevel(currentLevel);
   const isMuted = currentLevel === 'none';
 
   const handleSelect = (key: React.Key) => {
@@ -67,7 +61,13 @@ export function ChannelNotificationButton({
           )}
           aria-label="Channel notification settings"
         >
-          <CurrentIcon className="w-5 h-5" />
+          {currentLevel === 'none' ? (
+            <BellSlashIcon className="w-5 h-5" />
+          ) : currentLevel === 'mentions' ? (
+            <BellIcon className="w-5 h-5" />
+          ) : (
+            <BellAlertIcon className="w-5 h-5" />
+          )}
         </AriaButton>
       }
       align="end"
