@@ -153,7 +153,7 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
         Object.entries(messagesByDate).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}
-            <div className="flex items-center gap-4 px-4 py-2">
+            <div className="flex items-center gap-4 px-4 py-3">
               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                 {formatDate(msgs[0].created_at)}
@@ -189,7 +189,7 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
                     />
                   )}
                   {showUnreadDivider && (
-                    <div className="flex items-center gap-4 px-4 py-2">
+                    <div className="flex items-center gap-4 px-4 py-3">
                       <div className="flex-1 h-px bg-red-500" />
                       <span className="text-xs font-medium text-red-500">New messages</span>
                       <div className="flex-1 h-px bg-red-500" />
