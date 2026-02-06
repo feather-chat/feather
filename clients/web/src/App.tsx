@@ -14,6 +14,7 @@ import {
   InvitePage,
   ServerSettingsPage,
   AllUnreadsPage,
+  ThreadsPage,
 } from './pages';
 import { useDarkMode } from './hooks/useDarkMode';
 
@@ -46,6 +47,7 @@ function App() {
             <Route index element={<WorkspaceLandingPage />} />
             <Route path="channels/:channelId" element={<ChannelPage />} />
             <Route path="unreads" element={<AllUnreadsPage />} />
+            <Route path="threads" element={<ThreadsPage />} />
             <Route path="settings" element={<WorkspaceSettingsPage />} />
             <Route path="invite" element={<InvitePage />} />
           </Route>

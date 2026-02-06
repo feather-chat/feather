@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   XMarkIcon,
-  FaceSmileIcon,
 } from "@heroicons/react/24/outline";
 import {
   useThreadMessages,
@@ -12,15 +11,21 @@ import {
   useWorkspaceMembers,
   useAutoFocusComposer,
 } from "../../hooks";
+import {
+  useUpdateMessage,
+  useDeleteMessage,
+  useMarkMessageUnread,
+} from "../../hooks/useMessages";
 import { useThreadPanel, useProfilePanel } from "../../hooks/usePanel";
-import { Avatar, MessageSkeleton } from "../ui";
+import { Avatar, MessageSkeleton, Modal, Button, toast } from "../ui";
 import { ThreadNotificationButton } from "./ThreadNotificationButton";
-import { ReactionPicker } from "../message/ReactionPicker";
+import { MessageActionBar } from "../message/MessageActionBar";
 import { AttachmentDisplay } from "../message/AttachmentDisplay";
 import { MessageContent } from "../message/MessageContent";
 import { MessageComposer, type MessageComposerRef } from "../message/MessageComposer";
 import { cn, formatTime } from "../../lib/utils";
 import { messagesApi } from "../../api/messages";
+import { useMarkThreadRead } from "../../hooks/useThreads";
 import type { MessageWithUser, MessageListResult, WorkspaceMemberWithUser } from "@feather/api-client";
 
 function ClickableName({
@@ -63,6 +68,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
     useThreadMessages(messageId);
   const { data: membersData } = useWorkspaceMembers(workspaceId);
   const composerRef = useRef<MessageComposerRef>(null);
+  const markThreadRead = useMarkThreadRead(workspaceId || '');
 
   // Try to get parent message from cache first
   const cachedMessage = getParentMessageFromCache(queryClient, messageId);
@@ -80,11 +86,12 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
   // Flatten thread messages (already in chronological order from API)
   const threadMessages = data?.pages.flatMap((page) => page.messages) || [];
 
-  // Focus composer when thread opens
+  // Focus composer and mark thread as read when thread opens
   useEffect(() => {
     const timer = setTimeout(() => composerRef.current?.focus(), 50);
+    markThreadRead.mutate({ messageId });
     return () => clearTimeout(timer);
-  }, []);
+  }, [messageId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-focus for typing while thread is open
   useAutoFocusComposer(composerRef, true);
@@ -105,27 +112,42 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
         </div>
       </div>
 
-      {/* Loading state for parent message */}
-      {isLoadingParent && !cachedMessage && (
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-          <MessageSkeleton />
-        </div>
-      )}
-
-      {/* Error state for parent message */}
-      {parentError && !parentMessage && (
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Message not found or you don't have access.
-          </p>
-        </div>
-      )}
-
-      {/* Parent message */}
-      {parentMessage && <ParentMessage message={parentMessage} members={membersData?.members} />}
-
-      {/* Thread messages */}
+      {/* Thread messages + composer */}
       <div className="flex-1 overflow-y-auto">
+        {/* Loading state for parent message */}
+        {isLoadingParent && !cachedMessage && (
+          <div className="p-4">
+            <MessageSkeleton />
+          </div>
+        )}
+
+        {/* Error state for parent message */}
+        {parentError && !parentMessage && (
+          <div className="p-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Message not found or you don't have access.
+            </p>
+          </div>
+        )}
+
+        {/* Parent message */}
+        {parentMessage && <div className="h-5" />}
+        {parentMessage && <ParentMessage message={parentMessage} members={membersData?.members} />}
+
+        {/* Spacer below parent when no replies */}
+        {parentMessage && parentMessage.reply_count === 0 && <div className="h-4" />}
+
+        {/* Replies divider */}
+        {parentMessage && parentMessage.reply_count > 0 && (
+          <div className="flex items-center gap-4 px-4 py-3">
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {parentMessage.reply_count} {parentMessage.reply_count === 1 ? "reply" : "replies"}
+            </span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+          </div>
+        )}
+
         {isLoading ? (
           <>
             <MessageSkeleton />
@@ -151,32 +173,47 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
                 members={membersData?.members}
               />
             ))}
+
+            {/* Spacer below last message */}
+            {threadMessages.length > 0 && <div className="h-4" />}
           </>
         )}
-      </div>
 
-      {/* Reply composer */}
-      {parentMessage && workspaceId && (
-        <MessageComposer
-          ref={composerRef}
-          channelId={parentMessage.channel_id}
-          workspaceId={workspaceId}
-          parentMessageId={messageId}
-          variant="thread"
-          placeholder="Reply..."
-        />
-      )}
+        {/* Reply composer - flows after thread messages */}
+        {parentMessage && workspaceId && (
+          <MessageComposer
+            ref={composerRef}
+            channelId={parentMessage.channel_id}
+            workspaceId={workspaceId}
+            parentMessageId={messageId}
+            variant="thread"
+            placeholder="Reply..."
+          />
+        )}
+      </div>
     </div>
   );
 }
 
 function ParentMessage({ message, members }: { message: MessageWithUser; members?: WorkspaceMemberWithUser[] }) {
+  const { workspaceId } = useParams<{ workspaceId: string }>();
   const { openProfile } = useProfilePanel();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showActions, setShowActions] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [localReactions, setLocalReactions] = useState(message.reactions || []);
+  const updateMessage = useUpdateMessage();
+  const deleteMessage = useDeleteMessage();
+  const markUnread = useMarkMessageUnread(workspaceId || "");
+
+  const isOwnMessage = user?.id === message.user_id;
+  const isEdited = !!message.edited_at;
 
   // Group reactions by emoji
   const reactionGroups = localReactions.reduce(
@@ -206,10 +243,8 @@ function ParentMessage({ message, members }: { message: MessageWithUser; members
     mutationFn: (emoji: string) => messagesApi.addReaction(message.id, emoji),
     onMutate: async (emoji) => {
       const userId = user?.id || "temp";
-      // Check if already reacted
       if (localReactions.some((r) => r.user_id === userId && r.emoji === emoji))
         return;
-      // Optimistic local update
       setLocalReactions((prev) => [
         ...prev,
         {
@@ -220,7 +255,6 @@ function ParentMessage({ message, members }: { message: MessageWithUser; members
           created_at: new Date().toISOString(),
         },
       ]);
-      // Also update messages cache for consistency
       queryClient.setQueriesData(
         { queryKey: ["messages"] },
         (
@@ -268,11 +302,9 @@ function ParentMessage({ message, members }: { message: MessageWithUser; members
       messagesApi.removeReaction(message.id, emoji),
     onMutate: async (emoji) => {
       const userId = user?.id;
-      // Optimistic local update
       setLocalReactions((prev) =>
         prev.filter((r) => !(r.user_id === userId && r.emoji === emoji)),
       );
-      // Also update messages cache for consistency
       queryClient.setQueriesData(
         { queryKey: ["messages"] },
         (
@@ -315,12 +347,74 @@ function ParentMessage({ message, members }: { message: MessageWithUser; members
     setShowReactionPicker(false);
   };
 
+  const handleStartEdit = () => {
+    setEditContent(message.content);
+    setIsEditing(true);
+    setShowDropdown(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent("");
+  };
+
+  const handleSaveEdit = () => {
+    if (editContent.trim() && editContent.trim() !== message.content) {
+      updateMessage.mutate({
+        messageId: message.id,
+        content: editContent.trim(),
+      });
+    }
+    setIsEditing(false);
+    setEditContent("");
+  };
+
+  const handleDeleteClick = () => {
+    setShowDropdown(false);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    setShowDeleteModal(false);
+    deleteMessage.mutate(message.id);
+  };
+
+  const handleCopyLink = () => {
+    const url = `${window.location.origin}/workspaces/${workspaceId}/channels/${message.channel_id}?msg=${message.id}`;
+    navigator.clipboard.writeText(url);
+    toast("Link copied to clipboard", "success");
+    setShowDropdown(false);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Escape") {
+      handleCancelEdit();
+    } else if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    }
+  };
+
+  useEffect(() => {
+    if (isEditing && editTextareaRef.current) {
+      editTextareaRef.current.focus();
+      editTextareaRef.current.selectionStart =
+        editTextareaRef.current.value.length;
+    }
+  }, [isEditing]);
+
   return (
     <div
-      className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 relative group"
+      className={cn(
+        "px-4 py-1.5 relative group",
+        "hover:bg-gray-50 dark:hover:bg-gray-800/50",
+        showDropdown && "bg-gray-50 dark:bg-gray-800/50",
+      )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
-        setShowActions(false);
+        if (!showDropdown) {
+          setShowActions(false);
+        }
         setShowReactionPicker(false);
       }}
     >
@@ -343,14 +437,53 @@ function ParentMessage({ message, members }: { message: MessageWithUser; members
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
             </span>
+            {isEdited && (
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                (edited)
+              </span>
+            )}
           </div>
-          {message.content && (
-            <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
-              <MessageContent content={message.content} members={members} />
+
+          {isEditing ? (
+            <div className="space-y-2 mt-1">
+              <textarea
+                ref={editTextareaRef}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={handleEditKeyDown}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                rows={3}
+              />
+              <div className="flex items-center gap-2 text-sm">
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={updateMessage.isPending || !editContent.trim()}
+                  className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updateMessage.isPending ? "Saving..." : "Save"}
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  Cancel
+                </button>
+                <span className="text-gray-500 dark:text-gray-400 text-xs">
+                  Esc to cancel, Enter to save
+                </span>
+              </div>
             </div>
-          )}
-          {message.attachments && message.attachments.length > 0 && (
-            <AttachmentDisplay attachments={message.attachments} />
+          ) : (
+            <>
+              {message.content && (
+                <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+                  <MessageContent content={message.content} members={members} />
+                </div>
+              )}
+              {message.attachments && message.attachments.length > 0 && (
+                <AttachmentDisplay attachments={message.attachments} />
+              )}
+            </>
           )}
 
           {/* Reactions */}
@@ -377,27 +510,47 @@ function ParentMessage({ message, members }: { message: MessageWithUser; members
           )}
         </div>
       </div>
-      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        {message.reply_count} {message.reply_count === 1 ? "reply" : "replies"}
-      </div>
 
-      {/* Action button */}
-      {showActions && (
-        <button
-          onClick={() => setShowReactionPicker(!showReactionPicker)}
-          className="absolute right-3 top-3 p-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600"
-          title="Add reaction"
-        >
-          <FaceSmileIcon className="w-4 h-4 text-gray-500" />
-        </button>
+      {/* Action bar */}
+      {showActions && !isEditing && (
+        <MessageActionBar
+          showReactionPicker={showReactionPicker}
+          onReactionPickerToggle={() => setShowReactionPicker(!showReactionPicker)}
+          onReactionSelect={handleAddReaction}
+          onCopyLink={handleCopyLink}
+          onMarkUnread={() => markUnread.mutate(message.id)}
+          showDropdown={showDropdown}
+          onDropdownChange={setShowDropdown}
+          onEdit={isOwnMessage ? handleStartEdit : undefined}
+          onDelete={isOwnMessage ? handleDeleteClick : undefined}
+        />
       )}
 
-      {/* Reaction picker */}
-      {showReactionPicker && (
-        <div className="absolute right-3 top-12 z-10">
-          <ReactionPicker onSelect={handleAddReaction} />
+      {/* Delete confirmation modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete message"
+        size="sm"
+      >
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          Are you sure you want to delete this message? This action cannot be
+          undone.
+        </p>
+        <div className="flex justify-end gap-3">
+          <Button variant="secondary" onPress={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onPress={handleDeleteConfirm}
+            isLoading={deleteMessage.isPending}
+          >
+            Delete
+          </Button>
         </div>
-      )}
+      </Modal>
+
     </div>
   );
 }
@@ -409,11 +562,23 @@ interface ThreadMessageProps {
 }
 
 function ThreadMessage({ message, parentMessageId, members }: ThreadMessageProps) {
+  const { workspaceId } = useParams<{ workspaceId: string }>();
   const { openProfile } = useProfilePanel();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showActions, setShowActions] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const updateMessage = useUpdateMessage();
+  const deleteMessage = useDeleteMessage();
+  const markUnread = useMarkMessageUnread(workspaceId || "");
+
+  const isOwnMessage = user?.id === message.user_id;
+  const isEdited = !!message.edited_at;
 
   // Group reactions by emoji
   const reactionGroups = (message.reactions || []).reduce(
@@ -533,12 +698,76 @@ function ThreadMessage({ message, parentMessageId, members }: ThreadMessageProps
     setShowReactionPicker(false);
   };
 
+  const handleStartEdit = () => {
+    setEditContent(message.content);
+    setIsEditing(true);
+    setShowDropdown(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent("");
+  };
+
+  const handleSaveEdit = () => {
+    if (editContent.trim() && editContent.trim() !== message.content) {
+      updateMessage.mutate({
+        messageId: message.id,
+        content: editContent.trim(),
+      });
+    }
+    setIsEditing(false);
+    setEditContent("");
+  };
+
+  const handleDeleteClick = () => {
+    setShowDropdown(false);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    setShowDeleteModal(false);
+    deleteMessage.mutate(message.id);
+  };
+
+  const handleCopyLink = () => {
+    const channelId = message.channel_id;
+    const url = `${window.location.origin}/workspaces/${workspaceId}/channels/${channelId}?msg=${message.id}`;
+    navigator.clipboard.writeText(url);
+    toast("Link copied to clipboard", "success");
+    setShowDropdown(false);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Escape") {
+      handleCancelEdit();
+    } else if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    }
+  };
+
+  // Auto-focus textarea when entering edit mode
+  useEffect(() => {
+    if (isEditing && editTextareaRef.current) {
+      editTextareaRef.current.focus();
+      editTextareaRef.current.selectionStart =
+        editTextareaRef.current.value.length;
+    }
+  }, [isEditing]);
+
   return (
     <div
-      className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 relative group"
+      className={cn(
+        "px-4 py-2 relative group",
+        "hover:bg-gray-50 dark:hover:bg-gray-800/50",
+        showDropdown && "bg-gray-50 dark:bg-gray-800/50",
+      )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
-        setShowActions(false);
+        if (!showDropdown) {
+          setShowActions(false);
+        }
         setShowReactionPicker(false);
       }}
     >
@@ -561,14 +790,54 @@ function ThreadMessage({ message, parentMessageId, members }: ThreadMessageProps
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
             </span>
+            {isEdited && (
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                (edited)
+              </span>
+            )}
           </div>
-          {message.content && (
-            <div className="text-sm text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
-              <MessageContent content={message.content} members={members} />
+
+          {/* Message content */}
+          {isEditing ? (
+            <div className="space-y-2 mt-1">
+              <textarea
+                ref={editTextareaRef}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={handleEditKeyDown}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-white dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                rows={3}
+              />
+              <div className="flex items-center gap-2 text-sm">
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={updateMessage.isPending || !editContent.trim()}
+                  className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                >
+                  {updateMessage.isPending ? "Saving..." : "Save"}
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-xs"
+                >
+                  Cancel
+                </button>
+                <span className="text-gray-500 dark:text-gray-400 text-xs">
+                  Esc to cancel, Enter to save
+                </span>
+              </div>
             </div>
-          )}
-          {message.attachments && message.attachments.length > 0 && (
-            <AttachmentDisplay attachments={message.attachments} />
+          ) : (
+            <>
+              {message.content && (
+                <div className="text-sm text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+                  <MessageContent content={message.content} members={members} />
+                </div>
+              )}
+              {message.attachments && message.attachments.length > 0 && (
+                <AttachmentDisplay attachments={message.attachments} />
+              )}
+            </>
           )}
 
           {/* Reactions */}
@@ -596,23 +865,45 @@ function ThreadMessage({ message, parentMessageId, members }: ThreadMessageProps
         </div>
       </div>
 
-      {/* Action button */}
-      {showActions && (
-        <button
-          onClick={() => setShowReactionPicker(!showReactionPicker)}
-          className="absolute right-2 top-1 p-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-          title="Add reaction"
-        >
-          <FaceSmileIcon className="w-3.5 h-3.5 text-gray-500" />
-        </button>
+      {/* Action bar */}
+      {showActions && !isEditing && (
+        <MessageActionBar
+          showReactionPicker={showReactionPicker}
+          onReactionPickerToggle={() => setShowReactionPicker(!showReactionPicker)}
+          onReactionSelect={handleAddReaction}
+          onCopyLink={handleCopyLink}
+          onMarkUnread={() => markUnread.mutate(message.id)}
+          showDropdown={showDropdown}
+          onDropdownChange={setShowDropdown}
+          onEdit={isOwnMessage ? handleStartEdit : undefined}
+          onDelete={isOwnMessage ? handleDeleteClick : undefined}
+        />
       )}
 
-      {/* Reaction picker */}
-      {showReactionPicker && (
-        <div className="absolute right-2 top-8 z-10">
-          <ReactionPicker onSelect={handleAddReaction} />
+      {/* Delete confirmation modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete message"
+        size="sm"
+      >
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          Are you sure you want to delete this message? This action cannot be
+          undone.
+        </p>
+        <div className="flex justify-end gap-3">
+          <Button variant="secondary" onPress={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onPress={handleDeleteConfirm}
+            isLoading={deleteMessage.isPending}
+          >
+            Delete
+          </Button>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

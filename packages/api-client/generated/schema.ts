@@ -519,6 +519,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{wid}/threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List threads user is subscribed to */
+        post: operations["listUserThreads"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/messages/{id}": {
         parameters: {
             query?: never;
@@ -649,6 +666,23 @@ export interface paths {
         put?: never;
         /** Mark message as unread */
         post: operations["markMessageUnread"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/messages/{id}/thread/mark-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark thread as read */
+        post: operations["markThreadRead"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1127,6 +1161,17 @@ export interface components {
             messages: components["schemas"]["UnreadMessage"][];
             has_more: boolean;
             next_cursor?: string;
+        };
+        ThreadMessage: components["schemas"]["MessageWithUser"] & {
+            channel_name: string;
+            channel_type: components["schemas"]["ChannelType"];
+            has_new_replies: boolean;
+        };
+        ThreadListResult: {
+            threads: components["schemas"]["ThreadMessage"][];
+            has_more: boolean;
+            next_cursor?: string;
+            unread_thread_count: number;
         };
         ApiError: {
             code: string;
@@ -2301,6 +2346,38 @@ export interface operations {
             };
         };
     };
+    listUserThreads: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                wid: components["parameters"]["workspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @default 20 */
+                    limit?: number;
+                    cursor?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description List of user threads */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadListResult"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
     getMessage: {
         parameters: {
             query?: never;
@@ -2519,6 +2596,38 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+        };
+    };
+    markThreadRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Message ID */
+                id: components["parameters"]["messageId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description ID of the last read reply (defaults to latest reply) */
+                    last_read_reply_id?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Thread marked as read */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     listThread: {

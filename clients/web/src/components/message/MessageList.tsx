@@ -201,6 +201,9 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
           </div>
         ))
       )}
+
+      {/* Spacer below last message */}
+      {messages.length > 0 && <div className="h-4" />}
     </div>
   );
 }

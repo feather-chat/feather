@@ -53,3 +53,7 @@ export type NotificationData = components['schemas']['NotificationData'];
 // Unreads types
 export type UnreadMessage = components['schemas']['UnreadMessage'];
 export type UnreadMessagesResult = components['schemas']['UnreadMessagesResult'];
+
+// Thread types
+export type ThreadMessage = components['schemas']['ThreadMessage'];
+export type ThreadListResult = components['schemas']['ThreadListResult'];

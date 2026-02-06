@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircleIcon, PlusIcon, LockClosedIcon, HashtagIcon, InboxIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, PlusIcon, LockClosedIcon, HashtagIcon, InboxIcon, ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import {
   DndContext,
   DragOverlay,
@@ -12,6 +12,7 @@ import {
 } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { useChannels, useWorkspace, useAuth } from '../../hooks';
+import { useUserThreads } from '../../hooks/useThreads';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
 import { ChannelListSkeleton, Modal, Button, Input, toast, Tabs, TabList, Tab, TabPanel, RadioGroup, Radio, Avatar } from '../ui';
 import { useCreateChannel, useMarkAllChannelsAsRead, useCreateDM, useJoinChannel, useDMSuggestions, useStarChannel, useUnstarChannel } from '../../hooks/useChannels';
@@ -85,6 +86,9 @@ export function ChannelSidebar({ workspaceId }: ChannelSidebarProps) {
   const totalUnreadCount = useMemo(() => channels.reduce((sum, c) => sum + c.unread_count, 0), [channels]);
   const hasUnread = totalUnreadCount > 0;
   const isUnreadsPage = location.pathname.includes('/unreads');
+  const isThreadsPage = location.pathname.includes('/threads');
+  const { data: threadsData } = useUserThreads({ workspaceId: workspaceId || '' });
+  const unreadThreadCount = threadsData?.pages[0]?.unread_thread_count ?? 0;
 
   const groupedChannels = useMemo(() => {
     const groups = {
@@ -215,6 +219,25 @@ export function ChannelSidebar({ workspaceId }: ChannelSidebarProps) {
             {hasUnread && (
               <span className="ml-auto bg-primary-600 text-white text-xs px-1.5 py-0.5 rounded-full">
                 {totalUnreadCount}
+              </span>
+            )}
+          </Link>
+          <Link
+            to={`/workspaces/${workspaceId}/threads`}
+            className={cn(
+              'flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-800/50 mt-0.5',
+              isThreadsPage
+                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                : 'text-gray-700 dark:text-gray-300'
+            )}
+          >
+            <span className="w-5 flex items-center justify-center">
+              <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            </span>
+            <span className={cn('truncate', unreadThreadCount > 0 && 'font-semibold')}>Threads</span>
+            {unreadThreadCount > 0 && (
+              <span className="ml-auto bg-primary-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                {unreadThreadCount}
               </span>
             )}
           </Link>

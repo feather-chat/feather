@@ -186,7 +186,7 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
   const attachmentIconClass = isThreadVariant ? 'w-5 h-5' : 'w-8 h-8';
 
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 p-4">
+    <div className="pb-4 px-4 bg-white dark:bg-gray-900">
       {/* Typing indicator - only show for channel variant */}
       {!isThreadVariant && otherTypingUsers.length > 0 && (
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">

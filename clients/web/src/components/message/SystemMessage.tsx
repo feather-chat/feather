@@ -38,7 +38,7 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
   const reactionGroups = groupReactionsByEmoji(message.reactions, user?.id);
 
   const handleCopyLink = () => {
-    const url = `${window.location.origin}/w/${workspaceId}/c/${channelId}?msg=${message.id}`;
+    const url = `${window.location.origin}/workspaces/${workspaceId}/channels/${channelId}?msg=${message.id}`;
     navigator.clipboard.writeText(url);
     toast("Link copied to clipboard", "success");
     setShowDropdown(false);

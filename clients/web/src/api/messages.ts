@@ -1,4 +1,4 @@
-import { get, post, type MessageWithUser, type MessageListResult, type Reaction, type ThreadSubscriptionStatus } from '@feather/api-client';
+import { get, post, type MessageWithUser, type MessageListResult, type Reaction, type ThreadSubscriptionStatus, type ThreadListResult } from '@feather/api-client';
 
 export interface SendMessageInput {
   content?: string;
@@ -48,4 +48,10 @@ export const messagesApi = {
 
   unsubscribeFromThread: (messageId: string) =>
     post<{ status: ThreadSubscriptionStatus }>(`/messages/${messageId}/unsubscribe`),
+
+  listUserThreads: (workspaceId: string, input?: { limit?: number; cursor?: string }) =>
+    post<ThreadListResult>(`/workspaces/${workspaceId}/threads`, input || {}),
+
+  markThreadRead: (messageId: string, lastReadReplyId?: string) =>
+    post<{ success: boolean }>(`/messages/${messageId}/thread/mark-read`, lastReadReplyId ? { last_read_reply_id: lastReadReplyId } : {}),
 };

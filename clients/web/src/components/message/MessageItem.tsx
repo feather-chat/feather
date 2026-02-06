@@ -125,7 +125,7 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
   };
 
   const handleCopyLink = () => {
-    const url = `${window.location.origin}/w/${workspaceId}/c/${channelId}?msg=${message.id}`;
+    const url = `${window.location.origin}/workspaces/${workspaceId}/channels/${channelId}?msg=${message.id}`;
     navigator.clipboard.writeText(url);
     toast("Link copied to clipboard", "success");
     setShowDropdown(false);

@@ -98,3 +98,17 @@ type UnreadListResult struct {
 	HasMore    bool            `json:"has_more"`
 	NextCursor string          `json:"next_cursor,omitempty"`
 }
+
+type ThreadMessage struct {
+	MessageWithUser
+	ChannelName   string `json:"channel_name"`
+	ChannelType   string `json:"channel_type"`
+	HasNewReplies bool   `json:"has_new_replies"`
+}
+
+type ThreadListResult struct {
+	Threads           []ThreadMessage `json:"threads"`
+	HasMore           bool            `json:"has_more"`
+	NextCursor        string          `json:"next_cursor,omitempty"`
+	UnreadThreadCount int             `json:"unread_thread_count"`
+}

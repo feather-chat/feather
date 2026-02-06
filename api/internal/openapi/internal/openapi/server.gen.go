@@ -360,6 +360,39 @@ type SystemEventData struct {
 // SystemEventType defines model for SystemEventType.
 type SystemEventType string
 
+// ThreadListResult defines model for ThreadListResult.
+type ThreadListResult struct {
+	HasMore           bool            `json:"has_more"`
+	NextCursor        *string         `json:"next_cursor,omitempty"`
+	Threads           []ThreadMessage `json:"threads"`
+	UnreadThreadCount int             `json:"unread_thread_count"`
+}
+
+// ThreadMessage defines model for ThreadMessage.
+type ThreadMessage struct {
+	Attachments        *[]Attachment        `json:"attachments,omitempty"`
+	ChannelId          string               `json:"channel_id"`
+	ChannelName        string               `json:"channel_name"`
+	ChannelType        ChannelType          `json:"channel_type"`
+	Content            string               `json:"content"`
+	CreatedAt          time.Time            `json:"created_at"`
+	DeletedAt          *time.Time           `json:"deleted_at,omitempty"`
+	EditedAt           *time.Time           `json:"edited_at,omitempty"`
+	HasNewReplies      bool                 `json:"has_new_replies"`
+	Id                 string               `json:"id"`
+	LastReplyAt        *time.Time           `json:"last_reply_at,omitempty"`
+	Reactions          *[]Reaction          `json:"reactions,omitempty"`
+	ReplyCount         int                  `json:"reply_count"`
+	SystemEvent        *SystemEventData     `json:"system_event,omitempty"`
+	ThreadParentId     *string              `json:"thread_parent_id,omitempty"`
+	ThreadParticipants *[]ThreadParticipant `json:"thread_participants,omitempty"`
+	Type               *MessageType         `json:"type,omitempty"`
+	UpdatedAt          time.Time            `json:"updated_at"`
+	UserAvatarUrl      *string              `json:"user_avatar_url,omitempty"`
+	UserDisplayName    *string              `json:"user_display_name,omitempty"`
+	UserId             *string              `json:"user_id,omitempty"`
+}
+
 // ThreadParticipant defines model for ThreadParticipant.
 type ThreadParticipant struct {
 	AvatarUrl   *string `json:"avatar_url,omitempty"`
@@ -561,6 +594,12 @@ type RemoveReactionJSONBody struct {
 	Emoji string `json:"emoji"`
 }
 
+// MarkThreadReadJSONBody defines parameters for MarkThreadRead.
+type MarkThreadReadJSONBody struct {
+	// LastReadReplyId ID of the last read reply (defaults to latest reply)
+	LastReadReplyId *string `json:"last_read_reply_id,omitempty"`
+}
+
 // UpdateMessageJSONBody defines parameters for UpdateMessage.
 type UpdateMessageJSONBody struct {
 	Content string `json:"content"`
@@ -590,6 +629,12 @@ type RemoveWorkspaceMemberJSONBody struct {
 type UpdateWorkspaceMemberRoleJSONBody struct {
 	Role   WorkspaceRole `json:"role"`
 	UserId string        `json:"user_id"`
+}
+
+// ListUserThreadsJSONBody defines parameters for ListUserThreads.
+type ListUserThreadsJSONBody struct {
+	Cursor *string `json:"cursor,omitempty"`
+	Limit  *int    `json:"limit,omitempty"`
 }
 
 // ListAllUnreadsJSONBody defines parameters for ListAllUnreads.
@@ -640,6 +685,9 @@ type RemoveReactionJSONRequestBody RemoveReactionJSONBody
 // ListThreadJSONRequestBody defines body for ListThread for application/json ContentType.
 type ListThreadJSONRequestBody = ListMessagesInput
 
+// MarkThreadReadJSONRequestBody defines body for MarkThreadRead for application/json ContentType.
+type MarkThreadReadJSONRequestBody MarkThreadReadJSONBody
+
 // UpdateMessageJSONRequestBody defines body for UpdateMessage for application/json ContentType.
 type UpdateMessageJSONRequestBody UpdateMessageJSONBody
 
@@ -672,6 +720,9 @@ type RemoveWorkspaceMemberJSONRequestBody RemoveWorkspaceMemberJSONBody
 
 // UpdateWorkspaceMemberRoleJSONRequestBody defines body for UpdateWorkspaceMemberRole for application/json ContentType.
 type UpdateWorkspaceMemberRoleJSONRequestBody UpdateWorkspaceMemberRoleJSONBody
+
+// ListUserThreadsJSONRequestBody defines body for ListUserThreads for application/json ContentType.
+type ListUserThreadsJSONRequestBody ListUserThreadsJSONBody
 
 // ListAllUnreadsJSONRequestBody defines body for ListAllUnreads for application/json ContentType.
 type ListAllUnreadsJSONRequestBody ListAllUnreadsJSONBody
@@ -774,6 +825,9 @@ type ServerInterface interface {
 	// List thread replies
 	// (POST /messages/{id}/thread/list)
 	ListThread(w http.ResponseWriter, r *http.Request, id MessageId)
+	// Mark thread as read
+	// (POST /messages/{id}/thread/mark-read)
+	MarkThreadRead(w http.ResponseWriter, r *http.Request, id MessageId)
 	// Unsubscribe from thread
 	// (POST /messages/{id}/unsubscribe)
 	UnsubscribeFromThread(w http.ResponseWriter, r *http.Request, id MessageId)
@@ -834,6 +888,9 @@ type ServerInterface interface {
 	// Update member role
 	// (POST /workspaces/{wid}/members/update-role)
 	UpdateWorkspaceMemberRole(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
+	// List threads user is subscribed to
+	// (POST /workspaces/{wid}/threads)
+	ListUserThreads(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
 	// List all unread messages across channels
 	// (POST /workspaces/{wid}/unreads)
 	ListAllUnreads(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
@@ -1032,6 +1089,12 @@ func (_ Unimplemented) ListThread(w http.ResponseWriter, r *http.Request, id Mes
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Mark thread as read
+// (POST /messages/{id}/thread/mark-read)
+func (_ Unimplemented) MarkThreadRead(w http.ResponseWriter, r *http.Request, id MessageId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Unsubscribe from thread
 // (POST /messages/{id}/unsubscribe)
 func (_ Unimplemented) UnsubscribeFromThread(w http.ResponseWriter, r *http.Request, id MessageId) {
@@ -1149,6 +1212,12 @@ func (_ Unimplemented) RemoveWorkspaceMember(w http.ResponseWriter, r *http.Requ
 // Update member role
 // (POST /workspaces/{wid}/members/update-role)
 func (_ Unimplemented) UpdateWorkspaceMemberRole(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List threads user is subscribed to
+// (POST /workspaces/{wid}/threads)
+func (_ Unimplemented) ListUserThreads(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2032,6 +2101,37 @@ func (siw *ServerInterfaceWrapper) ListThread(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
+// MarkThreadRead operation middleware
+func (siw *ServerInterfaceWrapper) MarkThreadRead(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id MessageId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MarkThreadRead(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // UnsubscribeFromThread operation middleware
 func (siw *ServerInterfaceWrapper) UnsubscribeFromThread(w http.ResponseWriter, r *http.Request) {
 
@@ -2597,6 +2697,37 @@ func (siw *ServerInterfaceWrapper) UpdateWorkspaceMemberRole(w http.ResponseWrit
 	handler.ServeHTTP(w, r)
 }
 
+// ListUserThreads operation middleware
+func (siw *ServerInterfaceWrapper) ListUserThreads(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "wid" -------------
+	var wid WorkspaceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "wid", chi.URLParam(r, "wid"), &wid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "wid", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, SessionAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListUserThreads(w, r, wid)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListAllUnreads operation middleware
 func (siw *ServerInterfaceWrapper) ListAllUnreads(w http.ResponseWriter, r *http.Request) {
 
@@ -2866,6 +2997,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/messages/{id}/thread/list", wrapper.ListThread)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/messages/{id}/thread/mark-read", wrapper.MarkThreadRead)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/messages/{id}/unsubscribe", wrapper.UnsubscribeFromThread)
 	})
 	r.Group(func(r chi.Router) {
@@ -2924,6 +3058,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/workspaces/{wid}/members/update-role", wrapper.UpdateWorkspaceMemberRole)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/workspaces/{wid}/threads", wrapper.ListUserThreads)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/workspaces/{wid}/unreads", wrapper.ListAllUnreads)
@@ -3635,6 +3772,42 @@ func (response ListThread200JSONResponse) VisitListThreadResponse(w http.Respons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type MarkThreadReadRequestObject struct {
+	Id   MessageId `json:"id"`
+	Body *MarkThreadReadJSONRequestBody
+}
+
+type MarkThreadReadResponseObject interface {
+	VisitMarkThreadReadResponse(w http.ResponseWriter) error
+}
+
+type MarkThreadRead200JSONResponse SuccessResponse
+
+func (response MarkThreadRead200JSONResponse) VisitMarkThreadReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkThreadRead401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response MarkThreadRead401JSONResponse) VisitMarkThreadReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkThreadRead404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response MarkThreadRead404JSONResponse) VisitMarkThreadReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type UnsubscribeFromThreadRequestObject struct {
 	Id MessageId `json:"id"`
 }
@@ -4147,6 +4320,33 @@ func (response UpdateWorkspaceMemberRole200JSONResponse) VisitUpdateWorkspaceMem
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ListUserThreadsRequestObject struct {
+	Wid  WorkspaceId `json:"wid"`
+	Body *ListUserThreadsJSONRequestBody
+}
+
+type ListUserThreadsResponseObject interface {
+	VisitListUserThreadsResponse(w http.ResponseWriter) error
+}
+
+type ListUserThreads200JSONResponse ThreadListResult
+
+func (response ListUserThreads200JSONResponse) VisitListUserThreadsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListUserThreads401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListUserThreads401JSONResponse) VisitListUserThreadsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ListAllUnreadsRequestObject struct {
 	Wid  WorkspaceId `json:"wid"`
 	Body *ListAllUnreadsJSONRequestBody
@@ -4280,6 +4480,9 @@ type StrictServerInterface interface {
 	// List thread replies
 	// (POST /messages/{id}/thread/list)
 	ListThread(ctx context.Context, request ListThreadRequestObject) (ListThreadResponseObject, error)
+	// Mark thread as read
+	// (POST /messages/{id}/thread/mark-read)
+	MarkThreadRead(ctx context.Context, request MarkThreadReadRequestObject) (MarkThreadReadResponseObject, error)
 	// Unsubscribe from thread
 	// (POST /messages/{id}/unsubscribe)
 	UnsubscribeFromThread(ctx context.Context, request UnsubscribeFromThreadRequestObject) (UnsubscribeFromThreadResponseObject, error)
@@ -4340,6 +4543,9 @@ type StrictServerInterface interface {
 	// Update member role
 	// (POST /workspaces/{wid}/members/update-role)
 	UpdateWorkspaceMemberRole(ctx context.Context, request UpdateWorkspaceMemberRoleRequestObject) (UpdateWorkspaceMemberRoleResponseObject, error)
+	// List threads user is subscribed to
+	// (POST /workspaces/{wid}/threads)
+	ListUserThreads(ctx context.Context, request ListUserThreadsRequestObject) (ListUserThreadsResponseObject, error)
 	// List all unread messages across channels
 	// (POST /workspaces/{wid}/unreads)
 	ListAllUnreads(ctx context.Context, request ListAllUnreadsRequestObject) (ListAllUnreadsResponseObject, error)
@@ -5269,6 +5475,39 @@ func (sh *strictHandler) ListThread(w http.ResponseWriter, r *http.Request, id M
 	}
 }
 
+// MarkThreadRead operation middleware
+func (sh *strictHandler) MarkThreadRead(w http.ResponseWriter, r *http.Request, id MessageId) {
+	var request MarkThreadReadRequestObject
+
+	request.Id = id
+
+	var body MarkThreadReadJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.MarkThreadRead(ctx, request.(MarkThreadReadRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MarkThreadRead")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MarkThreadReadResponseObject); ok {
+		if err := validResponse.VisitMarkThreadReadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // UnsubscribeFromThread operation middleware
 func (sh *strictHandler) UnsubscribeFromThread(w http.ResponseWriter, r *http.Request, id MessageId) {
 	var request UnsubscribeFromThreadRequestObject
@@ -5849,6 +6088,39 @@ func (sh *strictHandler) UpdateWorkspaceMemberRole(w http.ResponseWriter, r *htt
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateWorkspaceMemberRoleResponseObject); ok {
 		if err := validResponse.VisitUpdateWorkspaceMemberRoleResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListUserThreads operation middleware
+func (sh *strictHandler) ListUserThreads(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
+	var request ListUserThreadsRequestObject
+
+	request.Wid = wid
+
+	var body ListUserThreadsJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListUserThreads(ctx, request.(ListUserThreadsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListUserThreads")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListUserThreadsResponseObject); ok {
+		if err := validResponse.VisitListUserThreadsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

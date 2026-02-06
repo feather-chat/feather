@@ -789,3 +789,167 @@ func (r *Repository) scanUnreadMessage(row rowScanner) (*UnreadMessage, string, 
 
 	return &msg, channelName, channelType, nil
 }
+
+// ListUserThreads lists threads the user is subscribed to in a workspace, ordered by last_reply_at DESC
+func (r *Repository) ListUserThreads(ctx context.Context, workspaceID, userID string, opts ListOptions) (*ThreadListResult, error) {
+	if opts.Limit <= 0 || opts.Limit > 100 {
+		opts.Limit = 20
+	}
+
+	var query string
+	var args []interface{}
+
+	// Base query: get parent messages of threads the user is subscribed to
+	if opts.Cursor == "" {
+		query = `
+			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url,
+			       c.name as channel_name, c.type as channel_type,
+			       CASE WHEN ts.last_read_reply_id IS NULL THEN 1
+			            WHEN EXISTS (SELECT 1 FROM messages r WHERE r.thread_parent_id = m.id AND r.id > ts.last_read_reply_id AND r.deleted_at IS NULL LIMIT 1) THEN 1
+			            ELSE 0 END as has_new_replies
+			FROM thread_subscriptions ts
+			JOIN messages m ON m.id = ts.thread_parent_id
+			LEFT JOIN users u ON u.id = m.user_id
+			JOIN channels c ON c.id = m.channel_id
+			WHERE ts.user_id = ?
+			  AND ts.status = 'subscribed'
+			  AND c.workspace_id = ?
+			  AND m.deleted_at IS NULL
+			  AND m.reply_count > 0
+			ORDER BY m.last_reply_at DESC, m.id DESC
+			LIMIT ?
+		`
+		args = []interface{}{userID, workspaceID, opts.Limit + 1}
+	} else {
+		query = `
+			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url,
+			       c.name as channel_name, c.type as channel_type,
+			       CASE WHEN ts.last_read_reply_id IS NULL THEN 1
+			            WHEN EXISTS (SELECT 1 FROM messages r WHERE r.thread_parent_id = m.id AND r.id > ts.last_read_reply_id AND r.deleted_at IS NULL LIMIT 1) THEN 1
+			            ELSE 0 END as has_new_replies
+			FROM thread_subscriptions ts
+			JOIN messages m ON m.id = ts.thread_parent_id
+			LEFT JOIN users u ON u.id = m.user_id
+			JOIN channels c ON c.id = m.channel_id
+			WHERE ts.user_id = ?
+			  AND ts.status = 'subscribed'
+			  AND c.workspace_id = ?
+			  AND m.deleted_at IS NULL
+			  AND m.reply_count > 0
+			  AND (m.last_reply_at < (SELECT last_reply_at FROM messages WHERE id = ?)
+			       OR (m.last_reply_at = (SELECT last_reply_at FROM messages WHERE id = ?) AND m.id < ?))
+			ORDER BY m.last_reply_at DESC, m.id DESC
+			LIMIT ?
+		`
+		args = []interface{}{userID, workspaceID, opts.Cursor, opts.Cursor, opts.Cursor, opts.Limit + 1}
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var threads []ThreadMessage
+	for rows.Next() {
+		var msg ThreadMessage
+		var msgUserID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL, systemEventJSON sql.NullString
+		var createdAt, updatedAt, channelName, channelType string
+		var hasNewReplies int
+
+		err := rows.Scan(&msg.ID, &msg.ChannelID, &msgUserID, &msg.Content, &msg.Type, &systemEventJSON, &threadParentID, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt,
+			&msg.UserDisplayName, &avatarURL, &channelName, &channelType, &hasNewReplies)
+		if err != nil {
+			return nil, err
+		}
+
+		if msg.Type == "" {
+			msg.Type = MessageTypeUser
+		}
+		if msgUserID.Valid {
+			msg.UserID = &msgUserID.String
+		}
+		if systemEventJSON.Valid {
+			var eventData SystemEventData
+			if err := json.Unmarshal([]byte(systemEventJSON.String), &eventData); err == nil {
+				msg.SystemEvent = &eventData
+			}
+		}
+		if threadParentID.Valid {
+			msg.ThreadParentID = &threadParentID.String
+		}
+		if lastReplyAt.Valid {
+			t, _ := time.Parse(time.RFC3339, lastReplyAt.String)
+			msg.LastReplyAt = &t
+		}
+		if editedAt.Valid {
+			t, _ := time.Parse(time.RFC3339, editedAt.String)
+			msg.EditedAt = &t
+		}
+		if deletedAt.Valid {
+			t, _ := time.Parse(time.RFC3339, deletedAt.String)
+			msg.DeletedAt = &t
+		}
+		if avatarURL.Valid {
+			msg.UserAvatarURL = &avatarURL.String
+		}
+		msg.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
+		msg.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
+		msg.ChannelName = channelName
+		msg.ChannelType = channelType
+		msg.HasNewReplies = hasNewReplies == 1
+
+		threads = append(threads, msg)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	hasMore := len(threads) > opts.Limit
+	if hasMore {
+		threads = threads[:opts.Limit]
+	}
+
+	var nextCursor string
+	if hasMore && len(threads) > 0 {
+		nextCursor = threads[len(threads)-1].ID
+	}
+
+	// Load reactions, thread participants, and attachments
+	if len(threads) > 0 {
+		messageIDs := make([]string, len(threads))
+		for i, m := range threads {
+			messageIDs[i] = m.ID
+		}
+
+		reactions, err := r.getReactionsForMessages(ctx, messageIDs)
+		if err != nil {
+			return nil, err
+		}
+		participants, err := r.getThreadParticipantsForMessages(ctx, messageIDs)
+		if err != nil {
+			return nil, err
+		}
+		for i := range threads {
+			if r, ok := reactions[threads[i].ID]; ok {
+				threads[i].Reactions = r
+			}
+			if p, ok := participants[threads[i].ID]; ok {
+				threads[i].ThreadParticipants = p
+			}
+		}
+	}
+
+	if threads == nil {
+		threads = []ThreadMessage{}
+	}
+
+	return &ThreadListResult{
+		Threads:    threads,
+		HasMore:    hasMore,
+		NextCursor: nextCursor,
+	}, nil
+}

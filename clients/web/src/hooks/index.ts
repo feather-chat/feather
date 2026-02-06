@@ -15,3 +15,4 @@ export { useThreadSubscription, useSubscribeToThread, useUnsubscribeFromThread }
 export { useMentions } from './useMentions';
 export { useChannelNotifications, useUpdateChannelNotifications } from './useChannelNotifications';
 export { useAutoFocusComposer } from './useAutoFocusComposer';
+export { useUserThreads, useMarkThreadRead } from './useThreads';

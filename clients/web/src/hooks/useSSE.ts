@@ -102,6 +102,9 @@ export function useSSE(workspaceId: string | undefined) {
             };
           }
         );
+
+        // Invalidate threads list so unread count and thread order refresh
+        queryClient.invalidateQueries({ queryKey: ['user-threads'] });
       } else {
         // Regular channel message - add to channel messages
         queryClient.setQueryData(

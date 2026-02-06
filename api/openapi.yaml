@@ -756,6 +756,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/UnreadMessagesResult'
 
+  /workspaces/{wid}/threads:
+    post:
+      tags: [messages]
+      summary: List threads user is subscribed to
+      operationId: listUserThreads
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: integer
+                  default: 20
+                cursor:
+                  type: string
+      responses:
+        '200':
+          description: List of user threads
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreadListResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   # Message endpoints
   /messages/{id}:
     get:
@@ -949,6 +979,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+
+  /messages/{id}/thread/mark-read:
+    post:
+      tags: [messages]
+      summary: Mark thread as read
+      operationId: markThreadRead
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/messageId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                last_read_reply_id:
+                  type: string
+                  description: ID of the last read reply (defaults to latest reply)
+      responses:
+        '200':
+          description: Thread marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /messages/{id}/thread/list:
     post:
@@ -1882,6 +1942,34 @@ components:
           type: boolean
         next_cursor:
           type: string
+
+    ThreadMessage:
+      allOf:
+        - $ref: '#/components/schemas/MessageWithUser'
+        - type: object
+          required: [channel_name, channel_type, has_new_replies]
+          properties:
+            channel_name:
+              type: string
+            channel_type:
+              $ref: '#/components/schemas/ChannelType'
+            has_new_replies:
+              type: boolean
+
+    ThreadListResult:
+      type: object
+      required: [threads, has_more, unread_thread_count]
+      properties:
+        threads:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThreadMessage'
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+        unread_thread_count:
+          type: integer
 
     # API response schemas
     ApiError:

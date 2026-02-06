@@ -16,7 +16,7 @@ interface MessageActionBarProps {
   showReactionPicker: boolean;
   onReactionPickerToggle: () => void;
   onReactionSelect: (emoji: string) => void;
-  onReplyClick: () => void;
+  onReplyClick?: () => void;
   onCopyLink: () => void;
   onMarkUnread: () => void;
   showDropdown: boolean;
@@ -56,14 +56,16 @@ export function MessageActionBar({
           </AriaButton>
         </Tooltip>
 
-        <Tooltip content="Reply in thread">
-          <AriaButton
-            onPress={onReplyClick}
-            className="group/btn p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <ChatBubbleBottomCenterTextIcon className="w-4 h-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
-          </AriaButton>
-        </Tooltip>
+        {onReplyClick && (
+          <Tooltip content="Reply in thread">
+            <AriaButton
+              onPress={onReplyClick}
+              className="group/btn p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <ChatBubbleBottomCenterTextIcon className="w-4 h-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
+            </AriaButton>
+          </Tooltip>
+        )}
 
         <Tooltip content="More options">
           <Menu
