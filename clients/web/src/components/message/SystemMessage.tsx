@@ -3,11 +3,8 @@ import { useParams } from "react-router-dom";
 import { Avatar, toast } from "../ui";
 import { ThreadRepliesIndicator } from "./ThreadRepliesIndicator";
 import { MessageActionBar } from "./MessageActionBar";
-import {
-  ReactionsDisplay,
-  groupReactionsByEmoji,
-  createMemberNamesMap,
-} from "./ReactionsDisplay";
+import { ReactionsDisplay } from "./ReactionsDisplay";
+import { groupReactionsByEmoji, createMemberNamesMap } from "./reactionUtils";
 import {
   useAuth,
   useAddReaction,
