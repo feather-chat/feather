@@ -77,6 +77,9 @@ function serializeNode(node: JSONContent): string {
     case 'channelMention':
       return `<#${node.attrs?.id}>`;
 
+    case 'emojiNode':
+      return `:${node.attrs?.shortcode}:`;
+
     default:
       // For unknown nodes, try to serialize children
       return serializeChildren(node);

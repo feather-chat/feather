@@ -46,3 +46,16 @@
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* Emoji nodes in editor */
+.emoji-node {
+  line-height: 1;
+}
+
+.emoji-custom {
+  height: 1.2em;
+  width: 1.2em;
+  object-fit: contain;
+  display: inline;
+  vertical-align: middle;
+}

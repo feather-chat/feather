@@ -1,4 +1,5 @@
 import type { JSONContent } from '@tiptap/react';
+import { resolveStandardShortcode } from '../../../lib/emoji';
 
 /**
  * Convert mrkdwn string to TipTap JSON content.
@@ -168,6 +169,14 @@ function parseInline(text: string): JSONContent[] {
         text: match[1],
         marks: [{ type: 'link', attrs: { href: match[1] }}],
       })},
+      // Emoji shortcode: :shortcode:
+      { regex: /^:([a-zA-Z0-9_+-]+):/, handler: (match: RegExpMatchArray): JSONContent => ({
+        type: 'emojiNode',
+        attrs: {
+          shortcode: match[1],
+          unicode: resolveStandardShortcode(match[1]) || null,
+        },
+      })},
       // Code: `text`
       { regex: /^`([^`]+)`/, handler: (match: RegExpMatchArray): JSONContent => ({
         type: 'text',
@@ -214,7 +223,7 @@ function parseInline(text: string): JSONContent[] {
     // If no pattern matched, consume one character as plain text
     if (!matched) {
       // Find the next potential pattern start
-      const nextSpecial = remaining.search(/[<`*_+~]/);
+      const nextSpecial = remaining.search(/[:<`*_+~]/);
       if (nextSpecial === -1 || nextSpecial === 0) {
         // Consume one character
         const char = remaining[0];

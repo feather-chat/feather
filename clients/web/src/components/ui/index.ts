@@ -12,4 +12,5 @@ export { Tabs, TabList, Tab, TabPanel } from './Tabs';
 export { RadioGroup, Radio } from './RadioGroup';
 export { Tooltip } from './Tooltip';
 export { MentionPopover } from './MentionPopover';
-export { EmojiGrid } from './EmojiGrid';
+export { EmojiGrid, type EmojiSelectAttrs } from './EmojiGrid';
+export { CustomEmojiImg } from './CustomEmojiImg';

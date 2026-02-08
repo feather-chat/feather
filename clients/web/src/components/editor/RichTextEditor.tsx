@@ -24,7 +24,7 @@ import {
 import { Button as AriaButton, FileTrigger, Popover, DialogTrigger } from 'react-aria-components';
 import { Toolbar } from './Toolbar';
 import { EmojiPicker } from './EmojiPicker';
-import { UserMention, SpecialMention, ChannelMention } from './extensions';
+import { UserMention, SpecialMention, ChannelMention, EmojiNode } from './extensions';
 import { createMentionSuggestion, createEmojiSuggestion, createChannelSuggestion } from './suggestions';
 import type { EmojiOption } from './suggestions';
 import type { ChannelOption } from './suggestions';
@@ -33,6 +33,8 @@ import { fromMrkdwn } from './serialization';
 import type { MentionOption } from '../../lib/mentions';
 import { SPECIAL_MENTIONS } from '../../lib/mentions';
 import { cn } from '../../lib/utils';
+import type { EmojiSelectAttrs } from '../ui';
+import type { CustomEmoji } from '@feather/api-client';
 
 const editorStyles = tv({
   slots: {
@@ -153,6 +155,7 @@ export interface RichTextEditorProps {
   disabled?: boolean;
   isPending?: boolean;
   onAttachmentClick?: (files: File[]) => void;
+  customEmojis?: CustomEmoji[];
 }
 
 export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
@@ -170,6 +173,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       disabled = false,
       isPending = false,
       onAttachmentClick,
+      customEmojis = [],
     },
     ref
   ) => {
@@ -182,6 +186,8 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
     const channelsRef = useRef(workspaceChannels);
     useEffect(() => { membersRef.current = workspaceMembers; }, [workspaceMembers]);
     useEffect(() => { channelsRef.current = workspaceChannels; }, [workspaceChannels]);
+    const customEmojisRef = useRef(customEmojis);
+    useEffect(() => { customEmojisRef.current = customEmojis; }, [customEmojis]);
 
     // Stable suggestion configs — refs are only read at query time (user interaction),
     // not during render, so the lint warning is a false positive here.
@@ -215,7 +221,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       []
     );
 
-    const emojiSuggestion = useMemo(() => createEmojiSuggestion(), []);
+    const emojiSuggestion = useMemo(() => createEmojiSuggestion(customEmojisRef), []);
 
     const channelSuggestion = useMemo(
       () => createChannelSuggestion((query: string): ChannelOption[] => {
@@ -315,7 +321,14 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                 .chain()
                 .focus()
                 .deleteRange(range)
-                .insertContent(emojiProps.emoji)
+                .insertContent({
+                  type: 'emojiNode',
+                  attrs: {
+                    shortcode: emojiProps.shortcode,
+                    unicode: emojiProps.emoji || null,
+                    imageUrl: emojiProps.imageUrl || null,
+                  },
+                })
                 .run();
             },
           },
@@ -345,6 +358,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         UserMention,
         SpecialMention,
         ChannelMention,
+        EmojiNode,
       ],
       content: initialContent ? fromMrkdwn(initialContent) : '',
       editable: !disabled,
@@ -489,8 +503,23 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
     };
 
     const handleEmojiSelect = useCallback(
-      (emoji: string) => {
-        editor?.chain().focus().insertContent(emoji).run();
+      (emoji: string, attrs?: EmojiSelectAttrs) => {
+        if (attrs) {
+          editor
+            ?.chain()
+            .focus()
+            .insertContent({
+              type: 'emojiNode',
+              attrs: {
+                shortcode: attrs.shortcode,
+                unicode: attrs.unicode || null,
+                imageUrl: attrs.imageUrl || null,
+              },
+            })
+            .run();
+        } else {
+          editor?.chain().focus().insertContent(emoji).run();
+        }
         setEmojiPickerOpen(false);
       },
       [editor]
@@ -582,7 +611,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                   <FaceSmileIcon className="w-4 h-4" />
                 </AriaButton>
                 <Popover placement="top start" className={s.emojiPopover()}>
-                  <EmojiPicker onSelect={handleEmojiSelect} />
+                  <EmojiPicker onSelect={handleEmojiSelect} customEmojis={customEmojis} />
                 </Popover>
               </DialogTrigger>
 

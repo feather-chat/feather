@@ -6,12 +6,14 @@ import {
   COMMON_EMOJIS,
   SKIN_TONES,
   SKIN_TONE_EMOJIS,
-  searchEmojis,
+  searchAllEmojis,
   applySkinTone,
   getSavedSkinTone,
   saveSkinTone,
   type SkinTone,
 } from '../../lib/emoji';
+import { CustomEmojiImg } from './CustomEmojiImg';
+import type { CustomEmoji } from '@feather/api-client';
 
 const styles = tv({
   slots: {
@@ -85,16 +87,23 @@ const styles = tv({
   },
 });
 
-interface EmojiGridProps {
-  onSelect: (emoji: string) => void;
-  autoFocus?: boolean;
+export interface EmojiSelectAttrs {
+  shortcode: string;
+  unicode?: string;
+  imageUrl?: string;
 }
 
-export function EmojiGrid({ onSelect, autoFocus = true }: EmojiGridProps) {
+interface EmojiGridProps {
+  onSelect: (emoji: string, attrs?: EmojiSelectAttrs) => void;
+  autoFocus?: boolean;
+  customEmojis?: CustomEmoji[];
+}
+
+export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [] }: EmojiGridProps) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('frequent');
   const [activeSearchIndex, setActiveSearchIndex] = useState(-1);
-  const [hoveredEmoji, setHoveredEmoji] = useState<{ emoji: string; name: string } | null>(null);
+  const [hoveredEmoji, setHoveredEmoji] = useState<{ emoji?: string; name: string; isCustom?: boolean; imageUrl?: string } | null>(null);
   const [skinTone, setSkinTone] = useState<SkinTone>(getSavedSkinTone);
   const [showSkinTonePicker, setShowSkinTonePicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -102,9 +111,14 @@ export function EmojiGrid({ onSelect, autoFocus = true }: EmojiGridProps) {
   const skinToneRef = useRef<HTMLDivElement>(null);
   const s = styles();
 
+  const customEmojiItems = useMemo(
+    () => customEmojis.map((e) => ({ name: e.name, url: e.url })),
+    [customEmojis],
+  );
+
   const searchResults = useMemo(
-    () => (search ? searchEmojis(search, 24) : []),
-    [search],
+    () => (search ? searchAllEmojis(search, 24, customEmojiItems) : []),
+    [search, customEmojiItems],
   );
   const isSearching = search.length > 0;
 
@@ -170,10 +184,17 @@ export function EmojiGrid({ onSelect, autoFocus = true }: EmojiGridProps) {
         break;
       case 'Enter':
         e.preventDefault();
-        if (activeSearchIndex >= 0 && activeSearchIndex < searchResults.length) {
-          onSelect(withSkinTone(searchResults[activeSearchIndex].emoji));
-        } else if (searchResults.length > 0) {
-          onSelect(withSkinTone(searchResults[0].emoji));
+        {
+          const result = activeSearchIndex >= 0 && activeSearchIndex < searchResults.length
+            ? searchResults[activeSearchIndex]
+            : searchResults[0];
+          if (result) {
+            onSelect(`:${result.shortcode}:`, {
+              shortcode: result.shortcode,
+              unicode: result.emoji,
+              imageUrl: result.imageUrl,
+            });
+          }
         }
         break;
     }
@@ -207,6 +228,19 @@ export function EmojiGrid({ onSelect, autoFocus = true }: EmojiGridProps) {
           >
             {'🕐'}
           </button>
+          {customEmojis.length > 0 && (
+            <button
+              type="button"
+              onClick={() => scrollToSection('custom')}
+              className={s.categoryButton({
+                className: activeCategory === 'custom' ? s.categoryButtonActive() : undefined,
+              })}
+              aria-label="Custom"
+              title="Custom"
+            >
+              {'⭐'}
+            </button>
+          )}
           {EMOJI_CATEGORIES.map((cat) => (
             <button
               key={cat.id}
@@ -227,19 +261,26 @@ export function EmojiGrid({ onSelect, autoFocus = true }: EmojiGridProps) {
       {isSearching ? (
         searchResults.length > 0 ? (
           <div className={s.searchResults()}>
-            {searchResults.map(({ shortcode, emoji }, i) => {
-              const displayed = withSkinTone(emoji);
+            {searchResults.map((result, i) => {
               return (
                 <button
-                  key={shortcode}
+                  key={result.shortcode}
                   type="button"
-                  onClick={() => onSelect(displayed)}
+                  onClick={() => onSelect(`:${result.shortcode}:`, {
+                    shortcode: result.shortcode,
+                    unicode: result.emoji,
+                    imageUrl: result.imageUrl,
+                  })}
                   className={s.searchResultItem({
                     className: i === activeSearchIndex ? s.searchResultItemActive() : undefined,
                   })}
                 >
-                  <span className={s.searchResultEmoji()}>{displayed}</span>
-                  <span className={s.searchResultShortcode()}>:{shortcode}:</span>
+                  <span className={s.searchResultEmoji()}>
+                    {result.isCustom && result.imageUrl
+                      ? <CustomEmojiImg name={result.shortcode} url={result.imageUrl} size="md" />
+                      : withSkinTone(result.emoji!)}
+                  </span>
+                  <span className={s.searchResultShortcode()}>:{result.shortcode}:</span>
                 </button>
               );
             })}
@@ -258,12 +299,13 @@ export function EmojiGrid({ onSelect, autoFocus = true }: EmojiGridProps) {
             <div className={s.grid()}>
               {COMMON_EMOJIS.map((emoji) => {
                 const displayed = withSkinTone(emoji);
+                const name = EMOJI_NAME[emoji] || emoji;
                 return (
                   <button
                     key={emoji}
                     type="button"
-                    onClick={() => onSelect(displayed)}
-                    onMouseEnter={() => setHoveredEmoji({ emoji: displayed, name: EMOJI_NAME[emoji] || emoji })}
+                    onClick={() => onSelect(`:${name}:`, { shortcode: name, unicode: displayed })}
+                    onMouseEnter={() => setHoveredEmoji({ emoji: displayed, name })}
                     onMouseLeave={() => setHoveredEmoji(null)}
                     className={s.emojiButton()}
                     aria-label={emoji}
@@ -274,6 +316,32 @@ export function EmojiGrid({ onSelect, autoFocus = true }: EmojiGridProps) {
               })}
             </div>
           </div>
+
+          {/* Custom emojis */}
+          {customEmojis.length > 0 && (
+            <div
+              ref={(el) => { sectionRefs.current['custom'] = el; }}
+              className={s.section()}
+            >
+              <div className={s.sectionHeader()}>Custom</div>
+              <div className={s.grid()}>
+                {customEmojis.map((ce) => (
+                  <button
+                    key={ce.id}
+                    type="button"
+                    onClick={() => onSelect(`:${ce.name}:`, { shortcode: ce.name, imageUrl: ce.url })}
+                    onMouseEnter={() => setHoveredEmoji({ name: ce.name, isCustom: true, imageUrl: ce.url })}
+                    onMouseLeave={() => setHoveredEmoji(null)}
+                    className={s.emojiButton()}
+                    aria-label={`:${ce.name}:`}
+                    title={`:${ce.name}:`}
+                  >
+                    <CustomEmojiImg name={ce.name} url={ce.url} size="lg" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Category sections */}
           {EMOJI_CATEGORIES.map((cat) => (
@@ -290,7 +358,7 @@ export function EmojiGrid({ onSelect, autoFocus = true }: EmojiGridProps) {
                     <button
                       key={entry.emoji}
                       type="button"
-                      onClick={() => onSelect(displayed)}
+                      onClick={() => onSelect(`:${entry.aliases[0]}:`, { shortcode: entry.aliases[0], unicode: displayed })}
                       onMouseEnter={() => setHoveredEmoji({ emoji: displayed, name: entry.aliases[0] })}
                       onMouseLeave={() => setHoveredEmoji(null)}
                       className={s.emojiButton()}
@@ -311,7 +379,11 @@ export function EmojiGrid({ onSelect, autoFocus = true }: EmojiGridProps) {
       <div className={s.footer()}>
         {hoveredEmoji ? (
           <>
-            <span className={s.footerEmoji()}>{hoveredEmoji.emoji}</span>
+            <span className={s.footerEmoji()}>
+              {hoveredEmoji.isCustom && hoveredEmoji.imageUrl
+                ? <CustomEmojiImg name={hoveredEmoji.name} url={hoveredEmoji.imageUrl} size="lg" />
+                : hoveredEmoji.emoji}
+            </span>
             <span className={s.footerName()}>:{hoveredEmoji.name}:</span>
           </>
         ) : null}
