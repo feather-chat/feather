@@ -9,6 +9,17 @@ describe('searchEmojis', () => {
     expect(results.map((r) => r.emoji)).toEqual(
       expect.arrayContaining([COMMON_EMOJIS[0]])
     );
+    // Every result should have a resolved shortcode
+    for (const r of results) {
+      expect(r.shortcode).toBeTruthy();
+    }
+  });
+
+  it('returns correct shortcodes for common emojis', () => {
+    const results = searchEmojis('');
+    const thumbsUp = results.find((r) => r.emoji === '👍');
+    expect(thumbsUp).toBeDefined();
+    expect(thumbsUp!.shortcode).toBe('+1');
   });
 
   it('exact match scores highest', () => {
@@ -17,14 +28,14 @@ describe('searchEmojis', () => {
     expect(results[0].emoji).toBe('🔥');
   });
 
-  it('prefix match scores second', () => {
-    const results = searchEmojis('th');
-    // Should find thumbsup before anything with 'th' in the middle
+  it('prefix match scores higher than substring match', () => {
+    const results = searchEmojis('th', 24);
+    // Prefix matches like 'thumbsup' should appear before substring matches like 'athletic_shoe'
     const thumbsIndex = results.findIndex((r) => r.shortcode === 'thumbsup');
-    const thumbsdownIndex = results.findIndex((r) => r.shortcode === 'thumbsdown');
-    // Both should be near the top
-    expect(thumbsIndex).toBeLessThan(5);
-    expect(thumbsdownIndex).toBeLessThan(5);
+    const substringIndex = results.findIndex((r) => r.shortcode === 'athletic_shoe');
+    expect(thumbsIndex).not.toBe(-1);
+    expect(substringIndex).not.toBe(-1);
+    expect(thumbsIndex).toBeLessThan(substringIndex);
   });
 
   it('substring match scores lowest', () => {
