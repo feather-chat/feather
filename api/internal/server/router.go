@@ -2,11 +2,12 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
-	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/auth"
 	"github.com/feather/api/internal/handler"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/sse"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -43,12 +44,16 @@ func NewRouter(h *handler.Handler, sseHandler *sse.Handler, authHandler *auth.Ha
 		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error":{"code":"BAD_REQUEST","message":"` + err.Error() + `"}}`))
+			json.NewEncoder(w).Encode(openapi.ApiErrorResponse{
+				Error: openapi.ApiError{Code: "BAD_REQUEST", Message: err.Error()},
+			})
 		},
 		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":{"code":"INTERNAL_ERROR","message":"` + err.Error() + `"}}`))
+			json.NewEncoder(w).Encode(openapi.ApiErrorResponse{
+				Error: openapi.ApiError{Code: "INTERNAL_ERROR", Message: err.Error()},
+			})
 		},
 	})
 
