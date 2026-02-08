@@ -97,9 +97,10 @@ interface EmojiGridProps {
   onSelect: (emoji: string, attrs?: EmojiSelectAttrs) => void;
   autoFocus?: boolean;
   customEmojis?: CustomEmoji[];
+  onAddEmoji?: () => void;
 }
 
-export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [] }: EmojiGridProps) {
+export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAddEmoji }: EmojiGridProps) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('frequent');
   const [activeSearchIndex, setActiveSearchIndex] = useState(-1);
@@ -386,6 +387,14 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [] }: Emo
             </span>
             <span className={s.footerName()}>:{hoveredEmoji.name}:</span>
           </>
+        ) : onAddEmoji ? (
+          <button
+            type="button"
+            onClick={onAddEmoji}
+            className="text-xs px-2 py-0.5 rounded border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            Add Emoji
+          </button>
         ) : null}
 
         {/* Skin tone picker */}

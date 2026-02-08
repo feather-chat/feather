@@ -156,6 +156,7 @@ export interface RichTextEditorProps {
   isPending?: boolean;
   onAttachmentClick?: (files: File[]) => void;
   customEmojis?: CustomEmoji[];
+  onAddEmoji?: () => void;
 }
 
 export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
@@ -174,6 +175,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       isPending = false,
       onAttachmentClick,
       customEmojis = [],
+      onAddEmoji,
     },
     ref
   ) => {
@@ -611,7 +613,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                   <FaceSmileIcon className="w-4 h-4" />
                 </AriaButton>
                 <Popover placement="top start" className={s.emojiPopover()}>
-                  <EmojiPicker onSelect={handleEmojiSelect} customEmojis={customEmojis} />
+                  <EmojiPicker onSelect={handleEmojiSelect} customEmojis={customEmojis} onAddEmoji={onAddEmoji ? () => { setEmojiPickerOpen(false); onAddEmoji(); } : undefined} />
                 </Popover>
               </DialogTrigger>
 

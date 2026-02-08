@@ -10,6 +10,7 @@ import { useCustomEmojis } from '../../hooks/useCustomEmojis';
 import { useTypingUsers } from '../../lib/presenceStore';
 import { cn } from '../../lib/utils';
 import { RichTextEditor, type RichTextEditorRef } from '../editor';
+import { AddEmojiModal } from '../editor/AddEmojiModal';
 
 export interface MessageComposerRef {
   focus: () => void;
@@ -50,6 +51,7 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
   ) {
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [addEmojiOpen, setAddEmojiOpen] = useState(false);
   const editorRef = useRef<RichTextEditorRef>(null);
 
   useImperativeHandle(ref, () => ({
@@ -296,6 +298,7 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
             workspaceMembers={workspaceMembers}
             workspaceChannels={workspaceChannels}
             customEmojis={customEmojis}
+            onAddEmoji={() => setAddEmojiOpen(true)}
             showToolbar
             disabled={activeMutation.isPending}
             isPending={activeMutation.isPending || isUploading}
@@ -303,6 +306,12 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
           />
         </form>
       </DropZone>
+      <AddEmojiModal
+        isOpen={addEmojiOpen}
+        onClose={() => setAddEmojiOpen(false)}
+        workspaceId={workspaceId}
+        customEmojis={customEmojis ?? []}
+      />
     </div>
   );
 });
