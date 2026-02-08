@@ -16,10 +16,6 @@ type ServerConfig struct {
 	PublicURL string `koanf:"public_url"`
 }
 
-func (s ServerConfig) Addr() string {
-	return s.Host + ":" + string(rune(s.Port+'0'))
-}
-
 type DatabaseConfig struct {
 	Path string `koanf:"path"`
 }
