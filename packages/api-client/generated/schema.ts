@@ -1715,6 +1715,7 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            400: components["responses"]["BadRequest"];
         };
     };
     getMe: {
@@ -1762,6 +1763,8 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
         };
     };
     getWorkspace: {
@@ -1787,6 +1790,8 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     updateWorkspace: {
@@ -1816,6 +1821,10 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     listWorkspaceMembers: {
@@ -1841,6 +1850,8 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     removeWorkspaceMember: {
@@ -1870,6 +1881,9 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     updateWorkspaceMemberRole: {
@@ -1900,6 +1914,10 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     createWorkspaceInvite: {
@@ -1929,6 +1947,8 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     reorderWorkspaces: {
@@ -1979,6 +1999,8 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     createChannel: {
@@ -2008,6 +2030,9 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     listChannels: {
@@ -2033,6 +2058,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthorized"];
         };
     };
     createDM: {
@@ -2064,6 +2090,8 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
         };
     };
     getDMSuggestions: {
@@ -2087,6 +2115,7 @@ export interface operations {
                     "application/json": components["schemas"]["DMSuggestionsResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
         };
     };
     updateChannel: {
@@ -2116,6 +2145,10 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     archiveChannel: {
@@ -2139,6 +2172,10 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     addChannelMember: {
@@ -2169,6 +2206,9 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     listChannelMembers: {
@@ -2194,6 +2234,8 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     joinChannel: {
@@ -2217,6 +2259,9 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     leaveChannel: {
@@ -2240,6 +2285,9 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     starChannel: {
@@ -2320,6 +2368,8 @@ export interface operations {
                     "application/json": components["schemas"]["MarkReadResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     getChannelNotifications: {
@@ -2345,6 +2395,8 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     updateChannelNotifications: {
@@ -2374,6 +2426,9 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     markAllChannelsRead: {
@@ -2397,6 +2452,7 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
         };
     };
     listAllUnreads: {
@@ -2428,6 +2484,7 @@ export interface operations {
                     "application/json": components["schemas"]["UnreadMessagesResult"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
         };
     };
     listUserThreads: {
@@ -2516,6 +2573,10 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     listMessages: {
@@ -2543,6 +2604,9 @@ export interface operations {
                     "application/json": components["schemas"]["MessageListResult"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     updateMessage: {
@@ -2574,6 +2638,10 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     deleteMessage: {
@@ -2597,6 +2665,9 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     addReaction: {
@@ -2628,6 +2699,10 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     removeReaction: {
@@ -2657,6 +2732,8 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     markMessageUnread: {
@@ -2680,6 +2757,9 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     markThreadRead: {
@@ -2739,6 +2819,9 @@ export interface operations {
                     "application/json": components["schemas"]["MessageListResult"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     getThreadSubscription: {
@@ -2857,6 +2940,10 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     downloadFile: {
@@ -2879,6 +2966,9 @@ export interface operations {
                     "application/octet-stream": string;
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     deleteFile: {
@@ -2901,6 +2991,9 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     uploadCustomEmoji: {
@@ -2935,6 +3028,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     listCustomEmojis: {
@@ -2984,6 +3078,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     getUser: {

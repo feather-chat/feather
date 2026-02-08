@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -23,11 +22,11 @@ import (
 func (h *Handler) CreateWorkspace(ctx context.Context, request openapi.CreateWorkspaceRequestObject) (openapi.CreateWorkspaceResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.CreateWorkspace401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	if strings.TrimSpace(request.Body.Name) == "" {
-		return nil, errors.New("name is required")
+		return openapi.CreateWorkspace400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Name is required")}, nil
 	}
 
 	ws := &workspace.Workspace{
@@ -60,7 +59,7 @@ func (h *Handler) CreateWorkspace(ctx context.Context, request openapi.CreateWor
 func (h *Handler) GetWorkspace(ctx context.Context, request openapi.GetWorkspaceRequestObject) (openapi.GetWorkspaceResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.GetWorkspace401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check membership
@@ -84,7 +83,7 @@ func (h *Handler) GetWorkspace(ctx context.Context, request openapi.GetWorkspace
 func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWorkspaceRequestObject) (openapi.UpdateWorkspaceResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.UpdateWorkspace401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check permissions
@@ -94,7 +93,7 @@ func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWor
 	}
 
 	if !workspace.CanManageMembers(membership.Role) {
-		return nil, errors.New("permission denied")
+		return openapi.UpdateWorkspace403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	ws, err := h.workspaceRepo.GetByID(ctx, string(request.Wid))
@@ -104,7 +103,7 @@ func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWor
 
 	if request.Body.Name != nil {
 		if strings.TrimSpace(*request.Body.Name) == "" {
-			return nil, errors.New("name cannot be empty")
+			return openapi.UpdateWorkspace400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Name cannot be empty")}, nil
 		}
 		ws.Name = *request.Body.Name
 	}
@@ -137,7 +136,7 @@ func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWor
 func (h *Handler) ListWorkspaceMembers(ctx context.Context, request openapi.ListWorkspaceMembersRequestObject) (openapi.ListWorkspaceMembersResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.ListWorkspaceMembers401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check membership
@@ -165,7 +164,7 @@ func (h *Handler) ListWorkspaceMembers(ctx context.Context, request openapi.List
 func (h *Handler) RemoveWorkspaceMember(ctx context.Context, request openapi.RemoveWorkspaceMemberRequestObject) (openapi.RemoveWorkspaceMemberResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.RemoveWorkspaceMember401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check permissions
@@ -176,7 +175,7 @@ func (h *Handler) RemoveWorkspaceMember(ctx context.Context, request openapi.Rem
 
 	// Users can remove themselves, admins/owners can remove others
 	if request.Body.UserId != userID && !workspace.CanManageMembers(membership.Role) {
-		return nil, errors.New("permission denied")
+		return openapi.RemoveWorkspaceMember403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	if err := h.workspaceRepo.RemoveMember(ctx, request.Body.UserId, string(request.Wid)); err != nil {
@@ -192,7 +191,7 @@ func (h *Handler) RemoveWorkspaceMember(ctx context.Context, request openapi.Rem
 func (h *Handler) UpdateWorkspaceMemberRole(ctx context.Context, request openapi.UpdateWorkspaceMemberRoleRequestObject) (openapi.UpdateWorkspaceMemberRoleResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.UpdateWorkspaceMemberRole401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check permissions
@@ -202,13 +201,13 @@ func (h *Handler) UpdateWorkspaceMemberRole(ctx context.Context, request openapi
 	}
 
 	if !workspace.CanChangeRole(membership.Role) {
-		return nil, errors.New("permission denied")
+		return openapi.UpdateWorkspaceMemberRole403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	// Validate role
 	newRole := string(request.Body.Role)
 	if newRole != workspace.RoleAdmin && newRole != workspace.RoleMember && newRole != workspace.RoleGuest {
-		return nil, errors.New("invalid role")
+		return openapi.UpdateWorkspaceMemberRole400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid role")}, nil
 	}
 
 	// Can't change owner role
@@ -218,12 +217,12 @@ func (h *Handler) UpdateWorkspaceMemberRole(ctx context.Context, request openapi
 	}
 
 	if targetMembership.Role == workspace.RoleOwner {
-		return nil, errors.New("cannot change owner's role")
+		return openapi.UpdateWorkspaceMemberRole403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Cannot change owner's role")}, nil
 	}
 
 	// Admins can't promote to admin
 	if membership.Role == workspace.RoleAdmin && newRole == workspace.RoleAdmin {
-		return nil, errors.New("admins cannot promote to admin")
+		return openapi.UpdateWorkspaceMemberRole403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Admins cannot promote to admin")}, nil
 	}
 
 	if err := h.workspaceRepo.UpdateMemberRole(ctx, request.Body.UserId, string(request.Wid), newRole); err != nil {
@@ -239,7 +238,7 @@ func (h *Handler) UpdateWorkspaceMemberRole(ctx context.Context, request openapi
 func (h *Handler) CreateWorkspaceInvite(ctx context.Context, request openapi.CreateWorkspaceInviteRequestObject) (openapi.CreateWorkspaceInviteResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.CreateWorkspaceInvite401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check permissions
@@ -249,7 +248,7 @@ func (h *Handler) CreateWorkspaceInvite(ctx context.Context, request openapi.Cre
 	}
 
 	if !workspace.CanManageMembers(membership.Role) {
-		return nil, errors.New("permission denied")
+		return openapi.CreateWorkspaceInvite403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	// Validate role - default to member, can't invite as owner
@@ -316,7 +315,7 @@ func (h *Handler) ReorderWorkspaces(ctx context.Context, request openapi.Reorder
 func (h *Handler) AcceptInvite(ctx context.Context, request openapi.AcceptInviteRequestObject) (openapi.AcceptInviteResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.AcceptInvite401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ws, err := h.workspaceRepo.AcceptInvite(ctx, request.Code, userID)
@@ -580,7 +579,7 @@ func (h *Handler) ServeWorkspaceIcon(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListAllUnreads(ctx context.Context, request openapi.ListAllUnreadsRequestObject) (openapi.ListAllUnreadsResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.ListAllUnreads401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check workspace membership

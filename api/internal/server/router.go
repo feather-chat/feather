@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/feather/api/internal/auth"
@@ -49,10 +50,15 @@ func NewRouter(h *handler.Handler, sseHandler *sse.Handler, authHandler *auth.Ha
 			})
 		},
 		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			slog.Error("unhandled handler error",
+				"error", err.Error(),
+				"method", r.Method,
+				"path", r.URL.Path,
+			)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(openapi.ApiErrorResponse{
-				Error: openapi.ApiError{Code: "INTERNAL_ERROR", Message: err.Error()},
+				Error: openapi.ApiError{Code: "INTERNAL_ERROR", Message: "An internal error occurred"},
 			})
 		},
 	})

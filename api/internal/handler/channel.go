@@ -22,7 +22,7 @@ var validChannelName = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 func (h *Handler) CreateChannel(ctx context.Context, request openapi.CreateChannelRequestObject) (openapi.CreateChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.CreateChannel401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check workspace membership and permissions
@@ -32,15 +32,15 @@ func (h *Handler) CreateChannel(ctx context.Context, request openapi.CreateChann
 	}
 
 	if !workspace.CanCreateChannels(membership.Role) {
-		return nil, errors.New("permission denied")
+		return openapi.CreateChannel403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	name := strings.TrimSpace(request.Body.Name)
 	if name == "" {
-		return nil, errors.New("channel name is required")
+		return openapi.CreateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Channel name is required")}, nil
 	}
 	if !validChannelName.MatchString(name) {
-		return nil, errors.New("channel name must contain only lowercase letters, numbers, and dashes")
+		return openapi.CreateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Channel name must contain only lowercase letters, numbers, and dashes")}, nil
 	}
 
 	// Validate type
@@ -75,7 +75,7 @@ func (h *Handler) CreateChannel(ctx context.Context, request openapi.CreateChann
 func (h *Handler) ListChannels(ctx context.Context, request openapi.ListChannelsRequestObject) (openapi.ListChannelsResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.ListChannels401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check workspace membership
@@ -103,7 +103,7 @@ func (h *Handler) ListChannels(ctx context.Context, request openapi.ListChannels
 func (h *Handler) CreateDM(ctx context.Context, request openapi.CreateDMRequestObject) (openapi.CreateDMResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.CreateDM401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check workspace membership
@@ -124,7 +124,7 @@ func (h *Handler) CreateDM(ctx context.Context, request openapi.CreateDMRequestO
 	}
 
 	if len(deduped) < 2 {
-		return nil, errors.New("DM requires at least 2 participants")
+		return openapi.CreateDM400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "DM requires at least 2 participants")}, nil
 	}
 
 	ch, err := h.channelRepo.CreateDM(ctx, string(request.Wid), deduped)
@@ -149,7 +149,7 @@ func (h *Handler) CreateDM(ctx context.Context, request openapi.CreateDMRequestO
 func (h *Handler) UpdateChannel(ctx context.Context, request openapi.UpdateChannelRequestObject) (openapi.UpdateChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.UpdateChannel401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -172,16 +172,16 @@ func (h *Handler) UpdateChannel(ctx context.Context, request openapi.UpdateChann
 	// Workspace admins or channel admins can update
 	canUpdate := workspace.CanManageMembers(membership.Role) || (channelMembership != nil && channel.CanManageChannel(channelMembership.ChannelRole))
 	if !canUpdate {
-		return nil, errors.New("permission denied")
+		return openapi.UpdateChannel403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	if request.Body.Name != nil {
 		name := strings.TrimSpace(*request.Body.Name)
 		if name == "" {
-			return nil, errors.New("channel name cannot be empty")
+			return openapi.UpdateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Channel name cannot be empty")}, nil
 		}
 		if !validChannelName.MatchString(name) {
-			return nil, errors.New("channel name must contain only lowercase letters, numbers, and dashes")
+			return openapi.UpdateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Channel name must contain only lowercase letters, numbers, and dashes")}, nil
 		}
 		ch.Name = name
 	}
@@ -203,7 +203,7 @@ func (h *Handler) UpdateChannel(ctx context.Context, request openapi.UpdateChann
 func (h *Handler) ArchiveChannel(ctx context.Context, request openapi.ArchiveChannelRequestObject) (openapi.ArchiveChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.ArchiveChannel401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -213,12 +213,12 @@ func (h *Handler) ArchiveChannel(ctx context.Context, request openapi.ArchiveCha
 
 	// Can't archive DMs
 	if ch.Type == channel.TypeDM || ch.Type == channel.TypeGroupDM {
-		return nil, errors.New("cannot archive DM channels")
+		return openapi.ArchiveChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot archive DM channels")}, nil
 	}
 
 	// Can't archive default channel
 	if ch.IsDefault {
-		return nil, errors.New("cannot archive the default channel")
+		return openapi.ArchiveChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot archive the default channel")}, nil
 	}
 
 	// Check workspace membership
@@ -228,7 +228,7 @@ func (h *Handler) ArchiveChannel(ctx context.Context, request openapi.ArchiveCha
 	}
 
 	if !workspace.CanManageMembers(membership.Role) {
-		return nil, errors.New("permission denied")
+		return openapi.ArchiveChannel403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	if err := h.channelRepo.Archive(ctx, string(request.Id)); err != nil {
@@ -244,7 +244,7 @@ func (h *Handler) ArchiveChannel(ctx context.Context, request openapi.ArchiveCha
 func (h *Handler) AddChannelMember(ctx context.Context, request openapi.AddChannelMemberRequestObject) (openapi.AddChannelMemberResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.AddChannelMember401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -262,13 +262,13 @@ func (h *Handler) AddChannelMember(ctx context.Context, request openapi.AddChann
 	channelMembership, _ := h.channelRepo.GetMembership(ctx, userID, string(request.Id))
 	canAdd := workspace.CanManageMembers(membership.Role) || channelMembership != nil
 	if !canAdd {
-		return nil, errors.New("permission denied")
+		return openapi.AddChannelMember403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	// Verify target user is workspace member
 	_, err = h.workspaceRepo.GetMembership(ctx, request.Body.UserId, ch.WorkspaceID)
 	if err != nil {
-		return nil, errors.New("user is not a member of the workspace")
+		return openapi.AddChannelMember404JSONResponse{NotFoundJSONResponse: notFoundResponse("User is not a member of the workspace")}, nil
 	}
 
 	role := "poster"
@@ -304,7 +304,7 @@ func (h *Handler) AddChannelMember(ctx context.Context, request openapi.AddChann
 func (h *Handler) ListChannelMembers(ctx context.Context, request openapi.ListChannelMembersRequestObject) (openapi.ListChannelMembersResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.ListChannelMembers401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -345,7 +345,7 @@ func (h *Handler) ListChannelMembers(ctx context.Context, request openapi.ListCh
 func (h *Handler) JoinChannel(ctx context.Context, request openapi.JoinChannelRequestObject) (openapi.JoinChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.JoinChannel401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -355,7 +355,7 @@ func (h *Handler) JoinChannel(ctx context.Context, request openapi.JoinChannelRe
 
 	// Only public channels can be joined without invite
 	if ch.Type != channel.TypePublic {
-		return nil, errors.New("cannot join private channels without an invite")
+		return openapi.JoinChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot join private channels without an invite")}, nil
 	}
 
 	// Check workspace membership
@@ -393,7 +393,7 @@ func (h *Handler) JoinChannel(ctx context.Context, request openapi.JoinChannelRe
 func (h *Handler) LeaveChannel(ctx context.Context, request openapi.LeaveChannelRequestObject) (openapi.LeaveChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.LeaveChannel401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Get channel for system message (before leaving)
@@ -405,7 +405,7 @@ func (h *Handler) LeaveChannel(ctx context.Context, request openapi.LeaveChannel
 	err = h.channelRepo.RemoveMember(ctx, userID, string(request.Id))
 	if err != nil {
 		if errors.Is(err, channel.ErrCannotLeaveDefault) {
-			return nil, errors.New("cannot leave the default channel")
+			return openapi.LeaveChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot leave the default channel")}, nil
 		}
 		return nil, err
 	}
@@ -491,7 +491,7 @@ func channelMemberToAPI(m channel.MemberInfo) openapi.ChannelMember {
 func (h *Handler) MarkChannelRead(ctx context.Context, request openapi.MarkChannelReadRequestObject) (openapi.MarkChannelReadResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.MarkChannelRead401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -543,7 +543,7 @@ func (h *Handler) MarkChannelRead(ctx context.Context, request openapi.MarkChann
 func (h *Handler) MarkAllChannelsRead(ctx context.Context, request openapi.MarkAllChannelsReadRequestObject) (openapi.MarkAllChannelsReadResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.MarkAllChannelsRead401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check workspace membership
@@ -593,7 +593,7 @@ func (h *Handler) MarkAllChannelsRead(ctx context.Context, request openapi.MarkA
 func (h *Handler) GetChannelNotifications(ctx context.Context, request openapi.GetChannelNotificationsRequestObject) (openapi.GetChannelNotificationsResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.GetChannelNotifications401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -623,7 +623,7 @@ func (h *Handler) GetChannelNotifications(ctx context.Context, request openapi.G
 func (h *Handler) UpdateChannelNotifications(ctx context.Context, request openapi.UpdateChannelNotificationsRequestObject) (openapi.UpdateChannelNotificationsResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.UpdateChannelNotifications401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -640,7 +640,7 @@ func (h *Handler) UpdateChannelNotifications(ctx context.Context, request openap
 	// Validate notify level
 	notifyLevel := string(request.Body.NotifyLevel)
 	if notifyLevel != notification.NotifyAll && notifyLevel != notification.NotifyMentions && notifyLevel != notification.NotifyNone {
-		return nil, errors.New("invalid notify_level")
+		return openapi.UpdateChannelNotifications400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid notify_level")}, nil
 	}
 
 	pref := &notification.NotificationPreference{
@@ -672,12 +672,12 @@ func notificationPreferencesToAPI(pref *notification.NotificationPreference) ope
 func (h *Handler) StarChannel(ctx context.Context, request openapi.StarChannelRequestObject) (openapi.StarChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.StarChannel401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	if err := h.channelRepo.StarChannel(ctx, userID, string(request.Id)); err != nil {
 		if errors.Is(err, channel.ErrNotChannelMember) {
-			return nil, errors.New("not a member of this channel")
+			return openapi.StarChannel404JSONResponse{NotFoundJSONResponse: notFoundResponse("Not a member of this channel")}, nil
 		}
 		return nil, err
 	}
@@ -691,12 +691,12 @@ func (h *Handler) StarChannel(ctx context.Context, request openapi.StarChannelRe
 func (h *Handler) UnstarChannel(ctx context.Context, request openapi.UnstarChannelRequestObject) (openapi.UnstarChannelResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.UnstarChannel401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	if err := h.channelRepo.UnstarChannel(ctx, userID, string(request.Id)); err != nil {
 		if errors.Is(err, channel.ErrNotChannelMember) {
-			return nil, errors.New("not a member of this channel")
+			return openapi.UnstarChannel404JSONResponse{NotFoundJSONResponse: notFoundResponse("Not a member of this channel")}, nil
 		}
 		return nil, err
 	}
@@ -710,7 +710,7 @@ func (h *Handler) UnstarChannel(ctx context.Context, request openapi.UnstarChann
 func (h *Handler) GetDMSuggestions(ctx context.Context, request openapi.GetDMSuggestionsRequestObject) (openapi.GetDMSuggestionsResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.GetDMSuggestions401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check workspace membership

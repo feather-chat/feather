@@ -19,7 +19,7 @@ import (
 func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequestObject) (openapi.UploadFileResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.UploadFile401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Check channel exists and user has access
@@ -33,12 +33,12 @@ func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequ
 	if err != nil {
 		if errors.Is(err, channel.ErrNotChannelMember) {
 			if ch.Type != channel.TypePublic {
-				return nil, errors.New("not a member of this channel")
+				return openapi.UploadFile403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this channel")}, nil
 			}
 			// Verify workspace membership for public channels
 			_, err = h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
 			if err != nil {
-				return nil, errors.New("not a member of this workspace")
+				return openapi.UploadFile403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this workspace")}, nil
 			}
 		} else {
 			return nil, err
@@ -48,14 +48,14 @@ func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequ
 	// Parse multipart form
 	part, err := request.Body.NextPart()
 	if err != nil {
-		return nil, errors.New("no file provided")
+		return openapi.UploadFile400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "No file provided")}, nil
 	}
 	defer part.Close()
 
 	// Validate filename
 	filename := sanitizeFilename(part.FileName())
 	if filename == "" {
-		return nil, errors.New("invalid filename")
+		return openapi.UploadFile400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid filename")}, nil
 	}
 
 	// Generate storage path
@@ -122,7 +122,7 @@ func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequ
 func (h *Handler) DownloadFile(ctx context.Context, request openapi.DownloadFileRequestObject) (openapi.DownloadFileResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.DownloadFile401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	attachment, err := h.fileRepo.GetByID(ctx, request.Id)
@@ -140,12 +140,12 @@ func (h *Handler) DownloadFile(ctx context.Context, request openapi.DownloadFile
 	if err != nil {
 		if errors.Is(err, channel.ErrNotChannelMember) {
 			if ch.Type != channel.TypePublic {
-				return nil, errors.New("not a member of this channel")
+				return openapi.DownloadFile403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this channel")}, nil
 			}
 			// Verify workspace membership for public channels
 			_, err = h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
 			if err != nil {
-				return nil, errors.New("not a member of this workspace")
+				return openapi.DownloadFile403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this workspace")}, nil
 			}
 		} else {
 			return nil, err
@@ -155,7 +155,7 @@ func (h *Handler) DownloadFile(ctx context.Context, request openapi.DownloadFile
 	// Open file
 	f, err := os.Open(attachment.StoragePath)
 	if err != nil {
-		return nil, errors.New("file not found on disk")
+		return openapi.DownloadFile404JSONResponse{NotFoundJSONResponse: notFoundResponse("File not found on disk")}, nil
 	}
 
 	return openapi.DownloadFile200ApplicationoctetStreamResponse{
@@ -168,7 +168,7 @@ func (h *Handler) DownloadFile(ctx context.Context, request openapi.DownloadFile
 func (h *Handler) DeleteFile(ctx context.Context, request openapi.DeleteFileRequestObject) (openapi.DeleteFileResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.DeleteFile401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	attachment, err := h.fileRepo.GetByID(ctx, request.Id)
@@ -192,7 +192,7 @@ func (h *Handler) DeleteFile(ctx context.Context, request openapi.DeleteFileRequ
 	}
 
 	if !canDelete {
-		return nil, errors.New("permission denied")
+		return openapi.DeleteFile403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	// Delete file from disk

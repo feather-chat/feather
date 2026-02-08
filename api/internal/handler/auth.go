@@ -145,14 +145,15 @@ func (h *Handler) ForgotPassword(ctx context.Context, request openapi.ForgotPass
 func (h *Handler) ResetPassword(ctx context.Context, request openapi.ResetPasswordRequestObject) (openapi.ResetPasswordResponseObject, error) {
 	err := h.authService.ResetPassword(ctx, request.Body.Token, request.Body.NewPassword)
 	if err != nil {
-		// For reset password, we return success even on error to not leak info
-		// But we should handle specific errors
 		switch {
 		case errors.Is(err, auth.ErrInvalidResetToken):
-			// Return an error response for invalid token
-			return nil, err
+			return openapi.ResetPassword400JSONResponse{
+				BadRequestJSONResponse: badRequestResponse("INVALID_RESET_TOKEN", "Invalid or expired reset token"),
+			}, nil
 		case errors.Is(err, auth.ErrPasswordTooShort):
-			return nil, err
+			return openapi.ResetPassword400JSONResponse{
+				BadRequestJSONResponse: badRequestResponse("PASSWORD_TOO_SHORT", "Password must be at least 8 characters"),
+			}, nil
 		default:
 			return nil, err
 		}

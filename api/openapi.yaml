@@ -136,6 +136,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
 
   /auth/me:
     get:
@@ -176,6 +178,10 @@ paths:
                 properties:
                   workspace:
                     $ref: '#/components/schemas/Workspace'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /workspaces/{wid}:
     get:
@@ -196,6 +202,10 @@ paths:
                 properties:
                   workspace:
                     $ref: '#/components/schemas/Workspace'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /workspaces/{wid}/update:
     post:
@@ -222,6 +232,14 @@ paths:
                 properties:
                   workspace:
                     $ref: '#/components/schemas/Workspace'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /workspaces/{wid}/members/list:
     post:
@@ -244,6 +262,10 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/WorkspaceMemberWithUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /workspaces/{wid}/members/remove:
     post:
@@ -271,6 +293,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /workspaces/{wid}/members/update-role:
     post:
@@ -300,6 +328,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /workspaces/{wid}/invites/create:
     post:
@@ -326,6 +362,10 @@ paths:
                 properties:
                   invite:
                     $ref: '#/components/schemas/Invite'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /workspaces/reorder:
     post:
@@ -375,6 +415,10 @@ paths:
                 properties:
                   workspace:
                     $ref: '#/components/schemas/Workspace'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   # Channel endpoints
   /workspaces/{wid}/channels/create:
@@ -402,6 +446,12 @@ paths:
                 properties:
                   channel:
                     $ref: '#/components/schemas/Channel'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /workspaces/{wid}/channels/list:
     post:
@@ -424,6 +474,8 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ChannelWithMembership'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /workspaces/{wid}/channels/dm:
     post:
@@ -456,6 +508,10 @@ paths:
                 properties:
                   channel:
                     $ref: '#/components/schemas/Channel'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /workspaces/{wid}/dm-suggestions:
     post:
@@ -474,6 +530,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DMSuggestionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /channels/{id}/update:
     post:
@@ -500,6 +558,14 @@ paths:
                 properties:
                   channel:
                     $ref: '#/components/schemas/Channel'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /channels/{id}/archive:
     post:
@@ -517,6 +583,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /channels/{id}/members/add:
     post:
@@ -546,6 +620,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /channels/{id}/members/list:
     post:
@@ -568,6 +648,10 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ChannelMember'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /channels/{id}/join:
     post:
@@ -585,6 +669,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /channels/{id}/leave:
     post:
@@ -602,6 +692,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /channels/{id}/star:
     post:
@@ -668,6 +764,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarkReadResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /channels/{id}/notifications:
     get:
@@ -688,6 +788,10 @@ paths:
                 properties:
                   preferences:
                     $ref: '#/components/schemas/NotificationPreferences'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
       tags: [channels]
       summary: Update channel notification preferences
@@ -712,6 +816,12 @@ paths:
                 properties:
                   preferences:
                     $ref: '#/components/schemas/NotificationPreferences'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /workspaces/{wid}/channels/mark-all-read:
     post:
@@ -729,6 +839,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /workspaces/{wid}/unreads:
     post:
@@ -757,6 +869,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UnreadMessagesResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /workspaces/{wid}/threads:
     post:
@@ -838,6 +952,14 @@ paths:
                 properties:
                   message:
                     $ref: '#/components/schemas/MessageWithUser'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /channels/{id}/messages/list:
     post:
@@ -860,6 +982,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageListResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /messages/{id}/update:
     post:
@@ -890,6 +1018,14 @@ paths:
                 properties:
                   message:
                     $ref: '#/components/schemas/MessageWithUser'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /messages/{id}/delete:
     post:
@@ -907,6 +1043,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /messages/{id}/reactions/add:
     post:
@@ -937,6 +1079,14 @@ paths:
                 properties:
                   reaction:
                     $ref: '#/components/schemas/Reaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /messages/{id}/reactions/remove:
     post:
@@ -964,6 +1114,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /messages/{id}/mark-unread:
     post:
@@ -981,6 +1135,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /messages/{id}/thread/mark-read:
     post:
@@ -1033,6 +1193,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageListResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /messages/{id}/subscription:
     get:
@@ -1149,6 +1315,14 @@ paths:
                         type: integer
                       content_type:
                         type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /files/{id}/download:
     get:
@@ -1171,6 +1345,12 @@ paths:
               schema:
                 type: string
                 format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /files/{id}/delete:
     post:
@@ -1192,6 +1372,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   # Emoji endpoints
   /workspaces/{wid}/emojis/upload:
@@ -1235,6 +1421,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /workspaces/{wid}/emojis/list:
     post:
@@ -1264,6 +1452,8 @@ paths:
                       $ref: '#/components/schemas/CustomEmoji'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /emojis/{id}/delete:
     post:
@@ -1289,6 +1479,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   # User endpoints
   /users/{id}:

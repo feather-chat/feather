@@ -3360,6 +3360,15 @@ func (response ResetPassword200JSONResponse) VisitResetPasswordResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ResetPassword400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response ResetPassword400JSONResponse) VisitResetPasswordResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ArchiveChannelRequestObject struct {
 	Id ChannelId `json:"id"`
 }
@@ -3373,6 +3382,42 @@ type ArchiveChannel200JSONResponse SuccessResponse
 func (response ArchiveChannel200JSONResponse) VisitArchiveChannelResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ArchiveChannel400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response ArchiveChannel400JSONResponse) VisitArchiveChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ArchiveChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ArchiveChannel401JSONResponse) VisitArchiveChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ArchiveChannel403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response ArchiveChannel403JSONResponse) VisitArchiveChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ArchiveChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ArchiveChannel404JSONResponse) VisitArchiveChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3402,6 +3447,42 @@ func (response UploadFile200JSONResponse) VisitUploadFileResponse(w http.Respons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type UploadFile400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UploadFile400JSONResponse) VisitUploadFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadFile401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UploadFile401JSONResponse) VisitUploadFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadFile403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UploadFile403JSONResponse) VisitUploadFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadFile404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UploadFile404JSONResponse) VisitUploadFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type JoinChannelRequestObject struct {
 	Id ChannelId `json:"id"`
 }
@@ -3419,6 +3500,33 @@ func (response JoinChannel200JSONResponse) VisitJoinChannelResponse(w http.Respo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type JoinChannel400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response JoinChannel400JSONResponse) VisitJoinChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response JoinChannel401JSONResponse) VisitJoinChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response JoinChannel404JSONResponse) VisitJoinChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type LeaveChannelRequestObject struct {
 	Id ChannelId `json:"id"`
 }
@@ -3432,6 +3540,33 @@ type LeaveChannel200JSONResponse SuccessResponse
 func (response LeaveChannel200JSONResponse) VisitLeaveChannelResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LeaveChannel400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response LeaveChannel400JSONResponse) VisitLeaveChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LeaveChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response LeaveChannel401JSONResponse) VisitLeaveChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LeaveChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response LeaveChannel404JSONResponse) VisitLeaveChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3454,6 +3589,24 @@ func (response MarkChannelRead200JSONResponse) VisitMarkChannelReadResponse(w ht
 	return json.NewEncoder(w).Encode(response)
 }
 
+type MarkChannelRead401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response MarkChannelRead401JSONResponse) VisitMarkChannelReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkChannelRead404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response MarkChannelRead404JSONResponse) VisitMarkChannelReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type AddChannelMemberRequestObject struct {
 	Id   ChannelId `json:"id"`
 	Body *AddChannelMemberJSONRequestBody
@@ -3468,6 +3621,33 @@ type AddChannelMember200JSONResponse SuccessResponse
 func (response AddChannelMember200JSONResponse) VisitAddChannelMemberResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddChannelMember401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response AddChannelMember401JSONResponse) VisitAddChannelMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddChannelMember403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response AddChannelMember403JSONResponse) VisitAddChannelMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddChannelMember404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response AddChannelMember404JSONResponse) VisitAddChannelMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3491,6 +3671,24 @@ func (response ListChannelMembers200JSONResponse) VisitListChannelMembersRespons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ListChannelMembers401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListChannelMembers401JSONResponse) VisitListChannelMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListChannelMembers404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ListChannelMembers404JSONResponse) VisitListChannelMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ListMessagesRequestObject struct {
 	Id   ChannelId `json:"id"`
 	Body *ListMessagesJSONRequestBody
@@ -3505,6 +3703,33 @@ type ListMessages200JSONResponse MessageListResult
 func (response ListMessages200JSONResponse) VisitListMessagesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListMessages401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListMessages401JSONResponse) VisitListMessagesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListMessages403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response ListMessages403JSONResponse) VisitListMessagesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListMessages404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ListMessages404JSONResponse) VisitListMessagesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3529,6 +3754,42 @@ func (response SendMessage200JSONResponse) VisitSendMessageResponse(w http.Respo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type SendMessage400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response SendMessage400JSONResponse) VisitSendMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SendMessage401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response SendMessage401JSONResponse) VisitSendMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SendMessage403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response SendMessage403JSONResponse) VisitSendMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SendMessage404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response SendMessage404JSONResponse) VisitSendMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetChannelNotificationsRequestObject struct {
 	Id ChannelId `json:"id"`
 }
@@ -3544,6 +3805,24 @@ type GetChannelNotifications200JSONResponse struct {
 func (response GetChannelNotifications200JSONResponse) VisitGetChannelNotificationsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelNotifications401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetChannelNotifications401JSONResponse) VisitGetChannelNotificationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelNotifications404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetChannelNotifications404JSONResponse) VisitGetChannelNotificationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3564,6 +3843,33 @@ type UpdateChannelNotifications200JSONResponse struct {
 func (response UpdateChannelNotifications200JSONResponse) VisitUpdateChannelNotificationsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateChannelNotifications400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdateChannelNotifications400JSONResponse) VisitUpdateChannelNotificationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateChannelNotifications401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateChannelNotifications401JSONResponse) VisitUpdateChannelNotificationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateChannelNotifications404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateChannelNotifications404JSONResponse) VisitUpdateChannelNotificationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3658,6 +3964,42 @@ func (response UpdateChannel200JSONResponse) VisitUpdateChannelResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
+type UpdateChannel400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdateChannel400JSONResponse) VisitUpdateChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateChannel401JSONResponse) VisitUpdateChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateChannel403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UpdateChannel403JSONResponse) VisitUpdateChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateChannel404JSONResponse) VisitUpdateChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type DeleteCustomEmojiRequestObject struct {
 	Id string `json:"id"`
 }
@@ -3693,6 +4035,15 @@ func (response DeleteCustomEmoji403JSONResponse) VisitDeleteCustomEmojiResponse(
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DeleteCustomEmoji404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteCustomEmoji404JSONResponse) VisitDeleteCustomEmojiResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type DeleteFileRequestObject struct {
 	Id string `json:"id"`
 }
@@ -3706,6 +4057,33 @@ type DeleteFile200JSONResponse SuccessResponse
 func (response DeleteFile200JSONResponse) VisitDeleteFileResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteFile401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteFile401JSONResponse) VisitDeleteFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteFile403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteFile403JSONResponse) VisitDeleteFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteFile404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteFile404JSONResponse) VisitDeleteFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3737,6 +4115,33 @@ func (response DownloadFile200ApplicationoctetStreamResponse) VisitDownloadFileR
 	return err
 }
 
+type DownloadFile401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DownloadFile401JSONResponse) VisitDownloadFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DownloadFile403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DownloadFile403JSONResponse) VisitDownloadFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DownloadFile404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DownloadFile404JSONResponse) VisitDownloadFileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type AcceptInviteRequestObject struct {
 	Code string `json:"code"`
 }
@@ -3752,6 +4157,24 @@ type AcceptInvite200JSONResponse struct {
 func (response AcceptInvite200JSONResponse) VisitAcceptInviteResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AcceptInvite401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response AcceptInvite401JSONResponse) VisitAcceptInviteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AcceptInvite404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response AcceptInvite404JSONResponse) VisitAcceptInviteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3810,6 +4233,33 @@ func (response DeleteMessage200JSONResponse) VisitDeleteMessageResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DeleteMessage401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteMessage401JSONResponse) VisitDeleteMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteMessage403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteMessage403JSONResponse) VisitDeleteMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteMessage404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteMessage404JSONResponse) VisitDeleteMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type MarkMessageUnreadRequestObject struct {
 	Id MessageId `json:"id"`
 }
@@ -3823,6 +4273,33 @@ type MarkMessageUnread200JSONResponse SuccessResponse
 func (response MarkMessageUnread200JSONResponse) VisitMarkMessageUnreadResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkMessageUnread401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response MarkMessageUnread401JSONResponse) VisitMarkMessageUnreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkMessageUnread403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response MarkMessageUnread403JSONResponse) VisitMarkMessageUnreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkMessageUnread404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response MarkMessageUnread404JSONResponse) VisitMarkMessageUnreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3847,6 +4324,42 @@ func (response AddReaction200JSONResponse) VisitAddReactionResponse(w http.Respo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type AddReaction400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response AddReaction400JSONResponse) VisitAddReactionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddReaction401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response AddReaction401JSONResponse) VisitAddReactionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddReaction403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response AddReaction403JSONResponse) VisitAddReactionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddReaction404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response AddReaction404JSONResponse) VisitAddReactionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type RemoveReactionRequestObject struct {
 	Id   MessageId `json:"id"`
 	Body *RemoveReactionJSONRequestBody
@@ -3861,6 +4374,24 @@ type RemoveReaction200JSONResponse SuccessResponse
 func (response RemoveReaction200JSONResponse) VisitRemoveReactionResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveReaction401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response RemoveReaction401JSONResponse) VisitRemoveReactionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveReaction404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response RemoveReaction404JSONResponse) VisitRemoveReactionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3957,6 +4488,33 @@ func (response ListThread200JSONResponse) VisitListThreadResponse(w http.Respons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ListThread401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListThread401JSONResponse) VisitListThreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListThread403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response ListThread403JSONResponse) VisitListThreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListThread404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ListThread404JSONResponse) VisitListThreadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type MarkThreadReadRequestObject struct {
 	Id   MessageId `json:"id"`
 	Body *MarkThreadReadJSONRequestBody
@@ -4046,6 +4604,42 @@ type UpdateMessage200JSONResponse struct {
 func (response UpdateMessage200JSONResponse) VisitUpdateMessageResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMessage400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdateMessage400JSONResponse) VisitUpdateMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMessage401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateMessage401JSONResponse) VisitUpdateMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMessage403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UpdateMessage403JSONResponse) VisitUpdateMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMessage404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateMessage404JSONResponse) VisitUpdateMessageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -4203,6 +4797,24 @@ func (response CreateWorkspace200JSONResponse) VisitCreateWorkspaceResponse(w ht
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CreateWorkspace400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateWorkspace400JSONResponse) VisitCreateWorkspaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateWorkspace401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateWorkspace401JSONResponse) VisitCreateWorkspaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ReorderWorkspacesRequestObject struct {
 	Body *ReorderWorkspacesJSONRequestBody
 }
@@ -4257,6 +4869,24 @@ func (response GetWorkspace200JSONResponse) VisitGetWorkspaceResponse(w http.Res
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetWorkspace401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetWorkspace401JSONResponse) VisitGetWorkspaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetWorkspace404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetWorkspace404JSONResponse) VisitGetWorkspaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type CreateChannelRequestObject struct {
 	Wid  WorkspaceId `json:"wid"`
 	Body *CreateChannelJSONRequestBody
@@ -4273,6 +4903,33 @@ type CreateChannel200JSONResponse struct {
 func (response CreateChannel200JSONResponse) VisitCreateChannelResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateChannel400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateChannel400JSONResponse) VisitCreateChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateChannel401JSONResponse) VisitCreateChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateChannel403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response CreateChannel403JSONResponse) VisitCreateChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -4297,6 +4954,24 @@ func (response CreateDM200JSONResponse) VisitCreateDMResponse(w http.ResponseWri
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CreateDM400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateDM400JSONResponse) VisitCreateDMResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateDM401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateDM401JSONResponse) VisitCreateDMResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ListChannelsRequestObject struct {
 	Wid WorkspaceId `json:"wid"`
 }
@@ -4312,6 +4987,15 @@ type ListChannels200JSONResponse struct {
 func (response ListChannels200JSONResponse) VisitListChannelsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListChannels401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListChannels401JSONResponse) VisitListChannelsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -4333,6 +5017,15 @@ func (response MarkAllChannelsRead200JSONResponse) VisitMarkAllChannelsReadRespo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type MarkAllChannelsRead401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response MarkAllChannelsRead401JSONResponse) VisitMarkAllChannelsReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetDMSuggestionsRequestObject struct {
 	Wid WorkspaceId `json:"wid"`
 }
@@ -4346,6 +5039,15 @@ type GetDMSuggestions200JSONResponse DMSuggestionsResponse
 func (response GetDMSuggestions200JSONResponse) VisitGetDMSuggestionsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetDMSuggestions401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetDMSuggestions401JSONResponse) VisitGetDMSuggestionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -4374,6 +5076,15 @@ type ListCustomEmojis401JSONResponse struct{ UnauthorizedJSONResponse }
 func (response ListCustomEmojis401JSONResponse) VisitListCustomEmojisResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListCustomEmojis403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response ListCustomEmojis403JSONResponse) VisitListCustomEmojisResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -4412,6 +5123,15 @@ type UploadCustomEmoji401JSONResponse struct{ UnauthorizedJSONResponse }
 func (response UploadCustomEmoji401JSONResponse) VisitUploadCustomEmojiResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadCustomEmoji403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UploadCustomEmoji403JSONResponse) VisitUploadCustomEmojiResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -4516,6 +5236,24 @@ func (response CreateWorkspaceInvite200JSONResponse) VisitCreateWorkspaceInviteR
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CreateWorkspaceInvite401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateWorkspaceInvite401JSONResponse) VisitCreateWorkspaceInviteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateWorkspaceInvite403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response CreateWorkspaceInvite403JSONResponse) VisitCreateWorkspaceInviteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ListWorkspaceMembersRequestObject struct {
 	Wid WorkspaceId `json:"wid"`
 }
@@ -4531,6 +5269,24 @@ type ListWorkspaceMembers200JSONResponse struct {
 func (response ListWorkspaceMembers200JSONResponse) VisitListWorkspaceMembersResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListWorkspaceMembers401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListWorkspaceMembers401JSONResponse) VisitListWorkspaceMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListWorkspaceMembers404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ListWorkspaceMembers404JSONResponse) VisitListWorkspaceMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -4553,6 +5309,33 @@ func (response RemoveWorkspaceMember200JSONResponse) VisitRemoveWorkspaceMemberR
 	return json.NewEncoder(w).Encode(response)
 }
 
+type RemoveWorkspaceMember401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response RemoveWorkspaceMember401JSONResponse) VisitRemoveWorkspaceMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveWorkspaceMember403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response RemoveWorkspaceMember403JSONResponse) VisitRemoveWorkspaceMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveWorkspaceMember404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response RemoveWorkspaceMember404JSONResponse) VisitRemoveWorkspaceMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type UpdateWorkspaceMemberRoleRequestObject struct {
 	Wid  WorkspaceId `json:"wid"`
 	Body *UpdateWorkspaceMemberRoleJSONRequestBody
@@ -4567,6 +5350,42 @@ type UpdateWorkspaceMemberRole200JSONResponse SuccessResponse
 func (response UpdateWorkspaceMemberRole200JSONResponse) VisitUpdateWorkspaceMemberRoleResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkspaceMemberRole400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdateWorkspaceMemberRole400JSONResponse) VisitUpdateWorkspaceMemberRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkspaceMemberRole401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateWorkspaceMemberRole401JSONResponse) VisitUpdateWorkspaceMemberRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkspaceMemberRole403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UpdateWorkspaceMemberRole403JSONResponse) VisitUpdateWorkspaceMemberRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkspaceMemberRole404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateWorkspaceMemberRole404JSONResponse) VisitUpdateWorkspaceMemberRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -4616,6 +5435,15 @@ func (response ListAllUnreads200JSONResponse) VisitListAllUnreadsResponse(w http
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ListAllUnreads401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListAllUnreads401JSONResponse) VisitListAllUnreadsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type UpdateWorkspaceRequestObject struct {
 	Wid  WorkspaceId `json:"wid"`
 	Body *UpdateWorkspaceJSONRequestBody
@@ -4632,6 +5460,42 @@ type UpdateWorkspace200JSONResponse struct {
 func (response UpdateWorkspace200JSONResponse) VisitUpdateWorkspaceResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkspace400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdateWorkspace400JSONResponse) VisitUpdateWorkspaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkspace401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateWorkspace401JSONResponse) VisitUpdateWorkspaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkspace403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UpdateWorkspace403JSONResponse) VisitUpdateWorkspaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkspace404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateWorkspace404JSONResponse) VisitUpdateWorkspaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }

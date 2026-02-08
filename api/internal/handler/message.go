@@ -19,7 +19,7 @@ import (
 func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRequestObject) (openapi.SendMessageResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.SendMessage401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -29,7 +29,7 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 
 	// Check channel is not archived
 	if ch.ArchivedAt != nil {
-		return nil, errors.New("cannot post to archived channel")
+		return openapi.SendMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot post to archived channel")}, nil
 	}
 
 	// Check channel membership
@@ -40,7 +40,7 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 			if ch.Type == channel.TypePublic {
 				_, err = h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
 				if err != nil {
-					return nil, errors.New("not a member of this workspace")
+					return openapi.SendMessage403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this workspace")}, nil
 				}
 				// Auto-join public channel
 				memberRole := "poster"
@@ -50,13 +50,13 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 					h.hub.AddChannelMember(string(request.Id), userID)
 				}
 			} else {
-				return nil, errors.New("not a member of this channel")
+				return openapi.SendMessage403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this channel")}, nil
 			}
 		} else {
 			return nil, err
 		}
 	} else if !channel.CanPost(membership.ChannelRole) {
-		return nil, errors.New("permission denied")
+		return openapi.SendMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	// Content is required unless attachments are provided
@@ -68,7 +68,7 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 	hasAttachments := request.Body.AttachmentIds != nil && len(*request.Body.AttachmentIds) > 0
 
 	if !hasContent && !hasAttachments {
-		return nil, errors.New("message content or attachments required")
+		return openapi.SendMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Message content or attachments required")}, nil
 	}
 
 	// Validate attachments if provided
@@ -79,19 +79,19 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 		for _, attachmentID := range attachmentIDs {
 			attachment, err := h.fileRepo.GetByID(ctx, attachmentID)
 			if err != nil {
-				return nil, fmt.Errorf("attachment %s not found", attachmentID)
+				return openapi.SendMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, fmt.Sprintf("Attachment %s not found", attachmentID))}, nil
 			}
 			// Verify attachment belongs to this channel
 			if attachment.ChannelID != string(request.Id) {
-				return nil, fmt.Errorf("attachment %s does not belong to this channel", attachmentID)
+				return openapi.SendMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, fmt.Sprintf("Attachment %s does not belong to this channel", attachmentID))}, nil
 			}
 			// Verify user owns the attachment
 			if attachment.UserID == nil || *attachment.UserID != userID {
-				return nil, fmt.Errorf("attachment %s does not belong to you", attachmentID)
+				return openapi.SendMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse(fmt.Sprintf("Attachment %s does not belong to you", attachmentID))}, nil
 			}
 			// Verify attachment not already linked to a message
 			if attachment.MessageID != nil {
-				return nil, fmt.Errorf("attachment %s is already linked to a message", attachmentID)
+				return openapi.SendMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, fmt.Sprintf("Attachment %s is already linked to a message", attachmentID))}, nil
 			}
 		}
 	}
@@ -103,16 +103,16 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 		threadParent, err = h.messageRepo.GetByID(ctx, *request.Body.ThreadParentId)
 		if err != nil {
 			if errors.Is(err, message.ErrMessageNotFound) {
-				return nil, errors.New("thread parent message not found")
+				return openapi.SendMessage404JSONResponse{NotFoundJSONResponse: notFoundResponse("Thread parent message not found")}, nil
 			}
 			return nil, err
 		}
 		if threadParent.ChannelID != string(request.Id) {
-			return nil, errors.New("thread parent must be in the same channel")
+			return openapi.SendMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Thread parent must be in the same channel")}, nil
 		}
 		// Can't reply to a reply
 		if threadParent.ThreadParentID != nil {
-			return nil, errors.New("cannot reply to a thread reply")
+			return openapi.SendMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot reply to a thread reply")}, nil
 		}
 	}
 
@@ -215,7 +215,7 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 func (h *Handler) ListMessages(ctx context.Context, request openapi.ListMessagesRequestObject) (openapi.ListMessagesResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.ListMessages401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	ch, err := h.channelRepo.GetByID(ctx, string(request.Id))
@@ -228,12 +228,12 @@ func (h *Handler) ListMessages(ctx context.Context, request openapi.ListMessages
 	if err != nil {
 		if errors.Is(err, channel.ErrNotChannelMember) {
 			if ch.Type != channel.TypePublic {
-				return nil, errors.New("not a member of this channel")
+				return openapi.ListMessages403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this channel")}, nil
 			}
 			// Public channels: verify workspace membership
 			_, err = h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
 			if err != nil {
-				return nil, errors.New("not a member of this workspace")
+				return openapi.ListMessages403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this workspace")}, nil
 			}
 		} else {
 			return nil, err
@@ -268,7 +268,7 @@ func (h *Handler) ListMessages(ctx context.Context, request openapi.ListMessages
 func (h *Handler) UpdateMessage(ctx context.Context, request openapi.UpdateMessageRequestObject) (openapi.UpdateMessageResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.UpdateMessage401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	msg, err := h.messageRepo.GetByID(ctx, string(request.Id))
@@ -278,21 +278,21 @@ func (h *Handler) UpdateMessage(ctx context.Context, request openapi.UpdateMessa
 
 	// Can't edit system messages
 	if msg.Type == message.MessageTypeSystem {
-		return nil, message.ErrCannotEditSystemMsg
+		return openapi.UpdateMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot edit system messages")}, nil
 	}
 
 	// Only message author can edit
 	if msg.UserID == nil || *msg.UserID != userID {
-		return nil, errors.New("you can only edit your own messages")
+		return openapi.UpdateMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("You can only edit your own messages")}, nil
 	}
 
 	// Can't edit deleted messages
 	if msg.DeletedAt != nil {
-		return nil, errors.New("cannot edit deleted message")
+		return openapi.UpdateMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot edit deleted message")}, nil
 	}
 
 	if strings.TrimSpace(request.Body.Content) == "" {
-		return nil, errors.New("message content is required")
+		return openapi.UpdateMessage400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Message content is required")}, nil
 	}
 
 	if err := h.messageRepo.Update(ctx, string(request.Id), request.Body.Content); err != nil {
@@ -330,7 +330,7 @@ func (h *Handler) UpdateMessage(ctx context.Context, request openapi.UpdateMessa
 func (h *Handler) DeleteMessage(ctx context.Context, request openapi.DeleteMessageRequestObject) (openapi.DeleteMessageResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.DeleteMessage401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	msg, err := h.messageRepo.GetByID(ctx, string(request.Id))
@@ -340,7 +340,7 @@ func (h *Handler) DeleteMessage(ctx context.Context, request openapi.DeleteMessa
 
 	// Can't delete system messages
 	if msg.Type == message.MessageTypeSystem {
-		return nil, message.ErrCannotDeleteSystemMsg
+		return openapi.DeleteMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Cannot delete system messages")}, nil
 	}
 
 	// Check permissions: author or workspace admin
@@ -359,7 +359,7 @@ func (h *Handler) DeleteMessage(ctx context.Context, request openapi.DeleteMessa
 	}
 
 	if !canDelete {
-		return nil, errors.New("permission denied")
+		return openapi.DeleteMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	if err := h.messageRepo.Delete(ctx, string(request.Id)); err != nil {
@@ -383,7 +383,7 @@ func (h *Handler) DeleteMessage(ctx context.Context, request openapi.DeleteMessa
 func (h *Handler) AddReaction(ctx context.Context, request openapi.AddReactionRequestObject) (openapi.AddReactionResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.AddReaction401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	msg, err := h.messageRepo.GetByID(ctx, string(request.Id))
@@ -401,7 +401,7 @@ func (h *Handler) AddReaction(ctx context.Context, request openapi.AddReactionRe
 	if err != nil {
 		if errors.Is(err, channel.ErrNotChannelMember) {
 			if ch.Type != channel.TypePublic {
-				return nil, errors.New("not a member of this channel")
+				return openapi.AddReaction403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this channel")}, nil
 			}
 		} else {
 			return nil, err
@@ -409,7 +409,7 @@ func (h *Handler) AddReaction(ctx context.Context, request openapi.AddReactionRe
 	}
 
 	if strings.TrimSpace(request.Body.Emoji) == "" {
-		return nil, errors.New("emoji is required")
+		return openapi.AddReaction400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Emoji is required")}, nil
 	}
 
 	reaction, err := h.messageRepo.AddReaction(ctx, string(request.Id), userID, request.Body.Emoji)
@@ -435,7 +435,7 @@ func (h *Handler) AddReaction(ctx context.Context, request openapi.AddReactionRe
 func (h *Handler) RemoveReaction(ctx context.Context, request openapi.RemoveReactionRequestObject) (openapi.RemoveReactionResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.RemoveReaction401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	msg, err := h.messageRepo.GetByID(ctx, string(request.Id))
@@ -472,7 +472,7 @@ func (h *Handler) RemoveReaction(ctx context.Context, request openapi.RemoveReac
 func (h *Handler) ListThread(ctx context.Context, request openapi.ListThreadRequestObject) (openapi.ListThreadResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.ListThread401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	msg, err := h.messageRepo.GetByID(ctx, string(request.Id))
@@ -490,12 +490,12 @@ func (h *Handler) ListThread(ctx context.Context, request openapi.ListThreadRequ
 	if err != nil {
 		if errors.Is(err, channel.ErrNotChannelMember) {
 			if ch.Type != channel.TypePublic {
-				return nil, errors.New("not a member of this channel")
+				return openapi.ListThread403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this channel")}, nil
 			}
 			// Verify workspace membership for public channels
 			_, err = h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
 			if err != nil {
-				return nil, errors.New("not a member of this workspace")
+				return openapi.ListThread403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this workspace")}, nil
 			}
 		} else {
 			return nil, err
@@ -733,7 +733,7 @@ func (h *Handler) GetMessage(ctx context.Context, request openapi.GetMessageRequ
 func (h *Handler) MarkMessageUnread(ctx context.Context, request openapi.MarkMessageUnreadRequestObject) (openapi.MarkMessageUnreadResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.MarkMessageUnread401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	// Get the message
@@ -752,7 +752,7 @@ func (h *Handler) MarkMessageUnread(ctx context.Context, request openapi.MarkMes
 	if err != nil {
 		if errors.Is(err, channel.ErrNotChannelMember) {
 			if ch.Type != channel.TypePublic {
-				return nil, errors.New("not a member of this channel")
+				return openapi.MarkMessageUnread403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this channel")}, nil
 			}
 		} else {
 			return nil, err

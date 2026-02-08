@@ -52,7 +52,7 @@ func toOpenAPIEmoji(e *emoji.CustomEmoji) openapi.CustomEmoji {
 func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadCustomEmojiRequestObject) (openapi.UploadCustomEmojiResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.UploadCustomEmoji401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	workspaceID := request.Wid
@@ -60,7 +60,7 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 	// Check workspace membership
 	_, err := h.workspaceRepo.GetMembership(ctx, userID, workspaceID)
 	if err != nil {
-		return nil, errors.New("not a member of this workspace")
+		return openapi.UploadCustomEmoji403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this workspace")}, nil
 	}
 
 	// Parse multipart: read "name" field and "file" field
@@ -74,7 +74,7 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 			break
 		}
 		if err != nil {
-			return nil, errors.New("invalid multipart data")
+			return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid multipart data")}, nil
 		}
 
 		switch part.FormName() {
@@ -82,7 +82,7 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 			data, err := io.ReadAll(io.LimitReader(part, 128))
 			if err != nil {
 				part.Close()
-				return nil, errors.New("failed to read name field")
+				return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Failed to read name field")}, nil
 			}
 			name = string(data)
 		case "file":
@@ -93,7 +93,7 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 			data, err := io.ReadAll(io.LimitReader(part, maxEmojiSize+1))
 			if err != nil {
 				part.Close()
-				return nil, errors.New("failed to read file")
+				return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Failed to read file")}, nil
 			}
 			fileData = data
 		}
@@ -101,27 +101,27 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 	}
 
 	if name == "" {
-		return nil, errors.New("name is required")
+		return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Name is required")}, nil
 	}
 	if len(fileData) == 0 {
-		return nil, errors.New("file is required")
+		return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "File is required")}, nil
 	}
 
 	// Validate name
 	name = strings.ToLower(name)
 	if !emojiNameRegexp.MatchString(name) {
-		return nil, errors.New("invalid emoji name: must be alphanumeric with hyphens/underscores, 1-63 characters")
+		return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid emoji name: must be alphanumeric with hyphens/underscores, 1-63 characters")}, nil
 	}
 
 	// Validate content type
 	ext, ok := allowedEmojiTypes[contentType]
 	if !ok {
-		return nil, errors.New("invalid file type: only PNG and GIF are allowed")
+		return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid file type: only PNG and GIF are allowed")}, nil
 	}
 
 	// Validate size
 	if int64(len(fileData)) > maxEmojiSize {
-		return nil, errors.New("file too large: maximum size is 256KB")
+		return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "File too large: maximum size is 256KB")}, nil
 	}
 
 	// Create emoji record first to get ID
@@ -142,7 +142,7 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 	// We need the ID before writing to disk, so create DB record first
 	if err := h.emojiRepo.Create(ctx, e); err != nil {
 		if errors.Is(err, emoji.ErrEmojiNameTaken) {
-			return nil, errors.New("emoji name already taken")
+			return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeConflict, "Emoji name already taken")}, nil
 		}
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 func (h *Handler) ListCustomEmojis(ctx context.Context, request openapi.ListCustomEmojisRequestObject) (openapi.ListCustomEmojisResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.ListCustomEmojis401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	workspaceID := request.Wid
@@ -185,7 +185,7 @@ func (h *Handler) ListCustomEmojis(ctx context.Context, request openapi.ListCust
 	// Check workspace membership
 	_, err := h.workspaceRepo.GetMembership(ctx, userID, workspaceID)
 	if err != nil {
-		return nil, errors.New("not a member of this workspace")
+		return openapi.ListCustomEmojis403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this workspace")}, nil
 	}
 
 	emojis, err := h.emojiRepo.ListByWorkspace(ctx, workspaceID)
@@ -207,13 +207,13 @@ func (h *Handler) ListCustomEmojis(ctx context.Context, request openapi.ListCust
 func (h *Handler) DeleteCustomEmoji(ctx context.Context, request openapi.DeleteCustomEmojiRequestObject) (openapi.DeleteCustomEmojiResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
-		return nil, errors.New("not authenticated")
+		return openapi.DeleteCustomEmoji401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
 	e, err := h.emojiRepo.GetByID(ctx, request.Id)
 	if err != nil {
 		if errors.Is(err, emoji.ErrEmojiNotFound) {
-			return nil, errors.New("emoji not found")
+			return openapi.DeleteCustomEmoji404JSONResponse{NotFoundJSONResponse: notFoundResponse("Emoji not found")}, nil
 		}
 		return nil, err
 	}
@@ -229,7 +229,7 @@ func (h *Handler) DeleteCustomEmoji(ctx context.Context, request openapi.DeleteC
 	}
 
 	if !canDelete {
-		return nil, errors.New("permission denied")
+		return openapi.DeleteCustomEmoji403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	// Delete file from disk
