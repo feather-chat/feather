@@ -1,5 +1,9 @@
 import type { SuggestionOptions, SuggestionProps } from '@tiptap/suggestion';
-import { ChannelSuggestionList, type ChannelOption, type ChannelSuggestionRef } from './ChannelSuggestionList';
+import {
+  ChannelSuggestionList,
+  type ChannelOption,
+  type ChannelSuggestionRef,
+} from './ChannelSuggestionList';
 
 /**
  * Create suggestion configuration for TipTap channel mention extension.
@@ -52,8 +56,10 @@ export function createChannelSuggestion(
                     type: item.type,
                   } as ChannelOption);
                 }}
-                ref={(r) => { ref = r; }}
-              />
+                ref={(r) => {
+                  ref = r;
+                }}
+              />,
             );
 
             // Clamp to viewport after render
@@ -103,8 +109,10 @@ export function createChannelSuggestion(
                   type: item.type,
                 } as ChannelOption);
               }}
-              ref={(r) => { ref = r; }}
-            />
+              ref={(r) => {
+                ref = r;
+              }}
+            />,
           );
 
           // Clamp to viewport

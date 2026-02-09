@@ -69,7 +69,7 @@ export const SpecialMention = Node.create<SpecialMentionOptions>({
         HTMLAttributes,
         {
           class: 'mention special-mention',
-        }
+        },
       ),
       this.options.renderLabel({ options: this.options, node }),
     ];

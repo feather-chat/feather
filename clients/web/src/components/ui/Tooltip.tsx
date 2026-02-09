@@ -12,19 +12,14 @@ interface TooltipProps {
   delay?: number;
 }
 
-export function Tooltip({
-  children,
-  content,
-  placement = 'top',
-  delay = 300,
-}: TooltipProps) {
+export function Tooltip({ children, content, placement = 'top', delay = 300 }: TooltipProps) {
   return (
     <TooltipTrigger delay={delay}>
       {children}
       <AriaTooltip
         placement={placement}
         offset={6}
-        className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-2 py-1 rounded text-sm shadow-lg max-w-xs"
+        className="max-w-xs rounded bg-gray-900 px-2 py-1 text-sm text-white shadow-lg dark:bg-gray-100 dark:text-gray-900"
       >
         {content}
       </AriaTooltip>

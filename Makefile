@@ -1,4 +1,4 @@
-.PHONY: dev build test clean generate-types install
+.PHONY: dev build test clean generate-types install format format-check
 
 # Development - runs API and web client concurrently
 dev:
@@ -34,3 +34,13 @@ clean:
 lint:
 	cd api && make lint
 	pnpm -r lint
+
+# Format all code
+format:
+	cd api && make fmt
+	pnpm format
+
+# Check formatting (for CI)
+format-check:
+	cd api && test -z "$$(gofmt -l .)" || (echo "Go files not formatted"; exit 1)
+	pnpm format:check

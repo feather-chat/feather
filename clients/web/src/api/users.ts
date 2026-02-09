@@ -17,11 +17,9 @@ export interface AvatarUploadResponse {
 }
 
 export const usersApi = {
-  getUser: (userId: string) =>
-    get<{ user: UserProfile }>(`/users/${userId}`),
+  getUser: (userId: string) => get<{ user: UserProfile }>(`/users/${userId}`),
 
-  updateProfile: (input: UpdateProfileInput) =>
-    post<{ user: User }>('/users/me/profile', input),
+  updateProfile: (input: UpdateProfileInput) => post<{ user: User }>('/users/me/profile', input),
 
   uploadAvatar: (file: File) =>
     uploadFile('/users/me/avatar', file) as Promise<AvatarUploadResponse>,

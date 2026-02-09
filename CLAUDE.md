@@ -69,35 +69,41 @@ feather/
 
 ## Build Commands
 
-| Command | Description |
-|---------|-------------|
-| `make dev` | Start API and web dev servers |
-| `make build` | Build all (generate types first) |
-| `make test` | Run all tests |
-| `make generate-types` | Regenerate types from OpenAPI |
-| `make lint` | Lint all code |
-| `make clean` | Clean build artifacts |
-| `make install` | Install all dependencies |
+| Command               | Description                      |
+| --------------------- | -------------------------------- |
+| `make dev`            | Start API and web dev servers    |
+| `make build`          | Build all (generate types first) |
+| `make test`           | Run all tests                    |
+| `make generate-types` | Regenerate types from OpenAPI    |
+| `make lint`           | Lint all code                    |
+| `make format`         | Format all code (Go + JS/TS)     |
+| `make format-check`   | Check formatting (for CI)        |
+| `make clean`          | Clean build artifacts            |
+| `make install`        | Install all dependencies         |
 
 ## Type Generation
 
 Types flow from `api/openapi.yaml`:
+
 1. **Go server**: `oapi-codegen` generates `api/internal/openapi/server.gen.go` (types + strict server interface)
 2. **TypeScript types**: `openapi-typescript` generates `packages/api-client/generated/schema.ts`
 
 Regenerate after API changes:
+
 ```bash
 make generate-types    # Regenerate both Go and TypeScript
 cd api && make generate  # Regenerate Go only
 ```
 
 The Go server uses spec-first development:
+
 - `api/openapi.yaml` is the single source of truth
 - `oapi-codegen` generates `StrictServerInterface` with typed request/response objects
 - Handler implementations in `api/internal/handler/` must satisfy the interface (compiler enforces)
 - SSE endpoints are excluded from generation (require streaming)
 
 Usage in web client:
+
 ```typescript
 import type { User, Message, Channel } from '@feather/api-client';
 import { get, post, ApiError } from '@feather/api-client';
@@ -110,12 +116,14 @@ import { get, post, ApiError } from '@feather/api-client';
 ### Architecture Patterns
 
 **Spec-First OpenAPI** - The Go server uses generated code from OpenAPI:
+
 - `api/openapi.yaml` defines all endpoints, request/response schemas
 - `oapi-codegen` generates `StrictServerInterface` with typed wrappers
 - `api/internal/handler/` contains implementations (one file per domain)
 - Compiler enforces the contract - drift is impossible
 
 **Domain Structure** - Each domain (user, workspace, channel, message, file) follows:
+
 - `model.go` - Data structures and constants
 - `repository.go` - Database operations
 - Handler implementations in `api/internal/handler/<domain>.go`
@@ -123,11 +131,13 @@ import { get, post, ApiError } from '@feather/api-client';
 **Dependency Injection** - Wired in `api/internal/app/app.go`. The App struct owns all components.
 
 **Database**
+
 - SQLite with `modernc.org/sqlite` (pure Go, no CGO)
 - Single connection (`SetMaxOpenConns(1)`) to avoid SQLITE_BUSY
 - WAL mode, migrations via goose, timestamps as RFC3339
 
 **Authentication**
+
 - Session-based using `alexedwards/scs` with SQLite store
 - bcrypt (cost 12), cookie named `feather_session`
 - Get user: `auth.GetUserID(ctx)`
@@ -135,27 +145,29 @@ import { get, post, ApiError } from '@feather/api-client';
 **IDs** - ULIDs via `ulid.Make().String()`
 
 **Error Format**
+
 ```json
-{"error": {"code": "ERROR_CODE", "message": "Human readable message"}}
+{ "error": { "code": "ERROR_CODE", "message": "Human readable message" } }
 ```
 
 **SSE** - Hub per workspace, 30s heartbeat, events stored for reconnection catch-up
 
 ### Key API Files
 
-| File | Purpose |
-|------|---------|
-| `api/openapi.yaml` | API specification (source of truth) |
-| `api/internal/openapi/server.gen.go` | Generated types and interfaces |
-| `api/internal/handler/handler.go` | Main handler implementing StrictServerInterface |
-| `api/internal/app/app.go` | Dependency wiring |
-| `api/internal/server/router.go` | Router setup, mounts generated handlers |
-| `api/internal/auth/middleware.go` | Auth middleware (used for SSE routes) |
-| `api/internal/sse/hub.go` | Real-time broadcasting |
+| File                                 | Purpose                                         |
+| ------------------------------------ | ----------------------------------------------- |
+| `api/openapi.yaml`                   | API specification (source of truth)             |
+| `api/internal/openapi/server.gen.go` | Generated types and interfaces                  |
+| `api/internal/handler/handler.go`    | Main handler implementing StrictServerInterface |
+| `api/internal/app/app.go`            | Dependency wiring                               |
+| `api/internal/server/router.go`      | Router setup, mounts generated handlers         |
+| `api/internal/auth/middleware.go`    | Auth middleware (used for SSE routes)           |
+| `api/internal/sse/hub.go`            | Real-time broadcasting                          |
 
 ### Common API Tasks
 
 **Add endpoint**:
+
 1. Add endpoint to `api/openapi.yaml` with request/response schemas
 2. Run `cd api && make generate` to regenerate `server.gen.go`
 3. Implement the new method in the appropriate `api/internal/handler/<domain>.go`
@@ -166,11 +178,13 @@ import { get, post, ApiError } from '@feather/api-client';
 **SQLite migrations**: This project uses `modernc.org/sqlite` which supports SQLite 3.35+ features including `ALTER TABLE DROP COLUMN`.
 
 For dropping columns, use:
+
 ```sql
 ALTER TABLE my_table DROP COLUMN column_name;
 ```
 
 Only use table recreation for complex changes (altering column types/constraints). If recreating tables, disable foreign keys to prevent CASCADE deletes:
+
 ```sql
 PRAGMA foreign_keys = OFF;
 -- ... recreation steps ...
@@ -182,6 +196,7 @@ PRAGMA foreign_keys = ON;
 ### Configuration
 
 Loads in order (later overrides earlier):
+
 1. Defaults (`config.Defaults()`)
 2. Config file (`config.yaml` or `--config`)
 3. Environment (`FEATHER_` prefix)
@@ -190,6 +205,7 @@ Loads in order (later overrides earlier):
 ### Testing
 
 **Run tests**:
+
 ```bash
 cd api && go test ./...           # Run all tests
 cd api && go test -v ./...        # Verbose output
@@ -198,11 +214,13 @@ cd api && go test ./internal/user/...  # Specific package
 ```
 
 **Test file conventions**:
+
 - Test files are named `*_test.go` alongside source files
 - Test database uses in-memory SQLite (`:memory:`)
 - Use low bcrypt cost (4) in tests for speed
 
 **Test utilities** (`api/internal/testutil/`):
+
 ```go
 // In-memory test database with migrations
 db := testutil.TestDB(t)
@@ -218,6 +236,7 @@ mockResets := testutil.NewMockPasswordResetRepository()
 ```
 
 **Test patterns**:
+
 - Table-driven tests for permission helpers and validation
 - Repository tests use real in-memory SQLite
 - Handler tests use minimal dependencies with mock repositories
@@ -248,6 +267,7 @@ curl -X POST http://localhost:8080/api/workspaces/create \
 ### Architecture
 
 **State Management**
+
 - **Server state**: TanStack Query - hooks in `src/hooks/`, cache keys like `['messages', channelId]`
 - **UI state**: URL search params (thread/profile panels via `usePanel.ts`) and localStorage (sidebar via `useSidebar.ts`)
 - **Ephemeral state**: `useSyncExternalStore` in `lib/presenceStore.ts` for typing indicators and presence
@@ -257,6 +277,7 @@ curl -X POST http://localhost:8080/api/workspaces/create \
 **Styling**: Tailwind CSS, dark mode via `dark:` prefix
 
 **UI Components**: React Aria Components (RAC) for accessible, keyboard-navigable UI primitives
+
 - Wrapper components in `src/components/ui/` use RAC + `tailwind-variants` for styling
 - RAC provides focus management, keyboard nav, ARIA attributes out of the box
 - Use `onPress` instead of `onClick`, `isDisabled` instead of `disabled`
@@ -264,18 +285,19 @@ curl -X POST http://localhost:8080/api/workspaces/create \
 
 ### Key Web Files
 
-| File | Purpose |
-|------|---------|
-| `src/App.tsx` | Router, providers |
-| `src/hooks/useAuth.ts` | Auth state |
-| `src/hooks/useMessages.ts` | Messages, reactions |
-| `src/hooks/useSSE.ts` | SSE → cache updates |
-| `src/hooks/usePanel.ts` | Thread/profile panel state (URL-based) |
-| `src/lib/presenceStore.ts` | Typing indicators, user presence |
+| File                       | Purpose                                |
+| -------------------------- | -------------------------------------- |
+| `src/App.tsx`              | Router, providers                      |
+| `src/hooks/useAuth.ts`     | Auth state                             |
+| `src/hooks/useMessages.ts` | Messages, reactions                    |
+| `src/hooks/useSSE.ts`      | SSE → cache updates                    |
+| `src/hooks/usePanel.ts`    | Thread/profile panel state (URL-based) |
+| `src/lib/presenceStore.ts` | Typing indicators, user presence       |
 
 ### Common Web Tasks
 
 **Add API endpoint**:
+
 1. Add to `api/openapi.yaml`
 2. Run `make generate-types`
 3. Add function in `src/api/`
@@ -286,6 +308,7 @@ curl -X POST http://localhost:8080/api/workspaces/create \
 **Add page**: Create in `src/pages/`, add route in `App.tsx`, wrap with `<RequireAuth>` if needed
 
 **Add UI component**: Create in `src/components/ui/`, use React Aria Components + `tv()` for styling:
+
 ```tsx
 import { Button as AriaButton } from 'react-aria-components';
 import { tv } from 'tailwind-variants';
@@ -295,11 +318,13 @@ export function MyComponent({ size = 'md' }) {
   return <AriaButton className={styles({ size })}>...</AriaButton>;
 }
 ```
+
 Export from `src/components/ui/index.ts`
 
 ### Patterns
 
 **Optimistic updates** (see `useAddReaction`):
+
 1. `onMutate`: Cancel queries, save previous, update cache
 2. `onError`: Rollback
 3. `onSettled`: Invalidate

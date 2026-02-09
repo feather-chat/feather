@@ -1,5 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { workspacesApi, type CreateWorkspaceInput, type CreateInviteInput } from '../api/workspaces';
+import {
+  workspacesApi,
+  type CreateWorkspaceInput,
+  type CreateInviteInput,
+} from '../api/workspaces';
 import type { WorkspaceRole, WorkspaceSummary } from '@feather/api-client';
 
 export function useWorkspace(workspaceId: string | undefined) {
@@ -101,7 +105,10 @@ export function useReorderWorkspaces() {
     onMutate: async (workspaceIds) => {
       await queryClient.cancelQueries({ queryKey: ['auth', 'me'] });
 
-      const previousData = queryClient.getQueryData<{ user: unknown; workspaces: WorkspaceSummary[] }>(['auth', 'me']);
+      const previousData = queryClient.getQueryData<{
+        user: unknown;
+        workspaces: WorkspaceSummary[];
+      }>(['auth', 'me']);
 
       // Optimistically reorder workspaces
       queryClient.setQueryData(
@@ -130,7 +137,7 @@ export function useReorderWorkspaces() {
           });
 
           return { ...old, workspaces: reordered };
-        }
+        },
       );
 
       return { previousData };

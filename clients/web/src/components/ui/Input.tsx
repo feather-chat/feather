@@ -71,11 +71,7 @@ export function Input({
       }}
     >
       {label && <Label className={styles.label()}>{label}</Label>}
-      <AriaInput
-        className={styles.input()}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-      />
+      <AriaInput className={styles.input()} placeholder={placeholder} autoComplete={autoComplete} />
       {error && <FieldError className={styles.error()}>{error}</FieldError>}
     </TextField>
   );

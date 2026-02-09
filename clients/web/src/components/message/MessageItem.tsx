@@ -1,51 +1,32 @@
-import { useState, useRef, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { TrashIcon } from "@heroicons/react/24/outline";
-import { Avatar, Modal, Button, toast } from "../ui";
-import { AttachmentDisplay } from "./AttachmentDisplay";
-import { MessageContent } from "./MessageContent";
-import { ThreadRepliesIndicator } from "./ThreadRepliesIndicator";
-import { MessageActionBar } from "./MessageActionBar";
-import { ReactionsDisplay } from "./ReactionsDisplay";
-import { groupReactionsByEmoji, createMemberNamesMap } from "./reactionUtils";
-import {
-  useAuth,
-  useAddReaction,
-  useRemoveReaction,
-  useWorkspaceMembers,
-} from "../../hooks";
-import {
-  useMarkMessageUnread,
-  useUpdateMessage,
-  useDeleteMessage,
-} from "../../hooks/useMessages";
-import { useCustomEmojiMap, useCustomEmojis } from "../../hooks/useCustomEmojis";
-import { useThreadPanel, useProfilePanel } from "../../hooks/usePanel";
-import { cn, formatTime } from "../../lib/utils";
-import type { MessageWithUser, ChannelWithMembership } from "@feather/api-client";
+import { useState, useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { TrashIcon } from '@heroicons/react/24/outline';
+import { Avatar, Modal, Button, toast } from '../ui';
+import { AttachmentDisplay } from './AttachmentDisplay';
+import { MessageContent } from './MessageContent';
+import { ThreadRepliesIndicator } from './ThreadRepliesIndicator';
+import { MessageActionBar } from './MessageActionBar';
+import { ReactionsDisplay } from './ReactionsDisplay';
+import { groupReactionsByEmoji, createMemberNamesMap } from './reactionUtils';
+import { useAuth, useAddReaction, useRemoveReaction, useWorkspaceMembers } from '../../hooks';
+import { useMarkMessageUnread, useUpdateMessage, useDeleteMessage } from '../../hooks/useMessages';
+import { useCustomEmojiMap, useCustomEmojis } from '../../hooks/useCustomEmojis';
+import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
+import { cn, formatTime } from '../../lib/utils';
+import type { MessageWithUser, ChannelWithMembership } from '@feather/api-client';
 
-function ClickableName({
-  userId,
-  displayName,
-}: {
-  userId?: string;
-  displayName: string;
-}) {
+function ClickableName({ userId, displayName }: { userId?: string; displayName: string }) {
   const { openProfile } = useProfilePanel();
 
   if (!userId) {
-    return (
-      <span className="font-medium text-gray-900 dark:text-white">
-        {displayName}
-      </span>
-    );
+    return <span className="font-medium text-gray-900 dark:text-white">{displayName}</span>;
   }
 
   return (
     <button
       type="button"
       onClick={() => openProfile(userId)}
-      className="font-medium text-gray-900 dark:text-white hover:underline cursor-pointer"
+      className="cursor-pointer font-medium text-gray-900 hover:underline dark:text-white"
     >
       {displayName}
     </button>
@@ -66,7 +47,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState("");
+  const [editContent, setEditContent] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -76,7 +57,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
   const { openProfile } = useProfilePanel();
   const addReaction = useAddReaction(channelId);
   const removeReaction = useRemoveReaction(channelId);
-  const markUnread = useMarkMessageUnread(workspaceId || "");
+  const markUnread = useMarkMessageUnread(workspaceId || '');
   const updateMessage = useUpdateMessage();
   const deleteMessage = useDeleteMessage();
   const { data: membersData } = useWorkspaceMembers(workspaceId);
@@ -108,7 +89,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditContent("");
+    setEditContent('');
   };
 
   const handleSaveEdit = () => {
@@ -119,7 +100,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
       });
     }
     setIsEditing(false);
-    setEditContent("");
+    setEditContent('');
   };
 
   const handleDeleteClick = () => {
@@ -130,7 +111,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
   const handleCopyLink = () => {
     const url = `${window.location.origin}/workspaces/${workspaceId}/channels/${channelId}?msg=${message.id}`;
     navigator.clipboard.writeText(url);
-    toast("Link copied to clipboard", "success");
+    toast('Link copied to clipboard', 'success');
     setShowDropdown(false);
   };
 
@@ -157,9 +138,9 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
   };
 
   const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Escape") {
+    if (e.key === 'Escape') {
       handleCancelEdit();
-    } else if (e.key === "Enter" && !e.shiftKey) {
+    } else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSaveEdit();
     }
@@ -170,8 +151,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
     if (isEditing && editTextareaRef.current) {
       editTextareaRef.current.focus();
       // Move cursor to end
-      editTextareaRef.current.selectionStart =
-        editTextareaRef.current.value.length;
+      editTextareaRef.current.selectionStart = editTextareaRef.current.value.length;
     }
   }, [isEditing]);
 
@@ -186,13 +166,13 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
       <div className="group px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800/50">
         <div className="flex items-start gap-3">
           {/* Trash icon in avatar-sized circle */}
-          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-            <TrashIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
+            <TrashIcon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
-            <span className="text-sm text-gray-400 dark:text-gray-500 italic">
+          <div className="min-w-0 flex-1">
+            <span className="text-sm italic text-gray-400 dark:text-gray-500">
               This message was deleted.
             </span>
 
@@ -213,11 +193,11 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
     <div
       ref={messageRef}
       className={cn(
-        "group px-4 py-1.5 relative",
+        'group relative px-4 py-1.5',
         isDeleting
-          ? "bg-red-400 dark:bg-red-700 !max-h-0 opacity-0 !py-0 overflow-hidden transition-all duration-500"
-          : "hover:bg-gray-50 dark:hover:bg-gray-800/50",
-        showDropdown && !isDeleting && "bg-gray-50 dark:bg-gray-800/50",
+          ? '!max-h-0 overflow-hidden bg-red-400 !py-0 opacity-0 transition-all duration-500 dark:bg-red-700'
+          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+        showDropdown && !isDeleting && 'bg-gray-50 dark:bg-gray-800/50',
       )}
       style={isDeleting ? { marginTop: 0, marginBottom: 0 } : undefined}
       onMouseEnter={() => setShowActions(true)}
@@ -231,30 +211,24 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
         {/* Avatar */}
         <Avatar
           src={message.user_avatar_url}
-          name={message.user_display_name || "Unknown"}
+          name={message.user_display_name || 'Unknown'}
           id={message.user_id}
           size="md"
-          onClick={
-            message.user_id ? () => openProfile(message.user_id!) : undefined
-          }
+          onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
         />
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           {/* Header */}
           <div className="flex items-baseline gap-2">
             <ClickableName
               userId={message.user_id}
-              displayName={message.user_display_name || "Unknown User"}
+              displayName={message.user_display_name || 'Unknown User'}
             />
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
             </span>
-            {isEdited && (
-              <span className="text-xs text-gray-400 dark:text-gray-500">
-                (edited)
-              </span>
-            )}
+            {isEdited && <span className="text-xs text-gray-400 dark:text-gray-500">(edited)</span>}
           </div>
 
           {/* Broadcast thread reply indicator */}
@@ -262,7 +236,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
             <button
               type="button"
               onClick={() => openThread(message.thread_parent_id!)}
-              className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+              className="text-xs text-primary-600 hover:underline dark:text-primary-400"
             >
               replied to a thread
             </button>
@@ -270,30 +244,30 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
 
           {/* Message content */}
           {isEditing ? (
-            <div className="space-y-2 mt-1">
+            <div className="mt-1 space-y-2">
               <textarea
                 ref={editTextareaRef}
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleEditKeyDown}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 rows={3}
               />
               <div className="flex items-center gap-2 text-sm">
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded bg-primary-600 px-3 py-1 text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {updateMessage.isPending ? "Saving..." : "Save"}
+                  {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  className="rounded px-3 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
-                <span className="text-gray-500 dark:text-gray-400 text-xs">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   Escape to cancel, Enter to save
                 </span>
               </div>
@@ -301,7 +275,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
           ) : (
             <>
               {message.content && (
-                <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+                <div className="whitespace-pre-wrap break-words text-gray-800 dark:text-gray-200">
                   <MessageContent
                     content={message.content}
                     members={membersData?.members}
@@ -358,9 +332,8 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
         title="Delete message"
         size="sm"
       >
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
-          Are you sure you want to delete this message? This action cannot be
-          undone.
+        <p className="mb-4 text-gray-600 dark:text-gray-300">
+          Are you sure you want to delete this message? This action cannot be undone.
         </p>
         <div className="flex justify-end gap-3">
           <Button variant="secondary" onPress={() => setShowDeleteModal(false)}>

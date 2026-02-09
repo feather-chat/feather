@@ -6,9 +6,7 @@ describe('searchEmojis', () => {
     const results = searchEmojis('');
     expect(results.length).toBeGreaterThan(0);
     // Should return common emojis
-    expect(results.map((r) => r.emoji)).toEqual(
-      expect.arrayContaining([COMMON_EMOJIS[0]])
-    );
+    expect(results.map((r) => r.emoji)).toEqual(expect.arrayContaining([COMMON_EMOJIS[0]]));
     // Every result should have a resolved shortcode
     for (const r of results) {
       expect(r.shortcode).toBeTruthy();

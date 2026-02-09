@@ -80,7 +80,8 @@ export const EmojiNode = Node.create<EmojiNodeOptions>({
       },
       imageUrl: {
         default: null,
-        parseHTML: (element) => element.getAttribute('src') || element.getAttribute('data-image-url'),
+        parseHTML: (element) =>
+          element.getAttribute('src') || element.getAttribute('data-image-url'),
         renderHTML: (attributes) => {
           if (!attributes.imageUrl) return {};
           return { 'data-image-url': attributes.imageUrl };
@@ -90,10 +91,7 @@ export const EmojiNode = Node.create<EmojiNodeOptions>({
   },
 
   parseHTML() {
-    return [
-      { tag: 'span[data-type="emoji"]' },
-      { tag: 'img[data-type="emoji"]' },
-    ];
+    return [{ tag: 'span[data-type="emoji"]' }, { tag: 'img[data-type="emoji"]' }];
   },
 
   renderHTML({ node, HTMLAttributes }) {
@@ -119,12 +117,9 @@ export const EmojiNode = Node.create<EmojiNodeOptions>({
     // Standard emoji — render as <span> with unicode character
     return [
       'span',
-      mergeAttributes(
-        { 'data-type': 'emoji' },
-        this.options.HTMLAttributes,
-        HTMLAttributes,
-        { class: 'emoji-node' },
-      ),
+      mergeAttributes({ 'data-type': 'emoji' }, this.options.HTMLAttributes, HTMLAttributes, {
+        class: 'emoji-node',
+      }),
       node.attrs.unicode || `:${node.attrs.shortcode}:`,
     ];
   },
@@ -178,11 +173,7 @@ export const EmojiNode = Node.create<EmojiNodeOptions>({
                 shortcode,
                 unicode: match[0],
               });
-              tr.replaceWith(
-                tr.mapping.map(from),
-                tr.mapping.map(to),
-                emojiNode,
-              );
+              tr.replaceWith(tr.mapping.map(from), tr.mapping.map(to), emojiNode);
               modified = true;
             }
           });
@@ -192,5 +183,4 @@ export const EmojiNode = Node.create<EmojiNodeOptions>({
       }),
     ];
   },
-
 });

@@ -12,7 +12,7 @@ describe('Tabs', () => {
         </TabList>
         <TabPanel id="tab1">Content 1</TabPanel>
         <TabPanel id="tab2">Content 2</TabPanel>
-      </Tabs>
+      </Tabs>,
     );
 
     expect(screen.getByRole('tablist')).toBeInTheDocument();
@@ -29,7 +29,7 @@ describe('Tabs', () => {
         </TabList>
         <TabPanel id="tab1">Content 1</TabPanel>
         <TabPanel id="tab2">Content 2</TabPanel>
-      </Tabs>
+      </Tabs>,
     );
 
     expect(screen.getByRole('tabpanel')).toHaveTextContent('Content 1');
@@ -46,7 +46,7 @@ describe('Tabs', () => {
         </TabList>
         <TabPanel id="tab1">Content 1</TabPanel>
         <TabPanel id="tab2">Content 2</TabPanel>
-      </Tabs>
+      </Tabs>,
     );
 
     await user.click(screen.getByRole('tab', { name: 'Tab 2' }));
@@ -63,7 +63,7 @@ describe('Tabs', () => {
         </TabList>
         <TabPanel id="tab1">Content 1</TabPanel>
         <TabPanel id="tab2">Content 2</TabPanel>
-      </Tabs>
+      </Tabs>,
     );
 
     expect(screen.getByRole('tab', { name: 'Tab 2' })).toHaveAttribute('aria-selected', 'true');
@@ -83,7 +83,7 @@ describe('Tabs', () => {
         <TabPanel id="tab1">Content 1</TabPanel>
         <TabPanel id="tab2">Content 2</TabPanel>
         <TabPanel id="tab3">Content 3</TabPanel>
-      </Tabs>
+      </Tabs>,
     );
 
     // Focus first tab
@@ -102,7 +102,7 @@ describe('Tabs', () => {
           <Tab id="tab1">Tab 1</Tab>
         </TabList>
         <TabPanel id="tab1">Content</TabPanel>
-      </Tabs>
+      </Tabs>,
     );
 
     expect(container.querySelector('.custom-tabs')).toBeInTheDocument();
@@ -115,7 +115,7 @@ describe('Tabs', () => {
           <Tab id="tab1">Tab 1</Tab>
         </TabList>
         <TabPanel id="tab1">Content</TabPanel>
-      </Tabs>
+      </Tabs>,
     );
 
     expect(screen.getByRole('tablist')).toHaveClass('custom-list');
@@ -130,7 +130,7 @@ describe('Tabs', () => {
         </TabList>
         <TabPanel id="tab1">Content 1</TabPanel>
         <TabPanel id="tab2">Content 2</TabPanel>
-      </Tabs>
+      </Tabs>,
     );
 
     expect(screen.getByRole('tab', { name: 'Tab 1' })).toHaveAttribute('aria-selected', 'true');
@@ -142,11 +142,13 @@ describe('Tabs', () => {
       <Tabs>
         <TabList>
           <Tab id="tab1">Tab 1</Tab>
-          <Tab id="tab2" isDisabled>Tab 2</Tab>
+          <Tab id="tab2" isDisabled>
+            Tab 2
+          </Tab>
         </TabList>
         <TabPanel id="tab1">Content 1</TabPanel>
         <TabPanel id="tab2">Content 2</TabPanel>
-      </Tabs>
+      </Tabs>,
     );
 
     expect(screen.getByRole('tab', { name: 'Tab 2' })).toHaveAttribute('aria-disabled', 'true');

@@ -3,7 +3,11 @@ import { tv } from 'tailwind-variants';
 import { parseMrkdwn, type MrkdwnSegment } from './parser';
 import { UserMentionBadge, SpecialMentionBadge } from '../../components/message/MentionBadge';
 import { ChannelMentionBadge } from '../../components/message/ChannelMentionBadge';
-import type { WorkspaceMemberWithUser, ChannelWithMembership, CustomEmoji } from '@feather/api-client';
+import type {
+  WorkspaceMemberWithUser,
+  ChannelWithMembership,
+  CustomEmoji,
+} from '@feather/api-client';
 import { resolveStandardShortcode } from '../emoji';
 import { CustomEmojiImg } from '../../components/ui/CustomEmojiImg';
 import { isEmojiOnly } from './isEmojiOnly';
@@ -29,13 +33,8 @@ const styles = tv({
       'text-gray-600 dark:text-gray-400',
       'italic',
     ],
-    list: [
-      'my-1 pl-5',
-    ],
-    link: [
-      'text-primary-600 dark:text-primary-400',
-      'underline hover:no-underline',
-    ],
+    list: ['my-1 pl-5'],
+    link: ['text-primary-600 dark:text-primary-400', 'underline hover:no-underline'],
   },
 });
 
@@ -46,12 +45,20 @@ interface MrkdwnRendererProps {
   customEmojiMap?: Map<string, CustomEmoji>;
 }
 
-export function MrkdwnRenderer({ content, members = [], channels = [], customEmojiMap }: MrkdwnRendererProps) {
+export function MrkdwnRenderer({
+  content,
+  members = [],
+  channels = [],
+  customEmojiMap,
+}: MrkdwnRendererProps) {
   const memberMap = useMemo(() => {
-    return members.reduce((acc, member) => {
-      acc[member.user_id] = member;
-      return acc;
-    }, {} as Record<string, WorkspaceMemberWithUser>);
+    return members.reduce(
+      (acc, member) => {
+        acc[member.user_id] = member;
+        return acc;
+      },
+      {} as Record<string, WorkspaceMemberWithUser>,
+    );
   }, [members]);
 
   const segments = useMemo(() => parseMrkdwn(content), [content]);
@@ -92,7 +99,11 @@ function renderSegments(
         return <s key={key}>{segment.content}</s>;
 
       case 'code':
-        return <code key={key} className={s.code()}>{segment.content}</code>;
+        return (
+          <code key={key} className={s.code()}>
+            {segment.content}
+          </code>
+        );
 
       case 'code_block':
         return (
@@ -128,38 +139,34 @@ function renderSegments(
 
       case 'user_mention':
         return (
-          <UserMentionBadge
-            key={key}
-            userId={segment.userId}
-            member={memberMap[segment.userId]}
-          />
+          <UserMentionBadge key={key} userId={segment.userId} member={memberMap[segment.userId]} />
         );
 
       case 'special_mention':
-        return (
-          <SpecialMentionBadge
-            key={key}
-            type={segment.mentionType}
-          />
-        );
+        return <SpecialMentionBadge key={key} type={segment.mentionType} />;
 
       case 'channel_mention':
-        return (
-          <ChannelMentionBadge
-            key={key}
-            channelId={segment.channelId}
-            channels={channels}
-          />
-        );
+        return <ChannelMentionBadge key={key} channelId={segment.channelId} channels={channels} />;
 
       case 'emoji_shortcode': {
         const standardEmoji = resolveStandardShortcode(segment.name);
         if (standardEmoji) {
-          return <span key={key} title={`:${segment.name}:`}>{standardEmoji}</span>;
+          return (
+            <span key={key} title={`:${segment.name}:`}>
+              {standardEmoji}
+            </span>
+          );
         }
         const customEmoji = customEmojiMap?.get(segment.name);
         if (customEmoji) {
-          return <CustomEmojiImg key={key} name={customEmoji.name} url={customEmoji.url} size={emojiOnly ? 'xl' : 'sm'} />;
+          return (
+            <CustomEmojiImg
+              key={key}
+              name={customEmoji.name}
+              url={customEmoji.url}
+              size={emojiOnly ? 'xl' : 'sm'}
+            />
+          );
         }
         return <span key={key}>:{segment.name}:</span>;
       }

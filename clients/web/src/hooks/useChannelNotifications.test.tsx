@@ -14,10 +14,7 @@ vi.mock('../api/channels', () => ({
   channelsApi: mockChannelsApi,
 }));
 
-import {
-  useChannelNotifications,
-  useUpdateChannelNotifications,
-} from './useChannelNotifications';
+import { useChannelNotifications, useUpdateChannelNotifications } from './useChannelNotifications';
 
 function createTestQueryClient() {
   return new QueryClient({
@@ -83,7 +80,10 @@ describe('useUpdateChannelNotifications', () => {
 
   it('calls API with settings', async () => {
     const queryClient = createTestQueryClient();
-    const newPreferences: NotificationPreferences = { notify_level: 'mentions', email_enabled: false };
+    const newPreferences: NotificationPreferences = {
+      notify_level: 'mentions',
+      email_enabled: false,
+    };
     mockChannelsApi.updateNotifications.mockResolvedValue({ preferences: newPreferences });
 
     const { result } = renderHook(() => useUpdateChannelNotifications('ch-1'), {
@@ -99,12 +99,20 @@ describe('useUpdateChannelNotifications', () => {
 
   it('invalidates cache after mutation', async () => {
     const queryClient = createTestQueryClient();
-    const initialPreferences: NotificationPreferences = { notify_level: 'all', email_enabled: true };
-    const newPreferences: NotificationPreferences = { notify_level: 'mentions', email_enabled: false };
+    const initialPreferences: NotificationPreferences = {
+      notify_level: 'all',
+      email_enabled: true,
+    };
+    const newPreferences: NotificationPreferences = {
+      notify_level: 'mentions',
+      email_enabled: false,
+    };
     mockChannelsApi.updateNotifications.mockResolvedValue({ preferences: newPreferences });
 
     // Pre-populate cache
-    queryClient.setQueryData(['channel-notifications', 'ch-1'], { preferences: initialPreferences });
+    queryClient.setQueryData(['channel-notifications', 'ch-1'], {
+      preferences: initialPreferences,
+    });
 
     const { result } = renderHook(() => useUpdateChannelNotifications('ch-1'), {
       wrapper: createWrapper(queryClient),
@@ -148,6 +156,9 @@ describe('useUpdateChannelNotifications', () => {
       await result.current.mutateAsync(preferences);
     });
 
-    expect(mockChannelsApi.updateNotifications).toHaveBeenCalledWith('specific-channel', preferences);
+    expect(mockChannelsApi.updateNotifications).toHaveBeenCalledWith(
+      'specific-channel',
+      preferences,
+    );
   });
 });

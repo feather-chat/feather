@@ -39,17 +39,14 @@ describe('useAllUnreads', () => {
 
   it('fetches unreads with workspaceId', async () => {
     const unreadsResult = {
-      messages: [
-        { id: 'msg-1', channel_id: 'ch-1', content: 'Unread message' },
-      ],
+      messages: [{ id: 'msg-1', channel_id: 'ch-1', content: 'Unread message' }],
       next_cursor: undefined,
     };
     mockPost.mockResolvedValue(unreadsResult);
 
-    const { result } = renderHook(
-      () => useAllUnreads({ workspaceId: 'ws-1' }),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useAllUnreads({ workspaceId: 'ws-1' }), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
@@ -69,10 +66,9 @@ describe('useAllUnreads', () => {
     };
     mockPost.mockResolvedValue(firstPage);
 
-    const { result } = renderHook(
-      () => useAllUnreads({ workspaceId: 'ws-1' }),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useAllUnreads({ workspaceId: 'ws-1' }), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
@@ -82,20 +78,18 @@ describe('useAllUnreads', () => {
   });
 
   it('disabled when workspaceId is empty', () => {
-    const { result } = renderHook(
-      () => useAllUnreads({ workspaceId: '' }),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useAllUnreads({ workspaceId: '' }), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.fetchStatus).toBe('idle');
     expect(mockPost).not.toHaveBeenCalled();
   });
 
   it('disabled when enabled option is false', () => {
-    const { result } = renderHook(
-      () => useAllUnreads({ workspaceId: 'ws-1', enabled: false }),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useAllUnreads({ workspaceId: 'ws-1', enabled: false }), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.fetchStatus).toBe('idle');
     expect(mockPost).not.toHaveBeenCalled();
@@ -104,10 +98,9 @@ describe('useAllUnreads', () => {
   it('returns loading state initially', () => {
     mockPost.mockImplementation(() => new Promise(() => {}));
 
-    const { result } = renderHook(
-      () => useAllUnreads({ workspaceId: 'ws-1' }),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useAllUnreads({ workspaceId: 'ws-1' }), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.isLoading).toBe(true);
   });

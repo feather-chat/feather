@@ -1,7 +1,14 @@
 import { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { XMarkIcon, PhotoIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useWorkspace, useWorkspaceMembers, useUpdateMemberRole, useRemoveMember, useUploadWorkspaceIcon, useDeleteWorkspaceIcon } from '../hooks/useWorkspaces';
+import {
+  useWorkspace,
+  useWorkspaceMembers,
+  useUpdateMemberRole,
+  useRemoveMember,
+  useUploadWorkspaceIcon,
+  useDeleteWorkspaceIcon,
+} from '../hooks/useWorkspaces';
 import { useAuth } from '../hooks';
 import { Avatar, Button, Spinner, toast } from '../components/ui';
 import { CustomEmojiManager } from '../components/settings/CustomEmojiManager';
@@ -97,7 +104,7 @@ export function WorkspaceSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -105,29 +112,27 @@ export function WorkspaceSettingsPage() {
 
   return (
     <div className="flex-1 overflow-auto bg-white dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Workspace Settings
-          </h1>
+      <div className="mx-auto max-w-4xl p-8">
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Workspace Settings</h1>
           <Link
             to={`/workspaces/${workspaceId}`}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
-            <XMarkIcon className="w-6 h-6" />
+            <XMarkIcon className="h-6 w-6" />
           </Link>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+        <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
           <nav className="flex gap-4">
             <button
               onClick={() => setActiveTab('general')}
               className={cn(
-                'py-2 px-1 border-b-2 font-medium text-sm',
+                'border-b-2 px-1 py-2 text-sm font-medium',
                 activeTab === 'general'
                   ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400',
               )}
             >
               General
@@ -135,10 +140,10 @@ export function WorkspaceSettingsPage() {
             <button
               onClick={() => setActiveTab('members')}
               className={cn(
-                'py-2 px-1 border-b-2 font-medium text-sm',
+                'border-b-2 px-1 py-2 text-sm font-medium',
                 activeTab === 'members'
                   ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400',
               )}
             >
               Members ({members.length})
@@ -146,10 +151,10 @@ export function WorkspaceSettingsPage() {
             <button
               onClick={() => setActiveTab('emoji')}
               className={cn(
-                'py-2 px-1 border-b-2 font-medium text-sm',
+                'border-b-2 px-1 py-2 text-sm font-medium',
                 activeTab === 'emoji'
                   ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400',
               )}
             >
               Emoji
@@ -161,25 +166,28 @@ export function WorkspaceSettingsPage() {
           <div className="space-y-6">
             {/* Workspace Icon */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              <label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Workspace Icon
               </label>
               <div className="flex items-start gap-4">
                 {/* Icon preview */}
                 <div
                   className={cn(
-                    'w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden',
-                    !previewUrl && !workspace?.workspace.icon_url && workspaceId && getAvatarColor(workspaceId)
+                    'flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl',
+                    !previewUrl &&
+                      !workspace?.workspace.icon_url &&
+                      workspaceId &&
+                      getAvatarColor(workspaceId),
                   )}
                 >
                   {previewUrl || workspace?.workspace.icon_url ? (
                     <img
                       src={previewUrl || workspace?.workspace.icon_url}
                       alt={workspace?.workspace.name}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="text-white font-bold text-2xl">
+                    <span className="text-2xl font-bold text-white">
                       {workspace?.workspace.name?.slice(0, 2).toUpperCase()}
                     </span>
                   )}
@@ -197,7 +205,7 @@ export function WorkspaceSettingsPage() {
 
                   {selectedFile ? (
                     <>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                      <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
                         Selected: {selectedFile.name}
                       </p>
                       <div className="flex gap-2">
@@ -206,7 +214,7 @@ export function WorkspaceSettingsPage() {
                           onPress={handleUploadIcon}
                           isLoading={uploadIcon.isPending}
                         >
-                          <PhotoIcon className="w-4 h-4 mr-1" />
+                          <PhotoIcon className="mr-1 h-4 w-4" />
                           Save Icon
                         </Button>
                         <Button
@@ -215,7 +223,7 @@ export function WorkspaceSettingsPage() {
                           onPress={handleClearSelection}
                           isDisabled={uploadIcon.isPending}
                         >
-                          <XMarkIcon className="w-4 h-4 mr-1" />
+                          <XMarkIcon className="mr-1 h-4 w-4" />
                           Cancel
                         </Button>
                       </div>
@@ -227,7 +235,7 @@ export function WorkspaceSettingsPage() {
                         size="sm"
                         onPress={() => fileInputRef.current?.click()}
                       >
-                        <PhotoIcon className="w-4 h-4 mr-1" />
+                        <PhotoIcon className="mr-1 h-4 w-4" />
                         Upload Icon
                       </Button>
                       {workspace?.workspace.icon_url && (
@@ -237,7 +245,7 @@ export function WorkspaceSettingsPage() {
                           onPress={handleRemoveIcon}
                           isLoading={deleteIcon.isPending}
                         >
-                          <TrashIcon className="w-4 h-4 mr-1" />
+                          <TrashIcon className="mr-1 h-4 w-4" />
                           Remove
                         </Button>
                       )}
@@ -252,13 +260,13 @@ export function WorkspaceSettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Workspace Name
               </label>
               <p className="text-gray-900 dark:text-white">{workspace?.workspace.name}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Workspace ID
               </label>
               <p className="text-gray-900 dark:text-white">{workspace?.workspace.id}</p>
@@ -271,7 +279,7 @@ export function WorkspaceSettingsPage() {
             {members.map((member) => (
               <div
                 key={member.user_id}
-                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                className="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-gray-800"
               >
                 <div className="flex items-center gap-3">
                   <Avatar
@@ -287,18 +295,18 @@ export function WorkspaceSettingsPage() {
                         <span className="ml-2 text-xs text-gray-500">(you)</span>
                       )}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {member.email}
-                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{member.email}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <select
                     value={member.role}
-                    onChange={(e) => handleRoleChange(member.user_id, e.target.value as WorkspaceRole)}
+                    onChange={(e) =>
+                      handleRoleChange(member.user_id, e.target.value as WorkspaceRole)
+                    }
                     disabled={member.user_id === user?.id}
-                    className="text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-gray-900 dark:text-white disabled:opacity-50"
+                    className="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="owner">Owner</option>
                     <option value="admin">Admin</option>
@@ -320,9 +328,7 @@ export function WorkspaceSettingsPage() {
           </div>
         )}
 
-        {activeTab === 'emoji' && workspaceId && (
-          <CustomEmojiManager workspaceId={workspaceId} />
-        )}
+        {activeTab === 'emoji' && workspaceId && <CustomEmojiManager workspaceId={workspaceId} />}
       </div>
     </div>
   );

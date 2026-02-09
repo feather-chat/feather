@@ -49,10 +49,12 @@ export function fromMrkdwn(mrkdwn: string): JSONContent {
       }
       content.push({
         type: 'blockquote',
-        content: [{
-          type: 'paragraph',
-          content: parseInline(quoteLines.join('\n')),
-        }],
+        content: [
+          {
+            type: 'paragraph',
+            content: parseInline(quoteLines.join('\n')),
+          },
+        ],
       });
       continue;
     }
@@ -68,10 +70,12 @@ export function fromMrkdwn(mrkdwn: string): JSONContent {
         type: 'bulletList',
         content: items.map((item) => ({
           type: 'listItem',
-          content: [{
-            type: 'paragraph',
-            content: parseInline(item),
-          }],
+          content: [
+            {
+              type: 'paragraph',
+              content: parseInline(item),
+            },
+          ],
         })),
       });
       continue;
@@ -89,10 +93,12 @@ export function fromMrkdwn(mrkdwn: string): JSONContent {
         type: 'orderedList',
         content: items.map((item) => ({
           type: 'listItem',
-          content: [{
-            type: 'paragraph',
-            content: parseInline(item),
-          }],
+          content: [
+            {
+              type: 'paragraph',
+              content: parseInline(item),
+            },
+          ],
         })),
       });
       continue;
@@ -143,70 +149,103 @@ function parseInline(text: string): JSONContent[] {
     // Try to match patterns
     const patterns = [
       // User mention: <@userId>
-      { regex: /^<@([^>]+)>/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'userMention',
-        attrs: { id: match[1] },
-      })},
+      {
+        regex: /^<@([^>]+)>/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'userMention',
+          attrs: { id: match[1] },
+        }),
+      },
       // Special mention: <!here>, <!channel>, <!everyone>
-      { regex: /^<!([^>]+)>/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'specialMention',
-        attrs: { id: match[1] },
-      })},
+      {
+        regex: /^<!([^>]+)>/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'specialMention',
+          attrs: { id: match[1] },
+        }),
+      },
       // Channel mention: <#channelId>
-      { regex: /^<#([^>]+)>/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'channelMention',
-        attrs: { id: match[1] },
-      })},
+      {
+        regex: /^<#([^>]+)>/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'channelMention',
+          attrs: { id: match[1] },
+        }),
+      },
       // Link: <url|text>
-      { regex: /^<(https?:\/\/[^|>]+)\|([^>]+)>/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'text',
-        text: match[2],
-        marks: [{ type: 'link', attrs: { href: match[1] }}],
-      })},
+      {
+        regex: /^<(https?:\/\/[^|>]+)\|([^>]+)>/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'text',
+          text: match[2],
+          marks: [{ type: 'link', attrs: { href: match[1] } }],
+        }),
+      },
       // Plain URL in angle brackets: <url>
-      { regex: /^<(https?:\/\/[^>]+)>/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'text',
-        text: match[1],
-        marks: [{ type: 'link', attrs: { href: match[1] }}],
-      })},
+      {
+        regex: /^<(https?:\/\/[^>]+)>/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'text',
+          text: match[1],
+          marks: [{ type: 'link', attrs: { href: match[1] } }],
+        }),
+      },
       // Emoji shortcode: :shortcode:
-      { regex: /^:([a-zA-Z0-9_+-]+):/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'emojiNode',
-        attrs: {
-          shortcode: match[1],
-          unicode: resolveStandardShortcode(match[1]) || null,
-        },
-      })},
+      {
+        regex: /^:([a-zA-Z0-9_+-]+):/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'emojiNode',
+          attrs: {
+            shortcode: match[1],
+            unicode: resolveStandardShortcode(match[1]) || null,
+          },
+        }),
+      },
       // Code: `text`
-      { regex: /^`([^`]+)`/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'text',
-        text: match[1],
-        marks: [{ type: 'code' }],
-      })},
+      {
+        regex: /^`([^`]+)`/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'text',
+          text: match[1],
+          marks: [{ type: 'code' }],
+        }),
+      },
       // Bold: *text*
-      { regex: /^\*([^*]+)\*/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'text',
-        text: match[1],
-        marks: [{ type: 'bold' }],
-      })},
+      {
+        regex: /^\*([^*]+)\*/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'text',
+          text: match[1],
+          marks: [{ type: 'bold' }],
+        }),
+      },
       // Italic: _text_
-      { regex: /^_([^_]+)_/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'text',
-        text: match[1],
-        marks: [{ type: 'italic' }],
-      })},
+      {
+        regex: /^_([^_]+)_/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'text',
+          text: match[1],
+          marks: [{ type: 'italic' }],
+        }),
+      },
       // Underline: ++text++
-      { regex: /^\+\+([^+]+)\+\+/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'text',
-        text: match[1],
-        marks: [{ type: 'underline' }],
-      })},
+      {
+        regex: /^\+\+([^+]+)\+\+/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'text',
+          text: match[1],
+          marks: [{ type: 'underline' }],
+        }),
+      },
       // Strikethrough: ~text~
-      { regex: /^~([^~]+)~/, handler: (match: RegExpMatchArray): JSONContent => ({
-        type: 'text',
-        text: match[1],
-        marks: [{ type: 'strike' }],
-      })},
+      {
+        regex: /^~([^~]+)~/,
+        handler: (match: RegExpMatchArray): JSONContent => ({
+          type: 'text',
+          text: match[1],
+          marks: [{ type: 'strike' }],
+        }),
+      },
     ];
 
     let matched = false;

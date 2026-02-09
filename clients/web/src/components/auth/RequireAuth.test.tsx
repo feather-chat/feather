@@ -130,7 +130,7 @@ describe('RequireAuth', () => {
           }
         />
       </Routes>,
-      { routerProps: { initialEntries: ['/protected'] } }
+      { routerProps: { initialEntries: ['/protected'] } },
     );
 
     await waitFor(() => {

@@ -14,11 +14,7 @@ export default mergeConfig(
         provider: 'v8',
         reporter: ['text', 'html', 'lcov'],
         include: ['src/**/*.{ts,tsx}'],
-        exclude: [
-          'src/**/*.{test,spec}.{ts,tsx}',
-          'src/test-utils/**',
-          'src/vite-env.d.ts',
-        ],
+        exclude: ['src/**/*.{test,spec}.{ts,tsx}', 'src/test-utils/**', 'src/vite-env.d.ts'],
       },
     },
     resolve: {
@@ -26,5 +22,5 @@ export default mergeConfig(
         '@feather/api-client': path.resolve(__dirname, '../../packages/api-client/src'),
       },
     },
-  })
+  }),
 );

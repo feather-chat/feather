@@ -10,7 +10,7 @@ export function useSidebar() {
   const [collapsed, setCollapsed] = useLocalStorage(SIDEBAR_KEY, false);
 
   const toggle = useCallback(() => {
-    setCollapsed(prev => !prev);
+    setCollapsed((prev) => !prev);
   }, [setCollapsed]);
 
   return { collapsed, toggle, setCollapsed };

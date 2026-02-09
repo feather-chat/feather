@@ -176,7 +176,9 @@ describe('useSendMessage', () => {
     expect(mockMessagesApi.send).toHaveBeenCalledWith('channel-1', { content: 'New message' });
 
     // Check cache was updated
-    const cachedData = queryClient.getQueryData<{ pages: Array<{ messages: Array<{ id: string }> }> }>(['messages', 'channel-1']);
+    const cachedData = queryClient.getQueryData<{
+      pages: Array<{ messages: Array<{ id: string }> }>;
+    }>(['messages', 'channel-1']);
     expect(cachedData?.pages[0].messages[0].id).toBe('msg-new');
   });
 
@@ -235,7 +237,10 @@ describe('useUpdateMessage', () => {
 
     let response;
     await act(async () => {
-      response = await result.current.mutateAsync({ messageId: 'msg-1', content: 'Updated content' });
+      response = await result.current.mutateAsync({
+        messageId: 'msg-1',
+        content: 'Updated content',
+      });
     });
 
     expect(response).toEqual({ message: updatedMessage });
@@ -287,7 +292,13 @@ describe('useAddReaction', () => {
   it('calls addReaction API with correct parameters', async () => {
     const queryClient = createTestQueryClient();
     mockMessagesApi.addReaction.mockResolvedValue({
-      reaction: { id: 'r-1', message_id: 'msg-1', user_id: 'user-1', emoji: '👍', created_at: new Date().toISOString() },
+      reaction: {
+        id: 'r-1',
+        message_id: 'msg-1',
+        user_id: 'user-1',
+        emoji: '👍',
+        created_at: new Date().toISOString(),
+      },
     });
 
     const { result } = renderHook(() => useAddReaction('channel-1'), {
@@ -303,7 +314,13 @@ describe('useAddReaction', () => {
 
   it('returns reaction on success', async () => {
     const queryClient = createTestQueryClient();
-    const reaction = { id: 'r-1', message_id: 'msg-1', user_id: 'user-1', emoji: '🔥', created_at: new Date().toISOString() };
+    const reaction = {
+      id: 'r-1',
+      message_id: 'msg-1',
+      user_id: 'user-1',
+      emoji: '🔥',
+      created_at: new Date().toISOString(),
+    };
     mockMessagesApi.addReaction.mockResolvedValue({ reaction });
 
     const { result } = renderHook(() => useAddReaction('channel-1'), {

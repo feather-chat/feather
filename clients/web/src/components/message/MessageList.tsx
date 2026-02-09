@@ -14,22 +14,21 @@ interface MessageListProps {
   onAtBottomChange?: (isAtBottom: boolean) => void;
 }
 
-export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onAtBottomChange }: MessageListProps) {
+export function MessageList({
+  channelId,
+  lastReadMessageId,
+  unreadCount = 0,
+  onAtBottomChange,
+}: MessageListProps) {
   const { workspaceId } = useParams<{ workspaceId: string }>();
-  const {
-    data,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useMessages(channelId);
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useMessages(channelId);
   const { data: channelsData } = useChannels(workspaceId);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef(0);
   const isAtBottomRef = useRef(true);
-
 
   // Flatten messages from all pages (they come newest-first)
   const allMessages = data?.pages.flatMap((page) => page.messages) || [];
@@ -43,14 +42,17 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
     : -1;
 
   // Group messages by date
-  const messagesByDate = messages.reduce((acc, msg) => {
-    const dateKey = new Date(msg.created_at).toDateString();
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(msg);
-    return acc;
-  }, {} as Record<string, MessageWithUser[]>);
+  const messagesByDate = messages.reduce(
+    (acc, msg) => {
+      const dateKey = new Date(msg.created_at).toDateString();
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(msg);
+      return acc;
+    },
+    {} as Record<string, MessageWithUser[]>,
+  );
 
   // Check if user is at bottom
   const checkIfAtBottom = useCallback(() => {
@@ -112,7 +114,7 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
           fetchNextPage();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     observer.observe(loadMoreElement);
@@ -130,11 +132,7 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
   }
 
   return (
-    <div
-      ref={containerRef}
-      onScroll={handleScroll}
-      className="flex-1 overflow-y-auto"
-    >
+    <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
       {/* Load more trigger */}
       <div ref={loadMoreRef} className="h-1" />
 
@@ -145,9 +143,14 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
       )}
 
       {messages.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
-          <svg className="w-12 h-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        <div className="flex h-full flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+          <svg className="mb-4 h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
           </svg>
           <p className="text-lg font-medium">No messages yet</p>
           <p className="text-sm">Be the first to send a message!</p>
@@ -157,11 +160,11 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
           <div key={date}>
             {/* Date separator */}
             <div className="flex items-center gap-4 px-4 py-3">
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+              <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                 {formatDate(msgs[0].created_at)}
               </span>
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+              <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
             </div>
 
             {/* Messages */}
@@ -181,10 +184,7 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
               return (
                 <div key={message.id}>
                   {isSystemMessage ? (
-                    <SystemMessage
-                      message={message}
-                      channelId={channelId}
-                    />
+                    <SystemMessage message={message} channelId={channelId} />
                   ) : (
                     <MessageItem
                       message={message}
@@ -194,9 +194,9 @@ export function MessageList({ channelId, lastReadMessageId, unreadCount = 0, onA
                   )}
                   {showUnreadDivider && (
                     <div className="flex items-center gap-4 px-4 py-3">
-                      <div className="flex-1 h-px bg-red-500" />
+                      <div className="h-px flex-1 bg-red-500" />
                       <span className="text-xs font-medium text-red-500">New messages</span>
-                      <div className="flex-1 h-px bg-red-500" />
+                      <div className="h-px flex-1 bg-red-500" />
                     </div>
                   )}
                 </div>

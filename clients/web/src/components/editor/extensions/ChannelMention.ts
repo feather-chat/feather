@@ -79,7 +79,7 @@ export const ChannelMention = Node.create<ChannelMentionOptions>({
         HTMLAttributes,
         {
           class: 'mention channel-mention',
-        }
+        },
       ),
       this.options.renderLabel({ options: this.options, node }),
     ];

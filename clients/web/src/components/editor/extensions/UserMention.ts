@@ -79,7 +79,7 @@ export const UserMention = Node.create<UserMentionOptions>({
         HTMLAttributes,
         {
           class: 'mention user-mention',
-        }
+        },
       ),
       this.options.renderLabel({ options: this.options, node }),
     ];

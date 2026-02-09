@@ -5,30 +5,32 @@ export function ServerSettingsPage() {
   const { workspaces } = useAuth();
 
   // Get close link - navigate to first workspace or login
-  const closeLink = workspaces && workspaces.length > 0
-    ? `/workspaces/${workspaces[0].id}`
-    : '/login';
+  const closeLink =
+    workspaces && workspaces.length > 0 ? `/workspaces/${workspaces[0].id}` : '/login';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Server Settings
-          </h1>
+      <div className="mx-auto max-w-4xl p-8">
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Server Settings</h1>
           <Link
             to={closeLink}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </Link>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+        <div className="rounded-lg bg-white shadow dark:bg-gray-800">
+          <div className="border-b border-gray-200 p-6 dark:border-gray-700">
+            <h2 className="mb-1 text-lg font-medium text-gray-900 dark:text-white">
               Server Information
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -36,8 +38,8 @@ export function ServerSettingsPage() {
             </p>
           </div>
 
-          <div className="p-6 space-y-4">
-            <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
+          <div className="space-y-4 p-6">
+            <div className="flex items-center justify-between border-b border-gray-100 py-3 dark:border-gray-700">
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Version</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Feather server version</p>
@@ -45,7 +47,7 @@ export function ServerSettingsPage() {
               <span className="text-gray-600 dark:text-gray-300">1.0.0</span>
             </div>
 
-            <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between border-b border-gray-100 py-3 dark:border-gray-700">
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Database</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Database backend</p>
@@ -53,7 +55,7 @@ export function ServerSettingsPage() {
               <span className="text-gray-600 dark:text-gray-300">SQLite</span>
             </div>
 
-            <div className="flex justify-between items-center py-3">
+            <div className="flex items-center justify-between py-3">
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Email</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Email service status</p>
@@ -63,9 +65,9 @@ export function ServerSettingsPage() {
           </div>
         </div>
 
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+        <div className="mt-6 rounded-lg bg-white shadow dark:bg-gray-800">
+          <div className="border-b border-gray-200 p-6 dark:border-gray-700">
+            <h2 className="mb-1 text-lg font-medium text-gray-900 dark:text-white">
               Administration
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -74,9 +76,9 @@ export function ServerSettingsPage() {
           </div>
 
           <div className="p-6">
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Server configuration is managed through environment variables and the config file.
-              See the documentation for more details.
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Server configuration is managed through environment variables and the config file. See
+              the documentation for more details.
             </p>
           </div>
         </div>

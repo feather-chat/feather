@@ -35,35 +35,38 @@ export function InvitePage() {
 
   return (
     <div className="flex-1 overflow-auto bg-white dark:bg-gray-900">
-      <div className="max-w-2xl mx-auto p-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Invite People
-          </h1>
+      <div className="mx-auto max-w-2xl p-8">
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Invite People</h1>
           <Link
             to={`/workspaces/${workspaceId}`}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </Link>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 space-y-6">
+        <div className="space-y-6 rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
           <p className="text-gray-600 dark:text-gray-300">
             Create an invite link to share with people you want to join this workspace.
           </p>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Expires in (days)
               </label>
               <select
                 value={expiresIn}
                 onChange={(e) => setExpiresIn(e.target.value)}
-                className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-900 dark:text-white"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
                 <option value="1">1 day</option>
                 <option value="7">7 days</option>
@@ -73,7 +76,7 @@ export function InvitePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Max uses
               </label>
               <input
@@ -82,7 +85,7 @@ export function InvitePage() {
                 onChange={(e) => setMaxUses(e.target.value)}
                 placeholder="Unlimited"
                 min="1"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
           </div>
@@ -92,8 +95,8 @@ export function InvitePage() {
           </Button>
 
           {inviteLink && (
-            <div className="mt-6 p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-600 dark:bg-gray-700">
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Your invite link
               </label>
               <div className="flex gap-2">
@@ -101,7 +104,7 @@ export function InvitePage() {
                   type="text"
                   value={inviteLink}
                   readOnly
-                  className="flex-1 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white text-sm"
+                  className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
                 />
                 <Button onPress={handleCopyLink} variant="secondary">
                   Copy

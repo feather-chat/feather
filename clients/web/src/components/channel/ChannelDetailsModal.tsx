@@ -3,7 +3,11 @@ import { Modal, Avatar, Button, Tabs, TabList, Tab, TabPanel, Spinner } from '..
 import { useChannelMembers, useAddChannelMember, useUpdateChannel } from '../../hooks/useChannels';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
 import { cn } from '../../lib/utils';
-import type { ChannelMember, WorkspaceMemberWithUser, ChannelWithMembership } from '@feather/api-client';
+import type {
+  ChannelMember,
+  WorkspaceMemberWithUser,
+  ChannelWithMembership,
+} from '@feather/api-client';
 
 type TabId = 'about' | 'members' | 'add';
 
@@ -29,7 +33,8 @@ export function ChannelDetailsModal({
   defaultTab = 'about',
 }: ChannelDetailsModalProps) {
   const { data: membersData, isLoading: membersLoading } = useChannelMembers(channelId);
-  const { data: workspaceMembersData, isLoading: workspaceMembersLoading } = useWorkspaceMembers(workspaceId);
+  const { data: workspaceMembersData, isLoading: workspaceMembersLoading } =
+    useWorkspaceMembers(workspaceId);
   const addMember = useAddChannelMember(channelId);
   const updateChannel = useUpdateChannel(workspaceId, channelId);
   const [addingUserId, setAddingUserId] = useState<string | null>(null);
@@ -71,10 +76,10 @@ export function ChannelDetailsModal({
     return (
       <span
         className={cn(
-          'px-1.5 py-0.5 text-xs rounded',
+          'rounded px-1.5 py-0.5 text-xs',
           role === 'admin'
             ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-            : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+            : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
         )}
       >
         {role}
@@ -85,13 +90,13 @@ export function ChannelDetailsModal({
   const renderAboutTab = () => (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Channel name
         </label>
         <p className="text-gray-900 dark:text-white">{channel.name}</p>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Description
         </label>
         {canEditChannel ? (
@@ -100,7 +105,7 @@ export function ChannelDetailsModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add a description for this channel..."
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
               rows={3}
             />
             <div className="mt-2 flex justify-end">
@@ -124,11 +129,11 @@ export function ChannelDetailsModal({
   );
 
   const renderMemberList = (membersList: ChannelMember[]) => (
-    <div className="max-h-64 overflow-y-auto space-y-1">
+    <div className="max-h-64 space-y-1 overflow-y-auto">
       {membersList.map((member) => (
         <div
           key={member.user_id}
-          className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50"
+          className="flex items-center gap-3 rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50"
         >
           <Avatar
             src={member.avatar_url}
@@ -136,14 +141,12 @@ export function ChannelDetailsModal({
             id={member.user_id}
             size="sm"
           />
-          <span className="flex-1 text-gray-900 dark:text-white">
-            {member.display_name}
-          </span>
+          <span className="flex-1 text-gray-900 dark:text-white">{member.display_name}</span>
           {getRoleBadge(member.channel_role)}
         </div>
       ))}
       {membersList.length === 0 && (
-        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+        <p className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
           No members found
         </p>
       )}
@@ -151,7 +154,7 @@ export function ChannelDetailsModal({
   );
 
   const renderAddMemberList = (membersList: WorkspaceMemberWithUser[]) => (
-    <div className="max-h-64 overflow-y-auto space-y-1">
+    <div className="max-h-64 space-y-1 overflow-y-auto">
       {membersList.map((member) => {
         const displayName = member.display_name_override || member.display_name;
         const isAdding = addingUserId === member.user_id;
@@ -159,17 +162,10 @@ export function ChannelDetailsModal({
         return (
           <div
             key={member.user_id}
-            className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            className="flex items-center gap-3 rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50"
           >
-            <Avatar
-              src={member.avatar_url}
-              name={displayName}
-              id={member.user_id}
-              size="sm"
-            />
-            <span className="flex-1 text-gray-900 dark:text-white">
-              {displayName}
-            </span>
+            <Avatar src={member.avatar_url} name={displayName} id={member.user_id} size="sm" />
+            <span className="flex-1 text-gray-900 dark:text-white">{displayName}</span>
             <Button
               size="sm"
               variant="secondary"
@@ -183,7 +179,7 @@ export function ChannelDetailsModal({
         );
       })}
       {membersList.length === 0 && (
-        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+        <p className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
           All workspace members are already in this channel
         </p>
       )}

@@ -3,7 +3,10 @@ import { useState, useEffect, useCallback } from 'react';
 /**
  * Generic localStorage hook with SSR safety and cross-tab sync
  */
-export function useLocalStorage<T>(key: string, defaultValue: T): [T, (value: T | ((prev: T) => T)) => void] {
+export function useLocalStorage<T>(
+  key: string,
+  defaultValue: T,
+): [T, (value: T | ((prev: T) => T)) => void] {
   // Initialize from localStorage or default
   const [value, setValue] = useState<T>(() => {
     if (typeof window === 'undefined') return defaultValue;

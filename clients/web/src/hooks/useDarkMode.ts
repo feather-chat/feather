@@ -44,29 +44,35 @@ export function useDarkMode() {
   }, [preference]);
 
   const toggle = useCallback(() => {
-    setPreference(prev => {
+    setPreference((prev) => {
       const current = prev ?? getSystemPreference();
       return !current;
     });
   }, [setPreference]);
 
-  const setDarkMode = useCallback((dark: boolean) => {
-    setPreference(dark);
-  }, [setPreference]);
+  const setDarkMode = useCallback(
+    (dark: boolean) => {
+      setPreference(dark);
+    },
+    [setPreference],
+  );
 
-  const setMode = useCallback((newMode: ThemeMode) => {
-    switch (newMode) {
-      case 'system':
-        setPreference(null);
-        break;
-      case 'light':
-        setPreference(false);
-        break;
-      case 'dark':
-        setPreference(true);
-        break;
-    }
-  }, [setPreference]);
+  const setMode = useCallback(
+    (newMode: ThemeMode) => {
+      switch (newMode) {
+        case 'system':
+          setPreference(null);
+          break;
+        case 'light':
+          setPreference(false);
+          break;
+        case 'dark':
+          setPreference(true);
+          break;
+      }
+    },
+    [setPreference],
+  );
 
   return { darkMode, mode, toggle, setDarkMode, setMode };
 }

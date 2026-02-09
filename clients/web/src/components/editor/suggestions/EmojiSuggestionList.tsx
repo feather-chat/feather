@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  useImperativeHandle,
-  useState,
-  useRef,
-  useLayoutEffect,
-} from 'react';
+import { forwardRef, useImperativeHandle, useState, useRef, useLayoutEffect } from 'react';
 import { tv } from 'tailwind-variants';
 import { CustomEmojiImg } from '../../ui/CustomEmojiImg';
 
@@ -20,14 +14,10 @@ const styles = tv({
       'hover:bg-gray-100 dark:hover:bg-gray-700',
       'outline-none',
     ],
-    itemSelected: [
-      'bg-gray-100 dark:bg-gray-700',
-    ],
+    itemSelected: ['bg-gray-100 dark:bg-gray-700'],
     emoji: 'text-lg',
     shortcode: 'text-sm text-gray-600 dark:text-gray-400',
-    emptyState: [
-      'px-3 py-2 text-sm text-gray-500 dark:text-gray-400',
-    ],
+    emptyState: ['px-3 py-2 text-sm text-gray-500 dark:text-gray-400'],
   },
 });
 
@@ -135,16 +125,18 @@ export const EmojiSuggestionList = forwardRef<EmojiSuggestionRef, EmojiSuggestio
             aria-selected={index === safeSelectedIndex}
           >
             <span className={s.emoji()}>
-              {item.isCustom && item.imageUrl
-                ? <CustomEmojiImg name={item.shortcode} url={item.imageUrl} size="md" />
-                : item.emoji}
+              {item.isCustom && item.imageUrl ? (
+                <CustomEmojiImg name={item.shortcode} url={item.imageUrl} size="md" />
+              ) : (
+                item.emoji
+              )}
             </span>
             <span className={s.shortcode()}>:{item.shortcode}:</span>
           </div>
         ))}
       </div>
     );
-  }
+  },
 );
 
 EmojiSuggestionList.displayName = 'EmojiSuggestionList';

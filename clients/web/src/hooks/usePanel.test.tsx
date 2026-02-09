@@ -6,9 +6,7 @@ import { useThreadPanel, useProfilePanel } from './usePanel';
 
 function createWrapper(initialEntries: string[] = ['/']) {
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
-    );
+    return <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>;
   };
 }
 

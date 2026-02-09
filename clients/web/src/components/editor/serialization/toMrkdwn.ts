@@ -114,9 +114,7 @@ function serializeText(node: JSONContent): string {
         text = `\`${text}\``;
         break;
       case 'link':
-        text = mark.attrs?.href
-          ? `<${mark.attrs.href}|${text}>`
-          : text;
+        text = mark.attrs?.href ? `<${mark.attrs.href}|${text}>` : text;
         break;
     }
   }
@@ -126,18 +124,22 @@ function serializeText(node: JSONContent): string {
 
 function serializeBulletList(node: JSONContent): string {
   if (!node.content) return '';
-  return node.content.map((item) => {
-    const content = serializeListItem(item);
-    return `• ${content}`;
-  }).join('');
+  return node.content
+    .map((item) => {
+      const content = serializeListItem(item);
+      return `• ${content}`;
+    })
+    .join('');
 }
 
 function serializeOrderedList(node: JSONContent): string {
   if (!node.content) return '';
-  return node.content.map((item, index) => {
-    const content = serializeListItem(item);
-    return `${index + 1}. ${content}`;
-  }).join('');
+  return node.content
+    .map((item, index) => {
+      const content = serializeListItem(item);
+      return `${index + 1}. ${content}`;
+    })
+    .join('');
 }
 
 function serializeListItem(node: JSONContent): string {
@@ -158,11 +160,16 @@ function serializeListItem(node: JSONContent): string {
 function serializeBlockquote(node: JSONContent): string {
   if (!node.content) return '';
 
-  const content = node.content.map((child) => {
-    const text = serializeNode(child);
-    // Prefix each line with >
-    return text.split('\n').map(line => line ? `> ${line}` : '>').join('\n');
-  }).join('');
+  const content = node.content
+    .map((child) => {
+      const text = serializeNode(child);
+      // Prefix each line with >
+      return text
+        .split('\n')
+        .map((line) => (line ? `> ${line}` : '>'))
+        .join('\n');
+    })
+    .join('');
 
   return content + '\n';
 }

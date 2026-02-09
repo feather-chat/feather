@@ -21,17 +21,13 @@ export interface MeResponse {
 }
 
 export const authApi = {
-  login: (input: LoginInput) =>
-    post<AuthResponse>('/auth/login', input),
+  login: (input: LoginInput) => post<AuthResponse>('/auth/login', input),
 
-  register: (input: RegisterInput) =>
-    post<AuthResponse>('/auth/register', input),
+  register: (input: RegisterInput) => post<AuthResponse>('/auth/register', input),
 
-  logout: () =>
-    post<{ success: boolean }>('/auth/logout'),
+  logout: () => post<{ success: boolean }>('/auth/logout'),
 
-  me: () =>
-    get<MeResponse>('/auth/me'),
+  me: () => get<MeResponse>('/auth/me'),
 
   forgotPassword: (email: string) =>
     post<{ success: boolean; message: string }>('/auth/forgot-password', { email }),

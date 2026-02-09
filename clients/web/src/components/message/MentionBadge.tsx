@@ -55,29 +55,16 @@ export function UserMentionBadge({ userId, member }: UserMentionBadgeProps) {
 
   return (
     <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
-      <AriaButton className={mentionBadge()}>
-        @{displayName}
-      </AriaButton>
+      <AriaButton className={mentionBadge()}>@{displayName}</AriaButton>
       <Popover placement="top" className={styles.popover()}>
         <div className={styles.header()}>
-          <Avatar
-            src={member?.avatar_url}
-            name={displayName}
-            id={userId}
-            size="lg"
-          />
+          <Avatar src={member?.avatar_url} name={displayName} id={userId} size="lg" />
           <div className={styles.info()}>
             <span className={styles.name()}>{displayName}</span>
-            {member?.email && (
-              <span className={styles.email()}>{member.email}</span>
-            )}
+            {member?.email && <span className={styles.email()}>{member.email}</span>}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleViewProfile}
-          className={styles.viewProfile()}
-        >
+        <button type="button" onClick={handleViewProfile} className={styles.viewProfile()}>
           View profile
         </button>
       </Popover>
@@ -98,14 +85,10 @@ export function SpecialMentionBadge({ type }: SpecialMentionBadgeProps) {
 
   return (
     <DialogTrigger>
-      <AriaButton className={mentionBadge()}>
-        @{type}
-      </AriaButton>
+      <AriaButton className={mentionBadge()}>@{type}</AriaButton>
       <Popover placement="top" className={popoverStyles().popover()}>
         <div className="text-sm">
-          <div className="font-medium text-gray-900 dark:text-white mb-1">
-            @{type}
-          </div>
+          <div className="mb-1 font-medium text-gray-900 dark:text-white">@{type}</div>
           <div className="text-gray-500 dark:text-gray-400">
             {descriptions[type] || 'Special mention'}
           </div>

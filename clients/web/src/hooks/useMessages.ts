@@ -59,7 +59,7 @@ export function useSendMessage(channelId: string) {
 
           // Check if message already exists (SSE might have added it first)
           const exists = old.pages.some((page) =>
-            page.messages.some((m) => m.id === data.message.id)
+            page.messages.some((m) => m.id === data.message.id),
           );
           if (exists) return old;
 
@@ -71,7 +71,7 @@ export function useSendMessage(channelId: string) {
             };
           }
           return { ...old, pages: newPages };
-        }
+        },
       );
     },
   });
@@ -96,10 +96,13 @@ export function useSendThreadReply(parentMessageId: string, channelId: string) {
       queryClient.invalidateQueries({ queryKey: ['thread-subscription', parentMessageId] });
 
       // Check if message already exists in thread cache (SSE might have added it first)
-      const threadData = queryClient.getQueryData<{ pages: MessageListResult[]; pageParams: (string | undefined)[] }>(['thread', parentMessageId]);
-      const alreadyInCache = threadData?.pages.some((page) =>
-        page.messages.some((m) => m.id === data.message.id)
-      ) ?? false;
+      const threadData = queryClient.getQueryData<{
+        pages: MessageListResult[];
+        pageParams: (string | undefined)[];
+      }>(['thread', parentMessageId]);
+      const alreadyInCache =
+        threadData?.pages.some((page) => page.messages.some((m) => m.id === data.message.id)) ??
+        false;
 
       // Add to thread cache if not already there (threads are ordered ASC, so append to end)
       if (!alreadyInCache) {
@@ -117,7 +120,7 @@ export function useSendThreadReply(parentMessageId: string, channelId: string) {
               };
             }
             return { ...old, pages: newPages };
-          }
+          },
         );
       }
 
@@ -128,7 +131,7 @@ export function useSendThreadReply(parentMessageId: string, channelId: string) {
           (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
             if (!old) return old;
             const exists = old.pages.some((page) =>
-              page.messages.some((m) => m.id === data.message.id)
+              page.messages.some((m) => m.id === data.message.id),
             );
             if (exists) return old;
             const newPages = [...old.pages];
@@ -139,7 +142,7 @@ export function useSendThreadReply(parentMessageId: string, channelId: string) {
               };
             }
             return { ...old, pages: newPages };
-          }
+          },
         );
       }
 
@@ -157,9 +160,9 @@ export function useSendThreadReply(parentMessageId: string, channelId: string) {
 
                 // Check if user should be added to thread_participants
                 const participants = msg.thread_participants || [];
-                const shouldAddParticipant = data.message.user_id && !participants.some(
-                  (p) => p.user_id === data.message.user_id
-                );
+                const shouldAddParticipant =
+                  data.message.user_id &&
+                  !participants.some((p) => p.user_id === data.message.user_id);
 
                 return {
                   ...msg,
@@ -180,7 +183,7 @@ export function useSendThreadReply(parentMessageId: string, channelId: string) {
               }),
             })),
           };
-        }
+        },
       );
     },
   });
@@ -202,12 +205,10 @@ export function useUpdateMessage() {
             ...old,
             pages: old.pages.map((page) => ({
               ...page,
-              messages: page.messages.map((msg) =>
-                msg.id === messageId ? data.message : msg
-              ),
+              messages: page.messages.map((msg) => (msg.id === messageId ? data.message : msg)),
             })),
           };
-        }
+        },
       );
     },
   });
@@ -221,7 +222,9 @@ export function useDeleteMessage() {
     onSuccess: (_, messageId) => {
       // Find the message's thread_parent_id before removing it from caches
       let threadParentId: string | undefined;
-      const threadQueries = queryClient.getQueriesData<{ pages: MessageListResult[] }>({ queryKey: ['thread'] });
+      const threadQueries = queryClient.getQueriesData<{ pages: MessageListResult[] }>({
+        queryKey: ['thread'],
+      });
       for (const [, data] of threadQueries) {
         if (!data) continue;
         for (const page of data.pages) {
@@ -257,7 +260,7 @@ export function useDeleteMessage() {
                 .filter((msg): msg is MessageWithUser => msg !== null),
             })),
           };
-        }
+        },
       );
 
       // Also filter from thread caches
@@ -272,7 +275,7 @@ export function useDeleteMessage() {
               messages: page.messages.filter((msg) => msg.id !== messageId),
             })),
           };
-        }
+        },
       );
 
       // Decrement parent's reply_count if this was a thread reply
@@ -291,7 +294,7 @@ export function useDeleteMessage() {
                 }),
               })),
             };
-          }
+          },
         );
       }
     },
@@ -331,13 +334,19 @@ export function useAddReaction(channelId: string) {
                   ...msg,
                   reactions: [
                     ...reactions,
-                    { id: 'temp', message_id: messageId, user_id: userId, emoji, created_at: new Date().toISOString() },
+                    {
+                      id: 'temp',
+                      message_id: messageId,
+                      user_id: userId,
+                      emoji,
+                      created_at: new Date().toISOString(),
+                    },
                   ],
                 };
               }),
             })),
           };
-        }
+        },
       );
 
       return { previousData };
@@ -376,14 +385,12 @@ export function useRemoveReaction(channelId: string) {
                 const reactions = msg.reactions || [];
                 return {
                   ...msg,
-                  reactions: reactions.filter(
-                    (r) => !(r.emoji === emoji && r.user_id === userId)
-                  ),
+                  reactions: reactions.filter((r) => !(r.emoji === emoji && r.user_id === userId)),
                 };
               }),
             })),
           };
-        }
+        },
       );
 
       return { previousData };
@@ -400,7 +407,7 @@ export function useRemoveReaction(channelId: string) {
 export function updateMessageInCache(
   queryClient: ReturnType<typeof useQueryClient>,
   channelId: string,
-  updater: (messages: MessageWithUser[]) => MessageWithUser[]
+  updater: (messages: MessageWithUser[]) => MessageWithUser[],
 ) {
   queryClient.setQueryData(
     ['messages', channelId],
@@ -413,7 +420,7 @@ export function updateMessageInCache(
           messages: updater(page.messages),
         })),
       };
-    }
+    },
   );
 }
 

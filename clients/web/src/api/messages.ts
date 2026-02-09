@@ -1,4 +1,12 @@
-import { get, post, type MessageWithUser, type MessageListResult, type Reaction, type ThreadSubscriptionStatus, type ThreadListResult } from '@feather/api-client';
+import {
+  get,
+  post,
+  type MessageWithUser,
+  type MessageListResult,
+  type Reaction,
+  type ThreadSubscriptionStatus,
+  type ThreadListResult,
+} from '@feather/api-client';
 
 export interface SendMessageInput {
   content?: string;
@@ -14,8 +22,7 @@ export interface ListMessagesInput {
 }
 
 export const messagesApi = {
-  get: (messageId: string) =>
-    get<{ message: MessageWithUser }>(`/messages/${messageId}`),
+  get: (messageId: string) => get<{ message: MessageWithUser }>(`/messages/${messageId}`),
 
   send: (channelId: string, input: SendMessageInput) =>
     post<{ message: MessageWithUser }>(`/channels/${channelId}/messages/send`, input),
@@ -26,8 +33,7 @@ export const messagesApi = {
   update: (messageId: string, content: string) =>
     post<{ message: MessageWithUser }>(`/messages/${messageId}/update`, { content }),
 
-  delete: (messageId: string) =>
-    post<{ success: boolean }>(`/messages/${messageId}/delete`),
+  delete: (messageId: string) => post<{ success: boolean }>(`/messages/${messageId}/delete`),
 
   addReaction: (messageId: string, emoji: string) =>
     post<{ reaction: Reaction }>(`/messages/${messageId}/reactions/add`, { emoji }),
@@ -54,5 +60,8 @@ export const messagesApi = {
     post<ThreadListResult>(`/workspaces/${workspaceId}/threads`, input || {}),
 
   markThreadRead: (messageId: string, lastReadReplyId?: string) =>
-    post<{ success: boolean }>(`/messages/${messageId}/thread/mark-read`, lastReadReplyId ? { last_read_reply_id: lastReadReplyId } : {}),
+    post<{ success: boolean }>(
+      `/messages/${messageId}/thread/mark-read`,
+      lastReadReplyId ? { last_read_reply_id: lastReadReplyId } : {},
+    ),
 };

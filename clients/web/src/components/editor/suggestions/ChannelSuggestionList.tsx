@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  useImperativeHandle,
-  useState,
-  useRef,
-  useLayoutEffect,
-} from 'react';
+import { forwardRef, useImperativeHandle, useState, useRef, useLayoutEffect } from 'react';
 import { HashtagIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { tv } from 'tailwind-variants';
 
@@ -20,18 +14,10 @@ const styles = tv({
       'hover:bg-gray-100 dark:hover:bg-gray-700',
       'outline-none',
     ],
-    itemSelected: [
-      'bg-gray-100 dark:bg-gray-700',
-    ],
-    channelName: [
-      'text-sm font-medium text-gray-900 dark:text-white truncate',
-    ],
-    channelIcon: [
-      'w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0',
-    ],
-    emptyState: [
-      'px-3 py-2 text-sm text-gray-500 dark:text-gray-400',
-    ],
+    itemSelected: ['bg-gray-100 dark:bg-gray-700'],
+    channelName: ['text-sm font-medium text-gray-900 dark:text-white truncate'],
+    channelIcon: ['w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0'],
+    emptyState: ['px-3 py-2 text-sm text-gray-500 dark:text-gray-400'],
   },
 });
 
@@ -147,7 +133,7 @@ export const ChannelSuggestionList = forwardRef<ChannelSuggestionRef, ChannelSug
         ))}
       </div>
     );
-  }
+  },
 );
 
 ChannelSuggestionList.displayName = 'ChannelSuggestionList';

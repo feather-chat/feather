@@ -21,7 +21,7 @@ export function WorkspaceLandingPage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -29,8 +29,8 @@ export function WorkspaceLandingPage() {
 
   if (channels.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
-        <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="flex flex-1 flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+        <svg className="mb-4 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -38,7 +38,7 @@ export function WorkspaceLandingPage() {
             d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
           />
         </svg>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+        <h2 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           No channels yet
         </h2>
         <p className="text-sm">Create a channel to start messaging</p>
@@ -47,7 +47,7 @@ export function WorkspaceLandingPage() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center">
+    <div className="flex flex-1 items-center justify-center">
       <Spinner size="lg" />
     </div>
   );

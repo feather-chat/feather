@@ -16,18 +16,12 @@ const mentionPopover = tv({
       'hover:bg-gray-100 dark:hover:bg-gray-700',
       'outline-none',
     ],
-    itemSelected: [
-      'bg-gray-100 dark:bg-gray-700',
-    ],
-    displayName: [
-      'text-sm font-medium text-gray-900 dark:text-white truncate',
-    ],
+    itemSelected: ['bg-gray-100 dark:bg-gray-700'],
+    displayName: ['text-sm font-medium text-gray-900 dark:text-white truncate'],
     specialIcon: [
       'w-6 h-6 p-1 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400',
     ],
-    emptyState: [
-      'px-3 py-2 text-sm text-gray-500 dark:text-gray-400',
-    ],
+    emptyState: ['px-3 py-2 text-sm text-gray-500 dark:text-gray-400'],
   },
 });
 
@@ -123,14 +117,10 @@ export function MentionPopover({
           aria-selected={index === selectedIndex}
         >
           {option.type === 'user' ? (
-            <Avatar
-              src={option.avatarUrl}
-              name={option.displayName}
-              size="sm"
-            />
+            <Avatar src={option.avatarUrl} name={option.displayName} size="sm" />
           ) : (
             <div className={styles.specialIcon()}>
-              <BellIcon className="w-4 h-4" />
+              <BellIcon className="h-4 w-4" />
             </div>
           )}
           <span className={styles.displayName()}>

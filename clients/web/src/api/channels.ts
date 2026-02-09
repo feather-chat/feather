@@ -1,4 +1,15 @@
-import { get, post, del, type Channel, type ChannelWithMembership, type ChannelMember, type ChannelType, type MarkReadResponse, type NotificationPreferences, type DMSuggestionsResponse } from '@feather/api-client';
+import {
+  get,
+  post,
+  del,
+  type Channel,
+  type ChannelWithMembership,
+  type ChannelMember,
+  type ChannelType,
+  type MarkReadResponse,
+  type NotificationPreferences,
+  type DMSuggestionsResponse,
+} from '@feather/api-client';
 
 export interface CreateChannelInput {
   name: string;
@@ -28,8 +39,7 @@ export const channelsApi = {
   update: (channelId: string, input: UpdateChannelInput) =>
     post<{ channel: Channel }>(`/channels/${channelId}/update`, input),
 
-  archive: (channelId: string) =>
-    post<{ success: boolean }>(`/channels/${channelId}/archive`),
+  archive: (channelId: string) => post<{ success: boolean }>(`/channels/${channelId}/archive`),
 
   addMember: (channelId: string, userId: string, role?: string) =>
     post<{ success: boolean }>(`/channels/${channelId}/members/add`, { user_id: userId, role }),
@@ -37,14 +47,15 @@ export const channelsApi = {
   listMembers: (channelId: string) =>
     post<{ members: ChannelMember[] }>(`/channels/${channelId}/members/list`),
 
-  join: (channelId: string) =>
-    post<{ success: boolean }>(`/channels/${channelId}/join`),
+  join: (channelId: string) => post<{ success: boolean }>(`/channels/${channelId}/join`),
 
-  leave: (channelId: string) =>
-    post<{ success: boolean }>(`/channels/${channelId}/leave`),
+  leave: (channelId: string) => post<{ success: boolean }>(`/channels/${channelId}/leave`),
 
   markAsRead: (channelId: string, messageId?: string) =>
-    post<MarkReadResponse>(`/channels/${channelId}/mark-read`, messageId ? { message_id: messageId } : {}),
+    post<MarkReadResponse>(
+      `/channels/${channelId}/mark-read`,
+      messageId ? { message_id: messageId } : {},
+    ),
 
   markAllAsRead: (workspaceId: string) =>
     post<{ success: boolean }>(`/workspaces/${workspaceId}/channels/mark-all-read`),
@@ -53,13 +64,14 @@ export const channelsApi = {
     get<{ preferences: NotificationPreferences }>(`/channels/${channelId}/notifications`),
 
   updateNotifications: (channelId: string, preferences: NotificationPreferences) =>
-    post<{ preferences: NotificationPreferences }>(`/channels/${channelId}/notifications`, preferences),
+    post<{ preferences: NotificationPreferences }>(
+      `/channels/${channelId}/notifications`,
+      preferences,
+    ),
 
-  star: (channelId: string) =>
-    post<{ success: boolean }>(`/channels/${channelId}/star`),
+  star: (channelId: string) => post<{ success: boolean }>(`/channels/${channelId}/star`),
 
-  unstar: (channelId: string) =>
-    del<{ success: boolean }>(`/channels/${channelId}/star`),
+  unstar: (channelId: string) => del<{ success: boolean }>(`/channels/${channelId}/star`),
 
   getDMSuggestions: (workspaceId: string) =>
     post<DMSuggestionsResponse>(`/workspaces/${workspaceId}/dm-suggestions`),

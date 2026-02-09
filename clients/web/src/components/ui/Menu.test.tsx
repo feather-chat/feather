@@ -11,7 +11,7 @@ describe('Menu', () => {
       <Menu trigger={<Button>Open Menu</Button>}>
         <MenuItem>Item 1</MenuItem>
         <MenuItem>Item 2</MenuItem>
-      </Menu>
+      </Menu>,
     );
 
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
@@ -27,7 +27,7 @@ describe('Menu', () => {
     render(
       <Menu trigger={<Button>Open Menu</Button>}>
         <MenuItem>Item 1</MenuItem>
-      </Menu>
+      </Menu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Open Menu' }));
@@ -43,7 +43,7 @@ describe('Menu', () => {
     render(
       <Menu trigger={<Button>Open Menu</Button>}>
         <MenuItem onAction={handleAction}>Item 1</MenuItem>
-      </Menu>
+      </Menu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Open Menu' }));
@@ -57,13 +57,9 @@ describe('Menu', () => {
     const user = userEvent.setup();
 
     render(
-      <Menu
-        trigger={<Button>Open Menu</Button>}
-        open={false}
-        onOpenChange={handleOpenChange}
-      >
+      <Menu trigger={<Button>Open Menu</Button>} open={false} onOpenChange={handleOpenChange}>
         <MenuItem>Item 1</MenuItem>
-      </Menu>
+      </Menu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Open Menu' }));
@@ -78,7 +74,7 @@ describe('Menu', () => {
     render(
       <Menu trigger={<Button>Open Menu</Button>}>
         <MenuItem icon={icon}>Item with icon</MenuItem>
-      </Menu>
+      </Menu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Open Menu' }));
@@ -92,7 +88,7 @@ describe('Menu', () => {
     render(
       <Menu trigger={<Button>Open Menu</Button>}>
         <MenuItem variant="danger">Delete</MenuItem>
-      </Menu>
+      </Menu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Open Menu' }));
@@ -109,7 +105,7 @@ describe('Menu', () => {
         <MenuItem>Item 1</MenuItem>
         <MenuSeparator />
         <MenuItem>Item 2</MenuItem>
-      </Menu>
+      </Menu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Open Menu' }));
@@ -124,7 +120,7 @@ describe('Menu', () => {
       <Menu trigger={<Button>Open Menu</Button>}>
         <MenuItem>Item 1</MenuItem>
         <MenuItem>Item 2</MenuItem>
-      </Menu>
+      </Menu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Open Menu' }));
@@ -141,7 +137,7 @@ describe('Menu', () => {
     render(
       <Menu trigger={<Button>Open Menu</Button>}>
         <MenuItem>Item 1</MenuItem>
-      </Menu>
+      </Menu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Open Menu' }));
@@ -164,7 +160,7 @@ describe('SelectMenu', () => {
       >
         <SelectMenuItem id="option1">Option 1</SelectMenuItem>
         <SelectMenuItem id="option2">Option 2</SelectMenuItem>
-      </SelectMenu>
+      </SelectMenu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Select Option' }));
@@ -186,7 +182,7 @@ describe('SelectMenu', () => {
       >
         <SelectMenuItem id="option1">Option 1</SelectMenuItem>
         <SelectMenuItem id="option2">Option 2</SelectMenuItem>
-      </SelectMenu>
+      </SelectMenu>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Select Option' }));

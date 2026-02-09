@@ -22,6 +22,7 @@ make dev
 ```
 
 This starts:
+
 - **API** at http://localhost:8080
 - **Web** at http://localhost:3000
 
@@ -37,13 +38,13 @@ feather/
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `make dev` | Start API and web dev servers |
-| `make build` | Build all packages |
-| `make test` | Run all tests |
+| Command               | Description                   |
+| --------------------- | ----------------------------- |
+| `make dev`            | Start API and web dev servers |
+| `make build`          | Build all packages            |
+| `make test`           | Run all tests                 |
 | `make generate-types` | Regenerate types from OpenAPI |
-| `make lint` | Lint all code |
+| `make lint`           | Lint all code                 |
 
 ## Type Sharing
 
@@ -76,6 +77,7 @@ git push origin v1.0.0
 ```
 
 This builds binaries for 6 platforms and creates a GitHub Release with:
+
 - `feather-linux-amd64`, `feather-linux-arm64`
 - `feather-darwin-amd64`, `feather-darwin-arm64`
 - `feather-windows-amd64.exe`, `feather-windows-arm64.exe`
@@ -83,20 +85,20 @@ This builds binaries for 6 platforms and creates a GitHub Release with:
 
 ## Documentation
 
-| Package | README |
-|---------|--------|
-| API (Go) | [api/README.md](api/README.md) |
+| Package     | README                                         |
+| ----------- | ---------------------------------------------- |
+| API (Go)    | [api/README.md](api/README.md)                 |
 | Web (React) | [clients/web/README.md](clients/web/README.md) |
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Backend | Go, Chi, SQLite |
-| Frontend | React, TypeScript, Vite, TanStack Query, Zustand, Tailwind |
-| UI Components | React Aria Components, tailwind-variants |
-| Real-time | Server-Sent Events |
-| Types | OpenAPI 3.0, oapi-codegen, openapi-typescript |
+| Component     | Technology                                                 |
+| ------------- | ---------------------------------------------------------- |
+| Backend       | Go, Chi, SQLite                                            |
+| Frontend      | React, TypeScript, Vite, TanStack Query, Zustand, Tailwind |
+| UI Components | React Aria Components, tailwind-variants                   |
+| Real-time     | Server-Sent Events                                         |
+| Types         | OpenAPI 3.0, oapi-codegen, openapi-typescript              |
 
 ## License
 

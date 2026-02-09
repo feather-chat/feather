@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { XMarkIcon, HashtagIcon } from "@heroicons/react/24/outline";
+import { useState, useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { XMarkIcon, HashtagIcon } from '@heroicons/react/24/outline';
 import {
   useThreadMessages,
   useMessage,
@@ -9,59 +9,39 @@ import {
   useWorkspaceMembers,
   useChannels,
   useAutoFocusComposer,
-} from "../../hooks";
-import {
-  useUpdateMessage,
-  useDeleteMessage,
-  useMarkMessageUnread,
-} from "../../hooks/useMessages";
-import { useThreadPanel, useProfilePanel } from "../../hooks/usePanel";
-import { Avatar, MessageSkeleton, Modal, Button, toast } from "../ui";
-import { EmojiDisplay } from "../message/ReactionsDisplay";
-import {
-  useCustomEmojiMap,
-  useCustomEmojis,
-} from "../../hooks/useCustomEmojis";
-import { ThreadNotificationButton } from "./ThreadNotificationButton";
-import { MessageActionBar } from "../message/MessageActionBar";
-import { AttachmentDisplay } from "../message/AttachmentDisplay";
-import { MessageContent } from "../message/MessageContent";
-import {
-  MessageComposer,
-  type MessageComposerRef,
-} from "../message/MessageComposer";
-import { cn, formatTime } from "../../lib/utils";
-import { messagesApi } from "../../api/messages";
-import { useMarkThreadRead } from "../../hooks/useThreads";
+} from '../../hooks';
+import { useUpdateMessage, useDeleteMessage, useMarkMessageUnread } from '../../hooks/useMessages';
+import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
+import { Avatar, MessageSkeleton, Modal, Button, toast } from '../ui';
+import { EmojiDisplay } from '../message/ReactionsDisplay';
+import { useCustomEmojiMap, useCustomEmojis } from '../../hooks/useCustomEmojis';
+import { ThreadNotificationButton } from './ThreadNotificationButton';
+import { MessageActionBar } from '../message/MessageActionBar';
+import { AttachmentDisplay } from '../message/AttachmentDisplay';
+import { MessageContent } from '../message/MessageContent';
+import { MessageComposer, type MessageComposerRef } from '../message/MessageComposer';
+import { cn, formatTime } from '../../lib/utils';
+import { messagesApi } from '../../api/messages';
+import { useMarkThreadRead } from '../../hooks/useThreads';
 import type {
   MessageWithUser,
   MessageListResult,
   WorkspaceMemberWithUser,
   ChannelWithMembership,
-} from "@feather/api-client";
+} from '@feather/api-client';
 
-function ClickableName({
-  userId,
-  displayName,
-}: {
-  userId?: string;
-  displayName: string;
-}) {
+function ClickableName({ userId, displayName }: { userId?: string; displayName: string }) {
   const { openProfile } = useProfilePanel();
 
   if (!userId) {
-    return (
-      <span className="font-medium text-gray-900 dark:text-white">
-        {displayName}
-      </span>
-    );
+    return <span className="font-medium text-gray-900 dark:text-white">{displayName}</span>;
   }
 
   return (
     <button
       type="button"
       onClick={() => openProfile(userId)}
-      className="font-medium text-gray-900 dark:text-white hover:underline cursor-pointer"
+      className="cursor-pointer font-medium text-gray-900 hover:underline dark:text-white"
     >
       {displayName}
     </button>
@@ -81,7 +61,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
   const { data: membersData } = useWorkspaceMembers(workspaceId);
   const { data: channelsData } = useChannels(workspaceId);
   const composerRef = useRef<MessageComposerRef>(null);
-  const markThreadRead = useMarkThreadRead(workspaceId || "");
+  const markThreadRead = useMarkThreadRead(workspaceId || '');
 
   // Try to get parent message from cache first
   const cachedMessage = getParentMessageFromCache(queryClient, messageId);
@@ -98,9 +78,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
 
   // Flatten thread messages (already in chronological order from API)
   const threadMessages = data?.pages.flatMap((page) => page.messages) || [];
-  const parentChannel = channelsData?.channels.find(
-    (c) => c.id === parentMessage?.channel_id,
-  );
+  const parentChannel = channelsData?.channels.find((c) => c.id === parentMessage?.channel_id);
 
   // Focus composer and mark thread as read when thread opens
   useEffect(() => {
@@ -113,17 +91,17 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
   useAutoFocusComposer(composerRef, true);
 
   return (
-    <div className="w-96 border-l border-gray-200 dark:border-gray-700 flex flex-col bg-white dark:bg-gray-900">
+    <div className="flex w-96 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
         <h3 className="font-semibold text-gray-900 dark:text-white">Thread</h3>
         <div className="flex items-center gap-1">
           <ThreadNotificationButton messageId={messageId} />
           <button
             onClick={closeThread}
-            className="p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            className="rounded p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            <XMarkIcon className="w-4 h-4" />
+            <XMarkIcon className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -157,19 +135,16 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
         )}
 
         {/* Spacer below parent when no replies */}
-        {parentMessage && parentMessage.reply_count === 0 && (
-          <div className="h-4" />
-        )}
+        {parentMessage && parentMessage.reply_count === 0 && <div className="h-4" />}
 
         {/* Replies divider */}
         {parentMessage && parentMessage.reply_count > 0 && (
           <div className="flex items-center gap-4 px-4 py-3">
-            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              {parentMessage.reply_count}{" "}
-              {parentMessage.reply_count === 1 ? "reply" : "replies"}
+              {parentMessage.reply_count} {parentMessage.reply_count === 1 ? 'reply' : 'replies'}
             </span>
-            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
           </div>
         )}
 
@@ -186,7 +161,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
                 disabled={isFetchingNextPage}
                 className="w-full py-2 text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
               >
-                {isFetchingNextPage ? "Loading..." : "Load more replies"}
+                {isFetchingNextPage ? 'Loading...' : 'Load more replies'}
               </button>
             )}
 
@@ -242,13 +217,13 @@ function ParentMessage({
   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState("");
+  const [editContent, setEditContent] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [localReactions, setLocalReactions] = useState(message.reactions || []);
   const updateMessage = useUpdateMessage();
   const deleteMessage = useDeleteMessage();
-  const markUnread = useMarkMessageUnread(workspaceId || "");
+  const markUnread = useMarkMessageUnread(workspaceId || '');
 
   const isOwnMessage = user?.id === message.user_id;
   const isEdited = !!message.edited_at;
@@ -271,22 +246,18 @@ function ParentMessage({
       }
       return acc;
     },
-    {} as Record<
-      string,
-      { emoji: string; count: number; userIds: string[]; hasOwn: boolean }
-    >,
+    {} as Record<string, { emoji: string; count: number; userIds: string[]; hasOwn: boolean }>,
   );
 
   const addReaction = useMutation({
     mutationFn: (emoji: string) => messagesApi.addReaction(message.id, emoji),
     onMutate: async (emoji) => {
-      const userId = user?.id || "temp";
-      if (localReactions.some((r) => r.user_id === userId && r.emoji === emoji))
-        return;
+      const userId = user?.id || 'temp';
+      if (localReactions.some((r) => r.user_id === userId && r.emoji === emoji)) return;
       setLocalReactions((prev) => [
         ...prev,
         {
-          id: "temp",
+          id: 'temp',
           message_id: message.id,
           user_id: userId,
           emoji,
@@ -294,12 +265,8 @@ function ParentMessage({
         },
       ]);
       queryClient.setQueriesData(
-        { queryKey: ["messages"] },
-        (
-          old:
-            | { pages: MessageListResult[]; pageParams: (string | undefined)[] }
-            | undefined,
-        ) => {
+        { queryKey: ['messages'] },
+        (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
           if (!old) return old;
           return {
             ...old,
@@ -308,18 +275,13 @@ function ParentMessage({
               messages: page.messages.map((msg) => {
                 if (msg.id !== message.id) return msg;
                 const reactions = msg.reactions || [];
-                if (
-                  reactions.some(
-                    (r) => r.user_id === userId && r.emoji === emoji,
-                  )
-                )
-                  return msg;
+                if (reactions.some((r) => r.user_id === userId && r.emoji === emoji)) return msg;
                 return {
                   ...msg,
                   reactions: [
                     ...reactions,
                     {
-                      id: "temp",
+                      id: 'temp',
                       message_id: message.id,
                       user_id: userId,
                       emoji,
@@ -336,20 +298,13 @@ function ParentMessage({
   });
 
   const removeReaction = useMutation({
-    mutationFn: (emoji: string) =>
-      messagesApi.removeReaction(message.id, emoji),
+    mutationFn: (emoji: string) => messagesApi.removeReaction(message.id, emoji),
     onMutate: async (emoji) => {
       const userId = user?.id;
-      setLocalReactions((prev) =>
-        prev.filter((r) => !(r.user_id === userId && r.emoji === emoji)),
-      );
+      setLocalReactions((prev) => prev.filter((r) => !(r.user_id === userId && r.emoji === emoji)));
       queryClient.setQueriesData(
-        { queryKey: ["messages"] },
-        (
-          old:
-            | { pages: MessageListResult[]; pageParams: (string | undefined)[] }
-            | undefined,
-        ) => {
+        { queryKey: ['messages'] },
+        (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
           if (!old) return old;
           return {
             ...old,
@@ -360,9 +315,7 @@ function ParentMessage({
                 const reactions = msg.reactions || [];
                 return {
                   ...msg,
-                  reactions: reactions.filter(
-                    (r) => !(r.user_id === userId && r.emoji === emoji),
-                  ),
+                  reactions: reactions.filter((r) => !(r.user_id === userId && r.emoji === emoji)),
                 };
               }),
             })),
@@ -392,7 +345,7 @@ function ParentMessage({
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditContent("");
+    setEditContent('');
   };
 
   const handleSaveEdit = () => {
@@ -403,7 +356,7 @@ function ParentMessage({
       });
     }
     setIsEditing(false);
-    setEditContent("");
+    setEditContent('');
   };
 
   const handleDeleteClick = () => {
@@ -419,14 +372,14 @@ function ParentMessage({
   const handleCopyLink = () => {
     const url = `${window.location.origin}/workspaces/${workspaceId}/channels/${message.channel_id}?msg=${message.id}`;
     navigator.clipboard.writeText(url);
-    toast("Link copied to clipboard", "success");
+    toast('Link copied to clipboard', 'success');
     setShowDropdown(false);
   };
 
   const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Escape") {
+    if (e.key === 'Escape') {
       handleCancelEdit();
-    } else if (e.key === "Enter" && !e.shiftKey) {
+    } else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSaveEdit();
     }
@@ -435,17 +388,16 @@ function ParentMessage({
   useEffect(() => {
     if (isEditing && editTextareaRef.current) {
       editTextareaRef.current.focus();
-      editTextareaRef.current.selectionStart =
-        editTextareaRef.current.value.length;
+      editTextareaRef.current.selectionStart = editTextareaRef.current.value.length;
     }
   }, [isEditing]);
 
   return (
     <div
       className={cn(
-        "px-4 py-1.5 relative group",
-        "hover:bg-gray-50 dark:hover:bg-gray-800/50",
-        showDropdown && "bg-gray-50 dark:bg-gray-800/50",
+        'group relative px-4 py-1.5',
+        'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+        showDropdown && 'bg-gray-50 dark:bg-gray-800/50',
       )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
@@ -457,54 +409,48 @@ function ParentMessage({
       <div className="flex items-start gap-3">
         <Avatar
           src={message.user_avatar_url}
-          name={message.user_display_name || "Unknown"}
+          name={message.user_display_name || 'Unknown'}
           id={message.user_id}
           size="md"
-          onClick={
-            message.user_id ? () => openProfile(message.user_id!) : undefined
-          }
+          onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
         />
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
             <ClickableName
               userId={message.user_id}
-              displayName={message.user_display_name || "Unknown User"}
+              displayName={message.user_display_name || 'Unknown User'}
             />
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
             </span>
-            {isEdited && (
-              <span className="text-xs text-gray-400 dark:text-gray-500">
-                (edited)
-              </span>
-            )}
+            {isEdited && <span className="text-xs text-gray-400 dark:text-gray-500">(edited)</span>}
           </div>
 
           {isEditing ? (
-            <div className="space-y-2 mt-1">
+            <div className="mt-1 space-y-2">
               <textarea
                 ref={editTextareaRef}
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleEditKeyDown}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 rows={3}
               />
               <div className="flex items-center gap-2 text-sm">
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded bg-primary-600 px-3 py-1 text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {updateMessage.isPending ? "Saving..." : "Save"}
+                  {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  className="rounded px-3 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
-                <span className="text-gray-500 dark:text-gray-400 text-xs">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   Esc to cancel, Enter to save
                 </span>
               </div>
@@ -512,7 +458,7 @@ function ParentMessage({
           ) : (
             <>
               {message.content && (
-                <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+                <div className="whitespace-pre-wrap break-words text-gray-800 dark:text-gray-200">
                   <MessageContent
                     content={message.content}
                     members={members}
@@ -529,27 +475,22 @@ function ParentMessage({
 
           {/* Reactions */}
           {Object.values(reactionGroups).length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
+            <div className="mt-2 flex flex-wrap gap-1">
               {Object.values(reactionGroups).map(({ emoji, count, hasOwn }) => (
                 <button
                   key={emoji}
                   onClick={() => handleReactionClick(emoji, hasOwn)}
                   className={cn(
-                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors",
+                    'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-sm transition-colors',
                     hasOwn
-                      ? "bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700"
-                      : "bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600",
+                      ? 'border-primary-300 bg-primary-100 dark:border-primary-700 dark:bg-primary-900/30'
+                      : 'border-gray-200 bg-gray-100 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
                   )}
                 >
                   <span>
-                    <EmojiDisplay
-                      emoji={emoji}
-                      customEmojiMap={customEmojiMap}
-                    />
+                    <EmojiDisplay emoji={emoji} customEmojiMap={customEmojiMap} />
                   </span>
-                  <span className="text-xs text-gray-600 dark:text-gray-300">
-                    {count}
-                  </span>
+                  <span className="text-xs text-gray-600 dark:text-gray-300">{count}</span>
                 </button>
               ))}
             </div>
@@ -580,9 +521,8 @@ function ParentMessage({
         title="Delete message"
         size="sm"
       >
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
-          Are you sure you want to delete this message? This action cannot be
-          undone.
+        <p className="mb-4 text-gray-600 dark:text-gray-300">
+          Are you sure you want to delete this message? This action cannot be undone.
         </p>
         <div className="flex justify-end gap-3">
           <Button variant="secondary" onPress={() => setShowDeleteModal(false)}>
@@ -608,12 +548,7 @@ interface ThreadMessageProps {
   channels?: ChannelWithMembership[];
 }
 
-function ThreadMessage({
-  message,
-  parentMessageId,
-  members,
-  channels,
-}: ThreadMessageProps) {
+function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMessageProps) {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const customEmojiMap = useCustomEmojiMap(workspaceId);
   const { data: customEmojis } = useCustomEmojis(workspaceId);
@@ -624,17 +559,17 @@ function ThreadMessage({
   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState("");
+  const [editContent, setEditContent] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const updateMessage = useUpdateMessage();
   const deleteMessage = useDeleteMessage();
-  const markUnread = useMarkMessageUnread(workspaceId || "");
+  const markUnread = useMarkMessageUnread(workspaceId || '');
 
   const isOwnMessage = user?.id === message.user_id;
   const isDeleted = !!message.deleted_at;
   const channel = channels?.find((c) => c.id === message.channel_id);
-  const isDM = channel?.type === "dm" || channel?.type === "group_dm";
+  const isDM = channel?.type === 'dm' || channel?.type === 'group_dm';
   const isEdited = !!message.edited_at;
 
   // Group reactions by emoji
@@ -655,24 +590,17 @@ function ThreadMessage({
       }
       return acc;
     },
-    {} as Record<
-      string,
-      { emoji: string; count: number; userIds: string[]; hasOwn: boolean }
-    >,
+    {} as Record<string, { emoji: string; count: number; userIds: string[]; hasOwn: boolean }>,
   );
 
   const addReaction = useMutation({
     mutationFn: (emoji: string) => messagesApi.addReaction(message.id, emoji),
     onMutate: async (emoji) => {
-      const userId = user?.id || "temp";
+      const userId = user?.id || 'temp';
       // Update thread cache
       queryClient.setQueryData(
-        ["thread", parentMessageId],
-        (
-          old:
-            | { pages: MessageListResult[]; pageParams: (string | undefined)[] }
-            | undefined,
-        ) => {
+        ['thread', parentMessageId],
+        (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
           if (!old) return old;
           return {
             ...old,
@@ -681,18 +609,13 @@ function ThreadMessage({
               messages: page.messages.map((msg) => {
                 if (msg.id !== message.id) return msg;
                 const reactions = msg.reactions || [];
-                if (
-                  reactions.some(
-                    (r) => r.user_id === userId && r.emoji === emoji,
-                  )
-                )
-                  return msg;
+                if (reactions.some((r) => r.user_id === userId && r.emoji === emoji)) return msg;
                 return {
                   ...msg,
                   reactions: [
                     ...reactions,
                     {
-                      id: "temp",
+                      id: 'temp',
                       message_id: message.id,
                       user_id: userId,
                       emoji,
@@ -709,17 +632,12 @@ function ThreadMessage({
   });
 
   const removeReaction = useMutation({
-    mutationFn: (emoji: string) =>
-      messagesApi.removeReaction(message.id, emoji),
+    mutationFn: (emoji: string) => messagesApi.removeReaction(message.id, emoji),
     onMutate: async (emoji) => {
       const userId = user?.id;
       queryClient.setQueryData(
-        ["thread", parentMessageId],
-        (
-          old:
-            | { pages: MessageListResult[]; pageParams: (string | undefined)[] }
-            | undefined,
-        ) => {
+        ['thread', parentMessageId],
+        (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
           if (!old) return old;
           return {
             ...old,
@@ -730,9 +648,7 @@ function ThreadMessage({
                 const reactions = msg.reactions || [];
                 return {
                   ...msg,
-                  reactions: reactions.filter(
-                    (r) => !(r.user_id === userId && r.emoji === emoji),
-                  ),
+                  reactions: reactions.filter((r) => !(r.user_id === userId && r.emoji === emoji)),
                 };
               }),
             })),
@@ -762,7 +678,7 @@ function ThreadMessage({
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditContent("");
+    setEditContent('');
   };
 
   const handleSaveEdit = () => {
@@ -773,7 +689,7 @@ function ThreadMessage({
       });
     }
     setIsEditing(false);
-    setEditContent("");
+    setEditContent('');
   };
 
   const handleDeleteClick = () => {
@@ -790,14 +706,14 @@ function ThreadMessage({
     const channelId = message.channel_id;
     const url = `${window.location.origin}/workspaces/${workspaceId}/channels/${channelId}?msg=${message.id}`;
     navigator.clipboard.writeText(url);
-    toast("Link copied to clipboard", "success");
+    toast('Link copied to clipboard', 'success');
     setShowDropdown(false);
   };
 
   const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Escape") {
+    if (e.key === 'Escape') {
       handleCancelEdit();
-    } else if (e.key === "Enter" && !e.shiftKey) {
+    } else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSaveEdit();
     }
@@ -807,8 +723,7 @@ function ThreadMessage({
   useEffect(() => {
     if (isEditing && editTextareaRef.current) {
       editTextareaRef.current.focus();
-      editTextareaRef.current.selectionStart =
-        editTextareaRef.current.value.length;
+      editTextareaRef.current.selectionStart = editTextareaRef.current.value.length;
     }
   }, [isEditing]);
 
@@ -820,13 +735,11 @@ function ThreadMessage({
   return (
     <div
       className={cn(
-        "px-4 py-2 relative group",
+        'group relative px-4 py-2',
         message.also_send_to_channel
-          ? "bg-yellow-50 dark:bg-yellow-900/10"
-          : "hover:bg-gray-50 dark:hover:bg-gray-800/50",
-        showDropdown &&
-          !message.also_send_to_channel &&
-          "bg-gray-50 dark:bg-gray-800/50",
+          ? 'bg-yellow-50 dark:bg-yellow-900/10'
+          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+        showDropdown && !message.also_send_to_channel && 'bg-gray-50 dark:bg-gray-800/50',
       )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
@@ -837,63 +750,57 @@ function ThreadMessage({
     >
       {/* "Also sent to channel" banner */}
       {message.also_send_to_channel && (
-        <div className="flex items-center gap-1.5 pb-1 mb-1 text-xs text-gray-500 dark:text-gray-400">
-          <HashtagIcon className="w-3 h-3 flex-shrink-0" />
-          <span>Also sent {isDM ? "as direct message" : "to the channel"}</span>
+        <div className="mb-1 flex items-center gap-1.5 pb-1 text-xs text-gray-500 dark:text-gray-400">
+          <HashtagIcon className="h-3 w-3 flex-shrink-0" />
+          <span>Also sent {isDM ? 'as direct message' : 'to the channel'}</span>
         </div>
       )}
       <div className="flex items-start gap-3">
         <Avatar
           src={message.user_avatar_url}
-          name={message.user_display_name || "Unknown"}
+          name={message.user_display_name || 'Unknown'}
           id={message.user_id}
           size="sm"
-          onClick={
-            message.user_id ? () => openProfile(message.user_id!) : undefined
-          }
+          onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
         />
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
             <ClickableName
               userId={message.user_id}
-              displayName={message.user_display_name || "Unknown User"}
+              displayName={message.user_display_name || 'Unknown User'}
             />
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
             </span>
-            {isEdited && (
-              <span className="text-xs text-gray-400 dark:text-gray-500">
-                (edited)
-              </span>
-            )}
+            {isEdited && <span className="text-xs text-gray-400 dark:text-gray-500">(edited)</span>}
           </div>
 
           {/* Message content */}
           {isEditing ? (
-            <div className="space-y-2 mt-1">
+            <div className="mt-1 space-y-2">
               <textarea
                 ref={editTextareaRef}
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleEditKeyDown}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-white dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 rows={3}
               />
               <div className="flex items-center gap-2 text-sm">
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                  className="rounded bg-primary-600 px-3 py-1 text-xs text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {updateMessage.isPending ? "Saving..." : "Save"}
+                  {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-xs"
+                  className="rounded px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
-                <span className="text-gray-500 dark:text-gray-400 text-xs">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   Esc to cancel, Enter to save
                 </span>
               </div>
@@ -901,7 +808,7 @@ function ThreadMessage({
           ) : (
             <>
               {message.content && (
-                <div className="text-sm text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+                <div className="whitespace-pre-wrap break-words text-sm text-gray-800 dark:text-gray-200">
                   <MessageContent
                     content={message.content}
                     members={members}
@@ -918,27 +825,22 @@ function ThreadMessage({
 
           {/* Reactions */}
           {Object.values(reactionGroups).length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1">
+            <div className="mt-1 flex flex-wrap gap-1">
               {Object.values(reactionGroups).map(({ emoji, count, hasOwn }) => (
                 <button
                   key={emoji}
                   onClick={() => handleReactionClick(emoji, hasOwn)}
                   className={cn(
-                    "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs border transition-colors",
+                    'inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs transition-colors',
                     hasOwn
-                      ? "bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700"
-                      : "bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600",
+                      ? 'border-primary-300 bg-primary-100 dark:border-primary-700 dark:bg-primary-900/30'
+                      : 'border-gray-200 bg-gray-100 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
                   )}
                 >
                   <span>
-                    <EmojiDisplay
-                      emoji={emoji}
-                      customEmojiMap={customEmojiMap}
-                    />
+                    <EmojiDisplay emoji={emoji} customEmojiMap={customEmojiMap} />
                   </span>
-                  <span className="text-gray-600 dark:text-gray-300">
-                    {count}
-                  </span>
+                  <span className="text-gray-600 dark:text-gray-300">{count}</span>
                 </button>
               ))}
             </div>
@@ -969,9 +871,8 @@ function ThreadMessage({
         title="Delete message"
         size="sm"
       >
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
-          Are you sure you want to delete this message? This action cannot be
-          undone.
+        <p className="mb-4 text-gray-600 dark:text-gray-300">
+          Are you sure you want to delete this message? This action cannot be undone.
         </p>
         <div className="flex justify-end gap-3">
           <Button variant="secondary" onPress={() => setShowDeleteModal(false)}>
@@ -998,7 +899,7 @@ function getParentMessageFromCache(
   const queries = queryClient.getQueriesData<{
     pages: MessageListResult[];
     pageParams: (string | undefined)[];
-  }>({ queryKey: ["messages"] });
+  }>({ queryKey: ['messages'] });
 
   for (const [, data] of queries) {
     if (!data) continue;

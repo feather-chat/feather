@@ -1,4 +1,11 @@
-import type { User, Workspace, WorkspaceSummary, Channel, Message, MessageWithUser } from '@feather/api-client';
+import type {
+  User,
+  Workspace,
+  WorkspaceSummary,
+  Channel,
+  Message,
+  MessageWithUser,
+} from '@feather/api-client';
 
 let counter = 0;
 function nextId(): string {
@@ -31,7 +38,9 @@ export function createMockWorkspace(overrides: Partial<Workspace> = {}): Workspa
   };
 }
 
-export function createMockWorkspaceSummary(overrides: Partial<WorkspaceSummary> = {}): WorkspaceSummary {
+export function createMockWorkspaceSummary(
+  overrides: Partial<WorkspaceSummary> = {},
+): WorkspaceSummary {
   const id = overrides.id ?? nextId();
   return {
     id,
@@ -68,7 +77,9 @@ export function createMockMessage(overrides: Partial<Message> = {}): Message {
   };
 }
 
-export function createMockMessageWithUser(overrides: Partial<MessageWithUser> = {}): MessageWithUser {
+export function createMockMessageWithUser(
+  overrides: Partial<MessageWithUser> = {},
+): MessageWithUser {
   const message = createMockMessage(overrides);
   return {
     ...message,
@@ -84,7 +95,16 @@ export function createMockMessageWithUser(overrides: Partial<MessageWithUser> = 
 export const fixtures = {
   user: createMockUser({ id: 'user-1', email: 'test@example.com', display_name: 'Test User' }),
   workspace: createMockWorkspace({ id: 'ws-1', name: 'Test Workspace' }),
-  workspaceSummary: createMockWorkspaceSummary({ id: 'ws-1', name: 'Test Workspace', role: 'owner' }),
+  workspaceSummary: createMockWorkspaceSummary({
+    id: 'ws-1',
+    name: 'Test Workspace',
+    role: 'owner',
+  }),
   channel: createMockChannel({ id: 'ch-1', workspace_id: 'ws-1', name: 'general' }),
-  message: createMockMessage({ id: 'msg-1', channel_id: 'ch-1', user_id: 'user-1', content: 'Hello, world!' }),
+  message: createMockMessage({
+    id: 'msg-1',
+    channel_id: 'ch-1',
+    user_id: 'user-1',
+    content: 'Hello, world!',
+  }),
 };

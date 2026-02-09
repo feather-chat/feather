@@ -27,18 +27,14 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Welcome back
-        </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Sign in to your account
-        </p>
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">Sign in to your account</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-md">
+          <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
             {error}
           </div>
         )}
@@ -63,21 +59,14 @@ export function LoginForm() {
           autoComplete="current-password"
         />
 
-        <Button
-          type="submit"
-          className="w-full"
-          isLoading={isLoggingIn}
-        >
+        <Button type="submit" className="w-full" isLoading={isLoggingIn}>
           Sign in
         </Button>
       </form>
 
       <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
         Don't have an account?{' '}
-        <Link
-          to="/register"
-          className="text-primary-600 hover:text-primary-700 font-medium"
-        >
+        <Link to="/register" className="font-medium text-primary-600 hover:text-primary-700">
           Sign up
         </Link>
       </p>

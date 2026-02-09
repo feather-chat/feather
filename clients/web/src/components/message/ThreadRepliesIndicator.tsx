@@ -26,7 +26,7 @@ export function ThreadRepliesIndicator({
   return (
     <button
       onClick={() => openThread(messageId)}
-      className="mt-2 flex items-center gap-2 group/thread hover:bg-white dark:hover:bg-gray-900 hover:border hover:border-gray-200 dark:hover:border-gray-700 rounded-lg px-2 py-1 -mx-2 border border-transparent min-w-[300px]"
+      className="group/thread -mx-2 mt-2 flex min-w-[300px] items-center gap-2 rounded-lg border border-transparent px-2 py-1 hover:border hover:border-gray-200 hover:bg-white dark:hover:border-gray-700 dark:hover:bg-gray-900"
     >
       {threadParticipants && threadParticipants.length > 0 && (
         <AvatarStack users={threadParticipants} showCount={false} />
@@ -39,7 +39,7 @@ export function ThreadRepliesIndicator({
           Last reply {formatRelativeTime(lastReplyAt)}
         </span>
       )}
-      <ChevronRightIcon className="w-4 h-4 text-gray-400 dark:text-gray-500 opacity-0 group-hover/thread:opacity-100 ml-auto" />
+      <ChevronRightIcon className="ml-auto h-4 w-4 text-gray-400 opacity-0 group-hover/thread:opacity-100 dark:text-gray-500" />
     </button>
   );
 }

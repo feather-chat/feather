@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { useWorkspaceMembers } from './useWorkspaces';
-import { parseMentionTrigger, SPECIAL_MENTIONS, type MentionOption, type MentionTrigger } from '../lib/mentions';
+import {
+  parseMentionTrigger,
+  SPECIAL_MENTIONS,
+  type MentionOption,
+  type MentionTrigger,
+} from '../lib/mentions';
 
 interface UseMentionsResult {
   trigger: MentionTrigger | null;
@@ -10,7 +15,7 @@ interface UseMentionsResult {
 export function useMentions(
   workspaceId: string | undefined,
   content: string,
-  cursorPosition: number
+  cursorPosition: number,
 ): UseMentionsResult {
   const { data: membersData } = useWorkspaceMembers(workspaceId);
 
@@ -38,7 +43,7 @@ export function useMentions(
 
     // Filter by query
     const filtered = allOptions.filter((option) =>
-      option.displayName.toLowerCase().includes(query)
+      option.displayName.toLowerCase().includes(query),
     );
 
     // Sort: exact matches first, then by display name

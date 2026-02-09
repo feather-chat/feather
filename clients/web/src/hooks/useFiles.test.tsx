@@ -90,7 +90,9 @@ describe('useUploadFile', () => {
 
   it('handles different channel IDs', async () => {
     const queryClient = createTestQueryClient();
-    mockUploadFile.mockResolvedValue({ file: { id: 'file-3', filename: 'doc.txt', size: 100, content_type: 'text/plain' } });
+    mockUploadFile.mockResolvedValue({
+      file: { id: 'file-3', filename: 'doc.txt', size: 100, content_type: 'text/plain' },
+    });
 
     const file = new File(['content'], 'doc.txt', { type: 'text/plain' });
 

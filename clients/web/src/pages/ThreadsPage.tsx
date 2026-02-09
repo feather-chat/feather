@@ -1,5 +1,10 @@
 import { useParams } from 'react-router-dom';
-import { HashtagIcon, LockClosedIcon, ChatBubbleLeftRightIcon, ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
+import {
+  HashtagIcon,
+  LockClosedIcon,
+  ChatBubbleLeftRightIcon,
+  ChatBubbleLeftEllipsisIcon,
+} from '@heroicons/react/24/outline';
 import { useUserThreads } from '../hooks/useThreads';
 import { useThreadPanel } from '../hooks/usePanel';
 import { Spinner, Avatar } from '../components/ui';
@@ -23,21 +28,21 @@ function ThreadItem({ thread, onOpen }: { thread: ThreadMessage; onOpen: (id: st
     <button
       type="button"
       onClick={() => onOpen(thread.id)}
-      className="block w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+      className="block w-full border-b border-gray-200 p-4 text-left last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50"
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 pt-1">
           <ChannelIcon type={thread.channel_type} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="mb-1 flex items-center gap-2">
             <span className="text-xs text-gray-500">
               {thread.channel_type === 'dm' || thread.channel_type === 'group_dm'
                 ? 'Direct Message'
                 : `#${thread.channel_name}`}
             </span>
             {thread.has_new_replies && (
-              <span className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0" />
+              <span className="h-2 w-2 flex-shrink-0 rounded-full bg-primary-500" />
             )}
           </div>
           <div className="flex items-start gap-2">
@@ -49,23 +54,26 @@ function ThreadItem({ thread, onOpen }: { thread: ThreadMessage; onOpen: (id: st
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
-                <span className={cn('text-sm font-medium text-gray-700 dark:text-gray-300', thread.has_new_replies && 'font-bold')}>
+                <span
+                  className={cn(
+                    'text-sm font-medium text-gray-700 dark:text-gray-300',
+                    thread.has_new_replies && 'font-bold',
+                  )}
+                >
                   {thread.user_display_name || 'Unknown'}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+              <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
                 {thread.content}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+          <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
             <span>
               {thread.reply_count} {thread.reply_count === 1 ? 'reply' : 'replies'}
             </span>
             {thread.last_reply_at && (
-              <span>
-                Last reply {formatRelativeTime(thread.last_reply_at)}
-              </span>
+              <span>Last reply {formatRelativeTime(thread.last_reply_at)}</span>
             )}
             {thread.thread_participants && thread.thread_participants.length > 0 && (
               <div className="flex -space-x-1">
@@ -100,18 +108,16 @@ export function ThreadsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900">
-      <div className="border-b border-gray-200 dark:border-gray-700 p-4">
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Threads
-        </h1>
+    <div className="flex h-full flex-col bg-white dark:bg-gray-900">
+      <div className="border-b border-gray-200 p-4 dark:border-gray-700">
+        <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Threads</h1>
         <p className="text-sm text-gray-500">
           {hasThreads
             ? `${allThreads.length} thread${allThreads.length === 1 ? '' : 's'}${unreadCount > 0 ? ` (${unreadCount} with new replies)` : ''}`
@@ -121,32 +127,28 @@ export function ThreadsPage() {
 
       <div className="flex-1 overflow-y-auto">
         {!hasThreads ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <ChatBubbleLeftEllipsisIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+          <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+              <ChatBubbleLeftEllipsisIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />
             </div>
-            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            <h2 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
               No threads yet
             </h2>
-            <p className="text-sm text-gray-500 max-w-xs">
+            <p className="max-w-xs text-sm text-gray-500">
               Threads you participate in will appear here. Reply to a message to start a thread.
             </p>
           </div>
         ) : (
           <>
             {allThreads.map((thread) => (
-              <ThreadItem
-                key={thread.id}
-                thread={thread}
-                onOpen={openThread}
-              />
+              <ThreadItem key={thread.id} thread={thread} onOpen={openThread} />
             ))}
             {hasNextPage && (
               <div className="p-4 text-center">
                 <button
                   onClick={() => fetchNextPage()}
                   disabled={isFetchingNextPage}
-                  className="text-sm text-primary-600 dark:text-primary-400 hover:underline disabled:opacity-50"
+                  className="text-sm text-primary-600 hover:underline disabled:opacity-50 dark:text-primary-400"
                 >
                   {isFetchingNextPage ? 'Loading...' : 'Load more'}
                 </button>

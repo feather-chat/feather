@@ -81,7 +81,13 @@ describe('AttachmentDisplay', () => {
 
   it('shows carousel counter when opened from grid', async () => {
     const user = userEvent.setup();
-    const images = [makeImage('1', 'a.png'), makeImage('2', 'b.png'), makeImage('3', 'c.png'), makeImage('4', 'd.png'), makeImage('5', 'e.png')];
+    const images = [
+      makeImage('1', 'a.png'),
+      makeImage('2', 'b.png'),
+      makeImage('3', 'c.png'),
+      makeImage('4', 'd.png'),
+      makeImage('5', 'e.png'),
+    ];
     render(<AttachmentDisplay attachments={images} />);
 
     await user.click(screen.getByRole('button', { name: /View a\.png/ }));

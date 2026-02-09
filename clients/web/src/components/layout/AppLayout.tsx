@@ -16,42 +16,38 @@ export function AppLayout() {
   const { collapsed: sidebarCollapsed } = useSidebar();
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="flex h-screen flex-col bg-white dark:bg-gray-900">
       {/* Connection Status - full width */}
       {!isConnected && workspaceId && (
-        <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-sm px-4 py-1.5 text-center flex-shrink-0 border-b border-yellow-200 dark:border-yellow-800">
+        <div className="flex-shrink-0 border-b border-yellow-200 bg-yellow-100 px-4 py-1.5 text-center text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200">
           Reconnecting...
         </div>
       )}
 
-      <div className="flex-1 flex min-h-0">
+      <div className="flex min-h-0 flex-1">
         {/* Workspace Switcher */}
         <WorkspaceSwitcher />
 
         {/* Channel Sidebar */}
         <div
           className={cn(
-            'flex-shrink-0 border-r border-gray-200 dark:border-gray-700 transition-all',
-            sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-64'
+            'flex-shrink-0 border-r border-gray-200 transition-all dark:border-gray-700',
+            sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-64',
           )}
         >
           <ChannelSidebar workspaceId={workspaceId} />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex min-w-0 flex-1 flex-col">
           <Outlet />
         </div>
 
         {/* Thread Panel */}
-        {threadId && !profileUserId && (
-          <ThreadPanel messageId={threadId} />
-        )}
+        {threadId && !profileUserId && <ThreadPanel messageId={threadId} />}
 
         {/* Profile Pane */}
-        {profileUserId && (
-          <ProfilePane userId={profileUserId} />
-        )}
+        {profileUserId && <ProfilePane userId={profileUserId} />}
       </div>
     </div>
   );

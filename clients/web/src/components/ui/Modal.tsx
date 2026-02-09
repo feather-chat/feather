@@ -22,9 +22,11 @@ const modal = tv({
       'entering:animate-in entering:zoom-in-95 entering:duration-200',
       'exiting:animate-out exiting:zoom-out-95 exiting:duration-150',
     ],
-    header: 'flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700',
+    header:
+      'flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700',
     title: 'text-lg font-semibold text-gray-900 dark:text-white',
-    closeButton: 'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+    closeButton:
+      'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
     content: 'p-6',
   },
   variants: {
@@ -67,12 +69,8 @@ export function Modal({ isOpen, onClose, title, children, size }: ModalProps) {
                   <Heading slot="title" className={styles.title()}>
                     {title}
                   </Heading>
-                  <button
-                    onClick={close}
-                    className={styles.closeButton()}
-                    aria-label="Close"
-                  >
-                    <XMarkIcon className="w-5 h-5" />
+                  <button onClick={close} className={styles.closeButton()} aria-label="Close">
+                    <XMarkIcon className="h-5 w-5" />
                   </button>
                 </div>
               )}

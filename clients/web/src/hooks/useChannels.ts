@@ -1,5 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { channelsApi, type CreateChannelInput, type CreateDMInput, type UpdateChannelInput } from '../api/channels';
+import {
+  channelsApi,
+  type CreateChannelInput,
+  type CreateDMInput,
+  type UpdateChannelInput,
+} from '../api/channels';
 import type { ChannelWithMembership } from '@feather/api-client';
 
 export function useChannels(workspaceId: string | undefined) {
@@ -27,10 +32,10 @@ export function useMarkChannelAsRead(workspaceId: string) {
             channels: old.channels.map((c) =>
               c.id === channelId
                 ? { ...c, unread_count: 0, last_read_message_id: data.last_read_message_id }
-                : c
+                : c,
             ),
           };
-        }
+        },
       );
     },
   });
@@ -51,7 +56,7 @@ export function useMarkAllChannelsAsRead(workspaceId: string) {
             ...old,
             channels: old.channels.map((c) => ({ ...c, unread_count: 0 })),
           };
-        }
+        },
       );
     },
   });
@@ -144,11 +149,9 @@ export function useUpdateChannel(workspaceId: string, channelId: string) {
           if (!old) return old;
           return {
             ...old,
-            channels: old.channels.map((c) =>
-              c.id === channelId ? { ...c, ...data.channel } : c
-            ),
+            channels: old.channels.map((c) => (c.id === channelId ? { ...c, ...data.channel } : c)),
           };
-        }
+        },
       );
     },
   });
@@ -162,7 +165,10 @@ export function useStarChannel(workspaceId: string) {
     onMutate: async (channelId) => {
       await queryClient.cancelQueries({ queryKey: ['channels', workspaceId] });
 
-      const previousData = queryClient.getQueryData<{ channels: ChannelWithMembership[] }>(['channels', workspaceId]);
+      const previousData = queryClient.getQueryData<{ channels: ChannelWithMembership[] }>([
+        'channels',
+        workspaceId,
+      ]);
 
       queryClient.setQueryData(
         ['channels', workspaceId],
@@ -171,10 +177,10 @@ export function useStarChannel(workspaceId: string) {
           return {
             ...old,
             channels: old.channels.map((c) =>
-              c.id === channelId ? { ...c, is_starred: true } : c
+              c.id === channelId ? { ...c, is_starred: true } : c,
             ),
           };
-        }
+        },
       );
 
       return { previousData };
@@ -198,7 +204,10 @@ export function useUnstarChannel(workspaceId: string) {
     onMutate: async (channelId) => {
       await queryClient.cancelQueries({ queryKey: ['channels', workspaceId] });
 
-      const previousData = queryClient.getQueryData<{ channels: ChannelWithMembership[] }>(['channels', workspaceId]);
+      const previousData = queryClient.getQueryData<{ channels: ChannelWithMembership[] }>([
+        'channels',
+        workspaceId,
+      ]);
 
       queryClient.setQueryData(
         ['channels', workspaceId],
@@ -207,10 +216,10 @@ export function useUnstarChannel(workspaceId: string) {
           return {
             ...old,
             channels: old.channels.map((c) =>
-              c.id === channelId ? { ...c, is_starred: false } : c
+              c.id === channelId ? { ...c, is_starred: false } : c,
             ),
           };
-        }
+        },
       );
 
       return { previousData };

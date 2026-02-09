@@ -21,9 +21,7 @@ describe('useDarkMode', () => {
       dispatchEvent: vi.fn(),
       // Helper to trigger change event in tests
       _triggerChange: (newMatches: boolean) => {
-        listeners.forEach((fn) =>
-          fn({ matches: newMatches } as MediaQueryListEvent)
-        );
+        listeners.forEach((fn) => fn({ matches: newMatches } as MediaQueryListEvent));
       },
     }));
   };

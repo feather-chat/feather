@@ -7,7 +7,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={vi.fn()}>
         <p>Modal content</p>
-      </Modal>
+      </Modal>,
     );
 
     expect(screen.getByText('Modal content')).toBeInTheDocument();
@@ -17,7 +17,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={false} onClose={vi.fn()}>
         <p>Modal content</p>
-      </Modal>
+      </Modal>,
     );
 
     expect(screen.queryByText('Modal content')).not.toBeInTheDocument();
@@ -27,7 +27,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={vi.fn()} title="Test Title">
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
 
     expect(screen.getByText('Test Title')).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={vi.fn()}>
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
 
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={handleClose} title="Test">
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
 
     await user.click(screen.getByRole('button', { name: 'Close' }));
@@ -65,7 +65,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={handleClose} title="Test">
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
 
     await user.keyboard('{Escape}');
@@ -80,11 +80,12 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={handleClose} title="Test">
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
 
     // The overlay is the ModalOverlay element with the backdrop
-    const overlay = document.querySelector('[data-testid="modal-overlay"]') ||
+    const overlay =
+      document.querySelector('[data-testid="modal-overlay"]') ||
       screen.getByRole('dialog').parentElement?.parentElement;
 
     if (overlay) {
@@ -98,7 +99,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={vi.fn()} size="sm" title="Small Modal">
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
 
     // The size class is on the AriaModal container, parent of the dialog
@@ -110,7 +111,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={vi.fn()} title="Medium Modal">
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
 
     const dialog = screen.getByRole('dialog');
@@ -121,7 +122,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={vi.fn()} size="lg" title="Large Modal">
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
 
     const dialog = screen.getByRole('dialog');
@@ -132,7 +133,7 @@ describe('Modal', () => {
     render(
       <Modal isOpen={true} onClose={vi.fn()} title="Accessible Modal">
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();

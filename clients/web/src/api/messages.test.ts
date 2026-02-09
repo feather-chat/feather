@@ -82,7 +82,11 @@ describe('messagesApi', () => {
       const messages = [{ id: 'msg-1' }, { id: 'msg-2' }];
       mockPost.mockResolvedValue({ messages, has_more: false });
 
-      const result = await messagesApi.list('ch-1', { cursor: 'cursor-1', limit: 25, direction: 'before' });
+      const result = await messagesApi.list('ch-1', {
+        cursor: 'cursor-1',
+        limit: 25,
+        direction: 'before',
+      });
 
       expect(mockPost).toHaveBeenCalledWith('/channels/ch-1/messages/list', {
         cursor: 'cursor-1',

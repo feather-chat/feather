@@ -1,6 +1,10 @@
 import { useState, useRef } from 'react';
 import { TrashIcon } from '@heroicons/react/24/outline';
-import { useCustomEmojis, useUploadCustomEmoji, useDeleteCustomEmoji } from '../../hooks/useCustomEmojis';
+import {
+  useCustomEmojis,
+  useUploadCustomEmoji,
+  useDeleteCustomEmoji,
+} from '../../hooks/useCustomEmojis';
 import { useAuth } from '../../hooks';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
 import { Button, Spinner, toast, CustomEmojiImg } from '../ui';
@@ -81,7 +85,8 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
   };
 
   const handleDelete = async (emojiId: string, emojiName: string) => {
-    if (!confirm(`Delete :${emojiName}:? Messages using it will show the shortcode as plain text.`)) return;
+    if (!confirm(`Delete :${emojiName}:? Messages using it will show the shortcode as plain text.`))
+      return;
     try {
       await deleteEmoji.mutateAsync(emojiId);
       toast(`Emoji :${emojiName}: deleted`, 'success');
@@ -101,18 +106,20 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
   return (
     <div className="space-y-6">
       {/* Upload form */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Add Custom Emoji
-        </h3>
+      <div className="space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Custom Emoji</h3>
 
         <div className="flex items-start gap-4">
           {/* Preview */}
-          <div className="w-16 h-16 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-700">
             {previewUrl ? (
-              <img src={previewUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="max-h-full max-w-full object-contain"
+              />
             ) : (
-              <span className="text-gray-400 text-xs">Preview</span>
+              <span className="text-xs text-gray-400">Preview</span>
             )}
           </div>
 
@@ -126,11 +133,7 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <Button
-                variant="secondary"
-                size="sm"
-                onPress={() => fileInputRef.current?.click()}
-              >
+              <Button variant="secondary" size="sm" onPress={() => fileInputRef.current?.click()}>
                 {selectedFile ? 'Change Image' : 'Choose Image'}
               </Button>
               {selectedFile && (
@@ -138,16 +141,14 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
                   {selectedFile.name}
                 </span>
               )}
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 PNG or GIF. Max 256KB.
               </p>
             </div>
 
             {/* Name input */}
             <div>
-              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
-                Name
-              </label>
+              <label className="mb-1 block text-sm text-gray-600 dark:text-gray-400">Name</label>
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">:</span>
                 <input
@@ -155,13 +156,11 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value.replace(/\s/g, ''))}
                   placeholder="emoji_name"
-                  className="flex-1 px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white placeholder-gray-400"
+                  className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
                 <span className="text-gray-400">:</span>
               </div>
-              {nameError && (
-                <p className="text-xs text-red-500 mt-1">{nameError}</p>
-              )}
+              {nameError && <p className="mt-1 text-xs text-red-500">{nameError}</p>}
             </div>
 
             {/* Upload button */}
@@ -179,7 +178,7 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
 
       {/* Emoji list */}
       <div>
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
           Custom Emojis ({emojis?.length || 0})
         </h3>
 
@@ -188,7 +187,7 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
             {emojis.map((emoji) => (
               <div
                 key={emoji.id}
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-800"
               >
                 <div className="flex items-center gap-3">
                   <CustomEmojiImg name={emoji.name} url={emoji.url} size="lg" />
@@ -206,14 +205,14 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
                     onPress={() => handleDelete(emoji.id, emoji.name)}
                     isLoading={deleteEmoji.isPending}
                   >
-                    <TrashIcon className="w-4 h-4" />
+                    <TrashIcon className="h-4 w-4" />
                   </Button>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+          <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
             No custom emojis yet. Upload one above to get started.
           </p>
         )}

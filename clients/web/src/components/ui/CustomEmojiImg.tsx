@@ -20,7 +20,7 @@ export function CustomEmojiImg({ name, url, size = 'sm', className }: CustomEmoj
       src={url}
       alt={`:${name}:`}
       title={`:${name}:`}
-      className={cn('inline-block align-text-bottom object-contain', sizeClasses[size], className)}
+      className={cn('inline-block object-contain align-text-bottom', sizeClasses[size], className)}
     />
   );
 }

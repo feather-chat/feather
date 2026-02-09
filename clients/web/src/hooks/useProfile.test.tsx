@@ -16,12 +16,7 @@ vi.mock('../api/users', () => ({
   usersApi: mockUsersApi,
 }));
 
-import {
-  useUserProfile,
-  useUpdateProfile,
-  useUploadAvatar,
-  useDeleteAvatar,
-} from './useProfile';
+import { useUserProfile, useUpdateProfile, useUploadAvatar, useDeleteAvatar } from './useProfile';
 
 function createTestQueryClient() {
   return new QueryClient({
@@ -143,7 +138,9 @@ describe('useUploadAvatar', () => {
 
   it('returns avatar_url on success', async () => {
     const queryClient = createTestQueryClient();
-    mockUsersApi.uploadAvatar.mockResolvedValue({ avatar_url: 'https://example.com/new-avatar.jpg' });
+    mockUsersApi.uploadAvatar.mockResolvedValue({
+      avatar_url: 'https://example.com/new-avatar.jpg',
+    });
 
     const file = new File(['test'], 'avatar.jpg', { type: 'image/jpeg' });
 

@@ -5,10 +5,7 @@ import { tv } from 'tailwind-variants';
 import type { ChannelWithMembership } from '@feather/api-client';
 
 const mentionBadge = tv({
-  base: [
-    'inline rounded px-0.5 -mx-0.5',
-    'transition-colors',
-  ],
+  base: ['inline rounded px-0.5 -mx-0.5', 'transition-colors'],
   variants: {
     variant: {
       known: [
@@ -61,7 +58,7 @@ export function ChannelMentionBadge({ channelId, channels }: ChannelMentionBadge
   const navigate = useNavigate();
   const styles = popoverStyles();
 
-  const channel = channels.find(c => c.id === channelId);
+  const channel = channels.find((c) => c.id === channelId);
 
   // Channel not found — user is not a member, treat as private
   if (!channel) {
@@ -100,14 +97,8 @@ export function ChannelMentionBadge({ channelId, channels }: ChannelMentionBadge
           )}
           <span className={styles.name()}>{channel.name}</span>
         </div>
-        {channel.description && (
-          <div className={styles.description()}>{channel.description}</div>
-        )}
-        <button
-          type="button"
-          onClick={handleGoToChannel}
-          className={styles.goToChannel()}
-        >
+        {channel.description && <div className={styles.description()}>{channel.description}</div>}
+        <button type="button" onClick={handleGoToChannel} className={styles.goToChannel()}>
           Go to channel
         </button>
       </Popover>

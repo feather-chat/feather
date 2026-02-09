@@ -23,12 +23,10 @@ export function LoginPage() {
     }
     // Edge case: authenticated but no workspaces - show create workspace form
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Create a Workspace
-            </h1>
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create a Workspace</h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
               You need a workspace to get started
             </p>
@@ -54,11 +52,7 @@ export function LoginPage() {
               isRequired
             />
 
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={createWorkspace.isPending}
-            >
+            <Button type="submit" className="w-full" isLoading={createWorkspace.isPending}>
               Create Workspace
             </Button>
           </form>
@@ -69,14 +63,14 @@ export function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Spinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
       <LoginForm />
     </div>
   );

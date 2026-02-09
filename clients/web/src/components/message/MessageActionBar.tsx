@@ -1,8 +1,4 @@
-import {
-  Button as AriaButton,
-  DialogTrigger,
-  Popover,
-} from "react-aria-components";
+import { Button as AriaButton, DialogTrigger, Popover } from 'react-aria-components';
 import {
   FaceSmileIcon,
   ChatBubbleBottomCenterTextIcon,
@@ -11,10 +7,10 @@ import {
   EyeSlashIcon,
   PencilSquareIcon,
   TrashIcon,
-} from "@heroicons/react/24/outline";
-import { Tooltip, Menu, MenuItem, EmojiGrid } from "../ui";
-import { cn } from "../../lib/utils";
-import type { CustomEmoji } from "@feather/api-client";
+} from '@heroicons/react/24/outline';
+import { Tooltip, Menu, MenuItem, EmojiGrid } from '../ui';
+import { cn } from '../../lib/utils';
+import type { CustomEmoji } from '@feather/api-client';
 
 interface MessageActionBarProps {
   reactionPickerOpen: boolean;
@@ -53,17 +49,14 @@ export function MessageActionBar({
   return (
     <div
       className={cn(
-        "absolute right-4 top-0 -translate-y-1/2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm flex items-center",
-        showDropdown && "bg-gray-50 dark:bg-gray-800/50",
+        'absolute right-4 top-0 flex -translate-y-1/2 items-center rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900',
+        showDropdown && 'bg-gray-50 dark:bg-gray-800/50',
       )}
     >
-      <DialogTrigger
-        isOpen={reactionPickerOpen}
-        onOpenChange={onReactionPickerOpenChange}
-      >
+      <DialogTrigger isOpen={reactionPickerOpen} onOpenChange={onReactionPickerOpenChange}>
         <Tooltip content="Add reaction">
-          <AriaButton className="group/btn p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-lg">
-            <FaceSmileIcon className="w-4 h-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
+          <AriaButton className="group/btn rounded-l-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <FaceSmileIcon className="h-4 w-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
           </AriaButton>
         </Tooltip>
         <Popover placement="bottom end">
@@ -77,7 +70,7 @@ export function MessageActionBar({
             onPress={onReplyClick}
             className="group/btn p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            <ChatBubbleBottomCenterTextIcon className="w-4 h-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
+            <ChatBubbleBottomCenterTextIcon className="h-4 w-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
           </AriaButton>
         </Tooltip>
       )}
@@ -90,41 +83,28 @@ export function MessageActionBar({
           trigger={
             <AriaButton
               className={cn(
-                "group/btn p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg",
-                showDropdown && "bg-gray-100 dark:bg-gray-700",
+                'group/btn rounded-r-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700',
+                showDropdown && 'bg-gray-100 dark:bg-gray-700',
               )}
               aria-label="More options"
             >
-              <EllipsisVerticalIcon className="w-4 h-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
+              <EllipsisVerticalIcon className="h-4 w-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
             </AriaButton>
           }
         >
-          <MenuItem
-            onAction={onCopyLink}
-            icon={<LinkIcon className="w-4 h-4" />}
-          >
+          <MenuItem onAction={onCopyLink} icon={<LinkIcon className="h-4 w-4" />}>
             Copy link to message
           </MenuItem>
-          <MenuItem
-            onAction={onMarkUnread}
-            icon={<EyeSlashIcon className="w-4 h-4" />}
-          >
+          <MenuItem onAction={onMarkUnread} icon={<EyeSlashIcon className="h-4 w-4" />}>
             Mark unread
           </MenuItem>
           {onEdit && (
-            <MenuItem
-              onAction={onEdit}
-              icon={<PencilSquareIcon className="w-4 h-4" />}
-            >
+            <MenuItem onAction={onEdit} icon={<PencilSquareIcon className="h-4 w-4" />}>
               Edit message
             </MenuItem>
           )}
           {onDelete && (
-            <MenuItem
-              onAction={onDelete}
-              variant="danger"
-              icon={<TrashIcon className="w-4 h-4" />}
-            >
+            <MenuItem onAction={onDelete} variant="danger" icon={<TrashIcon className="h-4 w-4" />}>
               Delete message
             </MenuItem>
           )}

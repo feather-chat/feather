@@ -1,7 +1,7 @@
-import type { Editor } from "@tiptap/react";
-import { useEditorState } from "@tiptap/react";
-import { ToggleButton } from "react-aria-components";
-import { tv } from "tailwind-variants";
+import type { Editor } from '@tiptap/react';
+import { useEditorState } from '@tiptap/react';
+import { ToggleButton } from 'react-aria-components';
+import { tv } from 'tailwind-variants';
 import {
   BoldIcon,
   ItalicIcon,
@@ -12,7 +12,7 @@ import {
   LinkIcon,
   ListBulletIcon,
   NumberedListIcon,
-} from "@heroicons/react/24/outline";
+} from '@heroicons/react/24/outline';
 
 function BlockquoteIcon({ className }: { className?: string }) {
   return (
@@ -36,20 +36,20 @@ function BlockquoteIcon({ className }: { className?: string }) {
 const toolbar = tv({
   slots: {
     container: [
-      "flex items-center gap-0.5 px-2 py-1",
-      "bg-gray-50 dark:bg-gray-800",
-      "rounded-t-lg",
+      'flex items-center gap-0.5 px-2 py-1',
+      'bg-gray-50 dark:bg-gray-800',
+      'rounded-t-lg',
     ],
     button: [
-      "p-1.5 rounded transition-colors text-gray-500 dark:text-gray-400",
-      "hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200",
-      "data-[selected=true]:bg-gray-200 dark:data-[selected=true]:bg-gray-700",
-      "data-[selected=true]:text-gray-900 dark:data-[selected=true]:text-white",
-      "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
-      "disabled:opacity-50 disabled:cursor-not-allowed",
+      'p-1.5 rounded transition-colors text-gray-500 dark:text-gray-400',
+      'hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200',
+      'data-[selected=true]:bg-gray-200 dark:data-[selected=true]:bg-gray-700',
+      'data-[selected=true]:text-gray-900 dark:data-[selected=true]:text-white',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+      'disabled:opacity-50 disabled:cursor-not-allowed',
     ],
-    separator: ["w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1"],
-    icon: "w-4 h-4",
+    separator: ['w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1'],
+    icon: 'w-4 h-4',
   },
 });
 
@@ -68,16 +68,16 @@ export function Toolbar({ editor }: ToolbarProps) {
         return null;
       }
       return {
-        isBold: ctx.editor.isActive("bold"),
-        isItalic: ctx.editor.isActive("italic"),
-        isUnderline: ctx.editor.isActive("underline"),
-        isStrike: ctx.editor.isActive("strike"),
-        isLink: ctx.editor.isActive("link"),
-        isOrderedList: ctx.editor.isActive("orderedList"),
-        isBulletList: ctx.editor.isActive("bulletList"),
-        isBlockquote: ctx.editor.isActive("blockquote"),
-        isCode: ctx.editor.isActive("code"),
-        isCodeBlock: ctx.editor.isActive("codeBlock"),
+        isBold: ctx.editor.isActive('bold'),
+        isItalic: ctx.editor.isActive('italic'),
+        isUnderline: ctx.editor.isActive('underline'),
+        isStrike: ctx.editor.isActive('strike'),
+        isLink: ctx.editor.isActive('link'),
+        isOrderedList: ctx.editor.isActive('orderedList'),
+        isBulletList: ctx.editor.isActive('bulletList'),
+        isBlockquote: ctx.editor.isActive('blockquote'),
+        isCode: ctx.editor.isActive('code'),
+        isCodeBlock: ctx.editor.isActive('codeBlock'),
       };
     },
   });
@@ -87,19 +87,19 @@ export function Toolbar({ editor }: ToolbarProps) {
   }
 
   const addLink = () => {
-    const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("URL", previousUrl);
+    const previousUrl = editor.getAttributes('link').href;
+    const url = window.prompt('URL', previousUrl);
 
     if (url === null) {
       return;
     }
 
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
       return;
     }
 
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   };
 
   return (

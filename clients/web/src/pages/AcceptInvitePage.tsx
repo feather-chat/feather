@@ -31,13 +31,12 @@ export function AcceptInvitePage() {
   };
 
   // Get fallback workspace link for error state
-  const fallbackWorkspaceLink = workspaces && workspaces.length > 0
-    ? `/workspaces/${workspaces[0].id}`
-    : '/login';
+  const fallbackWorkspaceLink =
+    workspaces && workspaces.length > 0 ? `/workspaces/${workspaces[0].id}` : '/login';
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Spinner size="lg" />
       </div>
     );
@@ -45,12 +44,12 @@ export function AcceptInvitePage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-        <div className="max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
+        <div className="w-full max-w-md text-center">
+          <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
             You've been invited!
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="mb-6 text-gray-600 dark:text-gray-400">
             Sign in or create an account to accept this invitation.
           </p>
           <div className="flex flex-col gap-3">
@@ -58,7 +57,9 @@ export function AcceptInvitePage() {
               <Button className="w-full">Sign in</Button>
             </Link>
             <Link to="/register">
-              <Button variant="secondary" className="w-full">Create account</Button>
+              <Button variant="secondary" className="w-full">
+                Create account
+              </Button>
             </Link>
           </div>
         </div>
@@ -67,15 +68,13 @@ export function AcceptInvitePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          Accept Invitation
-        </h1>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
+      <div className="w-full max-w-md text-center">
+        <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Accept Invitation</h1>
 
         {error ? (
           <>
-            <p className="text-red-600 dark:text-red-400 mb-6">{error}</p>
+            <p className="mb-6 text-red-600 dark:text-red-400">{error}</p>
             <Link to={fallbackWorkspaceLink}>
               <Button variant="secondary">
                 {workspaces && workspaces.length > 0 ? 'Go to Workspace' : 'Go to Login'}
@@ -84,14 +83,10 @@ export function AcceptInvitePage() {
           </>
         ) : (
           <>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="mb-6 text-gray-600 dark:text-gray-400">
               Click below to join the workspace.
             </p>
-            <Button
-              onClick={handleAccept}
-              isLoading={acceptInvite.isPending}
-              className="w-full"
-            >
+            <Button onClick={handleAccept} isLoading={acceptInvite.isPending} className="w-full">
               Accept Invitation
             </Button>
           </>

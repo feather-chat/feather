@@ -4,9 +4,7 @@ interface UseAutoScrollOptions {
   threshold?: number; // Distance from bottom to consider "at bottom"
 }
 
-export function useAutoScroll<T extends HTMLElement>(
-  options: UseAutoScrollOptions = {}
-) {
+export function useAutoScroll<T extends HTMLElement>(options: UseAutoScrollOptions = {}) {
   const { threshold = 100 } = options;
   const containerRef = useRef<T>(null);
   const shouldScrollRef = useRef(true);

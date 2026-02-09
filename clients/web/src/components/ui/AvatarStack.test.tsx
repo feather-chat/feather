@@ -48,9 +48,7 @@ describe('AvatarStack', () => {
   });
 
   it('renders overflow indicator with correct styling', () => {
-    const { container } = render(
-      <AvatarStack users={mockUsers} max={2} size="xs" />
-    );
+    const { container } = render(<AvatarStack users={mockUsers} max={2} size="xs" />);
 
     // Should show +3 overflow indicator
     expect(screen.getByText('+3')).toBeInTheDocument();
@@ -70,7 +68,7 @@ describe('AvatarStack', () => {
 
   it('applies custom className', () => {
     const { container } = render(
-      <AvatarStack users={mockUsers.slice(0, 2)} className="custom-class" />
+      <AvatarStack users={mockUsers.slice(0, 2)} className="custom-class" />,
     );
 
     const wrapper = container.querySelector('.custom-class');

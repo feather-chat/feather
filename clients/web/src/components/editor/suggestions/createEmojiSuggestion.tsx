@@ -1,6 +1,10 @@
 import type { MutableRefObject } from 'react';
 import type { SuggestionOptions, SuggestionProps } from '@tiptap/suggestion';
-import { EmojiSuggestionList, type EmojiOption, type EmojiSuggestionRef } from './EmojiSuggestionList';
+import {
+  EmojiSuggestionList,
+  type EmojiOption,
+  type EmojiSuggestionRef,
+} from './EmojiSuggestionList';
 import { searchAllEmojis } from '../../../lib/emoji';
 import type { CustomEmoji } from '@feather/api-client';
 
@@ -59,8 +63,10 @@ export function createEmojiSuggestion(
                 command={(item) => {
                   props.command(item);
                 }}
-                ref={(r) => { ref = r; }}
-              />
+                ref={(r) => {
+                  ref = r;
+                }}
+              />,
             );
 
             // Clamp to viewport after render
@@ -106,8 +112,10 @@ export function createEmojiSuggestion(
               command={(item) => {
                 props.command(item);
               }}
-              ref={(r) => { ref = r; }}
-            />
+              ref={(r) => {
+                ref = r;
+              }}
+            />,
           );
 
           // Clamp to viewport

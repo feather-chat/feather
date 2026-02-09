@@ -1,10 +1,16 @@
-import { useState, useRef } from "react";
-import { XMarkIcon, PhotoIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { useUserProfile, useUpdateProfile, useUploadAvatar, useDeleteAvatar, useAuth } from "../../hooks";
-import { useProfilePanel } from "../../hooks/usePanel";
-import { Avatar, Button, Input, Spinner, toast } from "../ui";
-import { cn } from "../../lib/utils";
-import { useUserPresence } from "../../lib/presenceStore";
+import { useState, useRef } from 'react';
+import { XMarkIcon, PhotoIcon, TrashIcon } from '@heroicons/react/24/outline';
+import {
+  useUserProfile,
+  useUpdateProfile,
+  useUploadAvatar,
+  useDeleteAvatar,
+  useAuth,
+} from '../../hooks';
+import { useProfilePanel } from '../../hooks/usePanel';
+import { Avatar, Button, Input, Spinner, toast } from '../ui';
+import { cn } from '../../lib/utils';
+import { useUserPresence } from '../../lib/presenceStore';
 
 interface ProfilePaneProps {
   userId: string;
@@ -20,15 +26,15 @@ export function ProfilePane({ userId }: ProfilePaneProps) {
   const profile = data?.user;
 
   return (
-    <div className="w-80 border-l border-gray-200 dark:border-gray-700 flex flex-col bg-white dark:bg-gray-900">
+    <div className="flex w-80 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
         <h3 className="font-semibold text-gray-900 dark:text-white">Profile</h3>
         <button
           onClick={closeProfile}
-          className="p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          className="rounded p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
         >
-          <XMarkIcon className="w-4 h-4" />
+          <XMarkIcon className="h-4 w-4" />
         </button>
       </div>
 
@@ -54,9 +60,7 @@ export function ProfilePane({ userId }: ProfilePaneProps) {
             />
           )
         ) : (
-          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-            User not found
-          </div>
+          <div className="py-8 text-center text-gray-500 dark:text-gray-400">User not found</div>
         )}
       </div>
     </div>
@@ -77,16 +81,16 @@ interface ViewProfileProps {
 
 function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
   const presence = useUserPresence(profile.id);
-  const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
+  const memberSince = new Date(profile.created_at).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
   });
 
   const statusConfig = {
-    online: { color: "text-green-600 dark:text-green-400", dot: "bg-green-500", label: "Online" },
-    offline: { color: "text-gray-500", dot: "bg-gray-400", label: "Offline" },
+    online: { color: 'text-green-600 dark:text-green-400', dot: 'bg-green-500', label: 'Online' },
+    offline: { color: 'text-gray-500', dot: 'bg-gray-400', label: 'Offline' },
   };
-  const status = statusConfig[presence ?? "offline"];
+  const status = statusConfig[presence ?? 'offline'];
 
   return (
     <div className="space-y-6">
@@ -97,23 +101,13 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
           name={profile.display_name}
           id={profile.id}
           size="lg"
-          className="w-24 h-24 text-3xl"
+          className="h-24 w-24 text-3xl"
         />
         <h4 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
           {profile.display_name}
         </h4>
-        <span
-          className={cn(
-            "mt-1 inline-flex items-center gap-1.5 text-sm",
-            status.color,
-          )}
-        >
-          <span
-            className={cn(
-              "w-2 h-2 rounded-full",
-              status.dot,
-            )}
-          />
+        <span className={cn('mt-1 inline-flex items-center gap-1.5 text-sm', status.color)}>
+          <span className={cn('h-2 w-2 rounded-full', status.dot)} />
           {status.label}
         </span>
       </div>
@@ -121,12 +115,10 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
       {/* Details */}
       <div className="space-y-3">
         <div>
-          <dt className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          <dt className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
             Member since
           </dt>
-          <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-            {memberSince}
-          </dd>
+          <dd className="mt-1 text-sm text-gray-900 dark:text-white">{memberSince}</dd>
         </div>
       </div>
 
@@ -150,12 +142,7 @@ interface EditProfileFormProps {
   onSuccess: () => void;
 }
 
-function EditProfileForm({
-  userId,
-  profile,
-  onCancel,
-  onSuccess,
-}: EditProfileFormProps) {
+function EditProfileForm({ userId, profile, onCancel, onSuccess }: EditProfileFormProps) {
   const [displayName, setDisplayName] = useState(profile.display_name);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -170,15 +157,15 @@ function EditProfileForm({
     if (!file) return;
 
     // Validate file type
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast("Invalid file type. Please use JPEG, PNG, GIF, or WebP.", "error");
+      toast('Invalid file type. Please use JPEG, PNG, GIF, or WebP.', 'error');
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast("File too large. Maximum size is 5MB.", "error");
+      toast('File too large. Maximum size is 5MB.', 'error');
       return;
     }
 
@@ -191,9 +178,9 @@ function EditProfileForm({
       await deleteAvatar.mutateAsync();
       setSelectedFile(null);
       setPreviewUrl(null);
-      toast("Avatar removed", "success");
+      toast('Avatar removed', 'success');
     } catch {
-      toast("Failed to remove avatar", "error");
+      toast('Failed to remove avatar', 'error');
     }
   };
 
@@ -204,7 +191,7 @@ function EditProfileForm({
     }
     setPreviewUrl(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -213,7 +200,7 @@ function EditProfileForm({
 
     const trimmedName = displayName.trim();
     if (!trimmedName) {
-      toast("Display name is required", "error");
+      toast('Display name is required', 'error');
       return;
     }
 
@@ -228,10 +215,10 @@ function EditProfileForm({
         display_name: trimmedName,
       });
 
-      toast("Profile updated", "success");
+      toast('Profile updated', 'success');
       onSuccess();
     } catch {
-      toast("Failed to update profile", "error");
+      toast('Failed to update profile', 'error');
     }
   };
 
@@ -246,10 +233,10 @@ function EditProfileForm({
       <div className="flex flex-col items-center gap-3">
         <Avatar
           src={displayAvatarUrl || undefined}
-          name={displayName || "User"}
+          name={displayName || 'User'}
           id={userId}
           size="lg"
-          className="w-24 h-24 text-3xl"
+          className="h-24 w-24 text-3xl"
         />
 
         <input
@@ -262,13 +249,8 @@ function EditProfileForm({
 
         <div className="flex flex-wrap justify-center gap-2">
           {selectedFile ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onPress={handleClearSelection}
-            >
-              <XMarkIcon className="w-4 h-4 mr-1" />
+            <Button type="button" variant="secondary" size="sm" onPress={handleClearSelection}>
+              <XMarkIcon className="mr-1 h-4 w-4" />
               Clear
             </Button>
           ) : (
@@ -278,7 +260,7 @@ function EditProfileForm({
               size="sm"
               onPress={() => fileInputRef.current?.click()}
             >
-              <PhotoIcon className="w-4 h-4 mr-1" />
+              <PhotoIcon className="mr-1 h-4 w-4" />
               Upload Photo
             </Button>
           )}
@@ -291,16 +273,14 @@ function EditProfileForm({
               onPress={handleRemoveAvatar}
               isLoading={deleteAvatar.isPending}
             >
-              <TrashIcon className="w-4 h-4 mr-1" />
+              <TrashIcon className="mr-1 h-4 w-4" />
               Remove
             </Button>
           )}
         </div>
 
         {selectedFile && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Selected: {selectedFile.name}
-          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Selected: {selectedFile.name}</p>
         )}
       </div>
 
@@ -326,11 +306,7 @@ function EditProfileForm({
         >
           Cancel
         </Button>
-        <Button
-          type="submit"
-          className="flex-1"
-          isLoading={isPending}
-        >
+        <Button type="submit" className="flex-1" isLoading={isPending}>
           Save
         </Button>
       </div>

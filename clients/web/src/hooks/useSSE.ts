@@ -2,8 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { SSEConnection } from '../lib/sse';
 import { addTypingUser, removeTypingUser, setUserPresence } from '../lib/presenceStore';
-import { playNotificationSound, showBrowserNotification, unlockAudio } from '../lib/notificationSound';
-import type { MessageListResult, MessageWithUser, ChannelWithMembership, Channel, NotificationData, CustomEmoji } from '@feather/api-client';
+import {
+  playNotificationSound,
+  showBrowserNotification,
+  unlockAudio,
+} from '../lib/notificationSound';
+import type {
+  MessageListResult,
+  MessageWithUser,
+  ChannelWithMembership,
+  Channel,
+  NotificationData,
+  CustomEmoji,
+} from '@feather/api-client';
 
 export function useSSE(workspaceId: string | undefined) {
   const [isConnected, setIsConnected] = useState(false);
@@ -35,16 +46,21 @@ export function useSSE(workspaceId: string | undefined) {
       // Thread replies go to thread cache, and optionally to channel if broadcast
       if (message.thread_parent_id) {
         // Check if this message was already processed (e.g., by optimistic update from current user)
-        const threadData = queryClient.getQueryData<{ pages: MessageListResult[]; pageParams: (string | undefined)[] }>(['thread', message.thread_parent_id]);
+        const threadData = queryClient.getQueryData<{
+          pages: MessageListResult[];
+          pageParams: (string | undefined)[];
+        }>(['thread', message.thread_parent_id]);
         const alreadyProcessed = threadData?.pages.some((page) =>
-          page.messages.some((m) => m.id === message.id)
+          page.messages.some((m) => m.id === message.id),
         );
 
         // Add to thread cache if not already there
         if (!alreadyProcessed) {
           queryClient.setQueryData(
             ['thread', message.thread_parent_id],
-            (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
+            (
+              old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined,
+            ) => {
               if (!old) return old;
 
               // Thread messages are ordered ASC (oldest first), so append to end
@@ -57,7 +73,7 @@ export function useSSE(workspaceId: string | undefined) {
                 };
               }
               return { ...old, pages: newPages };
-            }
+            },
           );
         }
 
@@ -65,10 +81,12 @@ export function useSSE(workspaceId: string | undefined) {
         if (message.also_send_to_channel) {
           queryClient.setQueryData(
             ['messages', message.channel_id],
-            (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
+            (
+              old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined,
+            ) => {
               if (!old) return old;
               const exists = old.pages.some((page) =>
-                page.messages.some((m) => m.id === message.id)
+                page.messages.some((m) => m.id === message.id),
               );
               if (exists) return old;
               const newPages = [...old.pages];
@@ -79,7 +97,7 @@ export function useSSE(workspaceId: string | undefined) {
                 };
               }
               return { ...old, pages: newPages };
-            }
+            },
           );
         }
 
@@ -99,9 +117,8 @@ export function useSSE(workspaceId: string | undefined) {
 
                   // Check if user should be added to thread_participants
                   const participants = m.thread_participants || [];
-                  const shouldAddParticipant = message.user_id && !participants.some(
-                    (p) => p.user_id === message.user_id
-                  );
+                  const shouldAddParticipant =
+                    message.user_id && !participants.some((p) => p.user_id === message.user_id);
 
                   return {
                     ...m,
@@ -122,7 +139,7 @@ export function useSSE(workspaceId: string | undefined) {
                 }),
               })),
             };
-          }
+          },
         );
 
         // Invalidate threads list so unread count and thread order refresh
@@ -135,9 +152,7 @@ export function useSSE(workspaceId: string | undefined) {
             if (!old) return old;
 
             // Check if message already exists
-            const exists = old.pages.some((page) =>
-              page.messages.some((m) => m.id === message.id)
-            );
+            const exists = old.pages.some((page) => page.messages.some((m) => m.id === message.id));
             if (exists) return old;
 
             const newPages = [...old.pages];
@@ -148,7 +163,7 @@ export function useSSE(workspaceId: string | undefined) {
               };
             }
             return { ...old, pages: newPages };
-          }
+          },
         );
       }
 
@@ -166,12 +181,10 @@ export function useSSE(workspaceId: string | undefined) {
               return {
                 ...old,
                 channels: old.channels.map((c) =>
-                  c.id === message.channel_id
-                    ? { ...c, unread_count: c.unread_count + 1 }
-                    : c
+                  c.id === message.channel_id ? { ...c, unread_count: c.unread_count + 1 } : c,
                 ),
               };
-            }
+            },
           );
         }
       }
@@ -189,12 +202,10 @@ export function useSSE(workspaceId: string | undefined) {
             ...old,
             pages: old.pages.map((page) => ({
               ...page,
-              messages: page.messages.map((m) =>
-                m.id === message.id ? { ...m, ...message } : m
-              ),
+              messages: page.messages.map((m) => (m.id === message.id ? { ...m, ...message } : m)),
             })),
           };
-        }
+        },
       );
     });
 
@@ -206,11 +217,12 @@ export function useSSE(workspaceId: string | undefined) {
       // by seeing if the message still exists in the thread cache
       let alreadyHandled = false;
       if (thread_parent_id) {
-        const threadData = queryClient.getQueryData<{ pages: MessageListResult[] }>(['thread', thread_parent_id]);
+        const threadData = queryClient.getQueryData<{ pages: MessageListResult[] }>([
+          'thread',
+          thread_parent_id,
+        ]);
         if (threadData) {
-          alreadyHandled = !threadData.pages.some((page) =>
-            page.messages.some((m) => m.id === id)
-          );
+          alreadyHandled = !threadData.pages.some((page) => page.messages.some((m) => m.id === id));
         }
       }
 
@@ -235,7 +247,7 @@ export function useSSE(workspaceId: string | undefined) {
                 .filter((m): m is MessageWithUser => m !== null),
             })),
           };
-        }
+        },
       );
 
       // Also filter from thread caches
@@ -250,7 +262,7 @@ export function useSSE(workspaceId: string | undefined) {
               messages: page.messages.filter((m) => m.id !== id),
             })),
           };
-        }
+        },
       );
 
       // Decrement parent's reply_count if this was a thread reply
@@ -270,7 +282,7 @@ export function useSSE(workspaceId: string | undefined) {
                 }),
               })),
             };
-          }
+          },
         );
       }
     });
@@ -291,12 +303,16 @@ export function useSSE(workspaceId: string | undefined) {
                 if (m.id !== reaction.message_id) return m;
                 const reactions = m.reactions || [];
                 // Avoid duplicates (check by user + emoji, not just ID, to handle optimistic updates)
-                if (reactions.some((r) => r.user_id === reaction.user_id && r.emoji === reaction.emoji)) {
+                if (
+                  reactions.some(
+                    (r) => r.user_id === reaction.user_id && r.emoji === reaction.emoji,
+                  )
+                ) {
                   // Replace temp reaction with real one
                   return {
                     ...m,
                     reactions: reactions.map((r) =>
-                      r.user_id === reaction.user_id && r.emoji === reaction.emoji ? reaction : r
+                      r.user_id === reaction.user_id && r.emoji === reaction.emoji ? reaction : r,
                     ),
                   };
                 }
@@ -304,7 +320,7 @@ export function useSSE(workspaceId: string | undefined) {
               }),
             })),
           };
-        }
+        },
       );
     });
 
@@ -325,14 +341,12 @@ export function useSSE(workspaceId: string | undefined) {
                 const reactions = m.reactions || [];
                 return {
                   ...m,
-                  reactions: reactions.filter(
-                    (r) => !(r.user_id === user_id && r.emoji === emoji)
-                  ),
+                  reactions: reactions.filter((r) => !(r.user_id === user_id && r.emoji === emoji)),
                 };
               }),
             })),
           };
-        }
+        },
       );
     });
 
@@ -349,11 +363,9 @@ export function useSSE(workspaceId: string | undefined) {
           if (!old) return old;
           return {
             ...old,
-            channels: old.channels.map((c) =>
-              c.id === channel.id ? { ...c, ...channel } : c
-            ),
+            channels: old.channels.map((c) => (c.id === channel.id ? { ...c, ...channel } : c)),
           };
-        }
+        },
       );
     });
 
@@ -383,12 +395,10 @@ export function useSSE(workspaceId: string | undefined) {
           return {
             ...old,
             channels: old.channels.map((c) =>
-              c.id === channel_id
-                ? { ...c, unread_count: 0, last_read_message_id }
-                : c
+              c.id === channel_id ? { ...c, unread_count: 0, last_read_message_id } : c,
             ),
           };
-        }
+        },
       );
     });
 
@@ -401,8 +411,11 @@ export function useSSE(workspaceId: string | undefined) {
           if (!old) return old;
           // Avoid duplicates
           if (old.emojis.some((e) => e.id === emoji.id)) return old;
-          return { ...old, emojis: [...old.emojis, emoji].sort((a, b) => a.name.localeCompare(b.name)) };
-        }
+          return {
+            ...old,
+            emojis: [...old.emojis, emoji].sort((a, b) => a.name.localeCompare(b.name)),
+          };
+        },
       );
     });
 
@@ -413,7 +426,7 @@ export function useSSE(workspaceId: string | undefined) {
         (old: { emojis: CustomEmoji[] } | undefined) => {
           if (!old) return old;
           return { ...old, emojis: old.emojis.filter((e) => e.id !== id) };
-        }
+        },
       );
     });
 

@@ -8,7 +8,7 @@ describe('RadioGroup', () => {
       <RadioGroup label="Choose option">
         <Radio value="a">Option A</Radio>
         <Radio value="b">Option B</Radio>
-      </RadioGroup>
+      </RadioGroup>,
     );
 
     expect(screen.getByText('Option A')).toBeInTheDocument();
@@ -20,7 +20,7 @@ describe('RadioGroup', () => {
       <RadioGroup label="Select preference">
         <Radio value="1">One</Radio>
         <Radio value="2">Two</Radio>
-      </RadioGroup>
+      </RadioGroup>,
     );
 
     expect(screen.getByText('Select preference')).toBeInTheDocument();
@@ -31,7 +31,7 @@ describe('RadioGroup', () => {
       <RadioGroup>
         <Radio value="1">One</Radio>
         <Radio value="2">Two</Radio>
-      </RadioGroup>
+      </RadioGroup>,
     );
 
     // The label element should not be present
@@ -47,7 +47,7 @@ describe('RadioGroup', () => {
       <RadioGroup onChange={handleChange}>
         <Radio value="a">Option A</Radio>
         <Radio value="b">Option B</Radio>
-      </RadioGroup>
+      </RadioGroup>,
     );
 
     const radios = screen.getAllByRole('radio');
@@ -61,7 +61,7 @@ describe('RadioGroup', () => {
       <RadioGroup value="b">
         <Radio value="a">Option A</Radio>
         <Radio value="b">Option B</Radio>
-      </RadioGroup>
+      </RadioGroup>,
     );
 
     const radios = screen.getAllByRole('radio');
@@ -74,7 +74,7 @@ describe('RadioGroup', () => {
       <RadioGroup isDisabled>
         <Radio value="a">Option A</Radio>
         <Radio value="b">Option B</Radio>
-      </RadioGroup>
+      </RadioGroup>,
     );
 
     const radios = screen.getAllByRole('radio');
@@ -86,8 +86,10 @@ describe('RadioGroup', () => {
     render(
       <RadioGroup>
         <Radio value="a">Option A</Radio>
-        <Radio value="b" isDisabled>Option B</Radio>
-      </RadioGroup>
+        <Radio value="b" isDisabled>
+          Option B
+        </Radio>
+      </RadioGroup>,
     );
 
     const radios = screen.getAllByRole('radio');
@@ -104,7 +106,7 @@ describe('RadioGroup', () => {
         <Radio value="a">Option A</Radio>
         <Radio value="b">Option B</Radio>
         <Radio value="c">Option C</Radio>
-      </RadioGroup>
+      </RadioGroup>,
     );
 
     const radios = screen.getAllByRole('radio');

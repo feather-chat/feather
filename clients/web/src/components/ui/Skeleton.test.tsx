@@ -18,7 +18,7 @@ describe('Skeleton', () => {
   });
 
   it('applies custom className', () => {
-    const { container } = render(<Skeleton className="w-32 h-8" />);
+    const { container } = render(<Skeleton className="h-8 w-32" />);
 
     const skeleton = container.querySelector('div');
     expect(skeleton).toHaveClass('w-32', 'h-8');

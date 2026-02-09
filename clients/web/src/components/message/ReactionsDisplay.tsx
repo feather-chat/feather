@@ -1,9 +1,9 @@
-import { Button as AriaButton } from "react-aria-components";
-import { Tooltip, CustomEmojiImg } from "../ui";
-import { cn } from "../../lib/utils";
-import { resolveStandardShortcode } from "../../lib/emoji";
-import type { ReactionGroup } from "./reactionUtils";
-import type { CustomEmoji } from "@feather/api-client";
+import { Button as AriaButton } from 'react-aria-components';
+import { Tooltip, CustomEmojiImg } from '../ui';
+import { cn } from '../../lib/utils';
+import { resolveStandardShortcode } from '../../lib/emoji';
+import type { ReactionGroup } from './reactionUtils';
+import type { CustomEmoji } from '@feather/api-client';
 
 /**
  * Render an emoji string which may be:
@@ -13,11 +13,11 @@ import type { CustomEmoji } from "@feather/api-client";
 export function EmojiDisplay({
   emoji,
   customEmojiMap,
-  size = "sm",
+  size = 'sm',
 }: {
   emoji: string;
   customEmojiMap?: Map<string, CustomEmoji>;
-  size?: "sm" | "md";
+  size?: 'sm' | 'md';
 }) {
   // Check if it's a shortcode format :name:
   const shortcodeMatch = emoji.match(/^:([a-zA-Z0-9_+-]+):$/);
@@ -54,26 +54,24 @@ export function ReactionsDisplay({
   }
 
   return (
-    <div className="flex flex-wrap gap-1 mt-1">
+    <div className="mt-1 flex flex-wrap gap-1">
       {reactions.map(({ emoji, count, userIds, hasOwn }) => {
-        const userNames = userIds
-          .map((id) => memberNames[id] || "Unknown")
-          .join(", ");
+        const userNames = userIds.map((id) => memberNames[id] || 'Unknown').join(', ');
         return (
           <Tooltip key={emoji} content={userNames}>
             <AriaButton
               onPress={() => onReactionClick(emoji, hasOwn)}
               className={cn(
-                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors",
+                'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-sm transition-colors',
                 hasOwn
-                  ? "bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700"
-                  : "bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600",
+                  ? 'border-primary-300 bg-primary-100 dark:border-primary-700 dark:bg-primary-900/30'
+                  : 'border-gray-200 bg-gray-100 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
               )}
             >
-              <span><EmojiDisplay emoji={emoji} customEmojiMap={customEmojiMap} size="md" /></span>
-              <span className="text-xs text-gray-600 dark:text-gray-300">
-                {count}
+              <span>
+                <EmojiDisplay emoji={emoji} customEmojiMap={customEmojiMap} size="md" />
               </span>
+              <span className="text-xs text-gray-600 dark:text-gray-300">{count}</span>
             </AriaButton>
           </Tooltip>
         );

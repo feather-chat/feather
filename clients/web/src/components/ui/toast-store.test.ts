@@ -22,7 +22,7 @@ describe('toast-store', () => {
 
       expect(addSpy).toHaveBeenCalledWith(
         { message: 'Test message', type: 'info' },
-        { timeout: 5000 }
+        { timeout: 5000 },
       );
     });
 
@@ -33,7 +33,7 @@ describe('toast-store', () => {
 
       expect(addSpy).toHaveBeenCalledWith(
         { message: 'Success!', type: 'success' },
-        { timeout: 5000 }
+        { timeout: 5000 },
       );
     });
 
@@ -44,7 +44,7 @@ describe('toast-store', () => {
 
       expect(addSpy).toHaveBeenCalledWith(
         { message: 'Error occurred', type: 'error' },
-        { timeout: 5000 }
+        { timeout: 5000 },
       );
     });
 
@@ -55,7 +55,7 @@ describe('toast-store', () => {
 
       expect(addSpy).toHaveBeenCalledWith(
         { message: 'Information', type: 'info' },
-        { timeout: 5000 }
+        { timeout: 5000 },
       );
     });
 
@@ -64,10 +64,7 @@ describe('toast-store', () => {
 
       toast('Test');
 
-      expect(addSpy).toHaveBeenCalledWith(
-        expect.any(Object),
-        { timeout: 5000 }
-      );
+      expect(addSpy).toHaveBeenCalledWith(expect.any(Object), { timeout: 5000 });
     });
   });
 

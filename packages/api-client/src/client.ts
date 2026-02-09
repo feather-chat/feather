@@ -16,11 +16,11 @@ export class ApiError extends Error {
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const data = await response.json() as ApiErrorResponse;
+    const data = (await response.json()) as ApiErrorResponse;
     throw new ApiError(
       data.error?.code || 'UNKNOWN_ERROR',
       data.error?.message || 'An unknown error occurred',
-      response.status
+      response.status,
     );
   }
   return response.json() as Promise<T>;
@@ -49,7 +49,11 @@ export async function post<T>(endpoint: string, data?: unknown): Promise<T> {
   return handleResponse<T>(response);
 }
 
-export async function uploadFile(endpoint: string, file: File, fields?: Record<string, string>): Promise<unknown> {
+export async function uploadFile(
+  endpoint: string,
+  file: File,
+  fields?: Record<string, string>,
+): Promise<unknown> {
   const formData = new FormData();
   if (fields) {
     for (const [key, value] of Object.entries(fields)) {

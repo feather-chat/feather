@@ -54,19 +54,17 @@ export function ChannelNotificationButton({
       trigger={
         <AriaButton
           className={cn(
-            'p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-            isMuted
-              ? 'text-gray-400 dark:text-gray-500'
-              : 'text-gray-500 dark:text-gray-400'
+            'cursor-pointer rounded p-1.5 outline-none hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:bg-gray-800',
+            isMuted ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400',
           )}
           aria-label="Channel notification settings"
         >
           {currentLevel === 'none' ? (
-            <BellSlashIcon className="w-5 h-5" />
+            <BellSlashIcon className="h-5 w-5" />
           ) : currentLevel === 'mentions' ? (
-            <BellIcon className="w-5 h-5" />
+            <BellIcon className="h-5 w-5" />
           ) : (
-            <BellAlertIcon className="w-5 h-5" />
+            <BellAlertIcon className="h-5 w-5" />
           )}
         </AriaButton>
       }
@@ -76,7 +74,7 @@ export function ChannelNotificationButton({
         <SelectMenuItem
           key={level}
           id={level}
-          icon={<Icon className="w-4 h-4 text-gray-500 dark:text-gray-400" />}
+          icon={<Icon className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
         >
           {label}
         </SelectMenuItem>

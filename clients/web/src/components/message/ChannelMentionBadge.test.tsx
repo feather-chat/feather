@@ -26,10 +26,7 @@ describe('ChannelMentionBadge', () => {
   it('renders public channel with name and hash icon', () => {
     const channels = [makeChannel({ id: 'ch-1', name: 'general', type: 'public' })];
 
-    render(
-      <ChannelMentionBadge channelId="ch-1" channels={channels} />,
-      { routerProps },
-    );
+    render(<ChannelMentionBadge channelId="ch-1" channels={channels} />, { routerProps });
 
     expect(screen.getByRole('button', { name: /general/ })).toBeInTheDocument();
     expect(screen.queryByText('private-channel')).not.toBeInTheDocument();
@@ -38,10 +35,7 @@ describe('ChannelMentionBadge', () => {
   it('renders private channel with name and lock icon', () => {
     const channels = [makeChannel({ id: 'ch-2', name: 'secret', type: 'private' })];
 
-    render(
-      <ChannelMentionBadge channelId="ch-2" channels={channels} />,
-      { routerProps },
-    );
+    render(<ChannelMentionBadge channelId="ch-2" channels={channels} />, { routerProps });
 
     expect(screen.getByRole('button', { name: /secret/ })).toBeInTheDocument();
   });
@@ -49,10 +43,7 @@ describe('ChannelMentionBadge', () => {
   it('renders unknown channel as "private-channel" with gray styling', () => {
     const channels = [makeChannel({ id: 'ch-1', name: 'general' })];
 
-    render(
-      <ChannelMentionBadge channelId="ch-unknown" channels={channels} />,
-      { routerProps },
-    );
+    render(<ChannelMentionBadge channelId="ch-unknown" channels={channels} />, { routerProps });
 
     expect(screen.getByText('private-channel')).toBeInTheDocument();
     // Should not be a button — not interactive
@@ -60,10 +51,7 @@ describe('ChannelMentionBadge', () => {
   });
 
   it('renders unknown channel with gray background classes', () => {
-    render(
-      <ChannelMentionBadge channelId="ch-unknown" channels={[]} />,
-      { routerProps },
-    );
+    render(<ChannelMentionBadge channelId="ch-unknown" channels={[]} />, { routerProps });
 
     const badge = screen.getByText('private-channel').closest('span')!;
     expect(badge).toHaveClass('bg-gray-100');
@@ -73,10 +61,7 @@ describe('ChannelMentionBadge', () => {
   it('renders known channel with blue background classes', () => {
     const channels = [makeChannel({ id: 'ch-1', name: 'general' })];
 
-    render(
-      <ChannelMentionBadge channelId="ch-1" channels={channels} />,
-      { routerProps },
-    );
+    render(<ChannelMentionBadge channelId="ch-1" channels={channels} />, { routerProps });
 
     const button = screen.getByRole('button', { name: /general/ });
     expect(button).toHaveClass('bg-blue-50');
@@ -87,10 +72,7 @@ describe('ChannelMentionBadge', () => {
     const user = userEvent.setup();
     const channels = [makeChannel({ id: 'ch-1', name: 'general', description: 'Main channel' })];
 
-    render(
-      <ChannelMentionBadge channelId="ch-1" channels={channels} />,
-      { routerProps },
-    );
+    render(<ChannelMentionBadge channelId="ch-1" channels={channels} />, { routerProps });
 
     await user.click(screen.getByRole('button', { name: /general/ }));
 
@@ -102,10 +84,7 @@ describe('ChannelMentionBadge', () => {
     const user = userEvent.setup();
     const channels = [makeChannel({ id: 'ch-1', name: 'general' })];
 
-    render(
-      <ChannelMentionBadge channelId="ch-1" channels={channels} />,
-      { routerProps },
-    );
+    render(<ChannelMentionBadge channelId="ch-1" channels={channels} />, { routerProps });
 
     await user.click(screen.getByRole('button', { name: /general/ }));
 
@@ -113,10 +92,7 @@ describe('ChannelMentionBadge', () => {
   });
 
   it('renders with empty channels array as private-channel', () => {
-    render(
-      <ChannelMentionBadge channelId="ch-1" channels={[]} />,
-      { routerProps },
-    );
+    render(<ChannelMentionBadge channelId="ch-1" channels={[]} />, { routerProps });
 
     expect(screen.getByText('private-channel')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();

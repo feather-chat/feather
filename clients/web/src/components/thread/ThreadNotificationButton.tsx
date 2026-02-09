@@ -1,11 +1,7 @@
 import { Button as AriaButton } from 'react-aria-components';
 import { BellIcon, BellSlashIcon } from '@heroicons/react/24/outline';
 import { SelectMenu, SelectMenuItem, Spinner } from '../ui';
-import {
-  useThreadSubscription,
-  useSubscribeToThread,
-  useUnsubscribeFromThread,
-} from '../../hooks';
+import { useThreadSubscription, useSubscribeToThread, useUnsubscribeFromThread } from '../../hooks';
 import { cn } from '../../lib/utils';
 
 interface ThreadNotificationButtonProps {
@@ -48,26 +44,26 @@ export function ThreadNotificationButton({ messageId }: ThreadNotificationButton
         <AriaButton
           isDisabled={isPending}
           className={cn(
-            'p-1 rounded cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors',
+            'cursor-pointer rounded p-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-500',
             'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700',
-            isPending && 'opacity-50 cursor-not-allowed'
+            isPending && 'cursor-not-allowed opacity-50',
           )}
           aria-label="Thread notification settings"
         >
-          <CurrentIcon className="w-4 h-4" />
+          <CurrentIcon className="h-4 w-4" />
         </AriaButton>
       }
       align="end"
     >
       <SelectMenuItem
         id="subscribed"
-        icon={<BellIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />}
+        icon={<BellIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
       >
         Subscribed
       </SelectMenuItem>
       <SelectMenuItem
         id="unsubscribed"
-        icon={<BellSlashIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />}
+        icon={<BellSlashIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
       >
         Unsubscribed
       </SelectMenuItem>

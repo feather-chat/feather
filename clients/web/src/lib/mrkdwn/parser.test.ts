@@ -8,9 +8,7 @@ describe('parseMrkdwn', () => {
     });
 
     it('returns text segment for plain text', () => {
-      expect(parseMrkdwn('Hello world')).toEqual([
-        { type: 'text', content: 'Hello world' },
-      ]);
+      expect(parseMrkdwn('Hello world')).toEqual([{ type: 'text', content: 'Hello world' }]);
     });
 
     it('handles multiple lines', () => {
@@ -23,15 +21,11 @@ describe('parseMrkdwn', () => {
 
   describe('inline formatting', () => {
     it('parses bold text', () => {
-      expect(parseMrkdwn('*bold*')).toEqual([
-        { type: 'bold', content: 'bold' },
-      ]);
+      expect(parseMrkdwn('*bold*')).toEqual([{ type: 'bold', content: 'bold' }]);
     });
 
     it('parses italic text', () => {
-      expect(parseMrkdwn('_italic_')).toEqual([
-        { type: 'italic', content: 'italic' },
-      ]);
+      expect(parseMrkdwn('_italic_')).toEqual([{ type: 'italic', content: 'italic' }]);
     });
 
     it('parses strikethrough text', () => {
@@ -41,9 +35,7 @@ describe('parseMrkdwn', () => {
     });
 
     it('parses inline code', () => {
-      expect(parseMrkdwn('`code`')).toEqual([
-        { type: 'code', content: 'code' },
-      ]);
+      expect(parseMrkdwn('`code`')).toEqual([{ type: 'code', content: 'code' }]);
     });
 
     it('parses mixed inline formatting', () => {
@@ -58,9 +50,7 @@ describe('parseMrkdwn', () => {
 
     it('handles unclosed formatting markers as text', () => {
       const result = parseMrkdwn('*unclosed');
-      expect(result).toEqual([
-        { type: 'text', content: '*unclosed' },
-      ]);
+      expect(result).toEqual([{ type: 'text', content: '*unclosed' }]);
     });
   });
 
@@ -120,10 +110,7 @@ describe('parseMrkdwn', () => {
       expect(result).toEqual([
         {
           type: 'bullet_list',
-          items: [
-            [{ type: 'text', content: 'Item 1' }],
-            [{ type: 'text', content: 'Item 2' }],
-          ],
+          items: [[{ type: 'text', content: 'Item 1' }], [{ type: 'text', content: 'Item 2' }]],
         },
       ]);
     });
@@ -133,10 +120,7 @@ describe('parseMrkdwn', () => {
       expect(result).toEqual([
         {
           type: 'bullet_list',
-          items: [
-            [{ type: 'text', content: 'Item 1' }],
-            [{ type: 'text', content: 'Item 2' }],
-          ],
+          items: [[{ type: 'text', content: 'Item 1' }], [{ type: 'text', content: 'Item 2' }]],
         },
       ]);
     });
@@ -165,15 +149,11 @@ describe('parseMrkdwn', () => {
 
   describe('mentions', () => {
     it('parses user mention', () => {
-      expect(parseMrkdwn('<@user123>')).toEqual([
-        { type: 'user_mention', userId: 'user123' },
-      ]);
+      expect(parseMrkdwn('<@user123>')).toEqual([{ type: 'user_mention', userId: 'user123' }]);
     });
 
     it('parses special mention @here', () => {
-      expect(parseMrkdwn('<!here>')).toEqual([
-        { type: 'special_mention', mentionType: 'here' },
-      ]);
+      expect(parseMrkdwn('<!here>')).toEqual([{ type: 'special_mention', mentionType: 'here' }]);
     });
 
     it('parses special mention @channel', () => {
@@ -237,10 +217,16 @@ describe('parseMrkdwn', () => {
 
   describe('complex content', () => {
     it('parses message with mentions and formatting', () => {
-      const result = parseMrkdwn('Hey <@user1>, check out this *important* link: <https://example.com|click here>');
+      const result = parseMrkdwn(
+        'Hey <@user1>, check out this *important* link: <https://example.com|click here>',
+      );
       expect(result).toContainEqual({ type: 'user_mention', userId: 'user1' });
       expect(result).toContainEqual({ type: 'bold', content: 'important' });
-      expect(result).toContainEqual({ type: 'link', url: 'https://example.com', text: 'click here' });
+      expect(result).toContainEqual({
+        type: 'link',
+        url: 'https://example.com',
+        text: 'click here',
+      });
     });
 
     it('handles text before code block', () => {

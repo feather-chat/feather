@@ -84,13 +84,8 @@ export function Menu({
   return (
     <MenuTrigger isOpen={open} onOpenChange={onOpenChange}>
       {trigger}
-      <Popover
-        placement={popoverPlacement}
-        className={styles.popover()}
-      >
-        <AriaMenu className={styles.menu()}>
-          {children}
-        </AriaMenu>
+      <Popover placement={popoverPlacement} className={styles.popover()}>
+        <AriaMenu className={styles.menu()}>{children}</AriaMenu>
       </Popover>
     </MenuTrigger>
   );
@@ -101,12 +96,7 @@ interface MenuItemProps extends Omit<AriaMenuItemProps, 'className'>, MenuVarian
   children: ReactNode;
 }
 
-export function MenuItem({
-  children,
-  variant,
-  icon,
-  ...props
-}: MenuItemProps) {
+export function MenuItem({ children, variant, icon, ...props }: MenuItemProps) {
   const styles = menu({ variant });
 
   return (
@@ -123,12 +113,7 @@ interface SubmenuTriggerProps extends MenuVariants {
   children: ReactNode;
 }
 
-export function SubmenuTrigger({
-  label,
-  children,
-  variant,
-  icon,
-}: SubmenuTriggerProps) {
+export function SubmenuTrigger({ label, children, variant, icon }: SubmenuTriggerProps) {
   const styles = menu({ variant });
 
   return (
@@ -136,12 +121,10 @@ export function SubmenuTrigger({
       <AriaMenuItem className={styles.item()}>
         {icon}
         <span className="flex-1">{label}</span>
-        <ChevronRightIcon className="w-4 h-4" />
+        <ChevronRightIcon className="h-4 w-4" />
       </AriaMenuItem>
       <Popover offset={-2} crossOffset={-4} className={styles.popover()}>
-        <AriaMenu className={styles.menu()}>
-          {children}
-        </AriaMenu>
+        <AriaMenu className={styles.menu()}>{children}</AriaMenu>
       </Popover>
     </AriaSubmenuTrigger>
   );
@@ -154,11 +137,7 @@ interface MenuSectionProps {
 export function MenuSection({ children }: MenuSectionProps) {
   const styles = menu();
 
-  return (
-    <Section className={styles.section()}>
-      {children}
-    </Section>
-  );
+  return <Section className={styles.section()}>{children}</Section>;
 }
 
 interface MenuHeaderProps {
@@ -168,11 +147,7 @@ interface MenuHeaderProps {
 export function MenuHeader({ children }: MenuHeaderProps) {
   const styles = menu();
 
-  return (
-    <Header className={styles.header()}>
-      {children}
-    </Header>
-  );
+  return <Header className={styles.header()}>{children}</Header>;
 }
 
 export function MenuSeparator() {
@@ -234,12 +209,7 @@ interface SelectMenuItemProps extends Omit<AriaMenuItemProps, 'className'>, Menu
   children: ReactNode;
 }
 
-export function SelectMenuItem({
-  children,
-  variant,
-  icon,
-  ...props
-}: SelectMenuItemProps) {
+export function SelectMenuItem({ children, variant, icon, ...props }: SelectMenuItemProps) {
   const styles = menu({ variant });
 
   return (
@@ -248,7 +218,7 @@ export function SelectMenuItem({
         <>
           {icon}
           <span className="flex-1">{children}</span>
-          {isSelected && <CheckIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />}
+          {isSelected && <CheckIcon className="h-4 w-4 text-gray-600 dark:text-gray-400" />}
         </>
       )}
     </AriaMenuItem>

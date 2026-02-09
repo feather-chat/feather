@@ -10,9 +10,13 @@
     "generate:types": "make generate-types",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "make test"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2"
   }
 }

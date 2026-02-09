@@ -7,7 +7,7 @@ interface ComposerRef {
 
 export function useAutoFocusComposer(
   composerRef: RefObject<ComposerRef | null>,
-  enabled: boolean = true
+  enabled: boolean = true,
 ) {
   useEffect(() => {
     if (!enabled) return;

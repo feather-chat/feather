@@ -1,10 +1,22 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { EllipsisVerticalIcon, LockClosedIcon, HashtagIcon, StarIcon } from '@heroicons/react/24/outline';
+import {
+  EllipsisVerticalIcon,
+  LockClosedIcon,
+  HashtagIcon,
+  StarIcon,
+} from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { Button as AriaButton } from 'react-aria-components';
-import { useChannels, useArchiveChannel, useLeaveChannel, useJoinChannel, useAuth, useAutoFocusComposer } from '../hooks';
+import {
+  useChannels,
+  useArchiveChannel,
+  useLeaveChannel,
+  useJoinChannel,
+  useAuth,
+  useAutoFocusComposer,
+} from '../hooks';
 import { useThreadPanel } from '../hooks/usePanel';
 import { useMarkChannelAsRead, useStarChannel, useUnstarChannel } from '../hooks/useChannels';
 import { MessageList, MessageComposer, type MessageComposerRef } from '../components/message';
@@ -102,7 +114,7 @@ export function ChannelPage() {
         clearTimeout(markAsReadTimerRef.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId, isAtBottom, channel?.unread_count]);
 
   // Reset state when changing channels
@@ -149,7 +161,7 @@ export function ChannelPage() {
       setIsLeaveModalOpen(false);
       // Navigate to another joined channel, or workspace root if none
       const otherChannel = channelsData?.channels.find(
-        (c) => c.id !== channelId && c.channel_role !== undefined
+        (c) => c.id !== channelId && c.channel_role !== undefined,
       );
       if (otherChannel) {
         navigate(`/workspaces/${workspaceId}/channels/${otherChannel.id}`);
@@ -177,7 +189,8 @@ export function ChannelPage() {
   const canJoin = channel && channel.type === 'public' && !isMember;
   const canArchive = channel && channel.type !== 'dm' && channel.type !== 'group_dm';
   const canLeave = channel && channel.type !== 'dm' && channel.type !== 'group_dm' && isMember;
-  const canEditChannel = channel &&
+  const canEditChannel =
+    channel &&
     channel.type !== 'dm' &&
     channel.type !== 'group_dm' &&
     channel.channel_role !== undefined;
@@ -192,7 +205,7 @@ export function ChannelPage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -200,7 +213,7 @@ export function ChannelPage() {
 
   if (!channelId || !workspaceId) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
+      <div className="flex flex-1 items-center justify-center text-gray-500 dark:text-gray-400">
         Select a channel to start messaging
       </div>
     );
@@ -208,18 +221,18 @@ export function ChannelPage() {
 
   if (!channel) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
+      <div className="flex flex-1 items-center justify-center text-gray-500 dark:text-gray-400">
         Channel not found
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Channel header */}
-      <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+      <div className="flex-shrink-0 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex min-w-0 items-center gap-2">
             {isMember && (
               <button
                 onClick={() => {
@@ -229,31 +242,32 @@ export function ChannelPage() {
                     starChannel.mutate(channelId);
                   }
                 }}
-                className="p-1 text-gray-400 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors flex-shrink-0"
+                className="flex-shrink-0 p-1 text-gray-400 transition-colors hover:text-yellow-500 dark:hover:text-yellow-400"
                 title={channel.is_starred ? 'Unstar channel' : 'Star channel'}
               >
                 {channel.is_starred ? (
-                  <StarIconSolid className="w-5 h-5 text-yellow-500" />
+                  <StarIconSolid className="h-5 w-5 text-yellow-500" />
                 ) : (
-                  <StarIcon className="w-5 h-5" />
+                  <StarIcon className="h-5 w-5" />
                 )}
               </button>
             )}
             <button
               onClick={() => openDetailsModal('about')}
-              className="flex items-center gap-2 flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-1.5 py-0.5 -ml-1.5 transition-colors"
+              className="-ml-1.5 flex flex-shrink-0 items-center gap-2 rounded px-1.5 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              <ChannelIcon type={channel.type} className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              <h1 className="font-semibold text-gray-900 dark:text-white">
-                {channel.name}
-              </h1>
+              <ChannelIcon
+                type={channel.type}
+                className="h-5 w-5 text-gray-500 dark:text-gray-400"
+              />
+              <h1 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h1>
             </button>
-            {channel.description && (
-              isDescriptionTruncated ? (
+            {channel.description &&
+              (isDescriptionTruncated ? (
                 <Tooltip content={channel.description} placement="bottom">
                   <AriaButton
                     ref={descriptionRef as React.RefObject<HTMLButtonElement>}
-                    className="text-sm text-gray-400 dark:text-gray-500 text-left cursor-default outline-none bg-transparent border-none p-0 truncate min-w-0 max-w-md"
+                    className="min-w-0 max-w-md cursor-default truncate border-none bg-transparent p-0 text-left text-sm text-gray-400 outline-none dark:text-gray-500"
                     excludeFromTabOrder
                   >
                     {channel.description}
@@ -262,15 +276,14 @@ export function ChannelPage() {
               ) : (
                 <span
                   ref={descriptionRef as React.RefObject<HTMLSpanElement>}
-                  className="text-sm text-gray-400 dark:text-gray-500 truncate min-w-0 max-w-md"
+                  className="min-w-0 max-w-md truncate text-sm text-gray-400 dark:text-gray-500"
                 >
                   {channel.description}
                 </span>
-              )
-            )}
+              ))}
           </div>
 
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex flex-shrink-0 items-center gap-1">
             {/* Channel members */}
             <ChannelMembersButton
               channelId={channelId}
@@ -279,30 +292,27 @@ export function ChannelPage() {
             />
 
             {/* Notification settings */}
-            <ChannelNotificationButton
-              channelId={channelId}
-              channelType={channel.type}
-            />
+            <ChannelNotificationButton channelId={channelId} channelType={channel.type} />
 
             {/* Settings menu */}
             {(canArchive || canLeave) && (
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                  className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300"
                 >
-                  <EllipsisVerticalIcon className="w-5 h-5" />
+                  <EllipsisVerticalIcon className="h-5 w-5" />
                 </button>
 
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                  <div className="absolute right-0 z-10 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                     {canLeave && (
                       <button
                         onClick={() => {
                           setIsMenuOpen(false);
                           setIsLeaveModalOpen(true);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                       >
                         Leave channel
                       </button>
@@ -313,7 +323,7 @@ export function ChannelPage() {
                           setIsMenuOpen(false);
                           setIsArchiveModalOpen(true);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="w-full px-3 py-1.5 text-left text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
                       >
                         Archive channel
                       </button>
@@ -332,18 +342,15 @@ export function ChannelPage() {
         onClose={() => setIsLeaveModalOpen(false)}
         title="Leave channel"
       >
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
-          Are you sure you want to leave <strong>#{channel.name}</strong>? You can rejoin anytime if it's a public channel.
+        <p className="mb-4 text-gray-600 dark:text-gray-300">
+          Are you sure you want to leave <strong>#{channel.name}</strong>? You can rejoin anytime if
+          it's a public channel.
         </p>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={() => setIsLeaveModalOpen(false)}>
             Cancel
           </Button>
-          <Button
-            variant="primary"
-            onClick={handleLeave}
-            isLoading={leaveChannel.isPending}
-          >
+          <Button variant="primary" onClick={handleLeave} isLoading={leaveChannel.isPending}>
             Leave
           </Button>
         </div>
@@ -355,18 +362,15 @@ export function ChannelPage() {
         onClose={() => setIsArchiveModalOpen(false)}
         title="Archive channel"
       >
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
-          Are you sure you want to archive <strong>#{channel.name}</strong>? This channel will be hidden from the sidebar and members won't be able to send new messages.
+        <p className="mb-4 text-gray-600 dark:text-gray-300">
+          Are you sure you want to archive <strong>#{channel.name}</strong>? This channel will be
+          hidden from the sidebar and members won't be able to send new messages.
         </p>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={() => setIsArchiveModalOpen(false)}>
             Cancel
           </Button>
-          <Button
-            variant="danger"
-            onClick={handleArchive}
-            isLoading={archiveChannel.isPending}
-          >
+          <Button variant="danger" onClick={handleArchive} isLoading={archiveChannel.isPending}>
             Archive
           </Button>
         </div>
@@ -382,17 +386,15 @@ export function ChannelPage() {
 
       {canJoin ? (
         /* Join banner for non-member channels */
-        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3">
+        <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
               <span className="text-gray-400">#</span>
-              <span>You're viewing <strong>{channel.name}</strong></span>
+              <span>
+                You're viewing <strong>{channel.name}</strong>
+              </span>
             </div>
-            <Button
-              onClick={handleJoin}
-              isLoading={joinChannel.isPending}
-              size="sm"
-            >
+            <Button onClick={handleJoin} isLoading={joinChannel.isPending} size="sm">
               Join Channel
             </Button>
           </div>

@@ -47,7 +47,7 @@ export function getInitials(name: string): string {
 
 export function debounce<T extends (...args: unknown[]) => unknown>(
   fn: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
@@ -57,7 +57,7 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 }
 
 export function groupReactions(
-  reactions: Array<{ emoji: string; user_id: string }>
+  reactions: Array<{ emoji: string; user_id: string }>,
 ): Map<string, string[]> {
   const grouped = new Map<string, string[]>();
   reactions.forEach(({ emoji, user_id }) => {

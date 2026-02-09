@@ -8,5 +8,7 @@ interface EmojiPickerProps {
 }
 
 export function EmojiPicker({ onSelect, customEmojis, onAddEmoji }: EmojiPickerProps) {
-  return <EmojiGrid onSelect={onSelect} autoFocus customEmojis={customEmojis} onAddEmoji={onAddEmoji} />;
+  return (
+    <EmojiGrid onSelect={onSelect} autoFocus customEmojis={customEmojis} onAddEmoji={onAddEmoji} />
+  );
 }

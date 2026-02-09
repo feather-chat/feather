@@ -70,7 +70,7 @@ export function parseMentionTrigger(content: string, cursorPos: number): Mention
 export function insertMention(
   content: string,
   trigger: MentionTrigger,
-  mention: MentionOption
+  mention: MentionOption,
 ): { content: string; cursorPos: number } {
   const before = content.slice(0, trigger.startIndex);
   const after = content.slice(trigger.startIndex + trigger.query.length + 1); // +1 for @
@@ -90,7 +90,7 @@ export function insertMention(
  */
 export function convertMentionsForStorage(
   content: string,
-  mentionMap: Map<string, string>
+  mentionMap: Map<string, string>,
 ): string {
   let result = content;
 
@@ -120,7 +120,7 @@ function escapeRegExp(string: string): string {
  */
 export function getCaretCoordinates(
   textarea: HTMLTextAreaElement,
-  position: number
+  position: number,
 ): { top: number; left: number } {
   // Create a mirror div with the same styles
   const mirror = document.createElement('div');
@@ -128,12 +128,27 @@ export function getCaretCoordinates(
 
   // Copy relevant styles
   const stylesToCopy = [
-    'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
-    'letterSpacing', 'textTransform', 'wordSpacing',
-    'textIndent', 'whiteSpace', 'wordWrap', 'wordBreak',
-    'paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom',
-    'borderLeftWidth', 'borderRightWidth', 'borderTopWidth', 'borderBottomWidth',
-    'boxSizing', 'lineHeight',
+    'fontFamily',
+    'fontSize',
+    'fontWeight',
+    'fontStyle',
+    'letterSpacing',
+    'textTransform',
+    'wordSpacing',
+    'textIndent',
+    'whiteSpace',
+    'wordWrap',
+    'wordBreak',
+    'paddingLeft',
+    'paddingRight',
+    'paddingTop',
+    'paddingBottom',
+    'borderLeftWidth',
+    'borderRightWidth',
+    'borderTopWidth',
+    'borderBottomWidth',
+    'boxSizing',
+    'lineHeight',
   ] as const;
 
   stylesToCopy.forEach((prop) => {

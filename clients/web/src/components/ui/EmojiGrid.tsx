@@ -100,11 +100,21 @@ interface EmojiGridProps {
   onAddEmoji?: () => void;
 }
 
-export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAddEmoji }: EmojiGridProps) {
+export function EmojiGrid({
+  onSelect,
+  autoFocus = true,
+  customEmojis = [],
+  onAddEmoji,
+}: EmojiGridProps) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('frequent');
   const [activeSearchIndex, setActiveSearchIndex] = useState(-1);
-  const [hoveredEmoji, setHoveredEmoji] = useState<{ emoji?: string; name: string; isCustom?: boolean; imageUrl?: string } | null>(null);
+  const [hoveredEmoji, setHoveredEmoji] = useState<{
+    emoji?: string;
+    name: string;
+    isCustom?: boolean;
+    imageUrl?: string;
+  } | null>(null);
   const [skinTone, setSkinTone] = useState<SkinTone>(getSavedSkinTone);
   const [showSkinTonePicker, setShowSkinTonePicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -132,7 +142,10 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
     setActiveCategory(sectionId);
     const el = sectionRefs.current[sectionId];
     if (el && scrollRef.current) {
-      scrollRef.current.scrollTo({ top: el.offsetTop - scrollRef.current.offsetTop, behavior: 'smooth' });
+      scrollRef.current.scrollTo({
+        top: el.offsetTop - scrollRef.current.offsetTop,
+        behavior: 'smooth',
+      });
     }
   }, []);
 
@@ -186,9 +199,10 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
       case 'Enter':
         e.preventDefault();
         {
-          const result = activeSearchIndex >= 0 && activeSearchIndex < searchResults.length
-            ? searchResults[activeSearchIndex]
-            : searchResults[0];
+          const result =
+            activeSearchIndex >= 0 && activeSearchIndex < searchResults.length
+              ? searchResults[activeSearchIndex]
+              : searchResults[0];
           if (result) {
             onSelect(`:${result.shortcode}:`, {
               shortcode: result.shortcode,
@@ -267,19 +281,23 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
                 <button
                   key={result.shortcode}
                   type="button"
-                  onClick={() => onSelect(`:${result.shortcode}:`, {
-                    shortcode: result.shortcode,
-                    unicode: result.emoji,
-                    imageUrl: result.imageUrl,
-                  })}
+                  onClick={() =>
+                    onSelect(`:${result.shortcode}:`, {
+                      shortcode: result.shortcode,
+                      unicode: result.emoji,
+                      imageUrl: result.imageUrl,
+                    })
+                  }
                   className={s.searchResultItem({
                     className: i === activeSearchIndex ? s.searchResultItemActive() : undefined,
                   })}
                 >
                   <span className={s.searchResultEmoji()}>
-                    {result.isCustom && result.imageUrl
-                      ? <CustomEmojiImg name={result.shortcode} url={result.imageUrl} size="md" />
-                      : withSkinTone(result.emoji!)}
+                    {result.isCustom && result.imageUrl ? (
+                      <CustomEmojiImg name={result.shortcode} url={result.imageUrl} size="md" />
+                    ) : (
+                      withSkinTone(result.emoji!)
+                    )}
                   </span>
                   <span className={s.searchResultShortcode()}>:{result.shortcode}:</span>
                 </button>
@@ -293,7 +311,9 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
         <div ref={scrollRef} className={s.scrollArea()} onScroll={handleScroll}>
           {/* Frequently used */}
           <div
-            ref={(el) => { sectionRefs.current['frequent'] = el; }}
+            ref={(el) => {
+              sectionRefs.current['frequent'] = el;
+            }}
             className={s.section()}
           >
             <div className={s.sectionHeader()}>Frequently used</div>
@@ -321,7 +341,9 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
           {/* Custom emojis */}
           {customEmojis.length > 0 && (
             <div
-              ref={(el) => { sectionRefs.current['custom'] = el; }}
+              ref={(el) => {
+                sectionRefs.current['custom'] = el;
+              }}
               className={s.section()}
             >
               <div className={s.sectionHeader()}>Custom</div>
@@ -330,8 +352,12 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
                   <button
                     key={ce.id}
                     type="button"
-                    onClick={() => onSelect(`:${ce.name}:`, { shortcode: ce.name, imageUrl: ce.url })}
-                    onMouseEnter={() => setHoveredEmoji({ name: ce.name, isCustom: true, imageUrl: ce.url })}
+                    onClick={() =>
+                      onSelect(`:${ce.name}:`, { shortcode: ce.name, imageUrl: ce.url })
+                    }
+                    onMouseEnter={() =>
+                      setHoveredEmoji({ name: ce.name, isCustom: true, imageUrl: ce.url })
+                    }
                     onMouseLeave={() => setHoveredEmoji(null)}
                     className={s.emojiButton()}
                     aria-label={`:${ce.name}:`}
@@ -348,7 +374,9 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
           {EMOJI_CATEGORIES.map((cat) => (
             <div
               key={cat.id}
-              ref={(el) => { sectionRefs.current[cat.id] = el; }}
+              ref={(el) => {
+                sectionRefs.current[cat.id] = el;
+              }}
               className={s.section()}
             >
               <div className={s.sectionHeader()}>{cat.label}</div>
@@ -359,8 +387,15 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
                     <button
                       key={entry.emoji}
                       type="button"
-                      onClick={() => onSelect(`:${entry.aliases[0]}:`, { shortcode: entry.aliases[0], unicode: displayed })}
-                      onMouseEnter={() => setHoveredEmoji({ emoji: displayed, name: entry.aliases[0] })}
+                      onClick={() =>
+                        onSelect(`:${entry.aliases[0]}:`, {
+                          shortcode: entry.aliases[0],
+                          unicode: displayed,
+                        })
+                      }
+                      onMouseEnter={() =>
+                        setHoveredEmoji({ emoji: displayed, name: entry.aliases[0] })
+                      }
                       onMouseLeave={() => setHoveredEmoji(null)}
                       className={s.emojiButton()}
                       aria-label={`:${entry.aliases[0]}:`}
@@ -381,9 +416,11 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
         {hoveredEmoji ? (
           <>
             <span className={s.footerEmoji()}>
-              {hoveredEmoji.isCustom && hoveredEmoji.imageUrl
-                ? <CustomEmojiImg name={hoveredEmoji.name} url={hoveredEmoji.imageUrl} size="lg" />
-                : hoveredEmoji.emoji}
+              {hoveredEmoji.isCustom && hoveredEmoji.imageUrl ? (
+                <CustomEmojiImg name={hoveredEmoji.name} url={hoveredEmoji.imageUrl} size="lg" />
+              ) : (
+                hoveredEmoji.emoji
+              )}
             </span>
             <span className={s.footerName()}>:{hoveredEmoji.name}:</span>
           </>
@@ -391,7 +428,7 @@ export function EmojiGrid({ onSelect, autoFocus = true, customEmojis = [], onAdd
           <button
             type="button"
             onClick={onAddEmoji}
-            className="text-xs px-2 py-0.5 rounded border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
           >
             Add Emoji
           </button>

@@ -58,8 +58,10 @@ export function createMentionSuggestion(
                   } as MentionOption & { label: string });
                   onMentionSelect?.(item);
                 }}
-                ref={(r) => { ref = r; }}
-              />
+                ref={(r) => {
+                  ref = r;
+                }}
+              />,
             );
 
             // Clamp to viewport after render
@@ -110,8 +112,10 @@ export function createMentionSuggestion(
                 } as MentionOption & { label: string });
                 onMentionSelect?.(item);
               }}
-              ref={(r) => { ref = r; }}
-            />
+              ref={(r) => {
+                ref = r;
+              }}
+            />,
           );
 
           // Clamp to viewport

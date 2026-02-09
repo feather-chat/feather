@@ -27,10 +27,15 @@ export function useSubscribeToThread() {
       await queryClient.cancelQueries({ queryKey: ['thread-subscription', messageId] });
 
       // Snapshot the previous value
-      const previousStatus = queryClient.getQueryData<{ status: ThreadSubscriptionStatus }>(['thread-subscription', messageId]);
+      const previousStatus = queryClient.getQueryData<{ status: ThreadSubscriptionStatus }>([
+        'thread-subscription',
+        messageId,
+      ]);
 
       // Optimistically update to subscribed
-      queryClient.setQueryData(['thread-subscription', messageId], { status: 'subscribed' as ThreadSubscriptionStatus });
+      queryClient.setQueryData(['thread-subscription', messageId], {
+        status: 'subscribed' as ThreadSubscriptionStatus,
+      });
 
       return { previousStatus };
     },
@@ -60,10 +65,15 @@ export function useUnsubscribeFromThread() {
       await queryClient.cancelQueries({ queryKey: ['thread-subscription', messageId] });
 
       // Snapshot the previous value
-      const previousStatus = queryClient.getQueryData<{ status: ThreadSubscriptionStatus }>(['thread-subscription', messageId]);
+      const previousStatus = queryClient.getQueryData<{ status: ThreadSubscriptionStatus }>([
+        'thread-subscription',
+        messageId,
+      ]);
 
       // Optimistically update to unsubscribed
-      queryClient.setQueryData(['thread-subscription', messageId], { status: 'unsubscribed' as ThreadSubscriptionStatus });
+      queryClient.setQueryData(['thread-subscription', messageId], {
+        status: 'unsubscribed' as ThreadSubscriptionStatus,
+      });
 
       return { previousStatus };
     },

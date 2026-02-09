@@ -94,9 +94,7 @@ describe('Avatar', () => {
   });
 
   it('applies custom style', () => {
-    const { container } = render(
-      <Avatar name="John" style={{ marginTop: '10px' }} />
-    );
+    const { container } = render(<Avatar name="John" style={{ marginTop: '10px' }} />);
 
     const avatar = container.firstChild as HTMLElement;
     expect(avatar.style.marginTop).toBe('10px');

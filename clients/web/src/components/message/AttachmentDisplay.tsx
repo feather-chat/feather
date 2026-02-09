@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Button as AriaButton, Dialog, Heading, Modal as AriaModal, ModalOverlay } from 'react-aria-components';
+import {
+  Button as AriaButton,
+  Dialog,
+  Heading,
+  Modal as AriaModal,
+  ModalOverlay,
+} from 'react-aria-components';
 import type { Attachment } from '@feather/api-client';
 import { cn } from '../../lib/utils';
 
@@ -52,21 +58,28 @@ function ImageCarousel({ images, initialIndex, isOpen, onClose }: ImageCarouselP
   return (
     <ModalOverlay
       isOpen={isOpen}
-      onOpenChange={(open) => { if (!open) onClose(); }}
-      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
       isDismissable
     >
-      <AriaModal className="outline-none max-w-[90vw] max-h-[90vh]">
+      <AriaModal className="max-h-[90vh] max-w-[90vw] outline-none">
         <Dialog className="outline-none" aria-label="Image viewer">
           <div className="relative flex items-center justify-center">
             {images.length > 1 && (
               <AriaButton
                 onPress={() => setCurrentIndex((i) => (i === 0 ? images.length - 1 : i - 1))}
-                className="absolute left-2 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                className="absolute left-2 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                 aria-label="Previous image"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </AriaButton>
             )}
@@ -74,40 +87,55 @@ function ImageCarousel({ images, initialIndex, isOpen, onClose }: ImageCarouselP
             <img
               src={current.url}
               alt={current.filename}
-              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              className="max-h-[85vh] max-w-full rounded-lg object-contain"
             />
 
             {images.length > 1 && (
               <AriaButton
                 onPress={() => setCurrentIndex((i) => (i === images.length - 1 ? 0 : i + 1))}
-                className="absolute right-2 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                className="absolute right-2 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                 aria-label="Next image"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </AriaButton>
             )}
 
-            <div className="absolute top-2 right-2 flex gap-2">
+            <div className="absolute right-2 top-2 flex gap-2">
               <a
                 href={current.url}
                 download={current.filename}
-                className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors"
+                className="rounded-lg bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                 title="Download"
                 onClick={(e) => e.stopPropagation()}
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
               </a>
               <button
                 onClick={onClose}
-                className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors"
+                className="rounded-lg bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                 title="Close"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -115,12 +143,12 @@ function ImageCarousel({ images, initialIndex, isOpen, onClose }: ImageCarouselP
             <div className="absolute bottom-2 left-2 right-2 text-center">
               <Heading
                 slot="title"
-                className="text-white text-sm bg-black/50 px-3 py-1 rounded-lg inline-block"
+                className="inline-block rounded-lg bg-black/50 px-3 py-1 text-sm text-white"
               >
                 {current.filename}
               </Heading>
               {images.length > 1 && (
-                <p className="text-white text-xs mt-1" data-testid="carousel-counter">
+                <p className="mt-1 text-xs text-white" data-testid="carousel-counter">
                   {currentIndex + 1} of {images.length}
                 </p>
               )}
@@ -157,7 +185,10 @@ function ImageGrid({ images }: ImageGridProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden max-w-md" data-testid="image-grid">
+      <div
+        className="grid max-w-md grid-cols-2 gap-1 overflow-hidden rounded-lg"
+        data-testid="image-grid"
+      >
         {visibleImages.map((image, index) => {
           const isOverlayCell = showOverlay && index === 3;
 
@@ -166,23 +197,25 @@ function ImageGrid({ images }: ImageGridProps) {
               key={image.id}
               onClick={() => openCarousel(isOverlayCell ? 3 : index)}
               className={cn(
-                'relative overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500',
+                'relative cursor-pointer overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500',
                 // Layout: 3 images → first spans full width
                 images.length === 3 && index === 0 && 'col-span-2 aspect-video',
                 // All other cells are square
                 !(images.length === 3 && index === 0) && 'aspect-square',
               )}
-              aria-label={isOverlayCell ? `View ${remainingCount} more images` : `View ${image.filename}`}
+              aria-label={
+                isOverlayCell ? `View ${remainingCount} more images` : `View ${image.filename}`
+              }
             >
               <img
                 src={image.url}
                 alt={image.filename}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
                 loading="lazy"
               />
               {isOverlayCell && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="text-white text-2xl font-semibold" data-testid="overflow-count">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <span className="text-2xl font-semibold text-white" data-testid="overflow-count">
                     +{remainingCount}
                   </span>
                 </div>
@@ -208,7 +241,7 @@ function ImageAttachment({ attachment, onClick }: { attachment: Attachment; onCl
   return (
     <AriaButton
       onPress={onClick}
-      className="block rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
+      className="block cursor-pointer overflow-hidden rounded-lg border border-gray-200 transition-colors hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
       aria-label={`View ${attachment.filename}`}
     >
       <img
@@ -228,23 +261,43 @@ function FileAttachment({ attachment }: { attachment: Attachment }) {
     <a
       href={attachment.url}
       download={attachment.filename}
-      className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors max-w-xs"
+      className="flex max-w-xs items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
     >
-      <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-        <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+        <svg
+          className="h-5 w-5 text-gray-500 dark:text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+          />
         </svg>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
           {attachment.filename}
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400">
           {formatFileSize(attachment.size_bytes)}
         </p>
       </div>
-      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+      <svg
+        className="h-4 w-4 flex-shrink-0 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+        />
       </svg>
     </a>
   );

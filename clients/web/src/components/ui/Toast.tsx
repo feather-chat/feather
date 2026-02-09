@@ -39,18 +39,18 @@ export function Toaster() {
           <AriaToast<ToastData>
             toast={toast}
             className={({ isFocusVisible }) =>
-              `flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg bg-gray-900 text-white dark:bg-white dark:text-gray-900 animate-in slide-in-from-right fade-in duration-200${isFocusVisible ? ' ring-2 ring-white ring-offset-2 ring-offset-transparent' : ''}`
+              `animate-in slide-in-from-right fade-in flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-3 text-white shadow-lg dark:bg-white dark:text-gray-900 duration-200${isFocusVisible ? 'ring-2 ring-white ring-offset-2 ring-offset-transparent' : ''}`
             }
           >
-            <Icon className={`w-5 h-5 shrink-0 ${typeIconColors[toast.content.type]}`} />
+            <Icon className={`h-5 w-5 shrink-0 ${typeIconColors[toast.content.type]}`} />
             <ToastContent className="flex-1">
               <span>{toast.content.message}</span>
             </ToastContent>
             <Button
               slot="close"
-              className="ml-2 hover:opacity-80 outline-none rounded focus-visible:ring-2 focus-visible:ring-white dark:text-gray-900"
+              className="ml-2 rounded outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white dark:text-gray-900"
             >
-              <XMarkIcon className="w-4 h-4" />
+              <XMarkIcon className="h-4 w-4" />
             </Button>
           </AriaToast>
         );

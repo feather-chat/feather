@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button as AriaButton } from "react-aria-components";
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button as AriaButton } from 'react-aria-components';
 import {
   DndContext,
   closestCenter,
@@ -9,16 +9,16 @@ import {
   useSensor,
   useSensors,
   DragOverlay,
-} from "@dnd-kit/core";
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+} from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   PlusIcon,
   SunIcon,
@@ -30,8 +30,8 @@ import {
   ArrowRightStartOnRectangleIcon,
   ComputerDesktopIcon,
   CheckIcon,
-} from "@heroicons/react/24/outline";
-import { useAuth } from "../../hooks";
+} from '@heroicons/react/24/outline';
+import { useAuth } from '../../hooks';
 import {
   Avatar,
   Modal,
@@ -45,12 +45,12 @@ import {
   MenuSection,
   MenuHeader,
   MenuSeparator,
-} from "../ui";
-import { useCreateWorkspace, useReorderWorkspaces } from "../../hooks/useWorkspaces";
-import { useDarkMode } from "../../hooks/useDarkMode";
-import { useProfilePanel } from "../../hooks/usePanel";
-import { cn, getAvatarColor } from "../../lib/utils";
-import type { WorkspaceSummary } from "@feather/api-client";
+} from '../ui';
+import { useCreateWorkspace, useReorderWorkspaces } from '../../hooks/useWorkspaces';
+import { useDarkMode } from '../../hooks/useDarkMode';
+import { useProfilePanel } from '../../hooks/usePanel';
+import { cn, getAvatarColor } from '../../lib/utils';
+import type { WorkspaceSummary } from '@feather/api-client';
 
 export function WorkspaceSwitcher() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -62,7 +62,9 @@ export function WorkspaceSwitcher() {
 
   // Local state for immediate visual updates during drag
   const [localWorkspaces, setLocalWorkspaces] = useState<WorkspaceSummary[]>([]);
-  const [prevServerWorkspaces, setPrevServerWorkspaces] = useState<WorkspaceSummary[] | undefined>();
+  const [prevServerWorkspaces, setPrevServerWorkspaces] = useState<
+    WorkspaceSummary[] | undefined
+  >();
 
   // Sync local state with server state when server data changes (React-recommended pattern)
   if (serverWorkspaces !== prevServerWorkspaces) {
@@ -80,7 +82,7 @@ export function WorkspaceSwitcher() {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -112,9 +114,9 @@ export function WorkspaceSwitcher() {
   const workspaceIds = localWorkspaces.map((ws) => ws.id);
 
   return (
-    <div className="w-16 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 gap-4">
+    <div className="flex w-16 flex-col items-center gap-4 border-r border-gray-200 bg-white py-4 dark:border-gray-700 dark:bg-gray-900">
       {/* Workspaces */}
-      <div className="flex-1 flex flex-col items-center gap-3 overflow-y-auto p-1">
+      <div className="flex flex-1 flex-col items-center gap-3 overflow-y-auto p-1">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -146,9 +148,9 @@ export function WorkspaceSwitcher() {
         <Tooltip content="Add workspace" placement="right">
           <AriaButton
             onPress={() => setIsCreateModalOpen(true)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-200 text-gray-500 transition-colors hover:bg-gray-300 hover:text-gray-600 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-300"
           >
-            <PlusIcon className="w-4 h-4" />
+            <PlusIcon className="h-4 w-4" />
           </AriaButton>
         </Tooltip>
       </div>
@@ -174,14 +176,9 @@ interface SortableWorkspaceItemProps {
 }
 
 function SortableWorkspaceItem({ workspace, isActive, onPress }: SortableWorkspaceItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: workspace.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: workspace.id,
+  });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -205,7 +202,7 @@ function SortableWorkspaceItem({ workspace, isActive, onPress }: SortableWorkspa
             onPress();
           }
         }}
-        className={cn(isDragging && "opacity-50")}
+        className={cn(isDragging && 'opacity-50')}
       >
         <WorkspaceItemContent workspace={workspace} isActive={isActive} />
       </div>
@@ -223,20 +220,20 @@ function WorkspaceItemContent({ workspace, isActive, isDragOverlay }: WorkspaceI
   return (
     <div
       className={cn(
-        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-        isActive ? "ring-2 ring-gray-900 dark:ring-white" : "",
-        workspace.icon_url ? "" : `${getAvatarColor(workspace.id)} hover:opacity-80`,
-        isDragOverlay && "shadow-lg cursor-grabbing"
+        'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+        isActive ? 'ring-2 ring-gray-900 dark:ring-white' : '',
+        workspace.icon_url ? '' : `${getAvatarColor(workspace.id)} hover:opacity-80`,
+        isDragOverlay && 'cursor-grabbing shadow-lg',
       )}
     >
       {workspace.icon_url ? (
         <img
           src={workspace.icon_url}
           alt={workspace.name}
-          className="w-full h-full rounded-lg object-cover"
+          className="h-full w-full rounded-lg object-cover"
         />
       ) : (
-        <span className="text-white font-semibold text-xs">
+        <span className="text-xs font-semibold text-white">
           {workspace.name.slice(0, 2).toUpperCase()}
         </span>
       )}
@@ -262,15 +259,9 @@ function UserMenu() {
   };
 
   // Get icon for current mode
-  const ThemeIcon =
-    mode === "system"
-      ? ComputerDesktopIcon
-      : mode === "light"
-        ? SunIcon
-        : MoonIcon;
+  const ThemeIcon = mode === 'system' ? ComputerDesktopIcon : mode === 'light' ? SunIcon : MoonIcon;
 
-  const themeModeLabel =
-    mode === "system" ? "System" : mode === "light" ? "Light" : "Dark";
+  const themeModeLabel = mode === 'system' ? 'System' : mode === 'light' ? 'Light' : 'Dark';
 
   return (
     <Menu
@@ -280,7 +271,7 @@ function UserMenu() {
         <AriaButton className="outline-none">
           <Avatar
             src={user?.avatar_url}
-            name={user?.display_name || "User"}
+            name={user?.display_name || 'User'}
             id={user?.id}
             size="md"
             status="online"
@@ -290,46 +281,33 @@ function UserMenu() {
     >
       <MenuSection>
         <MenuHeader>
-          <p className="font-medium text-gray-900 dark:text-white truncate">
-            {user?.display_name}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-            {user?.email}
-          </p>
+          <p className="truncate font-medium text-gray-900 dark:text-white">{user?.display_name}</p>
+          <p className="truncate text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
         </MenuHeader>
 
         <MenuItem
           onAction={() => user?.id && openProfile(user.id)}
-          icon={<UserIcon className="w-4 h-4" />}
+          icon={<UserIcon className="h-4 w-4" />}
         >
           View Profile
         </MenuItem>
 
         {/* Theme selector with submenu */}
-        <SubmenuTrigger
-          label={`Theme: ${themeModeLabel}`}
-          icon={<ThemeIcon className="w-4 h-4" />}
-        >
+        <SubmenuTrigger label={`Theme: ${themeModeLabel}`} icon={<ThemeIcon className="h-4 w-4" />}>
           <MenuItem
-            onAction={() => setMode("system")}
-            icon={<ComputerDesktopIcon className="w-4 h-4" />}
+            onAction={() => setMode('system')}
+            icon={<ComputerDesktopIcon className="h-4 w-4" />}
           >
             <span className="flex-1">System</span>
-            {mode === "system" && <CheckIcon className="w-4 h-4" />}
+            {mode === 'system' && <CheckIcon className="h-4 w-4" />}
           </MenuItem>
-          <MenuItem
-            onAction={() => setMode("light")}
-            icon={<SunIcon className="w-4 h-4" />}
-          >
+          <MenuItem onAction={() => setMode('light')} icon={<SunIcon className="h-4 w-4" />}>
             <span className="flex-1">Light</span>
-            {mode === "light" && <CheckIcon className="w-4 h-4" />}
+            {mode === 'light' && <CheckIcon className="h-4 w-4" />}
           </MenuItem>
-          <MenuItem
-            onAction={() => setMode("dark")}
-            icon={<MoonIcon className="w-4 h-4" />}
-          >
+          <MenuItem onAction={() => setMode('dark')} icon={<MoonIcon className="h-4 w-4" />}>
             <span className="flex-1">Dark</span>
-            {mode === "dark" && <CheckIcon className="w-4 h-4" />}
+            {mode === 'dark' && <CheckIcon className="h-4 w-4" />}
           </MenuItem>
         </SubmenuTrigger>
 
@@ -337,13 +315,13 @@ function UserMenu() {
           <>
             <MenuItem
               onAction={() => navigate(`/workspaces/${workspaceId}/settings`)}
-              icon={<Cog6ToothIcon className="w-4 h-4" />}
+              icon={<Cog6ToothIcon className="h-4 w-4" />}
             >
               Workspace Settings
             </MenuItem>
             <MenuItem
               onAction={() => navigate(`/workspaces/${workspaceId}/invite`)}
-              icon={<UserPlusIcon className="w-4 h-4" />}
+              icon={<UserPlusIcon className="h-4 w-4" />}
             >
               Invite People
             </MenuItem>
@@ -351,8 +329,8 @@ function UserMenu() {
         )}
 
         <MenuItem
-          onAction={() => navigate("/settings")}
-          icon={<ServerStackIcon className="w-4 h-4" />}
+          onAction={() => navigate('/settings')}
+          icon={<ServerStackIcon className="h-4 w-4" />}
         >
           Server Settings
         </MenuItem>
@@ -362,7 +340,7 @@ function UserMenu() {
         <MenuItem
           onAction={handleLogout}
           variant="danger"
-          icon={<ArrowRightStartOnRectangleIcon className="w-4 h-4" />}
+          icon={<ArrowRightStartOnRectangleIcon className="h-4 w-4" />}
         >
           Log Out
         </MenuItem>
@@ -371,14 +349,8 @@ function UserMenu() {
   );
 }
 
-function CreateWorkspaceModal({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) {
-  const [name, setName] = useState("");
+function CreateWorkspaceModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [name, setName] = useState('');
   const createWorkspace = useCreateWorkspace();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -386,14 +358,11 @@ function CreateWorkspaceModal({
 
     try {
       await createWorkspace.mutateAsync({ name });
-      toast("Workspace created!", "success");
+      toast('Workspace created!', 'success');
       onClose();
-      setName("");
+      setName('');
     } catch (err) {
-      toast(
-        err instanceof Error ? err.message : "Failed to create workspace",
-        "error",
-      );
+      toast(err instanceof Error ? err.message : 'Failed to create workspace', 'error');
     }
   };
 

@@ -65,18 +65,14 @@ export function RegisterForm() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Create an account
-        </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Get started with Feather
-        </p>
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create an account</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">Get started with Feather</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-md">
+          <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
             {error}
           </div>
         )}
@@ -132,21 +128,14 @@ export function RegisterForm() {
           />
         )}
 
-        <Button
-          type="submit"
-          className="w-full"
-          isLoading={isSubmitting}
-        >
+        <Button type="submit" className="w-full" isLoading={isSubmitting}>
           Create account
         </Button>
       </form>
 
       <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
         Already have an account?{' '}
-        <Link
-          to="/login"
-          className="text-primary-600 hover:text-primary-700 font-medium"
-        >
+        <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
           Sign in
         </Link>
       </p>

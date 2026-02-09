@@ -36,9 +36,7 @@ export function RadioGroup({ label, className, children, ...props }: RadioGroupP
   return (
     <AriaRadioGroup className={styles.root({ className })} {...props}>
       {label && <Label className={styles.label()}>{label}</Label>}
-      <div className="flex gap-4">
-        {children}
-      </div>
+      <div className="flex gap-4">{children}</div>
     </AriaRadioGroup>
   );
 }

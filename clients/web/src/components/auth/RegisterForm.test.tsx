@@ -199,7 +199,7 @@ describe('RegisterForm', () => {
       () =>
         new Promise((resolve) => {
           resolveRegister = resolve;
-        })
+        }),
     );
     const user = userEvent.setup();
     render(<RegisterForm />);

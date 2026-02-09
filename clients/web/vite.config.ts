@@ -1,17 +1,19 @@
-import path from 'path'
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import type { Plugin } from 'vite'
+import path from 'path';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import type { Plugin } from 'vite';
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     ...(process.env.VISUALIZE
-      ? [(await import('rollup-plugin-visualizer')).visualizer({
-          open: true,
-          filename: 'dist/stats.html',
-        }) as unknown as Plugin]
+      ? [
+          (await import('rollup-plugin-visualizer')).visualizer({
+            open: true,
+            filename: 'dist/stats.html',
+          }) as unknown as Plugin,
+        ]
       : []),
   ],
   resolve: {
@@ -29,7 +31,7 @@ export default defineConfig({
               id.includes('tiptap-markdown') ||
               id.includes('prosemirror-')
             ) {
-              return 'vendor-tiptap'
+              return 'vendor-tiptap';
             }
             if (
               id.includes('react-aria-components') ||
@@ -38,10 +40,10 @@ export default defineConfig({
               id.includes('@react-types/') ||
               id.includes('@internationalized/')
             ) {
-              return 'vendor-react-aria'
+              return 'vendor-react-aria';
             }
             if (id.includes('@dnd-kit/')) {
-              return 'vendor-dnd'
+              return 'vendor-dnd';
             }
             if (
               id.includes('react-dom') ||
@@ -50,7 +52,7 @@ export default defineConfig({
               // Match react/ but not react-dom, react-router, react-aria, etc.
               /\/node_modules\/react\//.test(id)
             ) {
-              return 'vendor-react'
+              return 'vendor-react';
             }
           }
         },
@@ -66,4 +68,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

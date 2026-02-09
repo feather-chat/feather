@@ -25,7 +25,11 @@ import { Button as AriaButton, FileTrigger, Popover, DialogTrigger } from 'react
 import { Toolbar } from './Toolbar';
 import { EmojiPicker } from './EmojiPicker';
 import { UserMention, SpecialMention, ChannelMention, EmojiNode } from './extensions';
-import { createMentionSuggestion, createEmojiSuggestion, createChannelSuggestion } from './suggestions';
+import {
+  createMentionSuggestion,
+  createEmojiSuggestion,
+  createChannelSuggestion,
+} from './suggestions';
 import type { EmojiOption } from './suggestions';
 import type { ChannelOption } from './suggestions';
 import { toMrkdwn } from './serialization';
@@ -114,9 +118,7 @@ const editorStyles = tv({
       'hover:bg-gray-100 dark:hover:bg-gray-700',
       'disabled:opacity-50 disabled:cursor-not-allowed',
     ],
-    sendButton: [
-      'p-1.5 rounded transition-colors',
-    ],
+    sendButton: ['p-1.5 rounded transition-colors'],
     emojiPopover: [
       'entering:animate-in entering:fade-in entering:zoom-in-95 entering:duration-150',
       'exiting:animate-out exiting:fade-out exiting:zoom-out-95 exiting:duration-100',
@@ -180,7 +182,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       onAddEmoji,
       belowEditor,
     },
-    ref
+    ref,
   ) => {
     const s = editorStyles();
     const submittingRef = useRef(false);
@@ -190,10 +192,16 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
     // Use refs so suggestion closures (captured by TipTap on mount) always see latest data
     const membersRef = useRef(workspaceMembers);
     const channelsRef = useRef(workspaceChannels);
-    useEffect(() => { membersRef.current = workspaceMembers; }, [workspaceMembers]);
-    useEffect(() => { channelsRef.current = workspaceChannels; }, [workspaceChannels]);
+    useEffect(() => {
+      membersRef.current = workspaceMembers;
+    }, [workspaceMembers]);
+    useEffect(() => {
+      channelsRef.current = workspaceChannels;
+    }, [workspaceChannels]);
     const customEmojisRef = useRef(customEmojis);
-    useEffect(() => { customEmojisRef.current = customEmojis; }, [customEmojis]);
+    useEffect(() => {
+      customEmojisRef.current = customEmojis;
+    }, [customEmojis]);
 
     // Stable suggestion configs — refs are only read at query time (user interaction),
     // not during render, so the lint warning is a false positive here.
@@ -203,62 +211,68 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
     };
 
     const mentionSuggestion = useMemo(
-      () => createMentionSuggestion((query: string): MentionOption[] => {
-        const memberOptions: MentionOption[] = membersRef.current.map((member) => ({
-          type: 'user' as const,
-          id: member.user_id,
-          displayName: member.display_name,
-          avatarUrl: member.avatar_url,
-        }));
+      () =>
+        createMentionSuggestion(
+          (query: string): MentionOption[] => {
+            const memberOptions: MentionOption[] = membersRef.current.map((member) => ({
+              type: 'user' as const,
+              id: member.user_id,
+              displayName: member.display_name,
+              avatarUrl: member.avatar_url,
+            }));
 
-        const allOptions = [...memberOptions, ...SPECIAL_MENTIONS];
-        const lowerQuery = query.toLowerCase();
+            const allOptions = [...memberOptions, ...SPECIAL_MENTIONS];
+            const lowerQuery = query.toLowerCase();
 
-        const filtered = allOptions.filter((option) =>
-          option.displayName.toLowerCase().includes(lowerQuery)
-        );
+            const filtered = allOptions.filter((option) =>
+              option.displayName.toLowerCase().includes(lowerQuery),
+            );
 
-        return filtered.sort((a, b) => {
-          const aStartsWith = a.displayName.toLowerCase().startsWith(lowerQuery);
-          const bStartsWith = b.displayName.toLowerCase().startsWith(lowerQuery);
+            return filtered.sort((a, b) => {
+              const aStartsWith = a.displayName.toLowerCase().startsWith(lowerQuery);
+              const bStartsWith = b.displayName.toLowerCase().startsWith(lowerQuery);
 
-          if (aStartsWith && !bStartsWith) return -1;
-          if (!aStartsWith && bStartsWith) return 1;
+              if (aStartsWith && !bStartsWith) return -1;
+              if (!aStartsWith && bStartsWith) return 1;
 
-          return a.displayName.localeCompare(b.displayName);
-        });
-      }, { onOpenChange: handleSuggestionOpenChange }),
-      []
+              return a.displayName.localeCompare(b.displayName);
+            });
+          },
+          { onOpenChange: handleSuggestionOpenChange },
+        ),
+      [],
     );
 
-    const emojiSuggestion = useMemo(() => createEmojiSuggestion(customEmojisRef, handleSuggestionOpenChange), []);
+    const emojiSuggestion = useMemo(
+      () => createEmojiSuggestion(customEmojisRef, handleSuggestionOpenChange),
+      [],
+    );
 
     const channelSuggestion = useMemo(
-      () => createChannelSuggestion((query: string): ChannelOption[] => {
-        const channels = channelsRef.current
-          .filter(c => c.type !== 'dm')
-          .map(c => ({
-            id: c.id,
-            name: c.name,
-            type: c.type as 'public' | 'private',
-          }));
+      () =>
+        createChannelSuggestion((query: string): ChannelOption[] => {
+          const channels = channelsRef.current
+            .filter((c) => c.type !== 'dm')
+            .map((c) => ({
+              id: c.id,
+              name: c.name,
+              type: c.type as 'public' | 'private',
+            }));
 
-        const lowerQuery = query.toLowerCase();
-        const filtered = channels.filter((c) =>
-          c.name.toLowerCase().includes(lowerQuery)
-        );
+          const lowerQuery = query.toLowerCase();
+          const filtered = channels.filter((c) => c.name.toLowerCase().includes(lowerQuery));
 
-        return filtered.sort((a, b) => {
-          const aStartsWith = a.name.toLowerCase().startsWith(lowerQuery);
-          const bStartsWith = b.name.toLowerCase().startsWith(lowerQuery);
+          return filtered.sort((a, b) => {
+            const aStartsWith = a.name.toLowerCase().startsWith(lowerQuery);
+            const bStartsWith = b.name.toLowerCase().startsWith(lowerQuery);
 
-          if (aStartsWith && !bStartsWith) return -1;
-          if (!aStartsWith && bStartsWith) return 1;
+            if (aStartsWith && !bStartsWith) return -1;
+            if (!aStartsWith && bStartsWith) return 1;
 
-          return a.name.localeCompare(b.name);
-        });
-      }, handleSuggestionOpenChange),
-      []
+            return a.name.localeCompare(b.name);
+          });
+        }, handleSuggestionOpenChange),
+      [],
     );
     /* eslint-enable react-hooks/refs */
 
@@ -389,7 +403,8 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                 if ($from.node(depth).type.name === 'listItem') {
                   const listItem = $from.node(depth);
                   // Check if list item is empty (only contains empty paragraph)
-                  const isEmpty = listItem.childCount === 1 &&
+                  const isEmpty =
+                    listItem.childCount === 1 &&
                     listItem.firstChild?.type.name === 'paragraph' &&
                     listItem.firstChild?.content.size === 0;
 
@@ -423,10 +438,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
             const { state } = view;
             const { selection, doc } = state;
             const { $from } = selection;
-            const textBefore = doc.textBetween(
-              Math.max(0, selection.from - 2),
-              selection.from
-            );
+            const textBefore = doc.textBetween(Math.max(0, selection.from - 2), selection.from);
 
             // If we just typed `` and are about to type the third backtick
             if (textBefore === '``') {
@@ -442,10 +454,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                   ?.chain()
                   .focus()
                   .deleteRange({ from: selection.from - 2, to: selection.from })
-                  .insertContent([
-                    { type: 'paragraph' },
-                    { type: 'codeBlock' },
-                  ])
+                  .insertContent([{ type: 'paragraph' }, { type: 'codeBlock' }])
                   .run();
               } else {
                 // Empty/whitespace-only line - select entire paragraph and replace with code block
@@ -523,7 +532,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         }
         setEmojiPickerOpen(false);
       },
-      [editor]
+      [editor],
     );
 
     const insertAtSymbol = useCallback(() => {
@@ -534,9 +543,12 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       editor?.chain().focus().insertContent('#').run();
     }, [editor]);
 
-    const insertText = useCallback((text: string) => {
-      editor?.chain().focus().insertContent(text).run();
-    }, [editor]);
+    const insertText = useCallback(
+      (text: string) => {
+        editor?.chain().focus().insertContent(text).run();
+      },
+      [editor],
+    );
 
     useImperativeHandle(
       ref,
@@ -558,7 +570,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         insertHashSymbol,
         insertText,
       }),
-      [editor, insertAtSymbol, insertHashSymbol, insertText]
+      [editor, insertAtSymbol, insertHashSymbol, insertText],
     );
 
     useEffect(() => {
@@ -598,7 +610,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                     aria-label="Attach files"
                     isDisabled={disabled}
                   >
-                    <PlusIcon className="w-4 h-4" />
+                    <PlusIcon className="h-4 w-4" />
                   </AriaButton>
                 </FileTrigger>
               )}
@@ -610,10 +622,21 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                   aria-label="Add emoji"
                   isDisabled={disabled}
                 >
-                  <FaceSmileIcon className="w-4 h-4" />
+                  <FaceSmileIcon className="h-4 w-4" />
                 </AriaButton>
                 <Popover placement="top start" className={s.emojiPopover()}>
-                  <EmojiPicker onSelect={handleEmojiSelect} customEmojis={customEmojis} onAddEmoji={onAddEmoji ? () => { setEmojiPickerOpen(false); onAddEmoji(); } : undefined} />
+                  <EmojiPicker
+                    onSelect={handleEmojiSelect}
+                    customEmojis={customEmojis}
+                    onAddEmoji={
+                      onAddEmoji
+                        ? () => {
+                            setEmojiPickerOpen(false);
+                            onAddEmoji();
+                          }
+                        : undefined
+                    }
+                  />
                 </Popover>
               </DialogTrigger>
 
@@ -624,7 +647,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                 isDisabled={disabled}
                 onPress={insertAtSymbol}
               >
-                <AtSymbolIcon className="w-4 h-4" />
+                <AtSymbolIcon className="h-4 w-4" />
               </AriaButton>
 
               {/* # channel mention button */}
@@ -634,7 +657,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                 isDisabled={disabled}
                 onPress={insertHashSymbol}
               >
-                <HashtagIcon className="w-4 h-4" />
+                <HashtagIcon className="h-4 w-4" />
               </AriaButton>
             </div>
 
@@ -646,17 +669,17 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                 s.sendButton(),
                 canSend
                   ? 'text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'
-                  : 'text-gray-400 cursor-not-allowed'
+                  : 'cursor-not-allowed text-gray-400',
               )}
               onClick={handleSubmit}
             >
-              <PaperAirplaneIcon className="w-4 h-4" />
+              <PaperAirplaneIcon className="h-4 w-4" />
             </button>
           </div>
         )}
       </div>
     );
-  }
+  },
 );
 
 RichTextEditor.displayName = 'RichTextEditor';

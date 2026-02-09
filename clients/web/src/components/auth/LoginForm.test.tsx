@@ -120,9 +120,10 @@ describe('LoginForm', () => {
     // Create a promise that we can control
     let resolveLogin: (value: { user: { id: string } }) => void;
     mockLogin.mockImplementation(
-      () => new Promise((resolve) => {
-        resolveLogin = resolve;
-      })
+      () =>
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
     );
     const user = userEvent.setup();
     render(<LoginForm />);

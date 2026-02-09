@@ -6,8 +6,9 @@ export const emojisApi = {
     post<{ emojis: CustomEmoji[] }>(`/workspaces/${workspaceId}/emojis/list`),
 
   upload: (workspaceId: string, file: File, name: string) =>
-    uploadFile(`/workspaces/${workspaceId}/emojis/upload`, file, { name }) as Promise<{ emoji: CustomEmoji }>,
+    uploadFile(`/workspaces/${workspaceId}/emojis/upload`, file, { name }) as Promise<{
+      emoji: CustomEmoji;
+    }>,
 
-  delete: (emojiId: string) =>
-    post<{ success: boolean }>(`/emojis/${emojiId}/delete`),
+  delete: (emojiId: string) => post<{ success: boolean }>(`/emojis/${emojiId}/delete`),
 };

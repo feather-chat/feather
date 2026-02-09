@@ -5,38 +5,33 @@ import { queryClient } from './lib/queryClient';
 import { RequireAuth } from './components/auth';
 import { AppLayout } from './components/layout';
 import { Toaster } from './components/ui';
-import {
-  LoginPage,
-  RegisterPage,
-  WorkspaceLandingPage,
-  ChannelPage,
-} from './pages';
+import { LoginPage, RegisterPage, WorkspaceLandingPage, ChannelPage } from './pages';
 import { useDarkMode } from './hooks/useDarkMode';
 
 // Lazy-loaded pages (not on critical path)
 const WorkspaceSettingsPage = lazy(() =>
-  import('./pages/WorkspaceSettingsPage').then((m) => ({ default: m.WorkspaceSettingsPage }))
+  import('./pages/WorkspaceSettingsPage').then((m) => ({ default: m.WorkspaceSettingsPage })),
 );
 const InvitePage = lazy(() =>
-  import('./pages/InvitePage').then((m) => ({ default: m.InvitePage }))
+  import('./pages/InvitePage').then((m) => ({ default: m.InvitePage })),
 );
 const ServerSettingsPage = lazy(() =>
-  import('./pages/ServerSettingsPage').then((m) => ({ default: m.ServerSettingsPage }))
+  import('./pages/ServerSettingsPage').then((m) => ({ default: m.ServerSettingsPage })),
 );
 const AcceptInvitePage = lazy(() =>
-  import('./pages/AcceptInvitePage').then((m) => ({ default: m.AcceptInvitePage }))
+  import('./pages/AcceptInvitePage').then((m) => ({ default: m.AcceptInvitePage })),
 );
 const AllUnreadsPage = lazy(() =>
-  import('./pages/AllUnreadsPage').then((m) => ({ default: m.AllUnreadsPage }))
+  import('./pages/AllUnreadsPage').then((m) => ({ default: m.AllUnreadsPage })),
 );
 const ThreadsPage = lazy(() =>
-  import('./pages/ThreadsPage').then((m) => ({ default: m.ThreadsPage }))
+  import('./pages/ThreadsPage').then((m) => ({ default: m.ThreadsPage })),
 );
 
 function PageSpinner() {
   return (
-    <div className="flex items-center justify-center h-full">
-      <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+    <div className="flex h-full items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
     </div>
   );
 }
@@ -56,7 +51,14 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/invites/:code" element={<Suspense fallback={<PageSpinner />}><AcceptInvitePage /></Suspense>} />
+          <Route
+            path="/invites/:code"
+            element={
+              <Suspense fallback={<PageSpinner />}>
+                <AcceptInvitePage />
+              </Suspense>
+            }
+          />
 
           {/* Protected routes */}
           <Route
@@ -69,10 +71,38 @@ function App() {
           >
             <Route index element={<WorkspaceLandingPage />} />
             <Route path="channels/:channelId" element={<ChannelPage />} />
-            <Route path="unreads" element={<Suspense fallback={<PageSpinner />}><AllUnreadsPage /></Suspense>} />
-            <Route path="threads" element={<Suspense fallback={<PageSpinner />}><ThreadsPage /></Suspense>} />
-            <Route path="settings" element={<Suspense fallback={<PageSpinner />}><WorkspaceSettingsPage /></Suspense>} />
-            <Route path="invite" element={<Suspense fallback={<PageSpinner />}><InvitePage /></Suspense>} />
+            <Route
+              path="unreads"
+              element={
+                <Suspense fallback={<PageSpinner />}>
+                  <AllUnreadsPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="threads"
+              element={
+                <Suspense fallback={<PageSpinner />}>
+                  <ThreadsPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="settings"
+              element={
+                <Suspense fallback={<PageSpinner />}>
+                  <WorkspaceSettingsPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="invite"
+              element={
+                <Suspense fallback={<PageSpinner />}>
+                  <InvitePage />
+                </Suspense>
+              }
+            />
           </Route>
 
           {/* Server settings */}
@@ -94,11 +124,9 @@ function App() {
           <Route
             path="*"
             element={
-              <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+              <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="text-center">
-                  <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                    404
-                  </h1>
+                  <h1 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">404</h1>
                   <p className="text-gray-600 dark:text-gray-400">Page not found</p>
                 </div>
               </div>

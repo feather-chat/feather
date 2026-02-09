@@ -84,11 +84,15 @@ export function AddEmojiModal({ isOpen, onClose, workspaceId, customEmojis }: Ad
       <div className="space-y-4">
         {/* Image upload */}
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700">
             {previewUrl ? (
-              <img src={previewUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="max-h-full max-w-full object-contain"
+              />
             ) : (
-              <span className="text-gray-400 text-xs">Preview</span>
+              <span className="text-xs text-gray-400">Preview</span>
             )}
           </div>
           <div className="flex-1">
@@ -99,11 +103,7 @@ export function AddEmojiModal({ isOpen, onClose, workspaceId, customEmojis }: Ad
               onChange={handleFileSelect}
               className="hidden"
             />
-            <Button
-              variant="secondary"
-              size="sm"
-              onPress={() => fileInputRef.current?.click()}
-            >
+            <Button variant="secondary" size="sm" onPress={() => fileInputRef.current?.click()}>
               {selectedFile ? 'Change Image' : 'Upload Image'}
             </Button>
             {selectedFile && (
@@ -111,17 +111,13 @@ export function AddEmojiModal({ isOpen, onClose, workspaceId, customEmojis }: Ad
                 {selectedFile.name}
               </span>
             )}
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              PNG or GIF. Max 256KB.
-            </p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">PNG or GIF. Max 256KB.</p>
           </div>
         </div>
 
         {/* Name input */}
         <div>
-          <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
-            Name
-          </label>
+          <label className="mb-1 block text-sm text-gray-600 dark:text-gray-400">Name</label>
           <div className="flex items-center gap-2">
             <span className="text-gray-400">:</span>
             <input
@@ -129,13 +125,11 @@ export function AddEmojiModal({ isOpen, onClose, workspaceId, customEmojis }: Ad
               value={name}
               onChange={(e) => setName(e.target.value.replace(/\s/g, ''))}
               placeholder="emoji_name"
-              className="flex-1 px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white placeholder-gray-400"
+              className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
             <span className="text-gray-400">:</span>
           </div>
-          {nameError && (
-            <p className="text-xs text-red-500 mt-1">{nameError}</p>
-          )}
+          {nameError && <p className="mt-1 text-xs text-red-500">{nameError}</p>}
         </div>
 
         {/* Actions */}

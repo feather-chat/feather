@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  useImperativeHandle,
-  useState,
-  useRef,
-  useLayoutEffect,
-} from 'react';
+import { forwardRef, useImperativeHandle, useState, useRef, useLayoutEffect } from 'react';
 import { BellIcon } from '@heroicons/react/24/outline';
 import { tv } from 'tailwind-variants';
 import { Avatar } from '../../ui';
@@ -22,18 +16,12 @@ const styles = tv({
       'hover:bg-gray-100 dark:hover:bg-gray-700',
       'outline-none',
     ],
-    itemSelected: [
-      'bg-gray-100 dark:bg-gray-700',
-    ],
-    displayName: [
-      'text-sm font-medium text-gray-900 dark:text-white truncate',
-    ],
+    itemSelected: ['bg-gray-100 dark:bg-gray-700'],
+    displayName: ['text-sm font-medium text-gray-900 dark:text-white truncate'],
     specialIcon: [
       'w-6 h-6 p-1 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400',
     ],
-    emptyState: [
-      'px-3 py-2 text-sm text-gray-500 dark:text-gray-400',
-    ],
+    emptyState: ['px-3 py-2 text-sm text-gray-500 dark:text-gray-400'],
   },
 });
 
@@ -138,15 +126,10 @@ export const MentionSuggestionList = forwardRef<MentionSuggestionRef, MentionSug
             aria-selected={index === safeSelectedIndex}
           >
             {item.type === 'user' ? (
-              <Avatar
-                src={item.avatarUrl}
-                name={item.displayName}
-                id={item.id}
-                size="sm"
-              />
+              <Avatar src={item.avatarUrl} name={item.displayName} id={item.id} size="sm" />
             ) : (
               <div className={s.specialIcon()}>
-                <BellIcon className="w-4 h-4" />
+                <BellIcon className="h-4 w-4" />
               </div>
             )}
             <span className={s.displayName()}>
@@ -156,7 +139,7 @@ export const MentionSuggestionList = forwardRef<MentionSuggestionRef, MentionSug
         ))}
       </div>
     );
-  }
+  },
 );
 
 MentionSuggestionList.displayName = 'MentionSuggestionList';

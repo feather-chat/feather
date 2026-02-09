@@ -35,4 +35,3 @@ export function useMarkThreadRead(workspaceId: string) {
     },
   });
 }
-

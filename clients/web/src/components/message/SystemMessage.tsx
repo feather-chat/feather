@@ -1,21 +1,16 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { Avatar, toast } from "../ui";
-import { ThreadRepliesIndicator } from "./ThreadRepliesIndicator";
-import { MessageActionBar } from "./MessageActionBar";
-import { ReactionsDisplay } from "./ReactionsDisplay";
-import { groupReactionsByEmoji, createMemberNamesMap } from "./reactionUtils";
-import {
-  useAuth,
-  useAddReaction,
-  useRemoveReaction,
-  useWorkspaceMembers,
-} from "../../hooks";
-import { useMarkMessageUnread } from "../../hooks/useMessages";
-import { useCustomEmojiMap, useCustomEmojis } from "../../hooks/useCustomEmojis";
-import { useThreadPanel, useProfilePanel } from "../../hooks/usePanel";
-import { cn, formatTime } from "../../lib/utils";
-import type { MessageWithUser } from "@feather/api-client";
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Avatar, toast } from '../ui';
+import { ThreadRepliesIndicator } from './ThreadRepliesIndicator';
+import { MessageActionBar } from './MessageActionBar';
+import { ReactionsDisplay } from './ReactionsDisplay';
+import { groupReactionsByEmoji, createMemberNamesMap } from './reactionUtils';
+import { useAuth, useAddReaction, useRemoveReaction, useWorkspaceMembers } from '../../hooks';
+import { useMarkMessageUnread } from '../../hooks/useMessages';
+import { useCustomEmojiMap, useCustomEmojis } from '../../hooks/useCustomEmojis';
+import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
+import { cn, formatTime } from '../../lib/utils';
+import type { MessageWithUser } from '@feather/api-client';
 
 interface SystemMessageProps {
   message: MessageWithUser;
@@ -34,7 +29,7 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
   const { openProfile } = useProfilePanel();
   const addReaction = useAddReaction(channelId);
   const removeReaction = useRemoveReaction(channelId);
-  const markUnread = useMarkMessageUnread(workspaceId || "");
+  const markUnread = useMarkMessageUnread(workspaceId || '');
   const { data: membersData } = useWorkspaceMembers(workspaceId);
 
   const memberNames = createMemberNamesMap(membersData?.members);
@@ -43,7 +38,7 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
   const handleCopyLink = () => {
     const url = `${window.location.origin}/workspaces/${workspaceId}/channels/${channelId}?msg=${message.id}`;
     navigator.clipboard.writeText(url);
-    toast("Link copied to clipboard", "success");
+    toast('Link copied to clipboard', 'success');
     setShowDropdown(false);
   };
 
@@ -65,13 +60,13 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
 
   if (systemEvent) {
     switch (systemEvent.event_type) {
-      case "user_joined":
+      case 'user_joined':
         contentText = `joined #${systemEvent.channel_name}`;
         break;
-      case "user_left":
+      case 'user_left':
         contentText = `left #${systemEvent.channel_name}`;
         break;
-      case "user_added":
+      case 'user_added':
         if (systemEvent.actor_display_name) {
           contentText = `was added by ${systemEvent.actor_display_name}`;
         } else {
@@ -84,9 +79,9 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
   return (
     <div
       className={cn(
-        "group px-4 py-1.5 relative",
-        "hover:bg-gray-50 dark:hover:bg-gray-800/50",
-        showDropdown && "bg-gray-50 dark:bg-gray-800/50",
+        'group relative px-4 py-1.5',
+        'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+        showDropdown && 'bg-gray-50 dark:bg-gray-800/50',
       )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
@@ -99,37 +94,25 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
         {/* Avatar - uses the user who joined/left/was added */}
         <Avatar
           src={message.user_avatar_url}
-          name={
-            message.user_display_name ||
-            systemEvent?.user_display_name ||
-            "System"
-          }
+          name={message.user_display_name || systemEvent?.user_display_name || 'System'}
           id={message.user_id}
           size="md"
-          onClick={
-            message.user_id ? () => openProfile(message.user_id!) : undefined
-          }
+          onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
         />
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           {/* Header */}
           <div className="flex items-baseline gap-2">
             <button
               type="button"
-              onClick={
-                message.user_id
-                  ? () => openProfile(message.user_id!)
-                  : undefined
-              }
+              onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
               className={cn(
-                "font-medium text-gray-900 dark:text-white",
-                message.user_id && "hover:underline cursor-pointer",
+                'font-medium text-gray-900 dark:text-white',
+                message.user_id && 'cursor-pointer hover:underline',
               )}
             >
-              {message.user_display_name ||
-                systemEvent?.user_display_name ||
-                "System"}
+              {message.user_display_name || systemEvent?.user_display_name || 'System'}
             </button>
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
@@ -137,9 +120,7 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
           </div>
 
           {/* System message content - styled differently */}
-          <div className="text-gray-600 dark:text-gray-400 text-sm italic">
-            {contentText}
-          </div>
+          <div className="text-sm italic text-gray-600 dark:text-gray-400">{contentText}</div>
 
           {/* Reactions */}
           <ReactionsDisplay
