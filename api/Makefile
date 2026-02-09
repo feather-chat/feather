@@ -1,4 +1,4 @@
-.PHONY: build run test clean dev generate generate-types
+.PHONY: build run test clean dev generate generate-types fmt
 
 BINARY_NAME=feather
 BUILD_DIR=./bin
@@ -31,3 +31,6 @@ deps:
 
 lint:
 	golangci-lint run ./...
+
+fmt:
+	gofmt -w .

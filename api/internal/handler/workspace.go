@@ -15,8 +15,8 @@ import (
 	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/workspace"
 	"github.com/go-chi/chi/v5"
-	"github.com/oklog/ulid/v2"
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/oklog/ulid/v2"
 )
 
 // CreateWorkspace creates a new workspace

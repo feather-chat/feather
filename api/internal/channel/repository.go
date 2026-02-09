@@ -14,14 +14,14 @@ import (
 )
 
 var (
-	ErrChannelNotFound       = errors.New("channel not found")
-	ErrNotChannelMember      = errors.New("not a member of this channel")
-	ErrAlreadyMember         = errors.New("already a member of this channel")
-	ErrChannelArchived       = errors.New("channel is archived")
-	ErrCannotLeaveChannel    = errors.New("cannot leave this channel")
-	ErrDMAlreadyExists       = errors.New("DM channel already exists")
-	ErrCannotLeaveDefault    = errors.New("cannot leave the default channel")
-	ErrCannotArchiveDefault  = errors.New("cannot archive the default channel")
+	ErrChannelNotFound      = errors.New("channel not found")
+	ErrNotChannelMember     = errors.New("not a member of this channel")
+	ErrAlreadyMember        = errors.New("already a member of this channel")
+	ErrChannelArchived      = errors.New("channel is archived")
+	ErrCannotLeaveChannel   = errors.New("cannot leave this channel")
+	ErrDMAlreadyExists      = errors.New("DM channel already exists")
+	ErrCannotLeaveDefault   = errors.New("cannot leave the default channel")
+	ErrCannotArchiveDefault = errors.New("cannot archive the default channel")
 )
 
 type Repository struct {

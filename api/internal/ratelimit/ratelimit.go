@@ -24,10 +24,10 @@ type Rule struct {
 
 // Result contains rate limit status for a request.
 type Result struct {
-	Limit    int
+	Limit     int
 	Remaining int
-	ResetAt  time.Time
-	RetryIn  time.Duration
+	ResetAt   time.Time
+	RetryIn   time.Duration
 }
 
 type entry struct {

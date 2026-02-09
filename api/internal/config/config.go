@@ -43,11 +43,11 @@ type EmailConfig struct {
 }
 
 type RateLimitConfig struct {
-	Enabled       bool              `koanf:"enabled"`
-	Login         RateLimitEndpoint `koanf:"login"`
-	Register      RateLimitEndpoint `koanf:"register"`
+	Enabled        bool              `koanf:"enabled"`
+	Login          RateLimitEndpoint `koanf:"login"`
+	Register       RateLimitEndpoint `koanf:"register"`
 	ForgotPassword RateLimitEndpoint `koanf:"forgot_password"`
-	ResetPassword RateLimitEndpoint `koanf:"reset_password"`
+	ResetPassword  RateLimitEndpoint `koanf:"reset_password"`
 }
 
 type RateLimitEndpoint struct {

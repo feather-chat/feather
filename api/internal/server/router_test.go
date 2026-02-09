@@ -11,8 +11,8 @@ import (
 
 func TestErrorHandlersProduceValidJSON(t *testing.T) {
 	tests := []struct {
-		name    string
-		errMsg  string
+		name   string
+		errMsg string
 	}{
 		{"simple message", "invalid request body"},
 		{"message with quotes", `field "name" is required`},

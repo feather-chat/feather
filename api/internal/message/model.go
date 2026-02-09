@@ -30,21 +30,21 @@ type SystemEventData struct {
 }
 
 type Message struct {
-	ID             string           `json:"id"`
-	ChannelID      string           `json:"channel_id"`
-	UserID         *string          `json:"user_id,omitempty"`
-	Content        string           `json:"content"`
-	Type           string           `json:"type"`
-	SystemEvent    *SystemEventData `json:"system_event,omitempty"`
-	Mentions       []string         `json:"mentions,omitempty"`
+	ID                string           `json:"id"`
+	ChannelID         string           `json:"channel_id"`
+	UserID            *string          `json:"user_id,omitempty"`
+	Content           string           `json:"content"`
+	Type              string           `json:"type"`
+	SystemEvent       *SystemEventData `json:"system_event,omitempty"`
+	Mentions          []string         `json:"mentions,omitempty"`
 	ThreadParentID    *string          `json:"thread_parent_id,omitempty"`
 	AlsoSendToChannel bool             `json:"also_send_to_channel"`
 	ReplyCount        int              `json:"reply_count"`
-	LastReplyAt    *time.Time       `json:"last_reply_at,omitempty"`
-	EditedAt       *time.Time       `json:"edited_at,omitempty"`
-	DeletedAt      *time.Time       `json:"deleted_at,omitempty"`
-	CreatedAt      time.Time        `json:"created_at"`
-	UpdatedAt      time.Time        `json:"updated_at"`
+	LastReplyAt       *time.Time       `json:"last_reply_at,omitempty"`
+	EditedAt          *time.Time       `json:"edited_at,omitempty"`
+	DeletedAt         *time.Time       `json:"deleted_at,omitempty"`
+	CreatedAt         time.Time        `json:"created_at"`
+	UpdatedAt         time.Time        `json:"updated_at"`
 }
 
 type MessageWithUser struct {

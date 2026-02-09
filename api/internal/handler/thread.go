@@ -270,20 +270,20 @@ func (h *Handler) ListUserThreads(ctx context.Context, request openapi.ListUserT
 // threadMessageToAPI converts a message.ThreadMessage to openapi.ThreadMessage
 func threadMessageToAPI(m *message.ThreadMessage) openapi.ThreadMessage {
 	apiMsg := openapi.ThreadMessage{
-		Id:            m.ID,
-		ChannelId:     m.ChannelID,
-		UserId:        m.UserID,
-		Content:       m.Content,
+		Id:             m.ID,
+		ChannelId:      m.ChannelID,
+		UserId:         m.UserID,
+		Content:        m.Content,
 		ThreadParentId: m.ThreadParentID,
-		ReplyCount:    m.ReplyCount,
-		LastReplyAt:   m.LastReplyAt,
-		EditedAt:      m.EditedAt,
-		DeletedAt:     m.DeletedAt,
-		CreatedAt:     m.CreatedAt,
-		UpdatedAt:     m.UpdatedAt,
-		ChannelName:   m.ChannelName,
-		ChannelType:   openapi.ChannelType(m.ChannelType),
-		HasNewReplies: m.HasNewReplies,
+		ReplyCount:     m.ReplyCount,
+		LastReplyAt:    m.LastReplyAt,
+		EditedAt:       m.EditedAt,
+		DeletedAt:      m.DeletedAt,
+		CreatedAt:      m.CreatedAt,
+		UpdatedAt:      m.UpdatedAt,
+		ChannelName:    m.ChannelName,
+		ChannelType:    openapi.ChannelType(m.ChannelType),
+		HasNewReplies:  m.HasNewReplies,
 	}
 	if m.Type != "" {
 		msgType := openapi.MessageType(m.Type)

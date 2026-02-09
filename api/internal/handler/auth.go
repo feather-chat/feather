@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/auth"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/user"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )

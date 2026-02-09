@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/channel"
 	"github.com/feather/api/internal/file"
+	"github.com/feather/api/internal/openapi"
 	"github.com/feather/api/internal/workspace"
 	"github.com/oklog/ulid/v2"
 )

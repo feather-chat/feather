@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	ErrInvalidCredentials   = errors.New("invalid email or password")
-	ErrUserDeactivated      = errors.New("user account is deactivated")
-	ErrInvalidResetToken    = errors.New("invalid or expired reset token")
-	ErrPasswordTooShort     = errors.New("password must be at least 8 characters")
-	ErrDisplayNameRequired  = errors.New("display name is required")
-	ErrInvalidEmail         = errors.New("invalid email address")
+	ErrInvalidCredentials  = errors.New("invalid email or password")
+	ErrUserDeactivated     = errors.New("user account is deactivated")
+	ErrInvalidResetToken   = errors.New("invalid or expired reset token")
+	ErrPasswordTooShort    = errors.New("password must be at least 8 characters")
+	ErrDisplayNameRequired = errors.New("display name is required")
+	ErrInvalidEmail        = errors.New("invalid email address")
 )
 
 type Service struct {

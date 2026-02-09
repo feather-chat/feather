@@ -51,12 +51,12 @@ type ThreadSubscriptionProvider interface {
 
 // Service handles notification logic
 type Service struct {
-	prefsRepo          *PreferencesRepository
-	pendingRepo        *PendingRepository
-	channelProvider    ChannelMemberProvider
-	threadSubProvider  ThreadSubscriptionProvider
-	hub                *sse.Hub
-	emailDelay         time.Duration
+	prefsRepo         *PreferencesRepository
+	pendingRepo       *PendingRepository
+	channelProvider   ChannelMemberProvider
+	threadSubProvider ThreadSubscriptionProvider
+	hub               *sse.Hub
+	emailDelay        time.Duration
 }
 
 // NewService creates a new notification service

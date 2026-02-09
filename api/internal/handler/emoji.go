@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	emojiNameRegexp  = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}$`)
+	emojiNameRegexp   = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}$`)
 	allowedEmojiTypes = map[string]string{
 		"image/png": ".png",
 		"image/gif": ".gif",
