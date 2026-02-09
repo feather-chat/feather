@@ -80,6 +80,7 @@ export function useSendMessage(channelId: string) {
 interface SendThreadReplyInput {
   content?: string;
   attachment_ids?: string[];
+  also_send_to_channel?: boolean;
 }
 
 export function useSendThreadReply(parentMessageId: string, channelId: string) {
@@ -113,6 +114,28 @@ export function useSendThreadReply(parentMessageId: string, channelId: string) {
               newPages[lastPageIndex] = {
                 ...newPages[lastPageIndex],
                 messages: [...newPages[lastPageIndex].messages, data.message],
+              };
+            }
+            return { ...old, pages: newPages };
+          }
+        );
+      }
+
+      // If also_send_to_channel, add to the channel message cache too
+      if (data.message.also_send_to_channel) {
+        queryClient.setQueryData(
+          ['messages', channelId],
+          (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
+            if (!old) return old;
+            const exists = old.pages.some((page) =>
+              page.messages.some((m) => m.id === data.message.id)
+            );
+            if (exists) return old;
+            const newPages = [...old.pages];
+            if (newPages[0]) {
+              newPages[0] = {
+                ...newPages[0],
+                messages: [data.message, ...newPages[0].messages],
               };
             }
             return { ...old, pages: newPages };
@@ -196,6 +219,21 @@ export function useDeleteMessage() {
   return useMutation({
     mutationFn: (messageId: string) => messagesApi.delete(messageId),
     onSuccess: (_, messageId) => {
+      // Find the message's thread_parent_id before removing it from caches
+      let threadParentId: string | undefined;
+      const threadQueries = queryClient.getQueriesData<{ pages: MessageListResult[] }>({ queryKey: ['thread'] });
+      for (const [, data] of threadQueries) {
+        if (!data) continue;
+        for (const page of data.pages) {
+          const found = page.messages.find((m) => m.id === messageId);
+          if (found?.thread_parent_id) {
+            threadParentId = found.thread_parent_id;
+            break;
+          }
+        }
+        if (threadParentId) break;
+      }
+
       // Update message caches: set deleted_at for messages with replies, filter out others
       queryClient.setQueriesData(
         { queryKey: ['messages'] },
@@ -208,6 +246,7 @@ export function useDeleteMessage() {
               messages: page.messages
                 .map((msg) => {
                   if (msg.id !== messageId) return msg;
+                  if (!threadParentId) threadParentId = msg.thread_parent_id;
                   // Messages with replies: mark as deleted (keep in cache for placeholder)
                   if (msg.reply_count > 0) {
                     return { ...msg, deleted_at: new Date().toISOString() };
@@ -220,6 +259,41 @@ export function useDeleteMessage() {
           };
         }
       );
+
+      // Also filter from thread caches
+      queryClient.setQueriesData(
+        { queryKey: ['thread'] },
+        (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              messages: page.messages.filter((msg) => msg.id !== messageId),
+            })),
+          };
+        }
+      );
+
+      // Decrement parent's reply_count if this was a thread reply
+      if (threadParentId) {
+        queryClient.setQueriesData(
+          { queryKey: ['messages'] },
+          (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
+            if (!old) return old;
+            return {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                messages: page.messages.map((msg) => {
+                  if (msg.id !== threadParentId) return msg;
+                  return { ...msg, reply_count: Math.max((msg.reply_count || 0) - 1, 0) };
+                }),
+              })),
+            };
+          }
+        );
+      }
     },
   });
 }

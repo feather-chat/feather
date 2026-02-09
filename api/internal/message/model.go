@@ -37,8 +37,9 @@ type Message struct {
 	Type           string           `json:"type"`
 	SystemEvent    *SystemEventData `json:"system_event,omitempty"`
 	Mentions       []string         `json:"mentions,omitempty"`
-	ThreadParentID *string          `json:"thread_parent_id,omitempty"`
-	ReplyCount     int              `json:"reply_count"`
+	ThreadParentID    *string          `json:"thread_parent_id,omitempty"`
+	AlsoSendToChannel bool             `json:"also_send_to_channel"`
+	ReplyCount        int              `json:"reply_count"`
 	LastReplyAt    *time.Time       `json:"last_reply_at,omitempty"`
 	EditedAt       *time.Time       `json:"edited_at,omitempty"`
 	DeletedAt      *time.Time       `json:"deleted_at,omitempty"`

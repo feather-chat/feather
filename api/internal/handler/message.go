@@ -130,6 +130,11 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 		ThreadParentID: request.Body.ThreadParentId,
 	}
 
+	// Set also_send_to_channel flag (only meaningful for thread replies)
+	if request.Body.AlsoSendToChannel != nil && *request.Body.AlsoSendToChannel && msg.ThreadParentID != nil {
+		msg.AlsoSendToChannel = true
+	}
+
 	if err := h.messageRepo.Create(ctx, msg); err != nil {
 		return nil, err
 	}
@@ -368,9 +373,13 @@ func (h *Handler) DeleteMessage(ctx context.Context, request openapi.DeleteMessa
 
 	// Broadcast delete via SSE
 	if h.hub != nil {
+		deleteData := map[string]string{"id": string(request.Id)}
+		if msg.ThreadParentID != nil {
+			deleteData["thread_parent_id"] = *msg.ThreadParentID
+		}
 		h.hub.BroadcastToChannel(ch.WorkspaceID, msg.ChannelID, sse.Event{
 			Type: sse.EventMessageDeleted,
-			Data: map[string]string{"id": string(request.Id)},
+			Data: deleteData,
 		})
 	}
 
@@ -537,6 +546,9 @@ func messageWithUserToAPI(m *message.MessageWithUser) openapi.MessageWithUser {
 		DeletedAt:      m.DeletedAt,
 		CreatedAt:      m.CreatedAt,
 		UpdatedAt:      m.UpdatedAt,
+	}
+	if m.AlsoSendToChannel {
+		apiMsg.AlsoSendToChannel = &m.AlsoSendToChannel
 	}
 	// Add type field (default to user if empty)
 	if m.Type != "" {

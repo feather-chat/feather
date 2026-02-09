@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   XMarkIcon,
+  HashtagIcon,
 } from "@heroicons/react/24/outline";
 import {
   useThreadMessages,
@@ -89,6 +90,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
 
   // Flatten thread messages (already in chronological order from API)
   const threadMessages = data?.pages.flatMap((page) => page.messages) || [];
+  const parentChannel = channelsData?.channels.find((c) => c.id === parentMessage?.channel_id);
 
   // Focus composer and mark thread as read when thread opens
   useEffect(() => {
@@ -193,6 +195,8 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
             parentMessageId={messageId}
             variant="thread"
             placeholder="Reply..."
+            channelName={parentChannel?.name}
+            channelType={parentChannel?.type}
           />
         )}
       </div>
@@ -587,6 +591,9 @@ function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMe
   const markUnread = useMarkMessageUnread(workspaceId || "");
 
   const isOwnMessage = user?.id === message.user_id;
+  const isDeleted = !!message.deleted_at;
+  const channel = channels?.find((c) => c.id === message.channel_id);
+  const isDM = channel?.type === 'dm' || channel?.type === 'group_dm';
   const isEdited = !!message.edited_at;
 
   // Group reactions by emoji
@@ -764,12 +771,19 @@ function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMe
     }
   }, [isEditing]);
 
+  // Deleted thread replies: hide entirely
+  if (isDeleted) {
+    return null;
+  }
+
   return (
     <div
       className={cn(
         "px-4 py-2 relative group",
-        "hover:bg-gray-50 dark:hover:bg-gray-800/50",
-        showDropdown && "bg-gray-50 dark:bg-gray-800/50",
+        message.also_send_to_channel
+          ? "bg-yellow-50 dark:bg-yellow-900/10"
+          : "hover:bg-gray-50 dark:hover:bg-gray-800/50",
+        showDropdown && !message.also_send_to_channel && "bg-gray-50 dark:bg-gray-800/50",
       )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
@@ -778,6 +792,13 @@ function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMe
         }
       }}
     >
+      {/* "Also sent to channel" banner */}
+      {message.also_send_to_channel && (
+        <div className="flex items-center gap-1.5 pb-1 mb-1 text-xs text-gray-500 dark:text-gray-400">
+          <HashtagIcon className="w-3 h-3 flex-shrink-0" />
+          <span>Also sent to {isDM ? 'the direct message' : 'the channel'}</span>
+        </div>
+      )}
       <div className="flex items-start gap-3">
         <Avatar
           src={message.user_avatar_url}

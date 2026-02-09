@@ -23,6 +23,8 @@ interface MessageComposerProps {
   parentMessageId?: string;
   variant?: 'channel' | 'thread';
   placeholder?: string;
+  channelName?: string;
+  channelType?: string;
 }
 
 interface PendingAttachment {
@@ -46,10 +48,13 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
       parentMessageId,
       variant = 'channel',
       placeholder = 'Type a message...',
+      channelName,
+      channelType,
     },
     ref
   ) {
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [alsoSendToChannel, setAlsoSendToChannel] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [addEmojiOpen, setAddEmojiOpen] = useState(false);
   const editorRef = useRef<RichTextEditorRef>(null);
@@ -151,6 +156,7 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
       await activeMutation.mutateAsync({
         content: hasContent ? content : undefined,
         attachment_ids: hasAttachments ? completedAttachmentIds : undefined,
+        ...(isThreadVariant && alsoSendToChannel ? { also_send_to_channel: true } : {}),
       });
 
       // Clear attachments and revoke preview URLs
@@ -158,6 +164,7 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
         if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
       });
       setPendingAttachments([]);
+      setAlsoSendToChannel(false);
       onStopTyping();
     } catch {
       // Error handling is done via toast in mutation
@@ -303,6 +310,19 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
             disabled={activeMutation.isPending}
             isPending={activeMutation.isPending || isUploading}
             onAttachmentClick={handleFilesSelected}
+            belowEditor={isThreadVariant ? (
+              <label className="flex items-center gap-2 px-4 py-1.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={alsoSendToChannel}
+                  onChange={(e) => setAlsoSendToChannel(e.target.checked)}
+                  className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:bg-gray-700"
+                />
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Also send to {channelType === 'dm' || channelType === 'group_dm' ? 'direct message' : channelName ? `#${channelName}` : 'channel'}
+                </span>
+              </label>
+            ) : undefined}
           />
         </form>
       </DropZone>

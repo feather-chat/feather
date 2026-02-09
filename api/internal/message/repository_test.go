@@ -429,3 +429,180 @@ func TestRepository_List_IncludesReactions(t *testing.T) {
 		t.Errorf("len(Reactions) = %d, want 2", len(result.Messages[0].Reactions))
 	}
 }
+
+func TestRepository_Create_AlsoSendToChannel(t *testing.T) {
+	db := testutil.TestDB(t)
+	repo := NewRepository(db)
+	ctx := context.Background()
+
+	owner := testutil.CreateTestUser(t, db, "owner@example.com", "Owner")
+	ws := testutil.CreateTestWorkspace(t, db, owner.ID, "Test WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, owner.ID, "general", channel.TypePublic)
+
+	// Create parent message
+	parent := testutil.CreateTestMessage(t, db, ch.ID, owner.ID, "Parent message")
+
+	// Create thread reply with also_send_to_channel
+	reply := &Message{
+		ChannelID:         ch.ID,
+		UserID:            &owner.ID,
+		Content:           "Broadcast reply",
+		ThreadParentID:    &parent.ID,
+		AlsoSendToChannel: true,
+	}
+
+	err := repo.Create(ctx, reply)
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+
+	// Verify the flag was persisted
+	fetched, err := repo.GetByID(ctx, reply.ID)
+	if err != nil {
+		t.Fatalf("GetByID() error = %v", err)
+	}
+	if !fetched.AlsoSendToChannel {
+		t.Error("expected AlsoSendToChannel = true")
+	}
+	if fetched.ThreadParentID == nil || *fetched.ThreadParentID != parent.ID {
+		t.Error("expected ThreadParentID to be set")
+	}
+}
+
+func TestRepository_List_IncludesBroadcastReplies(t *testing.T) {
+	db := testutil.TestDB(t)
+	repo := NewRepository(db)
+	ctx := context.Background()
+
+	owner := testutil.CreateTestUser(t, db, "owner@example.com", "Owner")
+	ws := testutil.CreateTestWorkspace(t, db, owner.ID, "Test WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, owner.ID, "general", channel.TypePublic)
+
+	// Create parent message
+	parent := testutil.CreateTestMessage(t, db, ch.ID, owner.ID, "Parent")
+
+	// Create a normal thread reply (should NOT appear in channel list)
+	normalReply := &Message{
+		ChannelID:      ch.ID,
+		UserID:         &owner.ID,
+		Content:        "Normal reply",
+		ThreadParentID: &parent.ID,
+	}
+	repo.Create(ctx, normalReply)
+
+	// Create a broadcast thread reply (should appear in channel list)
+	broadcastReply := &Message{
+		ChannelID:         ch.ID,
+		UserID:            &owner.ID,
+		Content:           "Broadcast reply",
+		ThreadParentID:    &parent.ID,
+		AlsoSendToChannel: true,
+	}
+	repo.Create(ctx, broadcastReply)
+
+	// List should return parent + broadcast reply, but NOT normal reply
+	result, err := repo.List(ctx, ch.ID, ListOptions{Limit: 10})
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+
+	if len(result.Messages) != 2 {
+		t.Fatalf("len(Messages) = %d, want 2", len(result.Messages))
+	}
+
+	// Messages are DESC order, so broadcast reply is first
+	if result.Messages[0].Content != "Broadcast reply" {
+		t.Errorf("first message = %q, want %q", result.Messages[0].Content, "Broadcast reply")
+	}
+	if !result.Messages[0].AlsoSendToChannel {
+		t.Error("expected broadcast reply to have AlsoSendToChannel = true")
+	}
+	if result.Messages[1].Content != "Parent" {
+		t.Errorf("second message = %q, want %q", result.Messages[1].Content, "Parent")
+	}
+}
+
+func TestRepository_Delete_ThreadReply_DecrementsReplyCount(t *testing.T) {
+	db := testutil.TestDB(t)
+	repo := NewRepository(db)
+	ctx := context.Background()
+
+	owner := testutil.CreateTestUser(t, db, "owner@example.com", "Owner")
+	ws := testutil.CreateTestWorkspace(t, db, owner.ID, "Test WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, owner.ID, "general", channel.TypePublic)
+
+	// Create parent message
+	parent := testutil.CreateTestMessage(t, db, ch.ID, owner.ID, "Parent")
+
+	// Create two thread replies
+	reply1 := &Message{
+		ChannelID:      ch.ID,
+		UserID:         &owner.ID,
+		Content:        "Reply 1",
+		ThreadParentID: &parent.ID,
+	}
+	repo.Create(ctx, reply1)
+
+	reply2 := &Message{
+		ChannelID:      ch.ID,
+		UserID:         &owner.ID,
+		Content:        "Reply 2",
+		ThreadParentID: &parent.ID,
+	}
+	repo.Create(ctx, reply2)
+
+	// Parent should have reply_count = 2
+	parentMsg, _ := repo.GetByID(ctx, parent.ID)
+	if parentMsg.ReplyCount != 2 {
+		t.Fatalf("initial ReplyCount = %d, want 2", parentMsg.ReplyCount)
+	}
+
+	// Delete one reply
+	err := repo.Delete(ctx, reply1.ID)
+	if err != nil {
+		t.Fatalf("Delete() error = %v", err)
+	}
+
+	// Parent's reply_count should be decremented to 1
+	parentMsg, _ = repo.GetByID(ctx, parent.ID)
+	if parentMsg.ReplyCount != 1 {
+		t.Errorf("ReplyCount after delete = %d, want 1", parentMsg.ReplyCount)
+	}
+
+	// Delete second reply
+	err = repo.Delete(ctx, reply2.ID)
+	if err != nil {
+		t.Fatalf("Delete() error = %v", err)
+	}
+
+	// Parent's reply_count should be 0
+	parentMsg, _ = repo.GetByID(ctx, parent.ID)
+	if parentMsg.ReplyCount != 0 {
+		t.Errorf("ReplyCount after second delete = %d, want 0", parentMsg.ReplyCount)
+	}
+}
+
+func TestRepository_Delete_NonThreadMessage_NoReplyCountChange(t *testing.T) {
+	db := testutil.TestDB(t)
+	repo := NewRepository(db)
+	ctx := context.Background()
+
+	owner := testutil.CreateTestUser(t, db, "owner@example.com", "Owner")
+	ws := testutil.CreateTestWorkspace(t, db, owner.ID, "Test WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, owner.ID, "general", channel.TypePublic)
+
+	// Create two independent messages (no thread relationship)
+	msg1 := testutil.CreateTestMessage(t, db, ch.ID, owner.ID, "Message 1")
+	msg2 := testutil.CreateTestMessage(t, db, ch.ID, owner.ID, "Message 2")
+
+	// Delete msg1 should not affect msg2
+	err := repo.Delete(ctx, msg1.ID)
+	if err != nil {
+		t.Fatalf("Delete() error = %v", err)
+	}
+
+	msg2Fetched, _ := repo.GetByID(ctx, msg2.ID)
+	if msg2Fetched.ReplyCount != 0 {
+		t.Errorf("unrelated message ReplyCount = %d, want 0", msg2Fetched.ReplyCount)
+	}
+}

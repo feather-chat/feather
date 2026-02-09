@@ -1162,6 +1162,7 @@ export interface components {
             created_at: string;
             /** Format: date-time */
             updated_at: string;
+            also_send_to_channel?: boolean;
         };
         MessageWithUser: components["schemas"]["Message"] & {
             user_display_name?: string;
@@ -1299,6 +1300,7 @@ export interface components {
             type: "message.deleted";
             data: {
                 id: string;
+                thread_parent_id?: string;
             };
         };
         SSEEventReactionAdded: {
@@ -1526,6 +1528,8 @@ export interface components {
             thread_parent_id?: string;
             /** @description IDs of uploaded attachments to include with this message */
             attachment_ids?: string[];
+            /** @description When replying in a thread, also show the reply in the channel */
+            also_send_to_channel?: boolean;
         };
         ListMessagesInput: {
             cursor?: string;
@@ -3054,6 +3058,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
         };
     };
     deleteCustomEmoji: {

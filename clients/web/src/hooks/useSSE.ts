@@ -32,7 +32,7 @@ export function useSSE(workspaceId: string | undefined) {
     connection.on('message.new', (event) => {
       const message = event.data;
 
-      // Thread replies go to thread cache only, not the main channel
+      // Thread replies go to thread cache, and optionally to channel if broadcast
       if (message.thread_parent_id) {
         // Check if this message was already processed (e.g., by optimistic update from current user)
         const threadData = queryClient.getQueryData<{ pages: MessageListResult[]; pageParams: (string | undefined)[] }>(['thread', message.thread_parent_id]);
@@ -54,6 +54,28 @@ export function useSSE(workspaceId: string | undefined) {
                 newPages[lastPageIndex] = {
                   ...newPages[lastPageIndex],
                   messages: [...newPages[lastPageIndex].messages, message],
+                };
+              }
+              return { ...old, pages: newPages };
+            }
+          );
+        }
+
+        // If also_send_to_channel, add to the channel message cache too
+        if (message.also_send_to_channel) {
+          queryClient.setQueryData(
+            ['messages', message.channel_id],
+            (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
+              if (!old) return old;
+              const exists = old.pages.some((page) =>
+                page.messages.some((m) => m.id === message.id)
+              );
+              if (exists) return old;
+              const newPages = [...old.pages];
+              if (newPages[0]) {
+                newPages[0] = {
+                  ...newPages[0],
+                  messages: [message, ...newPages[0].messages],
                 };
               }
               return { ...old, pages: newPages };
@@ -130,8 +152,8 @@ export function useSSE(workspaceId: string | undefined) {
         );
       }
 
-      // Increment unread count for channels (only for non-thread messages from other users)
-      if (!message.thread_parent_id) {
+      // Increment unread count for channels (for non-thread messages and broadcast thread replies from other users)
+      if (!message.thread_parent_id || message.also_send_to_channel) {
         const authData = queryClient.getQueryData<{ user?: { id: string } }>(['auth', 'me']);
         const currentUserId = authData?.user?.id;
 
@@ -178,7 +200,19 @@ export function useSSE(workspaceId: string | undefined) {
 
     // Handle message deleted
     connection.on('message.deleted', (event) => {
-      const { id } = event.data;
+      const { id, thread_parent_id } = event.data;
+
+      // Check if this delete was already handled locally (by useDeleteMessage)
+      // by seeing if the message still exists in the thread cache
+      let alreadyHandled = false;
+      if (thread_parent_id) {
+        const threadData = queryClient.getQueryData<{ pages: MessageListResult[] }>(['thread', thread_parent_id]);
+        if (threadData) {
+          alreadyHandled = !threadData.pages.some((page) =>
+            page.messages.some((m) => m.id === id)
+          );
+        }
+      }
 
       queryClient.setQueriesData(
         { queryKey: ['messages'] },
@@ -203,6 +237,42 @@ export function useSSE(workspaceId: string | undefined) {
           };
         }
       );
+
+      // Also filter from thread caches
+      queryClient.setQueriesData(
+        { queryKey: ['thread'] },
+        (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              messages: page.messages.filter((m) => m.id !== id),
+            })),
+          };
+        }
+      );
+
+      // Decrement parent's reply_count if this was a thread reply
+      // Skip if useDeleteMessage already handled this (to avoid double-decrement)
+      if (thread_parent_id && !alreadyHandled) {
+        queryClient.setQueriesData(
+          { queryKey: ['messages'] },
+          (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
+            if (!old) return old;
+            return {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                messages: page.messages.map((m) => {
+                  if (m.id !== thread_parent_id) return m;
+                  return { ...m, reply_count: Math.max((m.reply_count || 0) - 1, 0) };
+                }),
+              })),
+            };
+          }
+        );
+      }
     });
 
     // Handle reaction added

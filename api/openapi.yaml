@@ -2114,6 +2114,8 @@ components:
         updated_at:
           type: string
           format: date-time
+        also_send_to_channel:
+          type: boolean
 
     MessageWithUser:
       allOf:
@@ -2454,6 +2456,8 @@ components:
           required: [id]
           properties:
             id:
+              type: string
+            thread_parent_id:
               type: string
 
     SSEEventReactionAdded:
@@ -2830,6 +2834,9 @@ components:
           items:
             type: string
           description: IDs of uploaded attachments to include with this message
+        also_send_to_channel:
+          type: boolean
+          description: When replying in a thread, also show the reply in the channel
 
     ListMessagesInput:
       type: object

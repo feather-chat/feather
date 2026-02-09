@@ -251,19 +251,20 @@ type MeResponse struct {
 
 // Message defines model for Message.
 type Message struct {
-	ChannelId      string           `json:"channel_id"`
-	Content        string           `json:"content"`
-	CreatedAt      time.Time        `json:"created_at"`
-	DeletedAt      *time.Time       `json:"deleted_at,omitempty"`
-	EditedAt       *time.Time       `json:"edited_at,omitempty"`
-	Id             string           `json:"id"`
-	LastReplyAt    *time.Time       `json:"last_reply_at,omitempty"`
-	ReplyCount     int              `json:"reply_count"`
-	SystemEvent    *SystemEventData `json:"system_event,omitempty"`
-	ThreadParentId *string          `json:"thread_parent_id,omitempty"`
-	Type           *MessageType     `json:"type,omitempty"`
-	UpdatedAt      time.Time        `json:"updated_at"`
-	UserId         *string          `json:"user_id,omitempty"`
+	AlsoSendToChannel *bool            `json:"also_send_to_channel,omitempty"`
+	ChannelId         string           `json:"channel_id"`
+	Content           string           `json:"content"`
+	CreatedAt         time.Time        `json:"created_at"`
+	DeletedAt         *time.Time       `json:"deleted_at,omitempty"`
+	EditedAt          *time.Time       `json:"edited_at,omitempty"`
+	Id                string           `json:"id"`
+	LastReplyAt       *time.Time       `json:"last_reply_at,omitempty"`
+	ReplyCount        int              `json:"reply_count"`
+	SystemEvent       *SystemEventData `json:"system_event,omitempty"`
+	ThreadParentId    *string          `json:"thread_parent_id,omitempty"`
+	Type              *MessageType     `json:"type,omitempty"`
+	UpdatedAt         time.Time        `json:"updated_at"`
+	UserId            *string          `json:"user_id,omitempty"`
 }
 
 // MessageListResult defines model for MessageListResult.
@@ -278,6 +279,7 @@ type MessageType string
 
 // MessageWithUser defines model for MessageWithUser.
 type MessageWithUser struct {
+	AlsoSendToChannel  *bool                `json:"also_send_to_channel,omitempty"`
 	Attachments        *[]Attachment        `json:"attachments,omitempty"`
 	ChannelId          string               `json:"channel_id"`
 	Content            string               `json:"content"`
@@ -331,6 +333,9 @@ type ReorderWorkspacesInput struct {
 
 // SendMessageInput defines model for SendMessageInput.
 type SendMessageInput struct {
+	// AlsoSendToChannel When replying in a thread, also show the reply in the channel
+	AlsoSendToChannel *bool `json:"also_send_to_channel,omitempty"`
+
 	// AttachmentIds IDs of uploaded attachments to include with this message
 	AttachmentIds  *[]string `json:"attachment_ids,omitempty"`
 	Content        *string   `json:"content,omitempty"`
@@ -382,6 +387,7 @@ type ThreadListResult struct {
 
 // ThreadMessage defines model for ThreadMessage.
 type ThreadMessage struct {
+	AlsoSendToChannel  *bool                `json:"also_send_to_channel,omitempty"`
 	Attachments        *[]Attachment        `json:"attachments,omitempty"`
 	ChannelId          string               `json:"channel_id"`
 	ChannelName        string               `json:"channel_name"`
@@ -417,6 +423,7 @@ type ThreadSubscriptionStatus string
 
 // UnreadMessage defines model for UnreadMessage.
 type UnreadMessage struct {
+	AlsoSendToChannel  *bool                `json:"also_send_to_channel,omitempty"`
 	Attachments        *[]Attachment        `json:"attachments,omitempty"`
 	ChannelId          string               `json:"channel_id"`
 	ChannelName        string               `json:"channel_name"`

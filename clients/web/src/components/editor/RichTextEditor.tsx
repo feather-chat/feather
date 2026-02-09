@@ -158,6 +158,7 @@ export interface RichTextEditorProps {
   onAttachmentClick?: (files: File[]) => void;
   customEmojis?: CustomEmoji[];
   onAddEmoji?: () => void;
+  belowEditor?: React.ReactNode;
 }
 
 export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
@@ -177,6 +178,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       onAttachmentClick,
       customEmojis = [],
       onAddEmoji,
+      belowEditor,
     },
     ref
   ) => {
@@ -580,6 +582,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       <div className={s.container()}>
         {showToolbar && <Toolbar editor={editor} />}
         <EditorContent editor={editor} className={s.content()} />
+        {belowEditor}
         {showActionRow && (
           <div className={s.actionRow()}>
             <div className="flex items-center gap-0.5">

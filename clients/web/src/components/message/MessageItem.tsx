@@ -257,6 +257,17 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
             )}
           </div>
 
+          {/* Broadcast thread reply indicator */}
+          {message.thread_parent_id && message.also_send_to_channel && !isEditing && (
+            <button
+              type="button"
+              onClick={() => openThread(message.thread_parent_id!)}
+              className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              replied to a thread
+            </button>
+          )}
+
           {/* Message content */}
           {isEditing ? (
             <div className="space-y-2 mt-1">

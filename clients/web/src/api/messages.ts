@@ -4,6 +4,7 @@ export interface SendMessageInput {
   content?: string;
   thread_parent_id?: string;
   attachment_ids?: string[];
+  also_send_to_channel?: boolean;
 }
 
 export interface ListMessagesInput {
