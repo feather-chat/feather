@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Button as AriaButton, Dialog, DialogTrigger, Heading, Modal as AriaModal, ModalOverlay } from 'react-aria-components';
+import { useState, useEffect } from 'react';
+import { Button as AriaButton, Dialog, Heading, Modal as AriaModal, ModalOverlay } from 'react-aria-components';
 import type { Attachment } from '@feather/api-client';
+import { cn } from '../../lib/utils';
 
 interface AttachmentDisplayProps {
   attachments: Attachment[];
@@ -16,73 +17,211 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function ImageAttachment({ attachment }: { attachment: Attachment }) {
-  const [isOpen, setIsOpen] = useState(false);
+// --- ImageCarousel ---
+
+interface ImageCarouselProps {
+  images: Attachment[];
+  initialIndex: number;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function ImageCarousel({ images, initialIndex, isOpen, onClose }: ImageCarouselProps) {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setCurrentIndex((i) => (i === 0 ? images.length - 1 : i - 1));
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setCurrentIndex((i) => (i === images.length - 1 ? 0 : i + 1));
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, images.length]);
+
+  const current = images[currentIndex];
+  if (!current) return null;
 
   return (
-    <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
-      <AriaButton
-        className="block rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
-        aria-label={`View ${attachment.filename}`}
-      >
-        <img
-          src={attachment.url}
-          alt={attachment.filename}
-          className="max-h-64 max-w-full object-contain"
-          loading="lazy"
-        />
-      </AriaButton>
-      <ModalOverlay
-        className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-        isDismissable
-      >
-        <AriaModal className="outline-none max-w-[90vw] max-h-[90vh]">
-          <Dialog className="outline-none">
-            {({ close }) => (
-              <div className="relative">
-                <img
-                  src={attachment.url}
-                  alt={attachment.filename}
-                  className="max-w-full max-h-[85vh] object-contain rounded-lg"
-                />
-                <div className="absolute top-2 right-2 flex gap-2">
-                  <a
-                    href={attachment.url}
-                    download={attachment.filename}
-                    className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors"
-                    title="Download"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                  </a>
-                  <button
-                    onClick={close}
-                    className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors"
-                    title="Close"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="absolute bottom-2 left-2 right-2 text-center">
-                  <Heading
-                    slot="title"
-                    className="text-white text-sm bg-black/50 px-3 py-1 rounded-lg inline-block"
-                  >
-                    {attachment.filename}
-                  </Heading>
-                </div>
-              </div>
+    <ModalOverlay
+      isOpen={isOpen}
+      onOpenChange={(open) => { if (!open) onClose(); }}
+      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+      isDismissable
+    >
+      <AriaModal className="outline-none max-w-[90vw] max-h-[90vh]">
+        <Dialog className="outline-none" aria-label="Image viewer">
+          <div className="relative flex items-center justify-center">
+            {images.length > 1 && (
+              <AriaButton
+                onPress={() => setCurrentIndex((i) => (i === 0 ? images.length - 1 : i - 1))}
+                className="absolute left-2 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                aria-label="Previous image"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </AriaButton>
             )}
-          </Dialog>
-        </AriaModal>
-      </ModalOverlay>
-    </DialogTrigger>
+
+            <img
+              src={current.url}
+              alt={current.filename}
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+            />
+
+            {images.length > 1 && (
+              <AriaButton
+                onPress={() => setCurrentIndex((i) => (i === images.length - 1 ? 0 : i + 1))}
+                className="absolute right-2 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                aria-label="Next image"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </AriaButton>
+            )}
+
+            <div className="absolute top-2 right-2 flex gap-2">
+              <a
+                href={current.url}
+                download={current.filename}
+                className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors"
+                title="Download"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </a>
+              <button
+                onClick={onClose}
+                className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors"
+                title="Close"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="absolute bottom-2 left-2 right-2 text-center">
+              <Heading
+                slot="title"
+                className="text-white text-sm bg-black/50 px-3 py-1 rounded-lg inline-block"
+              >
+                {current.filename}
+              </Heading>
+              {images.length > 1 && (
+                <p className="text-white text-xs mt-1" data-testid="carousel-counter">
+                  {currentIndex + 1} of {images.length}
+                </p>
+              )}
+            </div>
+          </div>
+        </Dialog>
+      </AriaModal>
+    </ModalOverlay>
   );
 }
+
+// --- ImageGrid ---
+
+interface ImageGridProps {
+  images: Attachment[];
+}
+
+function ImageGrid({ images }: ImageGridProps) {
+  const [isCarouselOpen, setIsCarouselOpen] = useState(false);
+  const [carouselStartIndex, setCarouselStartIndex] = useState(0);
+  const [carouselKey, setCarouselKey] = useState(0);
+
+  function openCarousel(index: number) {
+    setCarouselStartIndex(index);
+    setCarouselKey((k) => k + 1);
+    setIsCarouselOpen(true);
+  }
+
+  // Show at most 4 cells; 4th is overlay if 5+ images
+  const showOverlay = images.length > 4;
+  const visibleCount = showOverlay ? 4 : images.length;
+  const visibleImages = images.slice(0, visibleCount);
+  const remainingCount = images.length - 3; // for the "+N" overlay
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden max-w-md" data-testid="image-grid">
+        {visibleImages.map((image, index) => {
+          const isOverlayCell = showOverlay && index === 3;
+
+          return (
+            <button
+              key={image.id}
+              onClick={() => openCarousel(isOverlayCell ? 3 : index)}
+              className={cn(
+                'relative overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500',
+                // Layout: 3 images → first spans full width
+                images.length === 3 && index === 0 && 'col-span-2 aspect-video',
+                // All other cells are square
+                !(images.length === 3 && index === 0) && 'aspect-square',
+              )}
+              aria-label={isOverlayCell ? `View ${remainingCount} more images` : `View ${image.filename}`}
+            >
+              <img
+                src={image.url}
+                alt={image.filename}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              {isOverlayCell && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <span className="text-white text-2xl font-semibold" data-testid="overflow-count">
+                    +{remainingCount}
+                  </span>
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <ImageCarousel
+        key={carouselKey}
+        images={images}
+        initialIndex={carouselStartIndex}
+        isOpen={isCarouselOpen}
+        onClose={() => setIsCarouselOpen(false)}
+      />
+    </>
+  );
+}
+
+// --- ImageAttachment (single image thumbnail) ---
+
+function ImageAttachment({ attachment, onClick }: { attachment: Attachment; onClick: () => void }) {
+  return (
+    <AriaButton
+      onPress={onClick}
+      className="block rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
+      aria-label={`View ${attachment.filename}`}
+    >
+      <img
+        src={attachment.url}
+        alt={attachment.filename}
+        className="max-h-64 max-w-full object-contain"
+        loading="lazy"
+      />
+    </AriaButton>
+  );
+}
+
+// --- FileAttachment ---
 
 function FileAttachment({ attachment }: { attachment: Attachment }) {
   return (
@@ -111,6 +250,26 @@ function FileAttachment({ attachment }: { attachment: Attachment }) {
   );
 }
 
+// --- SingleImageSection ---
+
+function SingleImageSection({ image }: { image: Attachment }) {
+  const [isCarouselOpen, setIsCarouselOpen] = useState(false);
+
+  return (
+    <>
+      <ImageAttachment attachment={image} onClick={() => setIsCarouselOpen(true)} />
+      <ImageCarousel
+        images={[image]}
+        initialIndex={0}
+        isOpen={isCarouselOpen}
+        onClose={() => setIsCarouselOpen(false)}
+      />
+    </>
+  );
+}
+
+// --- AttachmentDisplay (exported) ---
+
 export function AttachmentDisplay({ attachments }: AttachmentDisplayProps) {
   if (!attachments || attachments.length === 0) return null;
 
@@ -119,13 +278,8 @@ export function AttachmentDisplay({ attachments }: AttachmentDisplayProps) {
 
   return (
     <div className="mt-2 space-y-2">
-      {images.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {images.map((attachment) => (
-            <ImageAttachment key={attachment.id} attachment={attachment} />
-          ))}
-        </div>
-      )}
+      {images.length === 1 && <SingleImageSection image={images[0]} />}
+      {images.length > 1 && <ImageGrid images={images} />}
       {files.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {files.map((attachment) => (
