@@ -13,11 +13,12 @@ const radioGroup = tv({
     label: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2',
     radioWrapper: 'flex items-center gap-2',
     radio: [
+      'flex items-center justify-center',
       'w-4 h-4 rounded-full border-2 transition-colors cursor-pointer',
       'border-gray-300 dark:border-gray-600',
       'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
       'data-[selected]:border-primary-600 data-[selected]:bg-primary-600',
-      'after:content-[""] after:block after:w-2 after:h-2 after:rounded-full after:m-auto',
+      'after:content-[""] after:block after:w-1.5 after:h-1.5 after:rounded-full',
       'data-[selected]:after:bg-white',
     ],
     radioLabel: 'text-sm text-gray-700 dark:text-gray-300 cursor-pointer',
