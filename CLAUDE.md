@@ -52,6 +52,10 @@ feather/
 │   │   └── server/             # HTTP server, router (chi)
 │   └── Makefile
 ├── clients/
+│   ├── desktop/                # Electron desktop client (@feather/desktop)
+│   │   └── src/
+│   │       ├── main/           # Main process (BrowserWindow, app lifecycle)
+│   │       └── preload/        # Preload bridge (contextBridge)
 │   └── web/                    # React frontend (@feather/web)
 │       └── src/
 │           ├── api/            # API client functions
@@ -73,6 +77,7 @@ feather/
 | Command               | Description                      |
 | --------------------- | -------------------------------- |
 | `make dev`            | Start API and web dev servers    |
+| `make dev DESKTOP=1`  | Start API, web, and Electron     |
 | `make build`          | Build all (generate types first) |
 | `make test`           | Run all tests                    |
 | `make generate-types` | Regenerate types from OpenAPI    |
@@ -349,3 +354,48 @@ Export from `src/components/ui/index.ts`
 **Infinite scroll**: `MessageList` uses `useInfiniteQuery`, messages reversed for display, scroll preserved
 
 **Thread panel**: Slide-out controlled by `?thread=` URL search param (see `useThreadPanel` hook)
+
+---
+
+## Desktop Client (Electron)
+
+### Dev Workflow
+
+```bash
+make dev             # API + web only
+make dev DESKTOP=1   # API + web + Electron
+```
+
+In dev mode, the BrowserWindow loads `http://localhost:3000` (Vite dev server) and DevTools open automatically.
+
+### Production Build
+
+```bash
+make build    # Build all (API + web + desktop + installer)
+```
+
+The forge `packageAfterCopy` hook copies `clients/web/dist/` into the asar as `web-dist/`. The main process loads `web-dist/index.html` in production.
+
+### Key Files
+
+| File                                   | Purpose                                      |
+| -------------------------------------- | -------------------------------------------- |
+| `clients/desktop/src/main/index.ts`    | Main process: window creation, app lifecycle |
+| `clients/desktop/src/preload/index.ts` | Preload bridge: exposes `window.electron`    |
+| `clients/desktop/forge.config.ts`      | Electron Forge packaging config              |
+
+### Preload Bridge
+
+The preload script exposes `window.electron` via `contextBridge`:
+
+```typescript
+window.electron; // { platform: string, isElectron: true }
+```
+
+Security: `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`
+
+### Smoke Test
+
+```bash
+pnpm --filter @feather/desktop dev -- --smoke-test
+```

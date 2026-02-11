@@ -5,7 +5,6 @@
   "type": "module",
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "concurrently -n api,web -c blue,green \"cd api && make dev\" \"pnpm --filter @feather/web dev\"",
     "build": "make build",
     "generate:types": "make generate-types",
     "typecheck": "pnpm -r typecheck",
@@ -15,7 +14,6 @@
     "test": "make test"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2"
   }

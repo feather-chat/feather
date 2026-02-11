@@ -31,7 +31,9 @@ This starts:
 ```
 feather/
 ├── api/                    # Go backend server
-├── clients/web/            # React frontend
+├── clients/
+│   ├── desktop/            # Electron desktop client
+│   └── web/                # React frontend
 ├── packages/api-client/    # Shared TypeScript types
 └── Makefile                # Build orchestration
 ```
@@ -41,6 +43,7 @@ feather/
 | Command               | Description                   |
 | --------------------- | ----------------------------- |
 | `make dev`            | Start API and web dev servers |
+| `make dev DESKTOP=1`  | Also start Electron           |
 | `make build`          | Build all packages            |
 | `make test`           | Run all tests                 |
 | `make generate-types` | Regenerate types from OpenAPI |
@@ -97,6 +100,7 @@ This builds binaries for 6 platforms and creates a GitHub Release with:
 | Backend       | Go, Chi, SQLite                                            |
 | Frontend      | React, TypeScript, Vite, TanStack Query, Zustand, Tailwind |
 | UI Components | React Aria Components, tailwind-variants                   |
+| Desktop       | Electron, electron-forge                                   |
 | Real-time     | Server-Sent Events                                         |
 | Types         | OpenAPI 3.0, oapi-codegen, openapi-typescript              |
 

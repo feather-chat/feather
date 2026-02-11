@@ -1,8 +1,12 @@
 .PHONY: dev build test clean generate-types install format format-check
 
-# Development - runs API and web client concurrently
+# Development - runs API and web (add DESKTOP=1 for Electron)
 dev:
-	pnpm dev
+	trap 'kill 0' EXIT; \
+	(cd api && make dev) & \
+	pnpm --filter @feather/web dev & \
+	if [ "$(DESKTOP)" = "1" ]; then pnpm --filter @feather/desktop dev & fi; \
+	wait
 
 # Install all dependencies
 install:
@@ -18,6 +22,8 @@ generate-types:
 build: generate-types
 	cd api && make build
 	pnpm --filter @feather/web build
+	pnpm --filter @feather/desktop build
+	pnpm --filter @feather/desktop make
 
 # Run all tests
 test:
