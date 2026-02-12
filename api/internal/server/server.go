@@ -2,23 +2,39 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
 	"net"
 	"net/http"
 	"strconv"
 	"time"
+
+	"golang.org/x/crypto/acme/autocert"
 )
 
-type Server struct {
-	httpServer *http.Server
-	addr       string
+type TLSOptions struct {
+	Mode     string // "off", "auto", "manual"
+	CertFile string // manual mode
+	KeyFile  string // manual mode
+	Domain   string // auto mode
+	Email    string // auto mode
+	CacheDir string // auto mode
 }
 
-func New(host string, port int, handler http.Handler) *Server {
+type Server struct {
+	httpServer     *http.Server
+	addr           string
+	tlsOpts        TLSOptions
+	certManager    *autocert.Manager
+	redirectServer *http.Server
+}
+
+func New(host string, port int, handler http.Handler, tlsOpts TLSOptions) *Server {
 	addr := net.JoinHostPort(host, strconv.Itoa(port))
 
-	return &Server{
-		addr: addr,
+	s := &Server{
+		addr:    addr,
+		tlsOpts: tlsOpts,
 		httpServer: &http.Server{
 			Addr:         addr,
 			Handler:      handler,
@@ -27,18 +43,66 @@ func New(host string, port int, handler http.Handler) *Server {
 			IdleTimeout:  120 * time.Second,
 		},
 	}
+
+	if tlsOpts.Mode == "auto" {
+		s.certManager = &autocert.Manager{
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(tlsOpts.Domain),
+			Cache:      autocert.DirCache(tlsOpts.CacheDir),
+			Email:      tlsOpts.Email,
+		}
+		s.httpServer.TLSConfig = &tls.Config{
+			GetCertificate: s.certManager.GetCertificate,
+			MinVersion:     tls.VersionTLS12,
+		}
+		s.redirectServer = &http.Server{
+			Addr:         ":80",
+			Handler:      s.certManager.HTTPHandler(nil),
+			ReadTimeout:  10 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+	}
+
+	return s
 }
 
 func (s *Server) Start() error {
-	log.Printf("Starting server on %s", s.addr)
-	return s.httpServer.ListenAndServe()
+	switch s.tlsOpts.Mode {
+	case "auto":
+		log.Printf("Starting HTTPS server on %s (auto TLS for %s)", s.addr, s.tlsOpts.Domain)
+		go func() {
+			log.Printf("Starting HTTP redirect server on :80")
+			if err := s.redirectServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Printf("HTTP redirect server error: %v", err)
+			}
+		}()
+		return s.httpServer.ListenAndServeTLS("", "")
+	case "manual":
+		log.Printf("Starting HTTPS server on %s (manual TLS)", s.addr)
+		return s.httpServer.ListenAndServeTLS(s.tlsOpts.CertFile, s.tlsOpts.KeyFile)
+	default:
+		log.Printf("Starting server on %s", s.addr)
+		return s.httpServer.ListenAndServe()
+	}
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
 	log.Println("Shutting down server...")
+	if s.redirectServer != nil {
+		if err := s.redirectServer.Shutdown(ctx); err != nil {
+			log.Printf("HTTP redirect server shutdown error: %v", err)
+		}
+	}
 	return s.httpServer.Shutdown(ctx)
 }
 
 func (s *Server) Addr() string {
 	return s.addr
+}
+
+func (s *Server) TLSMode() string {
+	if s.tlsOpts.Mode == "" {
+		return "off"
+	}
+	return s.tlsOpts.Mode
 }

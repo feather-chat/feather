@@ -28,6 +28,28 @@ func Validate(cfg *Config) error {
 		}
 	}
 
+	// TLS validation
+	switch cfg.Server.TLS.Mode {
+	case "", "off":
+		// no additional validation needed
+	case "auto":
+		if cfg.Server.TLS.Auto.Domain == "" {
+			errs = append(errs, fmt.Errorf("server.tls.auto.domain is required when tls mode is auto"))
+		}
+		if cfg.Server.TLS.Auto.CacheDir == "" {
+			errs = append(errs, fmt.Errorf("server.tls.auto.cache_dir is required when tls mode is auto"))
+		}
+	case "manual":
+		if cfg.Server.TLS.CertFile == "" {
+			errs = append(errs, fmt.Errorf("server.tls.cert_file is required when tls mode is manual"))
+		}
+		if cfg.Server.TLS.KeyFile == "" {
+			errs = append(errs, fmt.Errorf("server.tls.key_file is required when tls mode is manual"))
+		}
+	default:
+		errs = append(errs, fmt.Errorf("server.tls.mode must be off, auto, or manual"))
+	}
+
 	// Database validation
 	if cfg.Database.Path == "" {
 		errs = append(errs, fmt.Errorf("database.path is required"))

@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -144,8 +146,24 @@ func New(cfg *config.Config) (*App, error) {
 	// Create router with generated handlers
 	router := server.NewRouter(h, sseHandler, sessionStore, limiter, cfg.Server.AllowedOrigins)
 
+	// Build TLS options
+	tlsOpts := server.TLSOptions{
+		Mode:     cfg.Server.TLS.Mode,
+		CertFile: cfg.Server.TLS.CertFile,
+		KeyFile:  cfg.Server.TLS.KeyFile,
+		Domain:   cfg.Server.TLS.Auto.Domain,
+		Email:    cfg.Server.TLS.Auto.Email,
+		CacheDir: cfg.Server.TLS.Auto.CacheDir,
+	}
+	if tlsOpts.Mode == "auto" {
+		if err := os.MkdirAll(tlsOpts.CacheDir, 0700); err != nil {
+			_ = db.Close()
+			return nil, fmt.Errorf("creating TLS cache directory: %w", err)
+		}
+	}
+
 	// Create server
-	srv := server.New(cfg.Server.Host, cfg.Server.Port, router)
+	srv := server.New(cfg.Server.Host, cfg.Server.Port, router, tlsOpts)
 
 	return &App{
 		Config:              cfg,
@@ -204,6 +222,7 @@ func (a *App) Start(ctx context.Context) error {
 	log.Printf("Feather backend starting on %s", a.Server.Addr())
 	log.Printf("Database: %s", a.Config.Database.Path)
 	log.Printf("File storage: %s", a.Config.Files.StoragePath)
+	log.Printf("TLS: %s", a.Server.TLSMode())
 	if a.EmailService.IsEnabled() {
 		log.Printf("Email: enabled")
 	} else {

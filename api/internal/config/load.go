@@ -91,6 +91,16 @@ func (d *defaultsProviderStruct) Read() (map[string]interface{}, error) {
 			"port":            d.defaults.Server.Port,
 			"public_url":      d.defaults.Server.PublicURL,
 			"allowed_origins": d.defaults.Server.AllowedOrigins,
+			"tls": map[string]interface{}{
+				"mode":      d.defaults.Server.TLS.Mode,
+				"cert_file": d.defaults.Server.TLS.CertFile,
+				"key_file":  d.defaults.Server.TLS.KeyFile,
+				"auto": map[string]interface{}{
+					"domain":    d.defaults.Server.TLS.Auto.Domain,
+					"email":     d.defaults.Server.TLS.Auto.Email,
+					"cache_dir": d.defaults.Server.TLS.Auto.CacheDir,
+				},
+			},
 		},
 		"database": map[string]interface{}{
 			"path": d.defaults.Database.Path,
@@ -150,6 +160,12 @@ func SetupFlags() *pflag.FlagSet {
 	flags.Int64("files.max_upload_size", 0, "Max upload size in bytes")
 	flags.Bool("email.enabled", false, "Enable email sending")
 	flags.StringSlice("server.allowed_origins", nil, "Allowed CORS origins")
+	flags.String("server.tls.mode", "", "TLS mode: off, auto, or manual")
+	flags.String("server.tls.cert_file", "", "TLS certificate file (manual mode)")
+	flags.String("server.tls.key_file", "", "TLS key file (manual mode)")
+	flags.String("server.tls.auto.domain", "", "Domain for automatic TLS (auto mode)")
+	flags.String("server.tls.auto.email", "", "Contact email for Let's Encrypt (auto mode)")
+	flags.String("server.tls.auto.cache_dir", "", "Certificate cache directory (auto mode)")
 	return flags
 }
 

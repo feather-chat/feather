@@ -13,10 +13,24 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Host           string   `koanf:"host"`
-	Port           int      `koanf:"port"`
-	PublicURL      string   `koanf:"public_url"`
-	AllowedOrigins []string `koanf:"allowed_origins"`
+	Host           string    `koanf:"host"`
+	Port           int       `koanf:"port"`
+	PublicURL      string    `koanf:"public_url"`
+	AllowedOrigins []string  `koanf:"allowed_origins"`
+	TLS            TLSConfig `koanf:"tls"`
+}
+
+type TLSConfig struct {
+	Mode     string        `koanf:"mode"`      // "off", "auto", "manual"
+	CertFile string        `koanf:"cert_file"` // manual mode
+	KeyFile  string        `koanf:"key_file"`  // manual mode
+	Auto     AutoTLSConfig `koanf:"auto"`
+}
+
+type AutoTLSConfig struct {
+	Domain   string `koanf:"domain"`    // required for auto mode
+	Email    string `koanf:"email"`     // Let's Encrypt contact email
+	CacheDir string `koanf:"cache_dir"` // cert cache dir (default: ./data/certs)
 }
 
 type DatabaseConfig struct {
@@ -68,6 +82,12 @@ func Defaults() *Config {
 			Port:           8080,
 			PublicURL:      "http://localhost:8080",
 			AllowedOrigins: []string{"http://localhost:3000"},
+			TLS: TLSConfig{
+				Mode: "off",
+				Auto: AutoTLSConfig{
+					CacheDir: "./data/certs",
+				},
+			},
 		},
 		Database: DatabaseConfig{
 			Path: "./data/feather.db",
