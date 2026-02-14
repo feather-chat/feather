@@ -9,6 +9,9 @@ if (apiBase) {
   setApiBase(apiBase);
 }
 
+// Suppress the browser's native context menu app-wide
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

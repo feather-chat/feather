@@ -1,7 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { TrashIcon } from '@heroicons/react/24/outline';
-import { Avatar, Modal, Button, toast } from '../ui';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  TrashIcon,
+  ChatBubbleBottomCenterTextIcon,
+  LinkIcon,
+  EyeSlashIcon,
+  PencilSquareIcon,
+} from '@heroicons/react/24/outline';
+import { UserIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import {
+  Avatar,
+  Modal,
+  Button,
+  toast,
+  ContextMenu,
+  useContextMenu,
+  MenuItem,
+  MenuSeparator,
+} from '../ui';
 import { AttachmentDisplay } from './AttachmentDisplay';
 import { MessageContent } from './MessageContent';
 import { ThreadRepliesIndicator } from './ThreadRepliesIndicator';
@@ -9,13 +25,22 @@ import { MessageActionBar } from './MessageActionBar';
 import { ReactionsDisplay } from './ReactionsDisplay';
 import { groupReactionsByEmoji, createMemberNamesMap } from './reactionUtils';
 import { useAuth, useAddReaction, useRemoveReaction, useWorkspaceMembers } from '../../hooks';
+import { useCreateDM } from '../../hooks/useChannels';
 import { useMarkMessageUnread, useUpdateMessage, useDeleteMessage } from '../../hooks/useMessages';
 import { useCustomEmojiMap, useCustomEmojis } from '../../hooks/useCustomEmojis';
 import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
 import { cn, formatTime } from '../../lib/utils';
 import type { MessageWithUser, ChannelWithMembership } from '@feather/api-client';
 
-function ClickableName({ userId, displayName }: { userId?: string; displayName: string }) {
+function ClickableName({
+  userId,
+  displayName,
+  onContextMenu,
+}: {
+  userId?: string;
+  displayName: string;
+  onContextMenu?: (e: React.MouseEvent) => void;
+}) {
   const { openProfile } = useProfilePanel();
 
   if (!userId) {
@@ -26,6 +51,7 @@ function ClickableName({ userId, displayName }: { userId?: string; displayName: 
     <button
       type="button"
       onClick={() => openProfile(userId)}
+      onContextMenu={onContextMenu}
       className="cursor-pointer font-medium text-gray-900 hover:underline dark:text-white"
     >
       {displayName}
@@ -61,6 +87,16 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
   const updateMessage = useUpdateMessage();
   const deleteMessage = useDeleteMessage();
   const { data: membersData } = useWorkspaceMembers(workspaceId);
+  const navigate = useNavigate();
+  const createDM = useCreateDM(workspaceId || '');
+  const msgCtx = useContextMenu();
+  const userCtx = useContextMenu();
+
+  // Stop propagation so right-clicking avatar/name doesn't also open the message context menu
+  const onUserContextMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    userCtx.onContextMenu(e);
+  };
 
   const memberNames = createMemberNamesMap(membersData?.members);
   const reactionGroups = groupReactionsByEmoji(message.reactions, user?.id);
@@ -197,12 +233,13 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
         isDeleting
           ? '!max-h-0 overflow-hidden bg-red-400 !py-0 opacity-0 transition-all duration-500 dark:bg-red-700'
           : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-        showDropdown && !isDeleting && 'bg-gray-50 dark:bg-gray-800/50',
+        (showDropdown || msgCtx.isOpen) && !isDeleting && 'bg-gray-50 dark:bg-gray-800/50',
       )}
       style={isDeleting ? { marginTop: 0, marginBottom: 0 } : undefined}
+      onContextMenu={msgCtx.onContextMenu}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
-        if (!showDropdown && !reactionPickerOpen) {
+        if (!showDropdown && !reactionPickerOpen && !msgCtx.isOpen) {
           setShowActions(false);
         }
       }}
@@ -215,6 +252,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
           id={message.user_id}
           size="md"
           onClick={message.user_id ? () => openProfile(message.user_id!) : undefined}
+          onContextMenu={message.user_id ? onUserContextMenu : undefined}
         />
 
         {/* Content */}
@@ -224,6 +262,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
             <ClickableName
               userId={message.user_id}
               displayName={message.user_display_name || 'Unknown User'}
+              onContextMenu={message.user_id ? onUserContextMenu : undefined}
             />
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.created_at)}
@@ -323,6 +362,74 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
           onDelete={isOwnMessage ? handleDeleteClick : undefined}
           customEmojis={customEmojis}
         />
+      )}
+
+      {/* Message context menu */}
+      <ContextMenu
+        isOpen={msgCtx.isOpen}
+        onOpenChange={msgCtx.setIsOpen}
+        position={msgCtx.position}
+      >
+        <MenuItem
+          onAction={() => openThread(message.id)}
+          icon={<ChatBubbleBottomCenterTextIcon className="h-4 w-4" />}
+        >
+          Reply in Thread
+        </MenuItem>
+        <MenuItem onAction={handleCopyLink} icon={<LinkIcon className="h-4 w-4" />}>
+          Copy Link
+        </MenuItem>
+        <MenuItem
+          onAction={() => markUnread.mutate(message.id)}
+          icon={<EyeSlashIcon className="h-4 w-4" />}
+        >
+          Mark Unread
+        </MenuItem>
+        {isOwnMessage && (
+          <>
+            <MenuSeparator />
+            <MenuItem onAction={handleStartEdit} icon={<PencilSquareIcon className="h-4 w-4" />}>
+              Edit Message
+            </MenuItem>
+            <MenuItem
+              onAction={handleDeleteClick}
+              variant="danger"
+              icon={<TrashIcon className="h-4 w-4" />}
+            >
+              Delete Message
+            </MenuItem>
+          </>
+        )}
+      </ContextMenu>
+
+      {/* User context menu (shared by avatar + name) */}
+      {message.user_id && (
+        <ContextMenu
+          isOpen={userCtx.isOpen}
+          onOpenChange={userCtx.setIsOpen}
+          position={userCtx.position}
+        >
+          <MenuItem
+            onAction={() => openProfile(message.user_id!)}
+            icon={<UserIcon className="h-4 w-4" />}
+          >
+            View Profile
+          </MenuItem>
+          <MenuItem
+            onAction={async () => {
+              if (!workspaceId) return;
+              try {
+                const result = await createDM.mutateAsync({ user_ids: [message.user_id!] });
+                navigate(`/workspaces/${workspaceId}/channels/${result.channel.id}`);
+              } catch {
+                toast('Failed to start conversation', 'error');
+              }
+            }}
+            icon={<ChatBubbleLeftIcon className="h-4 w-4" />}
+          >
+            Send Message
+          </MenuItem>
+        </ContextMenu>
       )}
 
       {/* Delete confirmation modal */}

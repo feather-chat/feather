@@ -48,6 +48,7 @@ import { cn, getAvatarColor } from '../../lib/utils';
 import { useUserPresence } from '../../lib/presenceStore';
 import { AvatarStack } from '../ui';
 import type { ChannelWithMembership, ChannelType, SuggestedUser } from '@feather/api-client';
+import { ChannelContextMenu } from './ChannelContextMenu';
 
 function ChannelIcon({ type, className }: { type: string; className?: string }) {
   const icon =
@@ -578,9 +579,24 @@ function DraggableChannelItem({ channel, workspaceId, isActive }: DraggableChann
   });
 
   return (
-    <div ref={setNodeRef} {...attributes} {...listeners} className={cn(isDragging && 'opacity-50')}>
-      <ChannelItemLink channel={channel} workspaceId={workspaceId} isActive={isActive} />
-    </div>
+    <ChannelContextMenu channel={channel} workspaceId={workspaceId}>
+      {(onContextMenu, isMenuOpen) => (
+        <div
+          ref={setNodeRef}
+          {...attributes}
+          {...listeners}
+          className={cn(isDragging && 'opacity-50')}
+          onContextMenu={onContextMenu}
+        >
+          <ChannelItemLink
+            channel={channel}
+            workspaceId={workspaceId}
+            isActive={isActive}
+            isMenuOpen={isMenuOpen}
+          />
+        </div>
+      )}
+    </ChannelContextMenu>
   );
 }
 
@@ -588,9 +604,10 @@ interface ChannelItemLinkProps {
   channel: ChannelWithMembership;
   workspaceId: string;
   isActive: boolean;
+  isMenuOpen?: boolean;
 }
 
-function ChannelItemLink({ channel, workspaceId, isActive }: ChannelItemLinkProps) {
+function ChannelItemLink({ channel, workspaceId, isActive, isMenuOpen }: ChannelItemLinkProps) {
   const hasUnread = channel.unread_count > 0;
 
   return (
@@ -601,6 +618,7 @@ function ChannelItemLink({ channel, workspaceId, isActive }: ChannelItemLinkProp
         isActive
           ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
           : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50',
+        !isActive && isMenuOpen && 'bg-gray-50 dark:bg-gray-800/50',
       )}
     >
       <ChannelItemContent channel={channel} isActive={isActive} />

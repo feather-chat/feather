@@ -337,16 +337,19 @@ export function ChannelPage() {
                       </button>
                     )}
                     {canArchive && (
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          setIsArchiveModalOpen(true);
-                        }}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
-                      >
-                        <ArchiveBoxIcon className="h-4 w-4" />
-                        Archive channel
-                      </button>
+                      <>
+                        <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
+                        <button
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            setIsArchiveModalOpen(true);
+                          }}
+                          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
+                        >
+                          <ArchiveBoxIcon className="h-4 w-4" />
+                          Archive channel
+                        </button>
+                      </>
                     )}
                   </div>
                 )}

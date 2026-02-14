@@ -51,6 +51,7 @@ import { useDarkMode } from '../../hooks/useDarkMode';
 import { useProfilePanel } from '../../hooks/usePanel';
 import { cn, getAvatarColor } from '../../lib/utils';
 import type { WorkspaceSummary } from '@feather/api-client';
+import { WorkspaceContextMenu } from './WorkspaceContextMenu';
 
 export function WorkspaceSwitcher() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -187,26 +188,35 @@ function SortableWorkspaceItem({ workspace, isActive, onPress }: SortableWorkspa
   };
 
   return (
-    <Tooltip content={workspace.name} placement="right">
-      <div
-        ref={setNodeRef}
-        style={style}
-        {...attributes}
-        {...listeners}
-        onClick={onPress}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onPress();
-          }
-        }}
-        className={cn(isDragging && 'opacity-50')}
-      >
-        <WorkspaceItemContent workspace={workspace} isActive={isActive} />
-      </div>
-    </Tooltip>
+    <WorkspaceContextMenu workspace={workspace}>
+      {(onContextMenu, isMenuOpen) => (
+        <Tooltip content={workspace.name} placement="right">
+          <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            onClick={onPress}
+            onContextMenu={onContextMenu}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onPress();
+              }
+            }}
+            className={cn(isDragging && 'opacity-50')}
+          >
+            <WorkspaceItemContent
+              workspace={workspace}
+              isActive={isActive}
+              isMenuOpen={isMenuOpen}
+            />
+          </div>
+        </Tooltip>
+      )}
+    </WorkspaceContextMenu>
   );
 }
 
@@ -214,9 +224,15 @@ interface WorkspaceItemContentProps {
   workspace: WorkspaceSummary;
   isActive: boolean;
   isDragOverlay?: boolean;
+  isMenuOpen?: boolean;
 }
 
-function WorkspaceItemContent({ workspace, isActive, isDragOverlay }: WorkspaceItemContentProps) {
+function WorkspaceItemContent({
+  workspace,
+  isActive,
+  isDragOverlay,
+  isMenuOpen,
+}: WorkspaceItemContentProps) {
   return (
     <div
       className={cn(
@@ -224,6 +240,7 @@ function WorkspaceItemContent({ workspace, isActive, isDragOverlay }: WorkspaceI
         isActive ? 'ring-2 ring-gray-900 dark:ring-white' : '',
         workspace.icon_url ? '' : `${getAvatarColor(workspace.id)} hover:opacity-80`,
         isDragOverlay && 'cursor-grabbing shadow-lg',
+        isMenuOpen && !isActive && 'ring-2 ring-gray-400 dark:ring-gray-500',
       )}
     >
       {workspace.icon_url ? (

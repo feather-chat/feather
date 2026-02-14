@@ -13,44 +13,11 @@ import {
   type PopoverProps,
   type Key,
 } from 'react-aria-components';
-import { tv, type VariantProps } from 'tailwind-variants';
+import { type VariantProps } from 'tailwind-variants';
 import { ChevronRightIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { menuStyles } from './menu-styles';
 
-const menu = tv({
-  slots: {
-    popover: [
-      'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
-      'rounded-lg shadow-lg py-1 min-w-[160px] z-50',
-      'entering:animate-in entering:fade-in entering:zoom-in-95 entering:duration-150',
-      'exiting:animate-out exiting:fade-out exiting:zoom-out-95 exiting:duration-100',
-    ],
-    menu: 'outline-none',
-    item: [
-      'w-full text-left px-3 py-1.5 text-sm flex items-center gap-2 whitespace-nowrap cursor-pointer',
-      'outline-none',
-      'focus:bg-gray-100 dark:focus:bg-gray-700',
-      'disabled:opacity-50 disabled:cursor-not-allowed',
-    ],
-    section: '',
-    header: 'px-3 py-2 border-b border-gray-200 dark:border-gray-700',
-    separator: 'border-t border-gray-200 dark:border-gray-700 my-1',
-  },
-  variants: {
-    variant: {
-      default: {
-        item: 'text-gray-700 dark:text-gray-200',
-      },
-      danger: {
-        item: 'text-red-600 dark:text-red-400',
-      },
-    },
-  },
-  defaultVariants: {
-    variant: 'default',
-  },
-});
-
-type MenuVariants = VariantProps<typeof menu>;
+type MenuVariants = VariantProps<typeof menuStyles>;
 
 interface MenuProps {
   trigger: ReactNode;
@@ -77,7 +44,7 @@ export function Menu({
   align = 'end',
   placement = 'bottom',
 }: MenuProps) {
-  const styles = menu();
+  const styles = menuStyles();
 
   const popoverPlacement = placementMap[`${placement}-${align}`];
 
@@ -97,7 +64,7 @@ interface MenuItemProps extends Omit<AriaMenuItemProps, 'className'>, MenuVarian
 }
 
 export function MenuItem({ children, variant, icon, ...props }: MenuItemProps) {
-  const styles = menu({ variant });
+  const styles = menuStyles({ variant });
 
   return (
     <AriaMenuItem className={styles.item()} {...props}>
@@ -114,7 +81,7 @@ interface SubmenuTriggerProps extends MenuVariants {
 }
 
 export function SubmenuTrigger({ label, children, variant, icon }: SubmenuTriggerProps) {
-  const styles = menu({ variant });
+  const styles = menuStyles({ variant });
 
   return (
     <AriaSubmenuTrigger>
@@ -135,7 +102,7 @@ interface MenuSectionProps {
 }
 
 export function MenuSection({ children }: MenuSectionProps) {
-  const styles = menu();
+  const styles = menuStyles();
 
   return <Section className={styles.section()}>{children}</Section>;
 }
@@ -145,13 +112,13 @@ interface MenuHeaderProps {
 }
 
 export function MenuHeader({ children }: MenuHeaderProps) {
-  const styles = menu();
+  const styles = menuStyles();
 
   return <Header className={styles.header()}>{children}</Header>;
 }
 
 export function MenuSeparator() {
-  const styles = menu();
+  const styles = menuStyles();
 
   return <AriaSeparator className={styles.separator()} />;
 }
@@ -177,7 +144,7 @@ export function SelectMenu({
   align = 'end',
   placement = 'bottom',
 }: SelectMenuProps) {
-  const styles = menu();
+  const styles = menuStyles();
   const popoverPlacement = placementMap[`${placement}-${align}`];
 
   const handleSelectionChange = (keys: Selection) => {
@@ -210,7 +177,7 @@ interface SelectMenuItemProps extends Omit<AriaMenuItemProps, 'className'>, Menu
 }
 
 export function SelectMenuItem({ children, variant, icon, ...props }: SelectMenuItemProps) {
-  const styles = menu({ variant });
+  const styles = menuStyles({ variant });
 
   return (
     <AriaMenuItem className={styles.item()} {...props}>

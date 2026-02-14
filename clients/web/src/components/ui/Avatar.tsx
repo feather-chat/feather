@@ -10,6 +10,7 @@ interface AvatarProps {
   className?: string;
   style?: React.CSSProperties;
   onClick?: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }
 
 export function Avatar({
@@ -21,6 +22,7 @@ export function Avatar({
   className,
   style,
   onClick,
+  onContextMenu,
 }: AvatarProps) {
   const sizes = {
     xs: 'w-5 h-5 text-[10px]',
@@ -73,6 +75,7 @@ export function Avatar({
       <button
         type="button"
         onClick={onClick}
+        onContextMenu={onContextMenu}
         className={cn('relative inline-block cursor-pointer rounded-full', className)}
         style={style}
       >
@@ -82,7 +85,11 @@ export function Avatar({
   }
 
   return (
-    <div className={cn('relative inline-block rounded-full', className)} style={style}>
+    <div
+      className={cn('relative inline-block rounded-full', className)}
+      style={style}
+      onContextMenu={onContextMenu}
+    >
       {content}
     </div>
   );
