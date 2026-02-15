@@ -28,8 +28,8 @@ export {
 export { useUserProfile, useUpdateProfile, useUploadAvatar, useDeleteAvatar } from './useProfile';
 export { useSSE } from './useSSE';
 export { useTyping } from './useTyping';
-export { useAutoScroll } from './useAutoScroll';
 export { useUploadFile } from './useFiles';
+export { useVirtualMessages } from './useVirtualMessages';
 export { useLocalStorage } from './useLocalStorage';
 export { useThreadPanel, useProfilePanel } from './usePanel';
 export { useSidebar } from './useSidebar';

@@ -40,6 +40,7 @@ const (
 // Defines values for ListMessagesInputDirection.
 const (
 	After  ListMessagesInputDirection = "after"
+	Around ListMessagesInputDirection = "around"
 	Before ListMessagesInputDirection = "before"
 )
 
@@ -278,6 +279,7 @@ type Message struct {
 // MessageListResult defines model for MessageListResult.
 type MessageListResult struct {
 	HasMore    bool              `json:"has_more"`
+	HasNewer   *bool             `json:"has_newer,omitempty"`
 	Messages   []MessageWithUser `json:"messages"`
 	NextCursor *string           `json:"next_cursor,omitempty"`
 }

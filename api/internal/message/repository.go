@@ -207,6 +207,11 @@ func (r *Repository) List(ctx context.Context, channelID string, opts ListOption
 		opts.Limit = 50
 	}
 
+	// Handle "around" direction: load messages centered on cursor
+	if opts.Direction == "around" && opts.Cursor != "" {
+		return r.listAround(ctx, channelID, opts)
+	}
+
 	var query string
 	var args []interface{}
 
@@ -276,38 +281,7 @@ func (r *Repository) List(ctx context.Context, channelID string, opts ListOption
 	}
 
 	// Load reactions and thread participants for all messages
-	if len(messages) > 0 {
-		messageIDs := make([]string, len(messages))
-		threadParentIDs := make([]string, 0)
-		for i, m := range messages {
-			messageIDs[i] = m.ID
-			if m.ReplyCount > 0 {
-				threadParentIDs = append(threadParentIDs, m.ID)
-			}
-		}
-		reactions, err := r.getReactionsForMessages(ctx, messageIDs)
-		if err != nil {
-			return nil, err
-		}
-		for i := range messages {
-			if r, ok := reactions[messages[i].ID]; ok {
-				messages[i].Reactions = r
-			}
-		}
-
-		// Load thread participants for messages with replies
-		if len(threadParentIDs) > 0 {
-			participants, err := r.getThreadParticipantsForMessages(ctx, threadParentIDs)
-			if err != nil {
-				return nil, err
-			}
-			for i := range messages {
-				if p, ok := participants[messages[i].ID]; ok {
-					messages[i].ThreadParticipants = p
-				}
-			}
-		}
-	}
+	r.loadReactionsAndParticipants(ctx, messages)
 
 	if messages == nil {
 		messages = []MessageWithUser{}
@@ -318,6 +292,146 @@ func (r *Repository) List(ctx context.Context, channelID string, opts ListOption
 		HasMore:    hasMore,
 		NextCursor: nextCursor,
 	}, nil
+}
+
+// listAround loads messages centered on a cursor, returning limit/2 before and limit/2 after.
+func (r *Repository) listAround(ctx context.Context, channelID string, opts ListOptions) (*ListResult, error) {
+	halfLimit := opts.Limit / 2
+	if halfLimit < 1 {
+		halfLimit = 25
+	}
+
+	// Query messages at or before cursor (DESC order, includes the cursor message)
+	beforeQuery := `
+		SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+		FROM messages m
+		LEFT JOIN users u ON u.id = m.user_id
+		WHERE m.channel_id = ? AND (m.thread_parent_id IS NULL OR m.also_send_to_channel = TRUE) AND m.id <= ?
+		ORDER BY m.id DESC
+		LIMIT ?
+	`
+	beforeRows, err := r.db.QueryContext(ctx, beforeQuery, channelID, opts.Cursor, halfLimit+1)
+	if err != nil {
+		return nil, err
+	}
+	defer beforeRows.Close()
+
+	var beforeMessages []MessageWithUser
+	for beforeRows.Next() {
+		msg, err := r.scanMessageWithUser(beforeRows)
+		if err != nil {
+			return nil, err
+		}
+		beforeMessages = append(beforeMessages, *msg)
+	}
+	if err := beforeRows.Err(); err != nil {
+		return nil, err
+	}
+
+	hasMore := len(beforeMessages) > halfLimit
+	if hasMore {
+		beforeMessages = beforeMessages[:halfLimit]
+	}
+
+	// Query messages after cursor (ASC order)
+	afterQuery := `
+		SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
+		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+		FROM messages m
+		LEFT JOIN users u ON u.id = m.user_id
+		WHERE m.channel_id = ? AND (m.thread_parent_id IS NULL OR m.also_send_to_channel = TRUE) AND m.id > ?
+		ORDER BY m.id ASC
+		LIMIT ?
+	`
+	afterRows, err := r.db.QueryContext(ctx, afterQuery, channelID, opts.Cursor, halfLimit+1)
+	if err != nil {
+		return nil, err
+	}
+	defer afterRows.Close()
+
+	var afterMessages []MessageWithUser
+	for afterRows.Next() {
+		msg, err := r.scanMessageWithUser(afterRows)
+		if err != nil {
+			return nil, err
+		}
+		afterMessages = append(afterMessages, *msg)
+	}
+	if err := afterRows.Err(); err != nil {
+		return nil, err
+	}
+
+	hasNewer := len(afterMessages) > halfLimit
+	if hasNewer {
+		afterMessages = afterMessages[:halfLimit]
+	}
+
+	// Combine: beforeMessages are in DESC order, afterMessages are in ASC order
+	// Final result should be in DESC order (newest first)
+	// Reverse afterMessages to get DESC order, then prepend to beforeMessages
+	messages := make([]MessageWithUser, 0, len(beforeMessages)+len(afterMessages))
+	for i := len(afterMessages) - 1; i >= 0; i-- {
+		messages = append(messages, afterMessages[i])
+	}
+	messages = append(messages, beforeMessages...)
+
+	var nextCursor string
+	if hasMore && len(messages) > 0 {
+		nextCursor = messages[len(messages)-1].ID
+	}
+
+	// Load reactions and thread participants
+	r.loadReactionsAndParticipants(ctx, messages)
+
+	if messages == nil {
+		messages = []MessageWithUser{}
+	}
+
+	return &ListResult{
+		Messages:   messages,
+		HasMore:    hasMore,
+		HasNewer:   hasNewer,
+		NextCursor: nextCursor,
+	}, nil
+}
+
+// loadReactionsAndParticipants loads reactions and thread participants for a slice of messages.
+func (r *Repository) loadReactionsAndParticipants(ctx context.Context, messages []MessageWithUser) {
+	if len(messages) == 0 {
+		return
+	}
+
+	messageIDs := make([]string, len(messages))
+	threadParentIDs := make([]string, 0)
+	for i, m := range messages {
+		messageIDs[i] = m.ID
+		if m.ReplyCount > 0 {
+			threadParentIDs = append(threadParentIDs, m.ID)
+		}
+	}
+	reactions, err := r.getReactionsForMessages(ctx, messageIDs)
+	if err != nil {
+		return
+	}
+	for i := range messages {
+		if r, ok := reactions[messages[i].ID]; ok {
+			messages[i].Reactions = r
+		}
+	}
+
+	// Load thread participants for messages with replies
+	if len(threadParentIDs) > 0 {
+		participants, err := r.getThreadParticipantsForMessages(ctx, threadParentIDs)
+		if err != nil {
+			return
+		}
+		for i := range messages {
+			if p, ok := participants[messages[i].ID]; ok {
+				messages[i].ThreadParticipants = p
+			}
+		}
+	}
 }
 
 func (r *Repository) ListThread(ctx context.Context, parentID string, opts ListOptions) (*ListResult, error) {

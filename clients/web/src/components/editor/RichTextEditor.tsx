@@ -49,7 +49,7 @@ const editorStyles = tv({
       'transition-shadow',
     ],
     content: [
-      'px-4 py-3 min-h-[2.5rem] max-h-32 overflow-y-auto',
+      'px-4 py-3 min-h-[3rem] max-h-32 overflow-y-auto',
       'prose prose-sm dark:prose-invert max-w-none',
       // Editor content styles
       '[&_.ProseMirror]:outline-none',

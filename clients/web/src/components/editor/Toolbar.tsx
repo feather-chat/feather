@@ -83,7 +83,13 @@ export function Toolbar({ editor }: ToolbarProps) {
   });
 
   if (!editor) {
-    return null;
+    // Render container with spacer matching button height to prevent layout shift
+    // while useEditor initializes (immediatelyRender: false)
+    return (
+      <div className={s.container()}>
+        <div className="h-7" />
+      </div>
+    );
   }
 
   const addLink = () => {

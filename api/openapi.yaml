@@ -2373,6 +2373,8 @@ components:
             $ref: '#/components/schemas/MessageWithUser'
         has_more:
           type: boolean
+        has_newer:
+          type: boolean
         next_cursor:
           type: string
 
@@ -3081,7 +3083,7 @@ components:
           type: integer
         direction:
           type: string
-          enum: [before, after]
+          enum: [before, after, around]
 
     ReorderWorkspacesInput:
       type: object

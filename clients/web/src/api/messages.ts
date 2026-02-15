@@ -20,7 +20,7 @@ export interface SendMessageInput {
 export interface ListMessagesInput {
   cursor?: string;
   limit?: number;
-  direction?: 'before' | 'after';
+  direction?: 'before' | 'after' | 'around';
 }
 
 export const messagesApi = {

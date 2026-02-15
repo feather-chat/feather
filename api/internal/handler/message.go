@@ -764,6 +764,9 @@ func messageListResultToAPI(result *message.ListResult) openapi.MessageListResul
 		Messages: messages,
 		HasMore:  result.HasMore,
 	}
+	if result.HasNewer {
+		apiResult.HasNewer = &result.HasNewer
+	}
 	if result.NextCursor != "" {
 		apiResult.NextCursor = &result.NextCursor
 	}

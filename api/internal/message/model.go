@@ -80,12 +80,13 @@ type ReactionSummary struct {
 type ListOptions struct {
 	Cursor    string
 	Limit     int
-	Direction string // "before" or "after"
+	Direction string // "before", "after", or "around"
 }
 
 type ListResult struct {
 	Messages   []MessageWithUser `json:"messages"`
 	HasMore    bool              `json:"has_more"`
+	HasNewer   bool              `json:"has_newer,omitempty"`
 	NextCursor string            `json:"next_cursor,omitempty"`
 }
 

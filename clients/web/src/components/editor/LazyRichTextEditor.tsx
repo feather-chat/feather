@@ -16,7 +16,7 @@ function EditorSkeleton() {
         <div className="h-7 w-7 rounded" />
       </div>
       {/* Content area placeholder */}
-      <div className="min-h-[2.5rem] px-4 py-3">
+      <div className="min-h-[3rem] px-4 py-3">
         <div className="h-6 w-32 rounded bg-gray-100 dark:bg-gray-800" />
       </div>
       {/* Action row placeholder — matches real: justify-between px-2 py-1 */}

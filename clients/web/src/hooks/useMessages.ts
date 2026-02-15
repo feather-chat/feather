@@ -13,20 +13,52 @@ export function useMessage(messageId: string | undefined) {
   });
 }
 
-export function useMessages(channelId: string | undefined) {
+interface PageParam {
+  cursor?: string;
+  direction: 'before' | 'after' | 'around';
+}
+
+export function useMessages(channelId: string | undefined, aroundMessageId?: string) {
   return useInfiniteQuery({
     queryKey: ['messages', channelId],
-    queryFn: ({ pageParam }) =>
+    queryFn: ({ pageParam }: { pageParam: PageParam }) =>
       messagesApi.list(channelId!, {
-        cursor: pageParam,
+        cursor: pageParam.cursor,
         limit: PAGE_SIZE,
-        direction: 'before',
+        direction: pageParam.direction === 'around' ? 'around' : pageParam.direction,
       }),
-    initialPageParam: undefined as string | undefined,
+    initialPageParam: (aroundMessageId
+      ? { cursor: aroundMessageId, direction: 'around' }
+      : { direction: 'before' }) as PageParam,
     getNextPageParam: (lastPage: MessageListResult) =>
-      lastPage.has_more ? lastPage.next_cursor : undefined,
+      lastPage.has_more
+        ? { cursor: lastPage.next_cursor, direction: 'before' as const }
+        : undefined,
+    getPreviousPageParam: (
+      firstPage: MessageListResult,
+      _allPages: MessageListResult[],
+      firstPageParam: PageParam,
+    ) => {
+      // "after" pages are ASC (oldest first), "before"/"around" are DESC (newest first)
+      const newestId =
+        firstPageParam.direction === 'after'
+          ? firstPage.messages[firstPage.messages.length - 1]?.id
+          : firstPage.messages[0]?.id;
+      if (!newestId) return undefined;
+
+      // "around" queries: API explicitly sets has_newer
+      if (firstPage.has_newer) return { cursor: newestId, direction: 'after' as const };
+      // "after" queries: has_more means more newer messages exist beyond this page
+      if (firstPageParam.direction === 'after' && firstPage.has_more)
+        return { cursor: newestId, direction: 'after' as const };
+      // "before" queries with cursor: initial live-edge page was evicted by maxPages
+      if (firstPageParam.cursor && firstPageParam.direction === 'before')
+        return { cursor: newestId, direction: 'after' as const };
+      return undefined;
+    },
     enabled: !!channelId,
     staleTime: 1000 * 30, // 30 seconds
+    maxPages: 20,
   });
 }
 

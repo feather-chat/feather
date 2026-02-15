@@ -23,6 +23,7 @@
     "@heroicons/react": "^2.2.0",
     "@internationalized/date": "^3.11.0",
     "@tanstack/react-query": "^5.90.20",
+    "@tanstack/react-virtual": "^3.13.18",
     "@tiptap/core": "^3.18.0",
     "@tiptap/extension-link": "^3.18.0",
     "@tiptap/extension-mention": "^3.18.0",

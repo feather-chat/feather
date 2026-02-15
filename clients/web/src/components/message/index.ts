@@ -7,5 +7,8 @@ export { ThreadRepliesIndicator } from './ThreadRepliesIndicator';
 export { UserMentionBadge, SpecialMentionBadge } from './MentionBadge';
 export { MessageActionBar } from './MessageActionBar';
 export { ReactionsDisplay } from './ReactionsDisplay';
+export { JumpToLatestButton } from './JumpToLatestButton';
 export { groupReactionsByEmoji, createMemberNamesMap } from './reactionUtils';
 export type { ReactionGroup } from './reactionUtils';
+export type { VirtualItem } from './virtualItems';
+export { buildVirtualItems } from './virtualItems';

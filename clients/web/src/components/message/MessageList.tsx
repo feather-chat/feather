@@ -1,12 +1,16 @@
-import { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useMessages, useChannels } from '../../hooks';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useChannels } from '../../hooks';
+import { useVirtualMessages } from '../../hooks/useVirtualMessages';
 import { usePrewarmSignedUrls } from '../../hooks/usePrewarmSignedUrls';
+import { buildVirtualItems, type VirtualItem } from './virtualItems';
 import { MessageItem } from './MessageItem';
 import { SystemMessage } from './SystemMessage';
+import { JumpToLatestButton } from './JumpToLatestButton';
 import { MessageSkeleton } from '../ui';
 import { formatDate } from '../../lib/utils';
-import type { MessageWithUser } from '@feather/api-client';
+import type { ChannelWithMembership } from '@feather/api-client';
 
 interface MessageListProps {
   channelId: string;
@@ -22,223 +26,542 @@ export function MessageList({
   onAtBottomChange,
 }: MessageListProps) {
   const { workspaceId } = useParams<{ workspaceId: string }>();
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    useMessages(channelId);
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    isFetchingPreviousPage,
+    hasNextPage,
+    hasPreviousPage,
+    fetchNextPage,
+    fetchPreviousPage,
+    isDetached,
+    jumpToMessage,
+    jumpToLatest,
+    onReachBottom,
+  } = useVirtualMessages(channelId);
   const { data: channelsData } = useChannels(workspaceId);
 
-  // Pre-warm signed URL cache for any file attachments in loaded messages
   usePrewarmSignedUrls(data?.pages);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const prevScrollHeightRef = useRef(0);
+  const topSentinelRef = useRef<HTMLDivElement>(null);
+  const bottomSentinelRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
+  const newMessageCountRef = useRef(0);
+  const prevMessageCountRef = useRef(0);
+  const scrollAnchorRef = useRef<{ itemKey: string; offsetFromContainerTop: number } | null>(null);
+  const [showJumpButton, setShowJumpButton] = useState(false);
+  const [newMessageCount, setNewMessageCount] = useState(0);
 
-  // Flatten messages from all pages (they come newest-first)
-  const allMessages = data?.pages.flatMap((page) => page.messages) || [];
+  // Refs to avoid stale closures in IntersectionObserver callbacks
+  const isFetchingNextRef = useRef(false);
+  const hasNextPageRef = useRef(false);
+  const isFetchingPrevRef = useRef(false);
+  const hasPreviousPageRef = useRef(false);
+  isFetchingNextRef.current = isFetchingNextPage;
+  hasNextPageRef.current = hasNextPage ?? false;
+  isFetchingPrevRef.current = isFetchingPreviousPage;
+  hasPreviousPageRef.current = hasPreviousPage ?? false;
 
-  // Reverse for display (oldest at top)
-  const messages = [...allMessages].reverse();
+  // Flatten and sort messages (pages come newest-first within each page, sort by ID for correctness)
+  const allMessages = useMemo(() => {
+    if (!data?.pages) return [];
+    const flat = data.pages.flatMap((page) => page.messages);
+    // Sort by ID (ULIDs are lexicographically ordered by time) and deduplicate
+    const seen = new Set<string>();
+    return flat
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .filter((m) => {
+        if (seen.has(m.id)) return false;
+        seen.add(m.id);
+        return true;
+      });
+  }, [data?.pages]);
 
-  // Find the index of the last read message in the flat list
-  const lastReadIndex = lastReadMessageId
-    ? messages.findIndex((m) => m.id === lastReadMessageId)
-    : -1;
-
-  // Group messages by date
-  const messagesByDate = messages.reduce(
-    (acc, msg) => {
-      const dateKey = new Date(msg.created_at).toDateString();
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
-      acc[dateKey].push(msg);
-      return acc;
-    },
-    {} as Record<string, MessageWithUser[]>,
+  // Build virtual items (date separators, messages, unread divider)
+  const virtualItems = useMemo(
+    () => buildVirtualItems(allMessages, lastReadMessageId, unreadCount),
+    [allMessages, lastReadMessageId, unreadCount],
   );
 
-  // Check if user is at bottom
-  const checkIfAtBottom = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return true;
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    return scrollHeight - scrollTop - clientHeight < 100;
-  }, []);
+  // Estimate size for virtual items
+  const estimateSize = useCallback(
+    (index: number) => {
+      const item = virtualItems[index];
+      if (!item) return 72;
+      if (item.type === 'date-separator') return 44;
+      if (item.type === 'unread-divider') return 40;
+      return 72; // average message height
+    },
+    [virtualItems],
+  );
 
-  // Handle scroll to detect when to load more
+  const getItemKey = useCallback(
+    (index: number) => virtualItems[index]?.key ?? String(index),
+    [virtualItems],
+  );
+
+  const virtualizer = useVirtualizer({
+    count: virtualItems.length,
+    getScrollElement: () => containerRef.current,
+    estimateSize,
+    getItemKey,
+    overscan: 10,
+    measureElement: (el) => el.getBoundingClientRect().height,
+  });
+
+  // Track new messages arriving while scrolled up
+  useEffect(() => {
+    const currentCount = allMessages.length;
+    if (prevMessageCountRef.current > 0 && currentCount > prevMessageCountRef.current) {
+      if (!isAtBottomRef.current) {
+        const diff = currentCount - prevMessageCountRef.current;
+        newMessageCountRef.current += diff;
+        setNewMessageCount(newMessageCountRef.current);
+      }
+    }
+    prevMessageCountRef.current = currentCount;
+  }, [allMessages.length]);
+
+  // Handle scroll events — only tracks at-bottom state and jump button
   const handleScroll = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 100;
 
-    const atBottom = checkIfAtBottom();
-    isAtBottomRef.current = atBottom;
-    onAtBottomChange?.(atBottom);
-
-    // Load more when scrolled near top
-    if (container.scrollTop < 100 && hasNextPage && !isFetchingNextPage) {
-      prevScrollHeightRef.current = container.scrollHeight;
-      fetchNextPage();
+    if (atBottom !== isAtBottomRef.current) {
+      isAtBottomRef.current = atBottom;
+      onAtBottomChange?.(atBottom);
+      setShowJumpButton(!atBottom);
     }
-  }, [checkIfAtBottom, hasNextPage, isFetchingNextPage, fetchNextPage, onAtBottomChange]);
 
-  // Preserve scroll position when prepending older messages
+    if (atBottom) {
+      newMessageCountRef.current = 0;
+      setNewMessageCount(0);
+      onReachBottom();
+    }
+  }, [onAtBottomChange, onReachBottom]);
+
+  // Save a scroll anchor before fetching so we can restore position after maxPages
+  // evicts items from the opposite end. Uses virtualizer data (not DOM queries) so
+  // it works even if the anchor element isn't rendered after re-render.
+  const virtualItemsRef = useRef(virtualItems);
+  virtualItemsRef.current = virtualItems;
+  const virtualizerRef = useRef(virtualizer);
+  virtualizerRef.current = virtualizer;
+
+  const saveScrollAnchor = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const scrollTop = container.scrollTop;
+    const vItems = virtualizer.getVirtualItems();
+    // Find the first virtual item whose bottom edge is past the viewport top
+    for (const vItem of vItems) {
+      if (vItem.end > scrollTop) {
+        const itemData = virtualItemsRef.current[vItem.index];
+        if (itemData) {
+          scrollAnchorRef.current = {
+            itemKey: itemData.key,
+            offsetFromContainerTop: vItem.start - scrollTop,
+          };
+        }
+        return;
+      }
+    }
+  }, [virtualizer]);
+
+  // IntersectionObserver: load older messages when top sentinel is near viewport
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || prevScrollHeightRef.current === 0) return;
+    const sentinel = topSentinelRef.current;
+    if (!container || !sentinel) return;
 
-    const newScrollHeight = container.scrollHeight;
-    const scrollDiff = newScrollHeight - prevScrollHeightRef.current;
-    container.scrollTop += scrollDiff;
-    prevScrollHeightRef.current = 0;
-  }, [data?.pages.length]);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasNextPageRef.current && !isFetchingNextRef.current) {
+          saveScrollAnchor();
+          fetchNextPage();
+        }
+      },
+      { root: container, rootMargin: '500px 0px 0px 0px' },
+    );
 
-  // Scroll to bottom on initial load and new messages (if at bottom)
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [channelId, fetchNextPage, isLoading, saveScrollAnchor]);
+
+  // IntersectionObserver: load newer messages when bottom sentinel is near viewport
+  useEffect(() => {
+    const container = containerRef.current;
+    const sentinel = bottomSentinelRef.current;
+    if (!container || !sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasPreviousPageRef.current && !isFetchingPrevRef.current) {
+          saveScrollAnchor();
+          fetchPreviousPage();
+        }
+      },
+      { root: container, rootMargin: '0px 0px 500px 0px' },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [channelId, fetchPreviousPage, isLoading, saveScrollAnchor]);
+
+  // Post-fetch re-check: if sentinel is still visible after a fetch completes, fetch again
+  const wasFetchingNextRef = useRef(false);
+  useEffect(() => {
+    if (wasFetchingNextRef.current && !isFetchingNextPage) {
+      const container = containerRef.current;
+      const sentinel = topSentinelRef.current;
+      if (container && sentinel && hasNextPage) {
+        const containerRect = container.getBoundingClientRect();
+        const sentinelRect = sentinel.getBoundingClientRect();
+        if (sentinelRect.bottom > containerRect.top - 500) {
+          saveScrollAnchor();
+          fetchNextPage();
+        }
+      }
+    }
+    wasFetchingNextRef.current = isFetchingNextPage;
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage, saveScrollAnchor]);
+
+  const wasFetchingPrevRef = useRef(false);
+  useEffect(() => {
+    if (wasFetchingPrevRef.current && !isFetchingPreviousPage) {
+      const container = containerRef.current;
+      const sentinel = bottomSentinelRef.current;
+      if (container && sentinel && hasPreviousPage) {
+        const containerRect = container.getBoundingClientRect();
+        const sentinelRect = sentinel.getBoundingClientRect();
+        if (sentinelRect.top < containerRect.bottom + 500) {
+          saveScrollAnchor();
+          fetchPreviousPage();
+        }
+      }
+    }
+    wasFetchingPrevRef.current = isFetchingPreviousPage;
+  }, [isFetchingPreviousPage, hasPreviousPage, fetchPreviousPage, saveScrollAnchor]);
+
+  // Preserve scroll position when messages are loaded and maxPages evicts from the opposite end.
+  // Uses a scroll anchor: before each fetch, we save a visible item's key and its viewport offset.
+  // After re-render, we find that item's new index and use scrollToIndex (which uses the
+  // key-based measurement cache) to restore position — works even if the element isn't rendered.
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container || !scrollAnchorRef.current) return;
+
+    const { itemKey, offsetFromContainerTop } = scrollAnchorRef.current;
+    const newIndex = virtualItems.findIndex((item) => item.key === itemKey);
+    if (newIndex !== -1) {
+      virtualizerRef.current.scrollToIndex(newIndex, { align: 'start' });
+      // scrollToIndex puts the item at the viewport top — adjust for the original offset
+      container.scrollTop += offsetFromContainerTop;
+    }
+    scrollAnchorRef.current = null;
+  }, [virtualItems]);
+
+  // Scroll to bottom on initial load and when channel changes
+  const initialScrollDoneRef = useRef(false);
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container || virtualItems.length === 0) return;
+
+    // Skip if this is a scroll-preservation update (messages loaded via infinite scroll)
+    if (scrollAnchorRef.current) return;
+
+    if (!initialScrollDoneRef.current) {
+      initialScrollDoneRef.current = true;
+      const lastIndex = virtualItems.length - 1;
+      virtualizer.scrollToIndex(lastIndex, { align: 'end' });
+
+      // Let the virtualizer measure visible items, then snap to bottom.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          virtualizer.scrollToIndex(lastIndex, { align: 'end' });
+          requestAnimationFrame(() => {
+            container.scrollTop = container.scrollHeight;
+          });
+        });
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally omit virtualizer; we only want this on virtualItems change
+  }, [virtualItems]);
+
+  // Reset state when channel changes
+  useEffect(() => {
+    initialScrollDoneRef.current = false;
+    scrollAnchorRef.current = null;
+    newMessageCountRef.current = 0;
+    prevMessageCountRef.current = 0;
+    wasFetchingNextRef.current = false;
+    wasFetchingPrevRef.current = false;
+    setNewMessageCount(0);
+    setShowJumpButton(false);
+    isAtBottomRef.current = true;
+  }, [channelId]);
+
+  // Re-snap scroll to bottom when container resizes. The composer is a sibling in
+  // a flex column, so typing indicators, attachment previews, or window resizes
+  // change this container's height. Without this, the bottom message would be
+  // pushed behind the composer until the next message arrives.
+  // Dep: isLoading is needed because containerRef.current is null during the
+  // loading early-return; the effect must re-run when the container mounts.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    if (isAtBottomRef.current || messages.length <= 50) {
+    const ro = new ResizeObserver(() => {
+      if (isAtBottomRef.current) {
+        container.scrollTop = container.scrollHeight;
+      }
+    });
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [channelId, isLoading]);
+
+  // Auto-scroll to bottom when new messages arrive and user is at bottom.
+  // Only when at the live edge (no newer pages to load) — otherwise loading
+  // older pages via fetchPreviousPage would snap the scroll to the bottom.
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container || !initialScrollDoneRef.current) return;
+
+    if (isAtBottomRef.current && !hasPreviousPageRef.current) {
       container.scrollTop = container.scrollHeight;
     }
-  }, [messages.length]);
+  }, [allMessages.length]);
 
   // Jump to message from ?msg= search param
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightedMsgId = searchParams.get('msg');
+  const jumpInProgressRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (!highlightedMsgId || messages.length === 0) return;
+  const scrollToAndHighlight = useCallback(
+    (messageId: string, index?: number) => {
+      const targetIndex =
+        index ??
+        virtualItems.findIndex((item) => item.type === 'message' && item.key === messageId);
+      if (targetIndex === -1) return;
 
-    const el = document.getElementById(`message-${highlightedMsgId}`);
-    if (el) {
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      el.classList.add('search-highlight');
-      const timer = setTimeout(() => {
-        el.classList.remove('search-highlight');
-        // Clean up the ?msg param
-        setSearchParams(
-          (prev) => {
-            const next = new URLSearchParams(prev);
-            next.delete('msg');
-            return next;
-          },
-          { replace: true },
-        );
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [highlightedMsgId, messages.length, setSearchParams]);
+      virtualizer.scrollToIndex(targetIndex, { align: 'center' });
 
-  // Intersection observer for infinite scroll
-  useEffect(() => {
-    const loadMoreElement = loadMoreRef.current;
-    if (!loadMoreElement) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          const container = containerRef.current;
-          if (container) {
-            prevScrollHeightRef.current = container.scrollHeight;
+      // Highlight after scroll settles
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const el = document.getElementById(`message-${messageId}`);
+          if (el) {
+            el.classList.add('search-highlight');
+            setTimeout(() => {
+              el.classList.remove('search-highlight');
+              // Clean up the ?msg param
+              setSearchParams(
+                (prev) => {
+                  const next = new URLSearchParams(prev);
+                  next.delete('msg');
+                  return next;
+                },
+                { replace: true },
+              );
+              jumpInProgressRef.current = null;
+            }, 2000);
+          } else {
+            jumpInProgressRef.current = null;
           }
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 },
-    );
+        }, 100);
+      });
+    },
+    [virtualItems, virtualizer, setSearchParams],
+  );
 
-    observer.observe(loadMoreElement);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  useEffect(() => {
+    if (!highlightedMsgId || jumpInProgressRef.current === highlightedMsgId) return;
+    jumpInProgressRef.current = highlightedMsgId;
+
+    (async () => {
+      const result = await jumpToMessage(highlightedMsgId);
+
+      // If already loaded, we can scroll immediately
+      if (result?.alreadyLoaded) {
+        scrollToAndHighlight(highlightedMsgId);
+      }
+    })();
+  }, [highlightedMsgId, jumpToMessage, scrollToAndHighlight]);
+
+  // Once virtualItems update after a jump, scroll to the target
+  useEffect(() => {
+    if (!jumpInProgressRef.current) return;
+    const targetId = jumpInProgressRef.current;
+    const targetIndex = virtualItems.findIndex(
+      (item) => item.type === 'message' && item.key === targetId,
+    );
+    if (targetIndex !== -1) {
+      scrollToAndHighlight(targetId, targetIndex);
+    }
+  }, [virtualItems, scrollToAndHighlight]);
+
+  // Handle jump to latest button click
+  const handleJumpToLatest = useCallback(() => {
+    if (isDetached || hasPreviousPage) {
+      jumpToLatest();
+    } else {
+      const lastIndex = virtualItems.length - 1;
+      // First pass: jump near the end using estimated sizes
+      virtualizer.scrollToIndex(lastIndex, { align: 'end' });
+      // Second pass after items at the end are measured and sizes corrected
+      requestAnimationFrame(() => {
+        virtualizer.scrollToIndex(lastIndex, { align: 'end' });
+      });
+    }
+    newMessageCountRef.current = 0;
+    setNewMessageCount(0);
+    setShowJumpButton(false);
+    isAtBottomRef.current = true;
+    onAtBottomChange?.(true);
+  }, [
+    isDetached,
+    hasPreviousPage,
+    jumpToLatest,
+    virtualizer,
+    virtualItems.length,
+    onAtBottomChange,
+  ]);
 
   if (isLoading) {
     return (
-      <div className="flex-1 overflow-y-auto">
-        {[...Array(5)].map((_, i) => (
-          <MessageSkeleton key={i} />
-        ))}
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="flex h-full flex-col justify-end">
+          {[...Array(8)].map((_, i) => (
+            <MessageSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
 
+  if (allMessages.length === 0) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto text-gray-500 dark:text-gray-400">
+        <svg className="mb-4 h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+          />
+        </svg>
+        <p className="text-lg font-medium">No messages yet</p>
+        <p className="text-sm">Be the first to send a message!</p>
+      </div>
+    );
+  }
+
+  const vRows = virtualizer.getVirtualItems();
+
   return (
-    <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
-      {/* Load more trigger */}
-      <div ref={loadMoreRef} className="h-1" />
+    <div className="relative min-h-0 flex-1 overflow-hidden">
+      <div ref={containerRef} onScroll={handleScroll} className="h-full overflow-y-auto">
+        <div ref={topSentinelRef} className="h-px" />
 
+        <div
+          style={{
+            height: virtualizer.getTotalSize(),
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {vRows.map((vRow) => {
+            const item = virtualItems[vRow.index];
+            if (!item) return null;
+
+            return (
+              <div
+                key={item.key}
+                data-index={vRow.index}
+                ref={virtualizer.measureElement}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${vRow.start}px)`,
+                }}
+              >
+                <VirtualRow item={item} channelId={channelId} channels={channelsData?.channels} />
+              </div>
+            );
+          })}
+        </div>
+
+        <div ref={bottomSentinelRef} className="h-px" />
+
+        {/* Spacer below last message */}
+        <div className="h-4" />
+      </div>
+
+      {/* Loading indicators — absolutely positioned to avoid layout shift */}
       {isFetchingNextPage && (
-        <div className="py-4 text-center">
-          <MessageSkeleton />
-        </div>
-      )}
-
-      {messages.length === 0 ? (
-        <div className="flex h-full flex-col items-center justify-center text-gray-500 dark:text-gray-400">
-          <svg className="mb-4 h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-          <p className="text-lg font-medium">No messages yet</p>
-          <p className="text-sm">Be the first to send a message!</p>
-        </div>
-      ) : (
-        Object.entries(messagesByDate).map(([date, msgs]) => (
-          <div key={date}>
-            {/* Date separator */}
-            <div className="flex items-center gap-4 px-4 py-3">
-              <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                {formatDate(msgs[0].created_at)}
-              </span>
-              <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-            </div>
-
-            {/* Messages */}
-            {msgs.map((message) => {
-              // Check if we should show the unread divider after this message
-              // Show divider after the last read message if there are unread messages after it
-              const messageIndex = messages.findIndex((m) => m.id === message.id);
-              const showUnreadDivider =
-                unreadCount > 0 &&
-                lastReadIndex !== -1 &&
-                messageIndex === lastReadIndex &&
-                messageIndex < messages.length - 1; // There are messages after this one
-
-              // Check if this is a system message
-              const isSystemMessage = message.type === 'system';
-
-              return (
-                <div key={message.id}>
-                  {isSystemMessage ? (
-                    <SystemMessage message={message} channelId={channelId} />
-                  ) : (
-                    <MessageItem
-                      message={message}
-                      channelId={channelId}
-                      channels={channelsData?.channels}
-                    />
-                  )}
-                  {showUnreadDivider && (
-                    <div className="flex items-center gap-4 px-4 py-3">
-                      <div className="h-px flex-1 bg-red-500" />
-                      <span className="text-xs font-medium text-red-500">New messages</span>
-                      <div className="h-px flex-1 bg-red-500" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+        <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex justify-center py-2">
+          <div className="rounded-full bg-white/90 px-3 py-1 text-xs text-gray-500 shadow-sm dark:bg-gray-800/90 dark:text-gray-400">
+            Loading...
           </div>
-        ))
+        </div>
+      )}
+      {isFetchingPreviousPage && (
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex justify-center py-2">
+          <div className="rounded-full bg-white/90 px-3 py-1 text-xs text-gray-500 shadow-sm dark:bg-gray-800/90 dark:text-gray-400">
+            Loading...
+          </div>
+        </div>
       )}
 
-      {/* Spacer below last message */}
-      {messages.length > 0 && <div className="h-4" />}
+      {/* Jump to latest button */}
+      {showJumpButton && (
+        <JumpToLatestButton onClick={handleJumpToLatest} newMessageCount={newMessageCount} />
+      )}
     </div>
   );
 }
+
+// Memoized row renderer
+const VirtualRow = React.memo(function VirtualRow({
+  item,
+  channelId,
+  channels,
+}: {
+  item: VirtualItem;
+  channelId: string;
+  channels?: ChannelWithMembership[];
+}) {
+  switch (item.type) {
+    case 'date-separator':
+      return (
+        <div className="flex items-center gap-4 px-4 py-3">
+          <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            {formatDate(item.date)}
+          </span>
+          <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+        </div>
+      );
+
+    case 'unread-divider':
+      return (
+        <div className="flex items-center gap-4 px-4 py-3">
+          <div className="h-px flex-1 bg-red-500" />
+          <span className="text-xs font-medium text-red-500">New messages</span>
+          <div className="h-px flex-1 bg-red-500" />
+        </div>
+      );
+
+    case 'message':
+      if (item.message.type === 'system') {
+        return <SystemMessage message={item.message} channelId={channelId} />;
+      }
+      return <MessageItem message={item.message} channelId={channelId} channels={channels} />;
+  }
+});

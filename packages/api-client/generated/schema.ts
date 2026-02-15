@@ -1288,6 +1288,7 @@ export interface components {
         MessageListResult: {
             messages: components["schemas"]["MessageWithUser"][];
             has_more: boolean;
+            has_newer?: boolean;
             next_cursor?: string;
         };
         UnreadMessage: components["schemas"]["MessageWithUser"] & {
@@ -1653,7 +1654,7 @@ export interface components {
             cursor?: string;
             limit?: number;
             /** @enum {string} */
-            direction?: "before" | "after";
+            direction?: "before" | "after" | "around";
         };
         ReorderWorkspacesInput: {
             /** @description Ordered list of workspace IDs representing the new order */
