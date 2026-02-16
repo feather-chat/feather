@@ -13,7 +13,13 @@ const (
 	MentionEveryone = "@everyone"
 )
 
-// mentionPattern matches @display_name patterns
+// mrkdwnUserMention matches <@userId> format from the rich text editor
+var mrkdwnUserMention = regexp.MustCompile(`<@([^>]+)>`)
+
+// mrkdwnSpecialMention matches <!here>, <!channel>, <!everyone> from the rich text editor
+var mrkdwnSpecialMention = regexp.MustCompile(`<!([^>]+)>`)
+
+// mentionPattern matches @display_name patterns (plain text fallback)
 // Matches @ followed by one or more words (display names can have spaces)
 var mentionPattern = regexp.MustCompile(`@([A-Za-z][A-Za-z0-9 ]*[A-Za-z0-9]|[A-Za-z])`)
 
@@ -23,6 +29,7 @@ type UserResolver interface {
 }
 
 // ParseMentions extracts and resolves mentions from message content.
+// Supports both mrkdwn format (<@userId>, <!here>) and plain text (@DisplayName, @here).
 // Returns a list of user IDs and special mention strings (@channel, @here, @everyone).
 // Invalid mentions are silently ignored.
 func ParseMentions(ctx context.Context, resolver UserResolver, workspaceID, content string) ([]string, error) {
@@ -30,17 +37,50 @@ func ParseMentions(ctx context.Context, resolver UserResolver, workspaceID, cont
 		return nil, nil
 	}
 
-	// Find all potential mentions
-	matches := mentionPattern.FindAllStringSubmatch(content, -1)
-	if len(matches) == 0 {
-		return nil, nil
-	}
-
 	var mentions []string
-	var displayNames []string
+	seenUsers := make(map[string]bool)
 	seenSpecial := make(map[string]bool)
 
-	for _, match := range matches {
+	// First pass: extract mrkdwn-format user mentions <@userId>
+	for _, match := range mrkdwnUserMention.FindAllStringSubmatch(content, -1) {
+		if len(match) < 2 {
+			continue
+		}
+		userID := strings.TrimSpace(match[1])
+		if userID != "" && !seenUsers[userID] {
+			mentions = append(mentions, userID)
+			seenUsers[userID] = true
+		}
+	}
+
+	// Second pass: extract mrkdwn-format special mentions <!here>, <!channel>, <!everyone>
+	for _, match := range mrkdwnSpecialMention.FindAllStringSubmatch(content, -1) {
+		if len(match) < 2 {
+			continue
+		}
+		name := strings.ToLower(strings.TrimSpace(match[1]))
+		switch name {
+		case "channel":
+			if !seenSpecial[MentionChannel] {
+				mentions = append(mentions, MentionChannel)
+				seenSpecial[MentionChannel] = true
+			}
+		case "here":
+			if !seenSpecial[MentionHere] {
+				mentions = append(mentions, MentionHere)
+				seenSpecial[MentionHere] = true
+			}
+		case "everyone":
+			if !seenSpecial[MentionEveryone] {
+				mentions = append(mentions, MentionEveryone)
+				seenSpecial[MentionEveryone] = true
+			}
+		}
+	}
+
+	// Third pass: plain text @DisplayName mentions (fallback for plain text content)
+	var displayNames []string
+	for _, match := range mentionPattern.FindAllStringSubmatch(content, -1) {
 		if len(match) < 2 {
 			continue
 		}
@@ -79,7 +119,6 @@ func ParseMentions(ctx context.Context, resolver UserResolver, workspaceID, cont
 			resolved = make(map[string]string)
 		}
 
-		seenUsers := make(map[string]bool)
 		for _, name := range displayNames {
 			// Try exact match first, then case-insensitive
 			if userID, ok := resolved[name]; ok && !seenUsers[userID] {
