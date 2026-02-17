@@ -14,10 +14,13 @@ const (
 
 // System event types
 const (
-	SystemEventUserJoined       = "user_joined"
-	SystemEventUserLeft         = "user_left"
-	SystemEventUserAdded        = "user_added"
-	SystemEventChannelConverted = "user_converted_channel"
+	SystemEventUserJoined                = "user_joined"
+	SystemEventUserLeft                  = "user_left"
+	SystemEventUserAdded                 = "user_added"
+	SystemEventChannelConverted          = "user_converted_channel"
+	SystemEventChannelRenamed            = "channel_renamed"
+	SystemEventChannelVisibilityChanged  = "channel_visibility_changed"
+	SystemEventChannelDescriptionUpdated = "channel_description_updated"
 )
 
 // SystemEventData contains metadata for system messages
@@ -28,6 +31,8 @@ type SystemEventData struct {
 	ChannelName      string  `json:"channel_name"`
 	ActorID          *string `json:"actor_id,omitempty"`
 	ActorDisplayName *string `json:"actor_display_name,omitempty"`
+	OldChannelName   *string `json:"old_channel_name,omitempty"`
+	ChannelType      *string `json:"channel_type,omitempty"`
 }
 
 type Message struct {

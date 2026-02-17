@@ -101,6 +101,20 @@ func (r *Repository) CreateSystemMessage(ctx context.Context, channelID string, 
 		} else {
 			content = "was added to #" + event.ChannelName
 		}
+	case SystemEventChannelRenamed:
+		if event.OldChannelName != nil {
+			content = "renamed the channel from #" + *event.OldChannelName + " to #" + event.ChannelName
+		} else {
+			content = "renamed the channel to #" + event.ChannelName
+		}
+	case SystemEventChannelVisibilityChanged:
+		if event.ChannelType != nil {
+			content = "made the channel " + *event.ChannelType
+		} else {
+			content = "changed the channel visibility"
+		}
+	case SystemEventChannelDescriptionUpdated:
+		content = "updated the channel description"
 	}
 
 	msg := &Message{

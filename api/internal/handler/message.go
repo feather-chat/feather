@@ -675,6 +675,12 @@ func messageWithUserToAPI(m *message.MessageWithUser) openapi.MessageWithUser {
 		if m.SystemEvent.ActorDisplayName != nil {
 			apiMsg.SystemEvent.ActorDisplayName = m.SystemEvent.ActorDisplayName
 		}
+		if m.SystemEvent.OldChannelName != nil {
+			apiMsg.SystemEvent.OldChannelName = m.SystemEvent.OldChannelName
+		}
+		if m.SystemEvent.ChannelType != nil {
+			apiMsg.SystemEvent.ChannelType = m.SystemEvent.ChannelType
+		}
 	}
 	if m.UserDisplayName != "" {
 		apiMsg.UserDisplayName = &m.UserDisplayName

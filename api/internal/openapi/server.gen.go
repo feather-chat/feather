@@ -59,10 +59,13 @@ const (
 
 // Defines values for SystemEventType.
 const (
-	UserAdded            SystemEventType = "user_added"
-	UserConvertedChannel SystemEventType = "user_converted_channel"
-	UserJoined           SystemEventType = "user_joined"
-	UserLeft             SystemEventType = "user_left"
+	ChannelDescriptionUpdated SystemEventType = "channel_description_updated"
+	ChannelRenamed            SystemEventType = "channel_renamed"
+	ChannelVisibilityChanged  SystemEventType = "channel_visibility_changed"
+	UserAdded                 SystemEventType = "user_added"
+	UserConvertedChannel      SystemEventType = "user_converted_channel"
+	UserJoined                SystemEventType = "user_joined"
+	UserLeft                  SystemEventType = "user_left"
 )
 
 // Defines values for ThreadSubscriptionStatus.
@@ -431,8 +434,14 @@ type SystemEventData struct {
 	ActorId *string `json:"actor_id,omitempty"`
 
 	// ChannelName Name of the channel
-	ChannelName string          `json:"channel_name"`
+	ChannelName string `json:"channel_name"`
+
+	// ChannelType New channel type (for visibility change events)
+	ChannelType *string         `json:"channel_type,omitempty"`
 	EventType   SystemEventType `json:"event_type"`
+
+	// OldChannelName Previous channel name (for rename events)
+	OldChannelName *string `json:"old_channel_name,omitempty"`
 
 	// UserDisplayName Display name of the user at the time of the event
 	UserDisplayName string `json:"user_display_name"`
@@ -522,8 +531,9 @@ type UnreadMessagesResult struct {
 
 // UpdateChannelInput defines model for UpdateChannelInput.
 type UpdateChannelInput struct {
-	Description *string `json:"description,omitempty"`
-	Name        *string `json:"name,omitempty"`
+	Description *string      `json:"description,omitempty"`
+	Name        *string      `json:"name,omitempty"`
+	Type        *ChannelType `json:"type,omitempty"`
 }
 
 // UpdateProfileInput defines model for UpdateProfileInput.

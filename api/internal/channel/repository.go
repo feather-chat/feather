@@ -160,10 +160,13 @@ func (r *Repository) GetByWorkspaceAndName(ctx context.Context, workspaceID, nam
 func (r *Repository) Update(ctx context.Context, channel *Channel) error {
 	channel.UpdatedAt = time.Now().UTC()
 	result, err := r.db.ExecContext(ctx, `
-		UPDATE channels SET name = ?, description = ?, updated_at = ?
+		UPDATE channels SET name = ?, description = ?, type = ?, updated_at = ?
 		WHERE id = ?
-	`, channel.Name, channel.Description, channel.UpdatedAt.Format(time.RFC3339), channel.ID)
+	`, channel.Name, channel.Description, channel.Type, channel.UpdatedAt.Format(time.RFC3339), channel.ID)
 	if err != nil {
+		if isUniqueConstraintError(err) {
+			return ErrChannelNameTaken
+		}
 		return err
 	}
 	rows, _ := result.RowsAffected()

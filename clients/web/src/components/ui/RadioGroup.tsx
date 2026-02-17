@@ -11,16 +11,17 @@ const radioGroup = tv({
   slots: {
     root: 'space-y-2',
     label: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2',
-    radioWrapper: 'flex items-center gap-2',
+    radioWrapper: [
+      'flex items-center gap-2 cursor-pointer',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded',
+    ],
     radio: [
       'flex items-center justify-center',
-      'w-4 h-4 rounded-full border-2 transition-colors cursor-pointer',
+      'w-4 h-4 rounded-full border-2 transition-colors',
       'border-gray-300 dark:border-gray-600',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
-      'data-[selected]:border-primary-600 data-[selected]:bg-primary-600',
       'after:content-[""] after:block after:w-1.5 after:h-1.5 after:rounded-full',
-      'data-[selected]:after:bg-white',
     ],
+    radioSelected: 'border-primary-600 bg-primary-600 after:bg-white',
     radioLabel: 'text-sm text-gray-700 dark:text-gray-300 cursor-pointer',
   },
 });
@@ -50,9 +51,15 @@ export function Radio({ children, ...props }: RadioProps) {
   const styles = radioGroup();
 
   return (
-    <label className={styles.radioWrapper()}>
-      <AriaRadio className={styles.radio()} {...props} />
-      <span className={styles.radioLabel()}>{children}</span>
-    </label>
+    <AriaRadio className={styles.radioWrapper()} {...props}>
+      {({ isSelected }) => (
+        <>
+          <div
+            className={styles.radio({ className: isSelected ? styles.radioSelected() : undefined })}
+          />
+          <span className={styles.radioLabel()}>{children}</span>
+        </>
+      )}
+    </AriaRadio>
   );
 }

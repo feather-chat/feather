@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Modal, Avatar, Button, Tabs, TabList, Tab, TabPanel, Spinner } from '../ui';
+import {
+  Modal,
+  Avatar,
+  Button,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanel,
+  Spinner,
+  RadioGroup,
+  Radio,
+} from '../ui';
 import { useChannelMembers, useAddChannelMember, useUpdateChannel } from '../../hooks/useChannels';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
 import { cn } from '../../lib/utils';
@@ -8,6 +19,9 @@ import type {
   WorkspaceMemberWithUser,
   ChannelWithMembership,
 } from '@feather/api-client';
+import { ApiError } from '@feather/api-client';
+
+const validChannelName = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 type TabId = 'about' | 'members' | 'add';
 
@@ -38,16 +52,24 @@ export function ChannelDetailsModal({
   const addMember = useAddChannelMember(channelId);
   const updateChannel = useUpdateChannel(workspaceId, channelId);
   const [addingUserId, setAddingUserId] = useState<string | null>(null);
+  const [name, setName] = useState(channel.name);
   const [description, setDescription] = useState(channel.description || '');
+  const [type, setType] = useState<'public' | 'private'>(
+    channel.type === 'private' ? 'private' : 'public',
+  );
   const [selectedTab, setSelectedTab] = useState<TabId>(defaultTab);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Reset description when modal opens or channel changes
+  // Reset state when modal opens or channel changes
   useEffect(() => {
     if (isOpen) {
+      setName(channel.name);
       setDescription(channel.description || '');
+      setType(channel.type === 'private' ? 'private' : 'public');
       setSelectedTab(defaultTab);
+      setSaveError(null);
     }
-  }, [isOpen, channel.description, defaultTab]);
+  }, [isOpen, channel.name, channel.description, channel.type, defaultTab]);
 
   const members = membersData?.members || [];
   const workspaceMembers = workspaceMembersData?.members || [];
@@ -65,11 +87,26 @@ export function ChannelDetailsModal({
     }
   };
 
-  const handleSaveDescription = async () => {
-    await updateChannel.mutateAsync({ description });
-  };
+  const isNameValid = name.trim() === '' || validChannelName.test(name.trim());
 
+  const hasNameChanged = name !== channel.name;
   const hasDescriptionChanged = description !== (channel.description || '');
+  const hasTypeChanged = type !== channel.type;
+  const hasChanges = hasNameChanged || hasDescriptionChanged || hasTypeChanged;
+
+  const handleSave = async () => {
+    setSaveError(null);
+    const input: Record<string, string | undefined> = {};
+    if (hasNameChanged) input.name = name;
+    if (hasDescriptionChanged) input.description = description;
+    if (hasTypeChanged) input.type = type;
+    try {
+      await updateChannel.mutateAsync(input as Parameters<typeof updateChannel.mutateAsync>[0]);
+      onClose();
+    } catch (err) {
+      setSaveError(err instanceof ApiError ? err.message : 'Failed to update channel');
+    }
+  };
 
   const getRoleBadge = (role?: string) => {
     if (!role || role === 'poster') return null;
@@ -87,45 +124,92 @@ export function ChannelDetailsModal({
     );
   };
 
+  const isDMChannel = channel.type === 'dm' || channel.type === 'group_dm';
+  const showVisibilityToggle = canEditChannel && !channel.is_default && !isDMChannel;
+
+  const canSave = hasChanges && isNameValid && name.trim() !== '' && !updateChannel.isPending;
+
   const renderAboutTab = () => (
-    <div className="space-y-4">
+    <form
+      className="space-y-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (canSave) handleSave();
+      }}
+    >
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Channel name
         </label>
-        <p className="text-gray-900 dark:text-white">{channel.name}</p>
+        {canEditChannel ? (
+          <>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value.toLowerCase().replace(/\s+/g, '-'));
+                setSaveError(null);
+              }}
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
+            />
+            {name.trim() !== '' && !isNameValid && (
+              <p className="mt-1 text-xs text-red-500">
+                Must contain only lowercase letters, numbers, and dashes
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="text-gray-900 dark:text-white">{channel.name}</p>
+        )}
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Description
         </label>
         {canEditChannel ? (
-          <>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add a description for this channel..."
-              className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
-              rows={3}
-            />
-            <div className="mt-2 flex justify-end">
-              <Button
-                size="sm"
-                onPress={handleSaveDescription}
-                isLoading={updateChannel.isPending}
-                isDisabled={!hasDescriptionChanged}
-              >
-                Save
-              </Button>
-            </div>
-          </>
+          <textarea
+            value={description}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              setSaveError(null);
+            }}
+            placeholder="Add a description for this channel..."
+            className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
+            rows={3}
+          />
         ) : (
           <p className="text-gray-600 dark:text-gray-400">
             {channel.description || 'No description set'}
           </p>
         )}
       </div>
-    </div>
+      {showVisibilityToggle && (
+        <RadioGroup
+          label="Visibility"
+          value={type}
+          onChange={(value) => {
+            setType(value as 'public' | 'private');
+            setSaveError(null);
+          }}
+        >
+          <Radio value="public">Public</Radio>
+          <Radio value="private">Private</Radio>
+        </RadioGroup>
+      )}
+      {canEditChannel && (
+        <div className="flex items-center justify-end gap-3">
+          {saveError && <p className="text-xs text-red-500">{saveError}</p>}
+          <Button
+            size="sm"
+            onPress={handleSave}
+            isLoading={updateChannel.isPending}
+            isDisabled={!canSave}
+          >
+            Save
+          </Button>
+        </div>
+      )}
+    </form>
   );
 
   const renderMemberList = (membersList: ChannelMember[]) => (

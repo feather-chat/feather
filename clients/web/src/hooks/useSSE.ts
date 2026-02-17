@@ -14,7 +14,6 @@ import type {
   MessageListResult,
   MessageWithUser,
   ChannelWithMembership,
-  Channel,
   NotificationData,
   CustomEmoji,
 } from '@feather/api-client';
@@ -376,11 +375,19 @@ export function useSSE(workspaceId: string | undefined) {
       const channel = event.data;
       queryClient.setQueryData(
         ['channels', workspaceId],
-        (old: { channels: Channel[] } | undefined) => {
+        (old: { channels: ChannelWithMembership[] } | undefined) => {
           if (!old) return old;
           return {
             ...old,
-            channels: old.channels.map((c) => (c.id === channel.id ? { ...c, ...channel } : c)),
+            channels: old.channels
+              .map((c) => (c.id === channel.id ? { ...c, ...channel } : c))
+              .filter((c) => {
+                // Remove channels that became private if user is not a member
+                if (c.id === channel.id && c.type === 'private' && !c.channel_role) {
+                  return false;
+                }
+                return true;
+              }),
           };
         },
       );

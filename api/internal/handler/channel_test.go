@@ -171,6 +171,123 @@ func TestUpdateChannel_NotAdmin(t *testing.T) {
 	}
 }
 
+func TestUpdateChannel_ChangeType(t *testing.T) {
+	h, db := testHandler(t)
+
+	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
+	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "my-channel", channel.TypePublic)
+
+	ctx := ctxWithUser(t, h, user.ID)
+	newType := openapi.ChannelType("private")
+	resp, err := h.UpdateChannel(ctx, openapi.UpdateChannelRequestObject{
+		Id:   ch.ID,
+		Body: &openapi.UpdateChannelJSONRequestBody{Type: &newType},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	r, ok := resp.(openapi.UpdateChannel200JSONResponse)
+	if !ok {
+		t.Fatalf("expected 200 response, got %T", resp)
+	}
+	if string(r.Channel.Type) != "private" {
+		t.Errorf("type = %q, want %q", r.Channel.Type, "private")
+	}
+}
+
+func TestUpdateChannel_CannotMakeDefaultPrivate(t *testing.T) {
+	h, db := testHandler(t)
+
+	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
+	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "general", channel.TypePublic)
+
+	// Mark as default channel
+	_, err := db.ExecContext(context.Background(),
+		`UPDATE channels SET is_default = 1 WHERE id = ?`, ch.ID)
+	if err != nil {
+		t.Fatalf("marking as default: %v", err)
+	}
+
+	ctx := ctxWithUser(t, h, user.ID)
+	newType := openapi.ChannelType("private")
+	resp, err := h.UpdateChannel(ctx, openapi.UpdateChannelRequestObject{
+		Id:   ch.ID,
+		Body: &openapi.UpdateChannelJSONRequestBody{Type: &newType},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.UpdateChannel400JSONResponse); !ok {
+		t.Fatalf("expected 400 response, got %T", resp)
+	}
+}
+
+func TestUpdateChannel_CannotChangeTypeDM(t *testing.T) {
+	h, db := testHandler(t)
+
+	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
+	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "dm-chan", channel.TypeDM)
+
+	ctx := ctxWithUser(t, h, user.ID)
+	newType := openapi.ChannelType("public")
+	resp, err := h.UpdateChannel(ctx, openapi.UpdateChannelRequestObject{
+		Id:   ch.ID,
+		Body: &openapi.UpdateChannelJSONRequestBody{Type: &newType},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.UpdateChannel400JSONResponse); !ok {
+		t.Fatalf("expected 400 response, got %T", resp)
+	}
+}
+
+func TestUpdateChannel_DuplicateName(t *testing.T) {
+	h, db := testHandler(t)
+
+	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
+	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
+	testutil.CreateTestChannel(t, db, ws.ID, user.ID, "taken-name", channel.TypePublic)
+	ch2 := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "my-channel", channel.TypePublic)
+
+	ctx := ctxWithUser(t, h, user.ID)
+	dupName := "taken-name"
+	resp, err := h.UpdateChannel(ctx, openapi.UpdateChannelRequestObject{
+		Id:   ch2.ID,
+		Body: &openapi.UpdateChannelJSONRequestBody{Name: &dupName},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.UpdateChannel400JSONResponse); !ok {
+		t.Fatalf("expected 400 response, got %T", resp)
+	}
+}
+
+func TestUpdateChannel_InvalidType(t *testing.T) {
+	h, db := testHandler(t)
+
+	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
+	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "my-channel", channel.TypePublic)
+
+	ctx := ctxWithUser(t, h, user.ID)
+	badType := openapi.ChannelType("dm")
+	resp, err := h.UpdateChannel(ctx, openapi.UpdateChannelRequestObject{
+		Id:   ch.ID,
+		Body: &openapi.UpdateChannelJSONRequestBody{Type: &badType},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.UpdateChannel400JSONResponse); !ok {
+		t.Fatalf("expected 400 response, got %T", resp)
+	}
+}
+
 func TestArchiveChannel_Success(t *testing.T) {
 	h, db := testHandler(t)
 

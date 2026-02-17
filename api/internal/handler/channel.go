@@ -175,6 +175,13 @@ func (h *Handler) UpdateChannel(ctx context.Context, request openapi.UpdateChann
 		return openapi.UpdateChannel403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
+	oldName := ch.Name
+	oldType := ch.Type
+	oldDescription := ""
+	if ch.Description != nil {
+		oldDescription = *ch.Description
+	}
+
 	if request.Body.Name != nil {
 		name := strings.TrimSpace(*request.Body.Name)
 		if name == "" {
@@ -183,17 +190,70 @@ func (h *Handler) UpdateChannel(ctx context.Context, request openapi.UpdateChann
 		if !validChannelName.MatchString(name) {
 			return openapi.UpdateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Channel name must contain only lowercase letters, numbers, and dashes")}, nil
 		}
+		// Check for duplicate name if name is changing
+		if name != ch.Name {
+			existing, err := h.channelRepo.GetByWorkspaceAndName(ctx, ch.WorkspaceID, name)
+			if err != nil {
+				return nil, err
+			}
+			if existing != nil {
+				return openapi.UpdateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "A channel with this name already exists")}, nil
+			}
+		}
 		ch.Name = name
 	}
 	if request.Body.Description != nil {
 		ch.Description = request.Body.Description
 	}
+	if request.Body.Type != nil {
+		newType := string(*request.Body.Type)
+		// Only allow public or private
+		if newType != channel.TypePublic && newType != channel.TypePrivate {
+			return openapi.UpdateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Channel type must be public or private")}, nil
+		}
+		// Cannot change type on DM/group_dm channels
+		if ch.Type == channel.TypeDM || ch.Type == channel.TypeGroupDM {
+			return openapi.UpdateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot change visibility of DM channels")}, nil
+		}
+		// Cannot make the default channel private
+		if ch.IsDefault && newType == channel.TypePrivate {
+			return openapi.UpdateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Cannot make the default channel private")}, nil
+		}
+		ch.Type = newType
+	}
 
 	if err := h.channelRepo.Update(ctx, ch); err != nil {
+		if errors.Is(err, channel.ErrChannelNameTaken) {
+			return openapi.UpdateChannel400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "A channel with this name already exists")}, nil
+		}
 		return nil, err
 	}
 
 	apiCh := channelToAPI(ch)
+
+	// Broadcast SSE channel.updated event
+	if h.hub != nil {
+		h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.Event{
+			Type: sse.EventChannelUpdated,
+			Data: apiCh,
+		})
+	}
+
+	// Create system messages for name/type changes
+	if oldName != ch.Name {
+		h.createChannelRenamedSystemMessage(ctx, ch, oldName, userID)
+	}
+	if oldType != ch.Type {
+		h.createChannelVisibilityChangedSystemMessage(ctx, ch, userID)
+	}
+	newDescription := ""
+	if ch.Description != nil {
+		newDescription = *ch.Description
+	}
+	if oldDescription != newDescription {
+		h.createChannelDescriptionUpdatedSystemMessage(ctx, ch, userID)
+	}
+
 	return openapi.UpdateChannel200JSONResponse{
 		Channel: &apiCh,
 	}, nil
@@ -975,7 +1035,35 @@ func (h *Handler) GetDMSuggestions(ctx context.Context, request openapi.GetDMSug
 
 // createJoinSystemMessage creates a system message when a user joins a channel
 func (h *Handler) createJoinSystemMessage(ctx context.Context, ch *channel.Channel, userID string) {
-	// Check workspace settings
+	user, err := h.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return
+	}
+	h.createChannelSystemMessage(ctx, ch, &message.SystemEventData{
+		EventType:       message.SystemEventUserJoined,
+		UserID:          userID,
+		UserDisplayName: user.DisplayName,
+		ChannelName:     ch.Name,
+	})
+}
+
+// createLeaveSystemMessage creates a system message when a user leaves a channel
+func (h *Handler) createLeaveSystemMessage(ctx context.Context, ch *channel.Channel, userID string) {
+	user, err := h.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return
+	}
+	h.createChannelSystemMessage(ctx, ch, &message.SystemEventData{
+		EventType:       message.SystemEventUserLeft,
+		UserID:          userID,
+		UserDisplayName: user.DisplayName,
+		ChannelName:     ch.Name,
+	})
+}
+
+// createChannelSystemMessage creates and broadcasts a system message for a channel event.
+// Checks workspace settings and silently returns on any error.
+func (h *Handler) createChannelSystemMessage(ctx context.Context, ch *channel.Channel, event *message.SystemEventData) {
 	ws, err := h.workspaceRepo.GetByID(ctx, ch.WorkspaceID)
 	if err != nil {
 		return
@@ -985,25 +1073,11 @@ func (h *Handler) createJoinSystemMessage(ctx context.Context, ch *channel.Chann
 		return
 	}
 
-	// Get user's display name
-	user, err := h.userRepo.GetByID(ctx, userID)
-	if err != nil {
-		return
-	}
-
-	event := &message.SystemEventData{
-		EventType:       message.SystemEventUserJoined,
-		UserID:          userID,
-		UserDisplayName: user.DisplayName,
-		ChannelName:     ch.Name,
-	}
-
 	msg, err := h.messageRepo.CreateSystemMessage(ctx, ch.ID, event)
 	if err != nil {
 		return
 	}
 
-	// Broadcast via SSE
 	if h.hub != nil {
 		msgWithUser, _ := h.messageRepo.GetByIDWithUser(ctx, msg.ID)
 		if msgWithUser != nil {
@@ -1016,47 +1090,48 @@ func (h *Handler) createJoinSystemMessage(ctx context.Context, ch *channel.Chann
 	}
 }
 
-// createLeaveSystemMessage creates a system message when a user leaves a channel
-func (h *Handler) createLeaveSystemMessage(ctx context.Context, ch *channel.Channel, userID string) {
-	// Check workspace settings
-	ws, err := h.workspaceRepo.GetByID(ctx, ch.WorkspaceID)
-	if err != nil {
-		return
-	}
-	settings := ws.ParsedSettings()
-	if !settings.ShowJoinLeaveMessages {
-		return
-	}
-
-	// Get user's display name
+// createChannelRenamedSystemMessage creates a system message when a channel is renamed
+func (h *Handler) createChannelRenamedSystemMessage(ctx context.Context, ch *channel.Channel, oldName string, userID string) {
 	user, err := h.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		return
 	}
-
-	event := &message.SystemEventData{
-		EventType:       message.SystemEventUserLeft,
+	h.createChannelSystemMessage(ctx, ch, &message.SystemEventData{
+		EventType:       message.SystemEventChannelRenamed,
 		UserID:          userID,
 		UserDisplayName: user.DisplayName,
 		ChannelName:     ch.Name,
-	}
+		OldChannelName:  &oldName,
+	})
+}
 
-	msg, err := h.messageRepo.CreateSystemMessage(ctx, ch.ID, event)
+// createChannelVisibilityChangedSystemMessage creates a system message when channel visibility changes
+func (h *Handler) createChannelVisibilityChangedSystemMessage(ctx context.Context, ch *channel.Channel, userID string) {
+	user, err := h.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		return
 	}
+	h.createChannelSystemMessage(ctx, ch, &message.SystemEventData{
+		EventType:       message.SystemEventChannelVisibilityChanged,
+		UserID:          userID,
+		UserDisplayName: user.DisplayName,
+		ChannelName:     ch.Name,
+		ChannelType:     &ch.Type,
+	})
+}
 
-	// Broadcast via SSE
-	if h.hub != nil {
-		msgWithUser, _ := h.messageRepo.GetByIDWithUser(ctx, msg.ID)
-		if msgWithUser != nil {
-			apiMsg := messageWithUserToAPI(msgWithUser)
-			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.Event{
-				Type: sse.EventMessageNew,
-				Data: apiMsg,
-			})
-		}
+// createChannelDescriptionUpdatedSystemMessage creates a system message when the channel description changes
+func (h *Handler) createChannelDescriptionUpdatedSystemMessage(ctx context.Context, ch *channel.Channel, userID string) {
+	user, err := h.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return
 	}
+	h.createChannelSystemMessage(ctx, ch, &message.SystemEventData{
+		EventType:       message.SystemEventChannelDescriptionUpdated,
+		UserID:          userID,
+		UserDisplayName: user.DisplayName,
+		ChannelName:     ch.Name,
+	})
 }
 
 // createAddedSystemMessage creates a system message when a user is added to a channel

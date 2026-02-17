@@ -76,6 +76,15 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
       case 'user_converted_channel':
         contentText = `converted this conversation to #${systemEvent.channel_name}`;
         break;
+      case 'channel_renamed':
+        contentText = `renamed the channel from #${systemEvent.old_channel_name} to #${systemEvent.channel_name}`;
+        break;
+      case 'channel_visibility_changed':
+        contentText = `made the channel ${systemEvent.channel_type}`;
+        break;
+      case 'channel_description_updated':
+        contentText = `updated the channel description`;
+        break;
     }
   }
 

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { LockClosedIcon, HashtagIcon } from '@heroicons/react/24/outline';
-import { Modal, Button, toast } from '../ui';
+import { Modal, Button, RadioGroup, Radio, toast } from '../ui';
 import { useConvertGroupDMToChannel } from '../../hooks/useChannels';
 
 interface ConvertToChannelModalProps {
@@ -64,35 +63,14 @@ export function ConvertToChannelModal({
         />
       </div>
       <div className="mb-3">
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Visibility
-        </label>
-        <div className="flex gap-3">
-          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm has-[:checked]:border-primary-500 has-[:checked]:ring-1 has-[:checked]:ring-primary-500 dark:border-gray-600 dark:has-[:checked]:border-primary-500">
-            <input
-              type="radio"
-              name="convertType"
-              value="private"
-              checked={type === 'private'}
-              onChange={() => setType('private')}
-              className="accent-primary-500"
-            />
-            <LockClosedIcon className="h-4 w-4 text-gray-500" />
-            <span className="text-gray-900 dark:text-white">Private</span>
-          </label>
-          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm has-[:checked]:border-primary-500 has-[:checked]:ring-1 has-[:checked]:ring-primary-500 dark:border-gray-600 dark:has-[:checked]:border-primary-500">
-            <input
-              type="radio"
-              name="convertType"
-              value="public"
-              checked={type === 'public'}
-              onChange={() => setType('public')}
-              className="accent-primary-500"
-            />
-            <HashtagIcon className="h-4 w-4 text-gray-500" />
-            <span className="text-gray-900 dark:text-white">Public</span>
-          </label>
-        </div>
+        <RadioGroup
+          label="Visibility"
+          value={type}
+          onChange={(value) => setType(value as 'public' | 'private')}
+        >
+          <Radio value="private">Private</Radio>
+          <Radio value="public">Public</Radio>
+        </RadioGroup>
       </div>
       <div className="mb-4">
         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">

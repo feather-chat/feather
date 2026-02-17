@@ -2255,7 +2255,7 @@ components:
 
     SystemEventType:
       type: string
-      enum: [user_joined, user_left, user_added, user_converted_channel]
+      enum: [user_joined, user_left, user_added, user_converted_channel, channel_renamed, channel_visibility_changed, channel_description_updated]
 
     SystemEventData:
       type: object
@@ -2278,6 +2278,12 @@ components:
         actor_display_name:
           type: string
           description: Display name of the actor
+        old_channel_name:
+          type: string
+          description: Previous channel name (for rename events)
+        channel_type:
+          type: string
+          description: New channel type (for visibility change events)
 
     Message:
       type: object
@@ -3093,6 +3099,8 @@ components:
           type: string
         description:
           type: string
+        type:
+          $ref: '#/components/schemas/ChannelType'
 
     SendMessageInput:
       type: object

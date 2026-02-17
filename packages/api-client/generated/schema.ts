@@ -1237,7 +1237,7 @@ export interface components {
         /** @enum {string} */
         MessageType: "user" | "system";
         /** @enum {string} */
-        SystemEventType: "user_joined" | "user_left" | "user_added" | "user_converted_channel";
+        SystemEventType: "user_joined" | "user_left" | "user_added" | "user_converted_channel" | "channel_renamed" | "channel_visibility_changed" | "channel_description_updated";
         SystemEventData: {
             event_type: components["schemas"]["SystemEventType"];
             /** @description The user who joined/left/was added */
@@ -1250,6 +1250,10 @@ export interface components {
             actor_id?: string;
             /** @description Display name of the actor */
             actor_display_name?: string;
+            /** @description Previous channel name (for rename events) */
+            old_channel_name?: string;
+            /** @description New channel type (for visibility change events) */
+            channel_type?: string;
         };
         Message: {
             id: string;
@@ -1664,6 +1668,7 @@ export interface components {
         UpdateChannelInput: {
             name?: string;
             description?: string;
+            type?: components["schemas"]["ChannelType"];
         };
         SendMessageInput: {
             content?: string;

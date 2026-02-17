@@ -20,6 +20,7 @@ export interface CreateChannelInput {
 export interface UpdateChannelInput {
   name?: string;
   description?: string;
+  type?: 'public' | 'private';
 }
 
 export interface CreateDMInput {
