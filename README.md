@@ -71,20 +71,18 @@ CI runs automatically on every push to `main` and on pull requests:
 
 ### Releases
 
-Releases are triggered manually by pushing a version tag:
+Releases are triggered by pushing a version tag:
 
 ```bash
-# Create and push a release tag
-git tag v1.0.0
-git push origin v1.0.0
+git tag v0.1.0
+git push origin v0.1.0
 ```
 
-This builds binaries for 6 platforms and creates a GitHub Release with:
+This builds binaries for 6 platforms (each with the web client embedded) and creates a GitHub Release:
 
 - `feather-linux-amd64`, `feather-linux-arm64`
 - `feather-darwin-amd64`, `feather-darwin-arm64`
 - `feather-windows-amd64.exe`, `feather-windows-arm64.exe`
-- `feather-web.tar.gz` (frontend bundle)
 
 ## Documentation
 
