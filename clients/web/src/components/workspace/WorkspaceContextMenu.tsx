@@ -4,12 +4,14 @@ import { ContextMenu, useContextMenu, MenuItem } from '../ui';
 interface WorkspaceContextMenuProps {
   onOpenWorkspaceSettings: () => void;
   onOpenInvite: () => void;
+  canInvite?: boolean;
   children: (onContextMenu: (e: React.MouseEvent) => void, isMenuOpen: boolean) => React.ReactNode;
 }
 
 export function WorkspaceContextMenu({
   onOpenWorkspaceSettings,
   onOpenInvite,
+  canInvite,
   children,
 }: WorkspaceContextMenuProps) {
   const { isOpen, setIsOpen, position, onContextMenu } = useContextMenu();
@@ -21,9 +23,11 @@ export function WorkspaceContextMenu({
         <MenuItem onAction={onOpenWorkspaceSettings} icon={<Cog6ToothIcon className="h-4 w-4" />}>
           Workspace Settings
         </MenuItem>
-        <MenuItem onAction={onOpenInvite} icon={<UserPlusIcon className="h-4 w-4" />}>
-          Invite People
-        </MenuItem>
+        {canInvite && (
+          <MenuItem onAction={onOpenInvite} icon={<UserPlusIcon className="h-4 w-4" />}>
+            Invite People
+          </MenuItem>
+        )}
       </ContextMenu>
     </>
   );

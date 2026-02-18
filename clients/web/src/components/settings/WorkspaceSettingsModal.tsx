@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { PhotoIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, PhotoIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import {
   useWorkspace,
   useWorkspaceMembers,
+  useUpdateWorkspace,
   useUpdateMemberRole,
   useRemoveMember,
   useUploadWorkspaceIcon,
@@ -30,9 +31,13 @@ export function WorkspaceSettingsModal({
   workspaceId,
   defaultTab = 'general',
 }: WorkspaceSettingsModalProps) {
-  const { user } = useAuth();
+  const { user, workspaces } = useAuth();
+  const workspaceMembership = workspaces?.find((w) => w.id === workspaceId);
+  const canManage = workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin';
+
   const { data: workspace, isLoading: workspaceLoading } = useWorkspace(workspaceId);
   const { data: membersData, isLoading: membersLoading } = useWorkspaceMembers(workspaceId);
+  const updateWorkspace = useUpdateWorkspace(workspaceId);
   const updateRole = useUpdateMemberRole(workspaceId);
   const removeMember = useRemoveMember(workspaceId);
   const uploadIcon = useUploadWorkspaceIcon(workspaceId);
@@ -45,6 +50,8 @@ export function WorkspaceSettingsModal({
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [expiresIn, setExpiresIn] = useState('7');
   const [maxUses, setMaxUses] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editName, setEditName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const members = membersData?.members ?? [];
@@ -56,12 +63,14 @@ export function WorkspaceSettingsModal({
   if ((isOpen && !prevOpen) || (isOpen && defaultTab !== prevDefaultTab)) {
     setPrevOpen(isOpen);
     setPrevDefaultTab(defaultTab);
-    setSelectedTab(defaultTab);
+    setSelectedTab(!canManage && defaultTab === 'invite' ? 'general' : defaultTab);
     setSelectedFile(null);
     setPreviewUrl(null);
     setInviteLink(null);
     setExpiresIn('7');
     setMaxUses('');
+    setIsEditingName(false);
+    setEditName('');
   }
   if (!isOpen && prevOpen) {
     setPrevOpen(false);
@@ -80,6 +89,21 @@ export function WorkspaceSettingsModal({
       fileInputRef.current.value = '';
     }
   }, [selectedFile]);
+
+  const handleUpdateName = async () => {
+    const trimmed = editName.trim();
+    if (!trimmed || trimmed === workspace?.workspace.name) {
+      setIsEditingName(false);
+      return;
+    }
+    try {
+      await updateWorkspace.mutateAsync({ name: trimmed });
+      toast('Workspace name updated', 'success');
+      setIsEditingName(false);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to update name', 'error');
+    }
+  };
 
   const handleRoleChange = async (userId: string, role: WorkspaceRole) => {
     try {
@@ -184,7 +208,7 @@ export function WorkspaceSettingsModal({
             <Tab id="general">General</Tab>
             <Tab id="members">Members ({members.length})</Tab>
             <Tab id="emoji">Emoji</Tab>
-            <Tab id="invite">Invite</Tab>
+            {canManage && <Tab id="invite">Invite</Tab>}
           </TabList>
 
           <TabPanel id="general" className="max-h-[60vh] overflow-y-auto pt-4">
@@ -214,68 +238,70 @@ export function WorkspaceSettingsModal({
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/gif,image/webp"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
+                  {canManage && (
+                    <div className="flex flex-col gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
 
-                    {selectedFile ? (
-                      <>
-                        <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
-                          Selected: {selectedFile.name}
-                        </p>
+                      {selectedFile ? (
+                        <>
+                          <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+                            Selected: {selectedFile.name}
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onPress={handleUploadIcon}
+                              isLoading={uploadIcon.isPending}
+                            >
+                              <PhotoIcon className="mr-1 h-4 w-4" />
+                              Save Icon
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onPress={handleClearSelection}
+                              isDisabled={uploadIcon.isPending}
+                            >
+                              <XMarkIcon className="mr-1 h-4 w-4" />
+                              Cancel
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
                         <div className="flex gap-2">
                           <Button
+                            variant="secondary"
                             size="sm"
-                            onPress={handleUploadIcon}
-                            isLoading={uploadIcon.isPending}
+                            onPress={() => fileInputRef.current?.click()}
                           >
                             <PhotoIcon className="mr-1 h-4 w-4" />
-                            Save Icon
+                            Upload Icon
                           </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onPress={handleClearSelection}
-                            isDisabled={uploadIcon.isPending}
-                          >
-                            <XMarkIcon className="mr-1 h-4 w-4" />
-                            Cancel
-                          </Button>
+                          {workspace?.workspace.icon_url && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onPress={handleRemoveIcon}
+                              isLoading={deleteIcon.isPending}
+                            >
+                              <TrashIcon className="mr-1 h-4 w-4" />
+                              Remove
+                            </Button>
+                          )}
                         </div>
-                      </>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onPress={() => fileInputRef.current?.click()}
-                        >
-                          <PhotoIcon className="mr-1 h-4 w-4" />
-                          Upload Icon
-                        </Button>
-                        {workspace?.workspace.icon_url && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onPress={handleRemoveIcon}
-                            isLoading={deleteIcon.isPending}
-                          >
-                            <TrashIcon className="mr-1 h-4 w-4" />
-                            Remove
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                      )}
 
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      JPEG, PNG, GIF, or WebP. Max 5MB.
-                    </p>
-                  </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        JPEG, PNG, GIF, or WebP. Max 5MB.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -283,7 +309,51 @@ export function WorkspaceSettingsModal({
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Workspace Name
                 </label>
-                <p className="text-gray-900 dark:text-white">{workspace?.workspace.name}</p>
+                {canManage && isEditingName ? (
+                  <form
+                    className="flex items-center gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleUpdateName();
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      autoFocus
+                      className="rounded-md border border-gray-300 bg-white px-2 py-1 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                    <Button size="sm" type="submit" isLoading={updateWorkspace.isPending}>
+                      Save
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      type="button"
+                      onPress={() => setIsEditingName(false)}
+                      isDisabled={updateWorkspace.isPending}
+                    >
+                      Cancel
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <p className="text-gray-900 dark:text-white">{workspace?.workspace.name}</p>
+                    {canManage && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditName(workspace?.workspace.name || '');
+                          setIsEditingName(true);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -320,20 +390,35 @@ export function WorkspaceSettingsModal({
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <select
-                      value={member.role}
-                      onChange={(e) =>
-                        handleRoleChange(member.user_id, e.target.value as WorkspaceRole)
-                      }
-                      disabled={member.user_id === user?.id}
-                      className="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    >
-                      <option value="owner">Owner</option>
-                      <option value="admin">Admin</option>
-                      <option value="member">Member</option>
-                    </select>
+                    {canManage ? (
+                      <select
+                        value={member.role}
+                        onChange={(e) =>
+                          handleRoleChange(member.user_id, e.target.value as WorkspaceRole)
+                        }
+                        disabled={member.user_id === user?.id || member.role === 'owner'}
+                        className="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      >
+                        <option value="owner">Owner</option>
+                        <option value="admin">Admin</option>
+                        <option value="member">Member</option>
+                      </select>
+                    ) : (
+                      <span
+                        className={cn(
+                          'rounded px-2 py-0.5 text-xs font-medium capitalize',
+                          member.role === 'owner'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            : member.role === 'admin'
+                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                              : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+                        )}
+                      >
+                        {member.role}
+                      </span>
+                    )}
 
-                    {member.user_id !== user?.id && (
+                    {canManage && member.user_id !== user?.id && (
                       <Button
                         variant="secondary"
                         size="sm"
@@ -352,68 +437,70 @@ export function WorkspaceSettingsModal({
             <CustomEmojiManager workspaceId={workspaceId} />
           </TabPanel>
 
-          <TabPanel id="invite" className="max-h-[60vh] overflow-y-auto pt-4">
-            <div className="space-y-6 rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
-              <p className="text-gray-600 dark:text-gray-300">
-                Create an invite link to share with people you want to join this workspace.
-              </p>
+          {canManage && (
+            <TabPanel id="invite" className="max-h-[60vh] overflow-y-auto pt-4">
+              <div className="space-y-6 rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
+                <p className="text-gray-600 dark:text-gray-300">
+                  Create an invite link to share with people you want to join this workspace.
+                </p>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Expires in (days)
-                  </label>
-                  <select
-                    value={expiresIn}
-                    onChange={(e) => setExpiresIn(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="1">1 day</option>
-                    <option value="7">7 days</option>
-                    <option value="30">30 days</option>
-                    <option value="">Never</option>
-                  </select>
-                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Expires in (days)
+                    </label>
+                    <select
+                      value={expiresIn}
+                      onChange={(e) => setExpiresIn(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="1">1 day</option>
+                      <option value="7">7 days</option>
+                      <option value="30">30 days</option>
+                      <option value="">Never</option>
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Max uses
-                  </label>
-                  <input
-                    type="number"
-                    value={maxUses}
-                    onChange={(e) => setMaxUses(e.target.value)}
-                    placeholder="Unlimited"
-                    min="1"
-                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <Button onPress={handleCreateInvite} isLoading={createInvite.isPending}>
-                Generate Invite Link
-              </Button>
-
-              {inviteLink && (
-                <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-600 dark:bg-gray-700">
-                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Your invite link
-                  </label>
-                  <div className="flex gap-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Max uses
+                    </label>
                     <input
-                      type="text"
-                      value={inviteLink}
-                      readOnly
-                      className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
+                      type="number"
+                      value={maxUses}
+                      onChange={(e) => setMaxUses(e.target.value)}
+                      placeholder="Unlimited"
+                      min="1"
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     />
-                    <Button onPress={handleCopyLink} variant="secondary">
-                      Copy
-                    </Button>
                   </div>
                 </div>
-              )}
-            </div>
-          </TabPanel>
+
+                <Button onPress={handleCreateInvite} isLoading={createInvite.isPending}>
+                  Generate Invite Link
+                </Button>
+
+                {inviteLink && (
+                  <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-600 dark:bg-gray-700">
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Your invite link
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={inviteLink}
+                        readOnly
+                        className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
+                      />
+                      <Button onPress={handleCopyLink} variant="secondary">
+                        Copy
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabPanel>
+          )}
         </Tabs>
       )}
     </Modal>

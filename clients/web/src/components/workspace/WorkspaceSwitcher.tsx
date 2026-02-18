@@ -148,6 +148,7 @@ export function WorkspaceSwitcher({
                 onPress={() => navigate(`/workspaces/${ws.id}`)}
                 notificationMap={notificationMap}
                 onOpenWorkspaceSettings={onOpenWorkspaceSettings}
+                canInvite={ws.role === 'owner' || ws.role === 'admin'}
               />
             ))}
           </SortableContext>
@@ -197,6 +198,7 @@ interface SortableWorkspaceItemProps {
   onPress: () => void;
   notificationMap: Map<string, WorkspaceNotificationSummary>;
   onOpenWorkspaceSettings: (workspaceId: string, tab?: WorkspaceSettingsTab) => void;
+  canInvite: boolean;
 }
 
 function SortableWorkspaceItem({
@@ -205,6 +207,7 @@ function SortableWorkspaceItem({
   onPress,
   notificationMap,
   onOpenWorkspaceSettings,
+  canInvite,
 }: SortableWorkspaceItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: workspace.id,
@@ -220,6 +223,7 @@ function SortableWorkspaceItem({
     <WorkspaceContextMenu
       onOpenWorkspaceSettings={() => onOpenWorkspaceSettings(workspace.id)}
       onOpenInvite={() => onOpenWorkspaceSettings(workspace.id, 'invite')}
+      canInvite={canInvite}
     >
       {(onContextMenu, isMenuOpen) => (
         <Tooltip content={workspace.name} placement="right">
@@ -330,11 +334,13 @@ interface UserMenuProps {
 }
 
 function UserMenu({ onOpenWorkspaceSettings, onOpenServerSettings }: UserMenuProps) {
-  const { user, logout } = useAuth();
+  const { user, workspaces, logout } = useAuth();
   const { openProfile } = useProfilePanel();
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const navigate = useNavigate();
   const { mode, setMode } = useDarkMode();
+  const workspaceMembership = workspaces?.find((w) => w.id === workspaceId);
+  const canManage = workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin';
 
   const handleLogout = async () => {
     try {
@@ -407,12 +413,14 @@ function UserMenu({ onOpenWorkspaceSettings, onOpenServerSettings }: UserMenuPro
             >
               Workspace Settings
             </MenuItem>
-            <MenuItem
-              onAction={() => onOpenWorkspaceSettings(workspaceId, 'invite')}
-              icon={<UserPlusIcon className="h-4 w-4" />}
-            >
-              Invite People
-            </MenuItem>
+            {canManage && (
+              <MenuItem
+                onAction={() => onOpenWorkspaceSettings(workspaceId, 'invite')}
+                icon={<UserPlusIcon className="h-4 w-4" />}
+              >
+                Invite People
+              </MenuItem>
+            )}
           </>
         )}
 

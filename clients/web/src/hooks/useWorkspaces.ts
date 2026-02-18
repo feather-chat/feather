@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   workspacesApi,
   type CreateWorkspaceInput,
+  type UpdateWorkspaceInput,
   type CreateInviteInput,
 } from '../api/workspaces';
 import type {
@@ -33,6 +34,18 @@ export function useCreateWorkspace() {
   return useMutation({
     mutationFn: (input: CreateWorkspaceInput) => workspacesApi.create(input),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    },
+  });
+}
+
+export function useUpdateWorkspace(workspaceId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: UpdateWorkspaceInput) => workspacesApi.update(workspaceId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspace', workspaceId] });
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     },
   });
