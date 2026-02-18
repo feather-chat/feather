@@ -43,8 +43,8 @@ const toolbar = tv({
     button: [
       'p-1.5 rounded transition-colors text-gray-500 dark:text-gray-400',
       'hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200',
-      'data-[selected=true]:bg-gray-200 dark:data-[selected=true]:bg-gray-700',
-      'data-[selected=true]:text-gray-900 dark:data-[selected=true]:text-white',
+      'selected:bg-gray-200 dark:selected:bg-gray-700',
+      'selected:text-gray-900 dark:selected:text-white',
       'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
       'disabled:opacity-50 disabled:cursor-not-allowed',
     ],

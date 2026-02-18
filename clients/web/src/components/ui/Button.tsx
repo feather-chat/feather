@@ -8,7 +8,7 @@ const button = tv({
     'inline-flex items-center justify-center rounded font-medium transition-colors',
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'disabled:opacity-50 disabled:cursor-not-allowed',
-    'data-[pressed]:opacity-90',
+    'pressed:opacity-90',
   ],
   variants: {
     variant: {
