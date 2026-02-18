@@ -34,6 +34,7 @@ const modal = tv({
       sm: { container: 'max-w-sm' },
       md: { container: 'max-w-md' },
       lg: { container: 'max-w-lg' },
+      xl: { container: 'max-w-2xl' },
     },
   },
   defaultVariants: {

@@ -57,7 +57,17 @@ import { cn, getAvatarColor } from '../../lib/utils';
 import type { WorkspaceSummary, WorkspaceNotificationSummary } from '@feather/api-client';
 import { WorkspaceContextMenu } from './WorkspaceContextMenu';
 
-export function WorkspaceSwitcher() {
+import type { WorkspaceSettingsTab } from '../settings/WorkspaceSettingsModal';
+
+interface WorkspaceSwitcherProps {
+  onOpenWorkspaceSettings: (workspaceId: string, tab?: WorkspaceSettingsTab) => void;
+  onOpenServerSettings: () => void;
+}
+
+export function WorkspaceSwitcher({
+  onOpenWorkspaceSettings,
+  onOpenServerSettings,
+}: WorkspaceSwitcherProps) {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const navigate = useNavigate();
   const { workspaces: serverWorkspaces } = useAuth();
@@ -137,6 +147,7 @@ export function WorkspaceSwitcher() {
                 isActive={ws.id === workspaceId}
                 onPress={() => navigate(`/workspaces/${ws.id}`)}
                 notificationMap={notificationMap}
+                onOpenWorkspaceSettings={onOpenWorkspaceSettings}
               />
             ))}
           </SortableContext>
@@ -166,7 +177,10 @@ export function WorkspaceSwitcher() {
       {/* Bottom section */}
       <div className="flex flex-col items-center gap-3">
         {/* User menu */}
-        <UserMenu />
+        <UserMenu
+          onOpenWorkspaceSettings={onOpenWorkspaceSettings}
+          onOpenServerSettings={onOpenServerSettings}
+        />
       </div>
 
       <CreateWorkspaceModal
@@ -182,6 +196,7 @@ interface SortableWorkspaceItemProps {
   isActive: boolean;
   onPress: () => void;
   notificationMap: Map<string, WorkspaceNotificationSummary>;
+  onOpenWorkspaceSettings: (workspaceId: string, tab?: WorkspaceSettingsTab) => void;
 }
 
 function SortableWorkspaceItem({
@@ -189,6 +204,7 @@ function SortableWorkspaceItem({
   isActive,
   onPress,
   notificationMap,
+  onOpenWorkspaceSettings,
 }: SortableWorkspaceItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: workspace.id,
@@ -201,7 +217,10 @@ function SortableWorkspaceItem({
   };
 
   return (
-    <WorkspaceContextMenu workspace={workspace}>
+    <WorkspaceContextMenu
+      onOpenWorkspaceSettings={() => onOpenWorkspaceSettings(workspace.id)}
+      onOpenInvite={() => onOpenWorkspaceSettings(workspace.id, 'invite')}
+    >
       {(onContextMenu, isMenuOpen) => (
         <Tooltip content={workspace.name} placement="right">
           <div
@@ -294,18 +313,23 @@ function WorkspaceItemContent({
         )}
       </div>
       {totalNotifications > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+        <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
           {totalNotifications > 99 ? '99+' : totalNotifications}
         </span>
       )}
       {totalNotifications === 0 && hasUnread && (
-        <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary-500" />
+        <span className="bg-primary-500 absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full" />
       )}
     </div>
   );
 }
 
-function UserMenu() {
+interface UserMenuProps {
+  onOpenWorkspaceSettings: (workspaceId: string, tab?: WorkspaceSettingsTab) => void;
+  onOpenServerSettings: () => void;
+}
+
+function UserMenu({ onOpenWorkspaceSettings, onOpenServerSettings }: UserMenuProps) {
   const { user, logout } = useAuth();
   const { openProfile } = useProfilePanel();
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -378,13 +402,13 @@ function UserMenu() {
         {workspaceId && (
           <>
             <MenuItem
-              onAction={() => navigate(`/workspaces/${workspaceId}/settings`)}
+              onAction={() => onOpenWorkspaceSettings(workspaceId)}
               icon={<Cog6ToothIcon className="h-4 w-4" />}
             >
               Workspace Settings
             </MenuItem>
             <MenuItem
-              onAction={() => navigate(`/workspaces/${workspaceId}/invite`)}
+              onAction={() => onOpenWorkspaceSettings(workspaceId, 'invite')}
               icon={<UserPlusIcon className="h-4 w-4" />}
             >
               Invite People
@@ -392,10 +416,7 @@ function UserMenu() {
           </>
         )}
 
-        <MenuItem
-          onAction={() => navigate('/settings')}
-          icon={<ServerStackIcon className="h-4 w-4" />}
-        >
+        <MenuItem onAction={onOpenServerSettings} icon={<ServerStackIcon className="h-4 w-4" />}>
           Server Settings
         </MenuItem>
 

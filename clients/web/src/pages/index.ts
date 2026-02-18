@@ -1,10 +1,7 @@
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';
 export { WorkspaceLandingPage } from './WorkspaceLandingPage';
-export { WorkspaceSettingsPage } from './WorkspaceSettingsPage';
 export { ChannelPage } from './ChannelPage';
 export { AcceptInvitePage } from './AcceptInvitePage';
-export { InvitePage } from './InvitePage';
-export { ServerSettingsPage } from './ServerSettingsPage';
 export { AllUnreadsPage } from './AllUnreadsPage';
 export { ThreadsPage } from './ThreadsPage';

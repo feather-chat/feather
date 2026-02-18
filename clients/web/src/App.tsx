@@ -9,15 +9,6 @@ import { LoginPage, RegisterPage, WorkspaceLandingPage, ChannelPage } from './pa
 import { useDarkMode } from './hooks/useDarkMode';
 
 // Lazy-loaded pages (not on critical path)
-const WorkspaceSettingsPage = lazy(() =>
-  import('./pages/WorkspaceSettingsPage').then((m) => ({ default: m.WorkspaceSettingsPage })),
-);
-const InvitePage = lazy(() =>
-  import('./pages/InvitePage').then((m) => ({ default: m.InvitePage })),
-);
-const ServerSettingsPage = lazy(() =>
-  import('./pages/ServerSettingsPage').then((m) => ({ default: m.ServerSettingsPage })),
-);
 const AcceptInvitePage = lazy(() =>
   import('./pages/AcceptInvitePage').then((m) => ({ default: m.AcceptInvitePage })),
 );
@@ -31,7 +22,7 @@ const ThreadsPage = lazy(() =>
 function PageSpinner() {
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+      <div className="border-primary-200 border-t-primary-600 h-8 w-8 animate-spin rounded-full border-4" />
     </div>
   );
 }
@@ -87,35 +78,7 @@ function App() {
                 </Suspense>
               }
             />
-            <Route
-              path="settings"
-              element={
-                <Suspense fallback={<PageSpinner />}>
-                  <WorkspaceSettingsPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="invite"
-              element={
-                <Suspense fallback={<PageSpinner />}>
-                  <InvitePage />
-                </Suspense>
-              }
-            />
           </Route>
-
-          {/* Server settings */}
-          <Route
-            path="/settings"
-            element={
-              <RequireAuth>
-                <Suspense fallback={<PageSpinner />}>
-                  <ServerSettingsPage />
-                </Suspense>
-              </RequireAuth>
-            }
-          />
 
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />

@@ -5,6 +5,11 @@ import { ChannelSidebar } from '../channel/ChannelSidebar';
 import { ThreadPanel } from '../thread/ThreadPanel';
 import { ProfilePane } from '../profile/ProfilePane';
 import { SearchModal } from '../search/SearchModal';
+import {
+  WorkspaceSettingsModal,
+  type WorkspaceSettingsTab,
+} from '../settings/WorkspaceSettingsModal';
+import { ServerSettingsModal } from '../settings/ServerSettingsModal';
 import { useSSE } from '../../hooks';
 import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
 import { useSidebar } from '../../hooks/useSidebar';
@@ -17,9 +22,23 @@ export function AppLayout() {
   const { profileUserId } = useProfilePanel();
   const { collapsed: sidebarCollapsed } = useSidebar();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isWorkspaceSettingsOpen, setIsWorkspaceSettingsOpen] = useState(false);
+  const [workspaceSettingsTab, setWorkspaceSettingsTab] = useState<WorkspaceSettingsTab>('general');
+  const [settingsWorkspaceId, setSettingsWorkspaceId] = useState<string>('');
+  const [isServerSettingsOpen, setIsServerSettingsOpen] = useState(false);
 
   const handleOpenSearch = useCallback(() => {
     setIsSearchOpen(true);
+  }, []);
+
+  const handleOpenWorkspaceSettings = useCallback((wsId: string, tab?: WorkspaceSettingsTab) => {
+    setSettingsWorkspaceId(wsId);
+    setWorkspaceSettingsTab(tab ?? 'general');
+    setIsWorkspaceSettingsOpen(true);
+  }, []);
+
+  const handleOpenServerSettings = useCallback(() => {
+    setIsServerSettingsOpen(true);
   }, []);
 
   // Global Cmd+K / Ctrl+K keyboard shortcut
@@ -45,7 +64,10 @@ export function AppLayout() {
 
       <div className="flex min-h-0 flex-1">
         {/* Workspace Switcher */}
-        <WorkspaceSwitcher />
+        <WorkspaceSwitcher
+          onOpenWorkspaceSettings={handleOpenWorkspaceSettings}
+          onOpenServerSettings={handleOpenServerSettings}
+        />
 
         {/* Channel Sidebar */}
         <div
@@ -74,6 +96,22 @@ export function AppLayout() {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         initialChannelId={channelId}
+      />
+
+      {/* Workspace Settings Modal */}
+      {settingsWorkspaceId && (
+        <WorkspaceSettingsModal
+          isOpen={isWorkspaceSettingsOpen}
+          onClose={() => setIsWorkspaceSettingsOpen(false)}
+          workspaceId={settingsWorkspaceId}
+          defaultTab={workspaceSettingsTab}
+        />
+      )}
+
+      {/* Server Settings Modal */}
+      <ServerSettingsModal
+        isOpen={isServerSettingsOpen}
+        onClose={() => setIsServerSettingsOpen(false)}
       />
     </div>
   );
