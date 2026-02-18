@@ -42,7 +42,7 @@ function ThreadItem({ thread, onOpen }: { thread: ThreadMessage; onOpen: (id: st
                 : `#${thread.channel_name}`}
             </span>
             {thread.has_new_replies && (
-              <span className="h-2 w-2 flex-shrink-0 rounded-full bg-primary-500" />
+              <span className="bg-primary-500 h-2 w-2 flex-shrink-0 rounded-full" />
             )}
           </div>
           <div className="flex items-start gap-2">
@@ -148,7 +148,7 @@ export function ThreadsPage() {
                 <button
                   onClick={() => fetchNextPage()}
                   disabled={isFetchingNextPage}
-                  className="text-sm text-primary-600 hover:underline disabled:opacity-50 dark:text-primary-400"
+                  className="text-primary-600 dark:text-primary-400 text-sm hover:underline disabled:opacity-50"
                 >
                   {isFetchingNextPage ? 'Loading...' : 'Load more'}
                 </button>

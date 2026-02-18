@@ -263,7 +263,7 @@ export function ChannelSidebar({ workspaceId, onSearchClick }: ChannelSidebarPro
             </span>
             <span className={cn('truncate', hasUnread && 'font-semibold')}>All Unreads</span>
             {hasNotifications && (
-              <span className="ml-auto rounded-full bg-primary-600 px-1.5 py-0.5 text-xs text-white">
+              <span className="bg-primary-600 ml-auto rounded-full px-1.5 py-0.5 text-xs text-white">
                 {totalNotificationCount}
               </span>
             )}
@@ -284,7 +284,7 @@ export function ChannelSidebar({ workspaceId, onSearchClick }: ChannelSidebarPro
               Threads
             </span>
             {unreadThreadCount > 0 && (
-              <span className="ml-auto rounded-full bg-primary-600 px-1.5 py-0.5 text-xs text-white">
+              <span className="bg-primary-600 ml-auto rounded-full px-1.5 py-0.5 text-xs text-white">
                 {unreadThreadCount}
               </span>
             )}
@@ -637,7 +637,7 @@ function ChannelItemLink({ channel, workspaceId, isActive, isMenuOpen }: Channel
     >
       <ChannelItemContent channel={channel} isActive={isActive} />
       {hasNotifications && (
-        <span className="ml-auto rounded-full bg-primary-600 px-1.5 py-0.5 text-xs text-white">
+        <span className="bg-primary-600 ml-auto rounded-full px-1.5 py-0.5 text-xs text-white">
           {channel.notification_count}
         </span>
       )}
@@ -931,13 +931,13 @@ function NewDMModal({
               return (
                 <span
                   key={member.user_id}
-                  className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2.5 py-1 text-sm text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                  className="bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm"
                 >
                   {displayName}
                   <button
                     type="button"
                     onClick={() => removeUser(member.user_id)}
-                    className="ml-0.5 rounded-full p-0.5 hover:bg-primary-200 dark:hover:bg-primary-800/50"
+                    className="hover:bg-primary-200 dark:hover:bg-primary-800/50 ml-0.5 rounded-full p-0.5"
                   >
                     <svg className="h-3 w-3" viewBox="0 0 12 12" fill="currentColor">
                       <path d="M3.05 3.05a.75.75 0 011.06 0L6 4.94l1.89-1.89a.75.75 0 111.06 1.06L7.06 6l1.89 1.89a.75.75 0 11-1.06 1.06L6 7.06 4.11 8.95a.75.75 0 01-1.06-1.06L4.94 6 3.05 4.11a.75.75 0 010-1.06z" />
@@ -987,7 +987,7 @@ function NewDMModal({
                 <span className="flex-1 text-gray-900 dark:text-white">{displayName}</span>
                 {isSelected && (
                   <svg
-                    className="h-5 w-5 text-primary-600 dark:text-primary-400"
+                    className="text-primary-600 dark:text-primary-400 h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >

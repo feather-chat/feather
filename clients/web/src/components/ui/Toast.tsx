@@ -31,7 +31,7 @@ export function Toaster() {
   return (
     <ToastRegion
       queue={toastQueue}
-      className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 outline-none"
+      className="fixed right-4 bottom-4 z-50 flex flex-col gap-2 outline-none"
     >
       {({ toast }) => {
         const Icon = typeIcons[toast.content.type];

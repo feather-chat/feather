@@ -136,7 +136,7 @@ export function AllUnreadsPage() {
                 <button
                   onClick={() => fetchNextPage()}
                   disabled={isFetchingNextPage}
-                  className="text-sm text-primary-600 hover:underline disabled:opacity-50 dark:text-primary-400"
+                  className="text-primary-600 dark:text-primary-400 text-sm hover:underline disabled:opacity-50"
                 >
                   {isFetchingNextPage ? 'Loading...' : 'Load more'}
                 </button>

@@ -278,7 +278,7 @@ export function ChannelPage() {
                 <Tooltip content={channel.description} placement="bottom">
                   <AriaButton
                     ref={descriptionRef as React.RefObject<HTMLButtonElement>}
-                    className="min-w-0 max-w-md cursor-default truncate border-none bg-transparent p-0 text-left text-sm text-gray-400 outline-none dark:text-gray-500"
+                    className="max-w-md min-w-0 cursor-default truncate border-none bg-transparent p-0 text-left text-sm text-gray-400 outline-none dark:text-gray-500"
                     excludeFromTabOrder
                   >
                     {channel.description}
@@ -287,7 +287,7 @@ export function ChannelPage() {
               ) : (
                 <span
                   ref={descriptionRef as React.RefObject<HTMLSpanElement>}
-                  className="min-w-0 max-w-md truncate text-sm text-gray-400 dark:text-gray-500"
+                  className="max-w-md min-w-0 truncate text-sm text-gray-400 dark:text-gray-500"
                 >
                   {channel.description}
                 </span>

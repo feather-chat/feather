@@ -115,7 +115,7 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
       {/* Details */}
       <div className="space-y-3">
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <dt className="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             Member since
           </dt>
           <dd className="mt-1 text-sm text-gray-900 dark:text-white">{memberSince}</dd>

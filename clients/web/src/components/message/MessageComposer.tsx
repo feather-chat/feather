@@ -284,14 +284,14 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
                 <button
                   type="button"
                   onClick={() => removeAttachment(attachment.id)}
-                  className="absolute right-0.5 top-0.5 rounded bg-black/50 p-0.5 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
+                  className="absolute top-0.5 right-0.5 rounded bg-black/50 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/70"
                   title="Remove"
                 >
                   <XMarkIcon className="h-4 w-4" />
                 </button>
 
                 {/* File name tooltip */}
-                <div className="absolute bottom-0 left-0 right-0 truncate bg-black/50 px-1 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute right-0 bottom-0 left-0 truncate bg-black/50 px-1 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
                   {attachment.file.name}
                 </div>
               </div>
@@ -311,13 +311,13 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
           }}
           className={cn(
             'relative rounded-lg transition-colors',
-            isDragging && 'bg-primary-50 ring-2 ring-primary-500 dark:bg-primary-900/20',
+            isDragging && 'bg-primary-50 ring-primary-500 dark:bg-primary-900/20 ring-2',
           )}
         >
           {/* Drop overlay */}
           {isDragging && (
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-primary-50/90 dark:bg-primary-900/80">
-              <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
+            <div className="bg-primary-50/90 dark:bg-primary-900/80 pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg">
+              <span className="text-primary-600 dark:text-primary-400 text-sm font-medium">
                 Drop files to upload
               </span>
             </div>
@@ -339,12 +339,12 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
               onAttachmentClick={handleFilesSelected}
               belowEditor={
                 isThreadVariant ? (
-                  <label className="flex cursor-pointer select-none items-center gap-2 px-4 py-1.5">
+                  <label className="flex cursor-pointer items-center gap-2 px-4 py-1.5 select-none">
                     <input
                       type="checkbox"
                       checked={alsoSendToChannel}
                       onChange={(e) => setAlsoSendToChannel(e.target.checked)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+                      className="text-primary-600 focus:ring-primary-500 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                     />
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       Also send to{' '}

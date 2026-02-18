@@ -138,7 +138,7 @@ function ImageCarousel({ images, initialIndex, isOpen, onClose }: ImageCarouselP
               </AriaButton>
             )}
 
-            <div className="absolute right-2 top-2 flex gap-2">
+            <div className="absolute top-2 right-2 flex gap-2">
               <CarouselDownloadLink fileId={current.id} filename={current.filename} />
               <button
                 onClick={onClose}
@@ -156,7 +156,7 @@ function ImageCarousel({ images, initialIndex, isOpen, onClose }: ImageCarouselP
               </button>
             </div>
 
-            <div className="absolute bottom-2 left-2 right-2 text-center">
+            <div className="absolute right-2 bottom-2 left-2 text-center">
               <Heading
                 slot="title"
                 className="inline-block rounded-lg bg-black/50 px-3 py-1 text-sm text-white"
@@ -213,7 +213,7 @@ function ImageGrid({ images }: ImageGridProps) {
               key={image.id}
               onClick={() => openCarousel(isOverlayCell ? 3 : index)}
               className={cn(
-                'relative cursor-pointer overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500',
+                'relative cursor-pointer overflow-hidden focus:ring-2 focus:ring-blue-500 focus:outline-none',
                 // Layout: 3 images → first spans full width
                 images.length === 3 && index === 0 && 'col-span-2 aspect-video',
                 // All other cells are square

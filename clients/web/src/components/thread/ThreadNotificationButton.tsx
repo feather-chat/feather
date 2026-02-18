@@ -44,7 +44,7 @@ export function ThreadNotificationButton({ messageId }: ThreadNotificationButton
         <AriaButton
           isDisabled={isPending}
           className={cn(
-            'cursor-pointer rounded p-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-500',
+            'focus-visible:ring-primary-500 cursor-pointer rounded p-1 transition-colors outline-none focus-visible:ring-2',
             'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700',
             isPending && 'cursor-not-allowed opacity-50',
           )}

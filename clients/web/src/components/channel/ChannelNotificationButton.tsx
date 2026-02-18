@@ -54,7 +54,7 @@ export function ChannelNotificationButton({
       trigger={
         <AriaButton
           className={cn(
-            'cursor-pointer rounded p-1.5 outline-none hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:bg-gray-800',
+            'focus-visible:ring-primary-500 cursor-pointer rounded p-1.5 outline-none hover:bg-gray-100 focus-visible:ring-2 dark:hover:bg-gray-800',
             isMuted ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400',
           )}
           aria-label="Channel notification settings"

@@ -528,14 +528,14 @@ export function MessageList({
 
       {/* Loading indicators — absolutely positioned to avoid layout shift */}
       {isFetchingNextPage && (
-        <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex justify-center py-2">
+        <div className="pointer-events-none absolute top-0 right-0 left-0 z-10 flex justify-center py-2">
           <div className="rounded-full bg-white/90 px-3 py-1 text-xs text-gray-500 shadow-sm dark:bg-gray-800/90 dark:text-gray-400">
             Loading...
           </div>
         </div>
       )}
       {isFetchingPreviousPage && (
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex justify-center py-2">
+        <div className="pointer-events-none absolute right-0 bottom-0 left-0 z-10 flex justify-center py-2">
           <div className="rounded-full bg-white/90 px-3 py-1 text-xs text-gray-500 shadow-sm dark:bg-gray-800/90 dark:text-gray-400">
             Loading...
           </div>

@@ -31,7 +31,7 @@ export function ThreadRepliesIndicator({
       {threadParticipants && threadParticipants.length > 0 && (
         <AvatarStack users={threadParticipants} showCount={false} />
       )}
-      <span className="text-sm text-primary-600 dark:text-primary-400">
+      <span className="text-primary-600 dark:text-primary-400 text-sm">
         {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
       </span>
       {lastReplyAt && (

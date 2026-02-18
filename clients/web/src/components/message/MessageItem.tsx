@@ -208,7 +208,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
 
           {/* Content */}
           <div className="min-w-0 flex-1">
-            <span className="text-sm italic text-gray-400 dark:text-gray-500">
+            <span className="text-sm text-gray-400 italic dark:text-gray-500">
               This message was deleted.
             </span>
 
@@ -276,7 +276,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
             <button
               type="button"
               onClick={() => openThread(message.thread_parent_id!)}
-              className="text-xs text-primary-600 hover:underline dark:text-primary-400"
+              className="text-primary-600 dark:text-primary-400 text-xs hover:underline"
             >
               replied to a thread
             </button>
@@ -290,14 +290,14 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleEditKeyDown}
-                className="w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                className="focus:ring-primary-500 w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:ring-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 rows={3}
               />
               <div className="flex items-center gap-2 text-sm">
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="rounded bg-primary-600 px-3 py-1 text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="bg-primary-600 hover:bg-primary-700 rounded px-3 py-1 text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>
@@ -315,7 +315,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
           ) : (
             <>
               {message.content && (
-                <div className="whitespace-pre-wrap break-words text-gray-800 dark:text-gray-200">
+                <div className="break-words whitespace-pre-wrap text-gray-800 dark:text-gray-200">
                   <MessageContent
                     content={message.content}
                     members={membersData?.members}

@@ -132,7 +132,7 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
           </div>
 
           {/* System message content - styled differently */}
-          <div className="text-sm italic text-gray-600 dark:text-gray-400">{contentText}</div>
+          <div className="text-sm text-gray-600 italic dark:text-gray-400">{contentText}</div>
 
           {/* Reactions */}
           <ReactionsDisplay

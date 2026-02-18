@@ -228,7 +228,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
               <button
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="w-full py-2 text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                className="text-primary-600 hover:text-primary-700 dark:text-primary-400 w-full py-2 text-sm"
               >
                 {isFetchingNextPage ? 'Loading...' : 'Load more replies'}
               </button>
@@ -515,14 +515,14 @@ function ParentMessage({
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleEditKeyDown}
-                className="w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                className="focus:ring-primary-500 w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:ring-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 rows={3}
               />
               <div className="flex items-center gap-2 text-sm">
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="rounded bg-primary-600 px-3 py-1 text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="bg-primary-600 hover:bg-primary-700 rounded px-3 py-1 text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>
@@ -540,7 +540,7 @@ function ParentMessage({
           ) : (
             <>
               {message.content && (
-                <div className="whitespace-pre-wrap break-words text-gray-800 dark:text-gray-200">
+                <div className="break-words whitespace-pre-wrap text-gray-800 dark:text-gray-200">
                   <MessageContent
                     content={message.content}
                     members={members}
@@ -948,14 +948,14 @@ function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMe
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleEditKeyDown}
-                className="w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                className="focus:ring-primary-500 w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 focus:ring-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 rows={3}
               />
               <div className="flex items-center gap-2 text-sm">
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="rounded bg-primary-600 px-3 py-1 text-xs text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="bg-primary-600 hover:bg-primary-700 rounded px-3 py-1 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>
@@ -973,7 +973,7 @@ function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMe
           ) : (
             <>
               {message.content && (
-                <div className="whitespace-pre-wrap break-words text-sm text-gray-800 dark:text-gray-200">
+                <div className="text-sm break-words whitespace-pre-wrap text-gray-800 dark:text-gray-200">
                   <MessageContent
                     content={message.content}
                     members={members}
