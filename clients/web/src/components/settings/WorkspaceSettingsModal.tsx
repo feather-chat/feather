@@ -391,18 +391,23 @@ export function WorkspaceSettingsModal({
 
                   <div className="flex items-center gap-3">
                     {canManage ? (
-                      <select
-                        value={member.role}
-                        onChange={(e) =>
-                          handleRoleChange(member.user_id, e.target.value as WorkspaceRole)
-                        }
-                        disabled={member.user_id === user?.id || member.role === 'owner'}
-                        className="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                      >
-                        <option value="owner">Owner</option>
-                        <option value="admin">Admin</option>
-                        <option value="member">Member</option>
-                      </select>
+                      member.role === 'owner' ? (
+                        <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium capitalize text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                          Owner
+                        </span>
+                      ) : (
+                        <select
+                          value={member.role}
+                          onChange={(e) =>
+                            handleRoleChange(member.user_id, e.target.value as WorkspaceRole)
+                          }
+                          disabled={member.user_id === user?.id}
+                          className="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        >
+                          <option value="admin">Admin</option>
+                          <option value="member">Member</option>
+                        </select>
+                      )
                     ) : (
                       <span
                         className={cn(
