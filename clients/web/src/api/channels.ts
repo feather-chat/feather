@@ -9,7 +9,7 @@ import {
   type MarkReadResponse,
   type NotificationPreferences,
   type DMSuggestionsResponse,
-} from '@feather/api-client';
+} from '@enzyme/api-client';
 
 export interface CreateChannelInput {
   name: string;

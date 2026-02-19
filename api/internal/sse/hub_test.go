@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/feather/api/internal/testutil"
+	"github.com/enzyme/api/internal/testutil"
 )
 
 func TestDeleteOldEvents(t *testing.T) {

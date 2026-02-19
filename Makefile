@@ -4,8 +4,8 @@
 dev:
 	trap 'kill 0' EXIT; \
 	(cd api && make dev) & \
-	pnpm --filter @feather/web dev & \
-	if [ "$(DESKTOP)" = "1" ]; then pnpm --filter @feather/desktop dev & fi; \
+	pnpm --filter @enzyme/web dev & \
+	if [ "$(DESKTOP)" = "1" ]; then pnpm --filter @enzyme/desktop dev & fi; \
 	wait
 
 # Install all dependencies
@@ -16,19 +16,19 @@ install:
 # Generate types from OpenAPI spec
 generate-types:
 	cd api && make generate-types
-	pnpm --filter @feather/api-client generate
+	pnpm --filter @enzyme/api-client generate
 
 # Build all (web first so it can be embedded into the Go binary)
 build: generate-types
-	pnpm --filter @feather/web build
+	pnpm --filter @enzyme/web build
 	cd api && make build
-	pnpm --filter @feather/desktop build
-	pnpm --filter @feather/desktop make
+	pnpm --filter @enzyme/desktop build
+	pnpm --filter @enzyme/desktop make
 
 # Run all tests
 test:
 	cd api && make test
-	pnpm --filter @feather/web test:run
+	pnpm --filter @enzyme/web test:run
 	pnpm -r typecheck
 
 # Clean build artifacts

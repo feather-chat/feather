@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/feather/api/internal/app"
-	"github.com/feather/api/internal/config"
-	"github.com/feather/api/internal/logging"
+	"github.com/enzyme/api/internal/app"
+	"github.com/enzyme/api/internal/config"
+	"github.com/enzyme/api/internal/logging"
 )
 
 func main() {

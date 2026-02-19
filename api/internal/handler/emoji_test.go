@@ -3,8 +3,8 @@ package handler
 import (
 	"testing"
 
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/testutil"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/testutil"
 )
 
 func TestListCustomEmojis_Success(t *testing.T) {

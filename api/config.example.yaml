@@ -8,7 +8,7 @@ server:
   public_url: "http://localhost:8080"
 
 database:
-  path: "./data/feather.db"
+  path: "./data/enzyme.db"
 
 auth:
   session_duration: "720h"  # 30 days

@@ -1,4 +1,4 @@
-import { get, post, del, uploadFile, type User } from '@feather/api-client';
+import { get, post, del, uploadFile, type User } from '@enzyme/api-client';
 
 export interface UserProfile {
   id: string;

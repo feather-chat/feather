@@ -10,7 +10,7 @@ import type {
   WorkspaceRole,
   WorkspaceSummary,
   WorkspaceNotificationSummary,
-} from '@feather/api-client';
+} from '@enzyme/api-client';
 
 export function useWorkspace(workspaceId: string | undefined) {
   return useQuery({

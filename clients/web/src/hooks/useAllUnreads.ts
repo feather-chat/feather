@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { post, type UnreadMessagesResult } from '@feather/api-client';
+import { post, type UnreadMessagesResult } from '@enzyme/api-client';
 
 interface UseAllUnreadsOptions {
   workspaceId: string;

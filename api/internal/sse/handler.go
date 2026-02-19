@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/feather/api/internal/auth"
-	"github.com/feather/api/internal/workspace"
+	"github.com/enzyme/api/internal/auth"
+	"github.com/enzyme/api/internal/workspace"
 	"github.com/go-chi/chi/v5"
 	"github.com/oklog/ulid/v2"
 )

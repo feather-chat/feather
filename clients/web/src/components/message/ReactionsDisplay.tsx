@@ -3,7 +3,7 @@ import { Tooltip, CustomEmojiImg } from '../ui';
 import { cn } from '../../lib/utils';
 import { resolveStandardShortcode } from '../../lib/emoji';
 import type { ReactionGroup } from './reactionUtils';
-import type { CustomEmoji } from '@feather/api-client';
+import type { CustomEmoji } from '@enzyme/api-client';
 
 /**
  * Render an emoji string which may be:

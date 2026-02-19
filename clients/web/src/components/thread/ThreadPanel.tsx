@@ -59,7 +59,7 @@ import type {
   MessageListResult,
   WorkspaceMemberWithUser,
   ChannelWithMembership,
-} from '@feather/api-client';
+} from '@enzyme/api-client';
 
 function ClickableName({
   userId,

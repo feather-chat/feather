@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/feather/api/internal/channel"
-	"github.com/feather/api/internal/file"
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/signing"
-	"github.com/feather/api/internal/workspace"
+	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/file"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/signing"
+	"github.com/enzyme/api/internal/workspace"
 	"github.com/oklog/ulid/v2"
 )
 

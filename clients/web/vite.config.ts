@@ -20,7 +20,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@feather/api-client': path.resolve(__dirname, '../../packages/api-client/src'),
+      '@enzyme/api-client': path.resolve(__dirname, '../../packages/api-client/src'),
     },
   },
   build: {

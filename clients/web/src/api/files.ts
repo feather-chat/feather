@@ -1,5 +1,5 @@
-import type { SignedUrl } from '@feather/api-client';
-import { post } from '@feather/api-client';
+import type { SignedUrl } from '@enzyme/api-client';
+import { post } from '@enzyme/api-client';
 
 export const filesApi = {
   signUrl: (fileId: string) => post<SignedUrl>(`/files/${fileId}/sign-url`),

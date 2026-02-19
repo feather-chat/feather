@@ -1,6 +1,6 @@
 # Self-Hosting Guide
 
-This guide covers everything you need to deploy Feather on your own server.
+This guide covers everything you need to deploy Enzyme on your own server.
 
 ## Requirements
 
@@ -10,16 +10,16 @@ This guide covers everything you need to deploy Feather on your own server.
 
 ## Quick Start
 
-1. Download the latest release for your platform from the [releases page](https://github.com/bradsimantel/feather/releases)
+1. Download the latest release for your platform from the [releases page](https://github.com/bradsimantel/enzyme/releases)
 2. Start the server
 
 ```bash
 # Download the binary (includes the web client)
-curl -LO https://github.com/bradsimantel/feather/releases/latest/download/feather-linux-amd64
-chmod +x feather-linux-amd64
+curl -LO https://github.com/bradsimantel/enzyme/releases/latest/download/enzyme-linux-amd64
+chmod +x enzyme-linux-amd64
 
 # Start the server
-./feather-linux-amd64
+./enzyme-linux-amd64
 ```
 
 The server starts on `http://localhost:8080` and serves both the API and web client.
@@ -28,22 +28,22 @@ The server starts on `http://localhost:8080` and serves both the API and web cli
 
 Each release includes pre-built binaries for six platforms. Each binary is a single self-contained file with the web client embedded:
 
-| OS      | Architecture | Binary Name                 |
-| ------- | ------------ | --------------------------- |
-| Linux   | x86_64       | `feather-linux-amd64`       |
-| Linux   | ARM64        | `feather-linux-arm64`       |
-| macOS   | x86_64       | `feather-darwin-amd64`      |
-| macOS   | ARM64        | `feather-darwin-arm64`      |
-| Windows | x86_64       | `feather-windows-amd64.exe` |
-| Windows | ARM64        | `feather-windows-arm64.exe` |
+| OS      | Architecture | Binary Name                |
+| ------- | ------------ | -------------------------- |
+| Linux   | x86_64       | `enzyme-linux-amd64`       |
+| Linux   | ARM64        | `enzyme-linux-arm64`       |
+| macOS   | x86_64       | `enzyme-darwin-amd64`      |
+| macOS   | ARM64        | `enzyme-darwin-arm64`      |
+| Windows | x86_64       | `enzyme-windows-amd64.exe` |
+| Windows | ARM64        | `enzyme-windows-arm64.exe` |
 
 ## Data Directory
 
-By default, Feather stores all data under `./data/` relative to where you run the binary:
+By default, Enzyme stores all data under `./data/` relative to where you run the binary:
 
 ```
 data/
-├── feather.db       # SQLite database
+├── enzyme.db       # SQLite database
 ├── .signing_secret  # Auto-generated HMAC secret for file URLs
 ├── uploads/         # Uploaded files
 └── certs/           # TLS certificates (if using auto TLS)
@@ -53,10 +53,10 @@ You can customize these paths via [configuration](./configuration.md). For produ
 
 ```yaml
 database:
-  path: '/var/lib/feather/feather.db'
+  path: '/var/lib/enzyme/enzyme.db'
 
 files:
-  storage_path: '/var/lib/feather/uploads'
+  storage_path: '/var/lib/enzyme/uploads'
 ```
 
 ## Configuration
@@ -80,14 +80,14 @@ email:
   enabled: true
   host: 'smtp.example.com'
   port: 587
-  username: 'feather@example.com'
+  username: 'enzyme@example.com'
   password: 'your-smtp-password'
-  from: 'feather@example.com'
+  from: 'enzyme@example.com'
 ```
 
-When using auto TLS, Feather automatically redirects HTTP (port 80) to HTTPS (port 443).
+When using auto TLS, Enzyme automatically redirects HTTP (port 80) to HTTPS (port 443).
 
-Configuration can also be set via environment variables with the `FEATHER_` prefix or CLI flags. See the [Configuration Reference](./configuration.md) for details.
+Configuration can also be set via environment variables with the `ENZYME_` prefix or CLI flags. See the [Configuration Reference](./configuration.md) for details.
 
 ## Advanced: Reverse Proxy
 
@@ -135,7 +135,7 @@ server:
 
 ## Built-in TLS
 
-Feather has built-in TLS support if you don't want to use a reverse proxy.
+Enzyme has built-in TLS support if you don't want to use a reverse proxy.
 
 ### Automatic (Let's Encrypt)
 
@@ -177,28 +177,28 @@ email:
   enabled: true
   host: 'smtp.example.com'
   port: 587
-  username: 'feather@example.com'
+  username: 'enzyme@example.com'
   password: 'your-smtp-password'
-  from: 'Feather <feather@example.com>'
+  from: 'Enzyme <enzyme@example.com>'
 ```
 
-Feather works with any SMTP provider (Postmark, Mailgun, SendGrid, Amazon SES, self-hosted, etc.).
+Enzyme works with any SMTP provider (Postmark, Mailgun, SendGrid, Amazon SES, self-hosted, etc.).
 
 ## Running as a systemd Service
 
-Create `/etc/systemd/system/feather.service`:
+Create `/etc/systemd/system/enzyme.service`:
 
 ```ini
 [Unit]
-Description=Feather
+Description=Enzyme
 After=network.target
 
 [Service]
 Type=simple
-User=feather
-Group=feather
-WorkingDirectory=/opt/feather
-ExecStart=/opt/feather/feather --config /opt/feather/config.yaml
+User=enzyme
+Group=enzyme
+WorkingDirectory=/opt/enzyme
+ExecStart=/opt/enzyme/enzyme --config /opt/enzyme/config.yaml
 Restart=always
 RestartSec=5
 
@@ -210,7 +210,7 @@ CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/feather
+ReadWritePaths=/var/lib/enzyme
 
 [Install]
 WantedBy=multi-user.target
@@ -220,45 +220,45 @@ Set it up:
 
 ```bash
 # Create user
-sudo useradd --system --shell /usr/sbin/nologin feather
+sudo useradd --system --shell /usr/sbin/nologin enzyme
 
 # Create directories (include certs dir if using auto TLS)
-sudo mkdir -p /opt/feather /var/lib/feather/uploads /var/lib/feather/certs
-sudo chown -R feather:feather /opt/feather /var/lib/feather
+sudo mkdir -p /opt/enzyme /var/lib/enzyme/uploads /var/lib/enzyme/certs
+sudo chown -R enzyme:enzyme /opt/enzyme /var/lib/enzyme
 
 # Copy files
-sudo cp feather-linux-amd64 /opt/feather/feather
-sudo cp config.yaml /opt/feather/config.yaml
-sudo chmod +x /opt/feather/feather
+sudo cp enzyme-linux-amd64 /opt/enzyme/enzyme
+sudo cp config.yaml /opt/enzyme/config.yaml
+sudo chmod +x /opt/enzyme/enzyme
 
 # Enable and start
-sudo systemctl enable feather
-sudo systemctl start feather
+sudo systemctl enable enzyme
+sudo systemctl start enzyme
 
 # Check status
-sudo systemctl status feather
-sudo journalctl -u feather -f
+sudo systemctl status enzyme
+sudo journalctl -u enzyme -f
 ```
 
 ## Logs
 
-Feather logs to stdout. Where logs end up depends on how you run the server:
+Enzyme logs to stdout. Where logs end up depends on how you run the server:
 
-- **Running directly** — logs appear in your terminal. Redirect to a file if needed: `./feather >> /var/log/feather.log 2>&1`
+- **Running directly** — logs appear in your terminal. Redirect to a file if needed: `./enzyme >> /var/log/enzyme.log 2>&1`
 - **systemd service** — logs are captured by journald:
 
 ```bash
 # Follow logs in real-time
-sudo journalctl -u feather -f
+sudo journalctl -u enzyme -f
 
 # Show last 100 lines
-sudo journalctl -u feather -n 100
+sudo journalctl -u enzyme -n 100
 
 # Show logs since last boot
-sudo journalctl -u feather -b
+sudo journalctl -u enzyme -b
 ```
 
-- **Behind a reverse proxy** — Feather's own logs still go to stdout (or journald if using systemd). The reverse proxy (nginx, Caddy, etc.) has its own access logs separate from Feather's.
+- **Behind a reverse proxy** — Enzyme's own logs still go to stdout (or journald if using systemd). The reverse proxy (nginx, Caddy, etc.) has its own access logs separate from Enzyme's.
 
 Configure log level and format in `config.yaml`:
 
@@ -287,7 +287,7 @@ sudo ufw enable
 
 All persistent state is in the data directory (default: `./data/`):
 
-1. **SQLite database** — the single `.db` file (default: `./data/feather.db`)
+1. **SQLite database** — the single `.db` file (default: `./data/enzyme.db`)
 2. **Uploaded files** — the uploads directory (default: `./data/uploads/`)
 3. **Signing secret** — `./data/.signing_secret` (used to sign file download URLs)
 
@@ -295,29 +295,29 @@ To back up:
 
 ```bash
 # SQLite backup (safe to run while server is running — uses WAL mode)
-sqlite3 /var/lib/feather/feather.db ".backup '/backups/feather-$(date +%Y%m%d).db'"
+sqlite3 /var/lib/enzyme/enzyme.db ".backup '/backups/enzyme-$(date +%Y%m%d).db'"
 
 # File uploads and signing secret
-rsync -a /var/lib/feather/uploads/ /backups/uploads/
-cp /var/lib/feather/.signing_secret /backups/.signing_secret
+rsync -a /var/lib/enzyme/uploads/ /backups/uploads/
+cp /var/lib/enzyme/.signing_secret /backups/.signing_secret
 ```
 
 ## Upgrading
 
 1. Download the new binary from the releases page
-2. Stop the server (`sudo systemctl stop feather`)
+2. Stop the server (`sudo systemctl stop enzyme`)
 3. Replace the binary
-4. Start the server (`sudo systemctl start feather`)
+4. Start the server (`sudo systemctl start enzyme`)
 
 Database migrations run automatically on startup. There is no manual migration step.
 
 ## Building from Source
 
 ```bash
-git clone https://github.com/bradsimantel/feather.git
-cd feather
+git clone https://github.com/bradsimantel/enzyme.git
+cd enzyme
 make install
 make build
 ```
 
-The binary at `api/bin/feather` includes the embedded web client. Run it directly — no separate frontend serving needed.
+The binary at `api/bin/enzyme` includes the embedded web client. Run it directly — no separate frontend serving needed.

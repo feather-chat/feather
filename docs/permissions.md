@@ -1,6 +1,6 @@
 # Permissions & Roles
 
-Feather uses role-based access control at two levels: **workspace** and **channel**. There are no server-level admin roles — all permissions are scoped to individual workspaces.
+Enzyme uses role-based access control at two levels: **workspace** and **channel**. There are no server-level admin roles — all permissions are scoped to individual workspaces.
 
 ## Workspace Roles
 

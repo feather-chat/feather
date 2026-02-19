@@ -8,7 +8,7 @@ import {
   type ThreadListResult,
   type SearchMessagesResult,
   type SearchMessagesInput,
-} from '@feather/api-client';
+} from '@enzyme/api-client';
 
 export interface SendMessageInput {
   content?: string;

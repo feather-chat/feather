@@ -67,7 +67,7 @@ export function RegisterForm() {
     <div className="w-full max-w-md">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create an account</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">Get started with Feather</p>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">Get started with Enzyme</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

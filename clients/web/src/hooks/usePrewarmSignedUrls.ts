@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { MessageListResult } from '@feather/api-client';
+import type { MessageListResult } from '@enzyme/api-client';
 import { getCachedIfFresh, getUrls } from '../lib/signedUrlCache';
 
 /** Pre-warms signed URL cache for all attachment IDs found in message pages. */

@@ -106,7 +106,7 @@ export function showBrowserNotification(title: string, body: string, onClick?: (
   const notification = new Notification(title, {
     body,
     icon: '/favicon.ico',
-    tag: 'feather-notification',
+    tag: 'enzyme-notification',
   });
 
   if (onClick) {

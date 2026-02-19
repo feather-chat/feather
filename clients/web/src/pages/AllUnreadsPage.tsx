@@ -3,7 +3,7 @@ import { HashtagIcon, LockClosedIcon, ChatBubbleLeftRightIcon } from '@heroicons
 import { useAllUnreads } from '../hooks/useAllUnreads';
 import { Spinner } from '../components/ui';
 import { formatRelativeTime } from '../lib/utils';
-import type { UnreadMessage } from '@feather/api-client';
+import type { UnreadMessage } from '@enzyme/api-client';
 
 function ChannelIcon({ type }: { type: string }) {
   switch (type) {

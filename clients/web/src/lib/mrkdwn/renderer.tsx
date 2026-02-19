@@ -7,7 +7,7 @@ import type {
   WorkspaceMemberWithUser,
   ChannelWithMembership,
   CustomEmoji,
-} from '@feather/api-client';
+} from '@enzyme/api-client';
 import { resolveStandardShortcode } from '../emoji';
 import { CustomEmojiImg } from '../../components/ui/CustomEmojiImg';
 import { isEmojiOnly } from './isEmojiOnly';

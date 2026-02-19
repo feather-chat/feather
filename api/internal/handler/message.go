@@ -8,13 +8,13 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/feather/api/internal/channel"
-	"github.com/feather/api/internal/file"
-	"github.com/feather/api/internal/message"
-	"github.com/feather/api/internal/notification"
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/sse"
-	"github.com/feather/api/internal/workspace"
+	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/file"
+	"github.com/enzyme/api/internal/message"
+	"github.com/enzyme/api/internal/notification"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/sse"
+	"github.com/enzyme/api/internal/workspace"
 )
 
 // SendMessage sends a message to a channel

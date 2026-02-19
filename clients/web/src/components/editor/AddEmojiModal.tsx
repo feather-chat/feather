@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Button, Modal, toast } from '../ui';
 import { resolveStandardShortcode } from '../../lib/emoji';
 import { useUploadCustomEmoji } from '../../hooks/useCustomEmojis';
-import type { CustomEmoji } from '@feather/api-client';
+import type { CustomEmoji } from '@enzyme/api-client';
 
 const NAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}$/;
 

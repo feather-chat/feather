@@ -100,7 +100,7 @@ func Defaults() *Config {
 			},
 		},
 		Database: DatabaseConfig{
-			Path: "./data/feather.db",
+			Path: "./data/enzyme.db",
 		},
 		Auth: AuthConfig{
 			SessionDuration: 720 * time.Hour, // 30 days

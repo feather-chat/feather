@@ -1,4 +1,4 @@
-import { get, post, type User, type WorkspaceSummary } from '@feather/api-client';
+import { get, post, type User, type WorkspaceSummary } from '@enzyme/api-client';
 
 export interface LoginInput {
   email: string;

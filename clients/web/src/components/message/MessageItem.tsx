@@ -30,7 +30,7 @@ import { useMarkMessageUnread, useUpdateMessage, useDeleteMessage } from '../../
 import { useCustomEmojiMap, useCustomEmojis } from '../../hooks/useCustomEmojis';
 import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
 import { cn, formatTime } from '../../lib/utils';
-import type { MessageWithUser, ChannelWithMembership } from '@feather/api-client';
+import type { MessageWithUser, ChannelWithMembership } from '@enzyme/api-client';
 
 function ClickableName({
   userId,

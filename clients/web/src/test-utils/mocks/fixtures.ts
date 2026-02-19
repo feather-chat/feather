@@ -5,7 +5,7 @@ import type {
   Channel,
   Message,
   MessageWithUser,
-} from '@feather/api-client';
+} from '@enzyme/api-client';
 
 let counter = 0;
 function nextId(): string {

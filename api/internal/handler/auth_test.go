@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/feather/api/internal/user"
+	"github.com/enzyme/api/internal/user"
 )
 
 func TestUserToAPI(t *testing.T) {

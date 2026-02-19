@@ -54,7 +54,7 @@ import {
 import { useDarkMode } from '../../hooks/useDarkMode';
 import { useProfilePanel } from '../../hooks/usePanel';
 import { cn, getAvatarColor } from '../../lib/utils';
-import type { WorkspaceSummary, WorkspaceNotificationSummary } from '@feather/api-client';
+import type { WorkspaceSummary, WorkspaceNotificationSummary } from '@enzyme/api-client';
 import { WorkspaceContextMenu } from './WorkspaceContextMenu';
 
 import type { WorkspaceSettingsTab } from '../settings/WorkspaceSettingsModal';

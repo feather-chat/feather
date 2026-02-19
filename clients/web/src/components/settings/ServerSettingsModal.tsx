@@ -14,7 +14,7 @@ export function ServerSettingsModal({ isOpen, onClose }: ServerSettingsModalProp
             Server Information
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            General information about your Feather server.
+            General information about your Enzyme server.
           </p>
         </div>
 
@@ -22,7 +22,7 @@ export function ServerSettingsModal({ isOpen, onClose }: ServerSettingsModalProp
           <div className="flex items-center justify-between border-b border-gray-100 py-3 dark:border-gray-700">
             <div>
               <p className="font-medium text-gray-900 dark:text-white">Version</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Feather server version</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Enzyme server version</p>
             </div>
             <span className="text-gray-600 dark:text-gray-300">1.0.0</span>
           </div>

@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/feather/api/internal/channel"
-	"github.com/feather/api/internal/message"
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/thread"
+	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/message"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/thread"
 )
 
 // GetThreadSubscription returns the user's subscription status for a thread

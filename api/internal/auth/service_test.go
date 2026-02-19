@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/feather/api/internal/testutil"
-	"github.com/feather/api/internal/user"
+	"github.com/enzyme/api/internal/testutil"
+	"github.com/enzyme/api/internal/user"
 )
 
 // mockPasswordResetRepository is a mock implementation of PasswordResetRepository

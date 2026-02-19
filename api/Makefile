@@ -1,6 +1,6 @@
 .PHONY: build run test clean dev generate generate-types fmt embed-web
 
-BINARY_NAME=feather
+BINARY_NAME=enzyme
 BUILD_DIR=./bin
 VERSION ?= dev
 WEB_DIST_SRC=../clients/web/dist
@@ -22,13 +22,13 @@ embed-web:
 	fi
 
 build: generate embed-web
-	go build -ldflags "-X github.com/feather/api/internal/version.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/feather
+	go build -ldflags "-X github.com/enzyme/api/internal/version.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/enzyme
 
 run: build
 	$(BUILD_DIR)/$(BINARY_NAME)
 
 dev:
-	go run ./cmd/feather
+	go run ./cmd/enzyme
 
 test:
 	go test -v ./...

@@ -18,8 +18,8 @@ import type {
   ChannelMember,
   WorkspaceMemberWithUser,
   ChannelWithMembership,
-} from '@feather/api-client';
-import { ApiError } from '@feather/api-client';
+} from '@enzyme/api-client';
+import { ApiError } from '@enzyme/api-client';
 
 const validChannelName = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 

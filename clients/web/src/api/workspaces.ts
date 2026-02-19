@@ -8,7 +8,7 @@ import {
   type WorkspaceNotificationSummary,
   type Invite,
   type WorkspaceRole,
-} from '@feather/api-client';
+} from '@enzyme/api-client';
 
 export interface CreateWorkspaceInput {
   name: string;

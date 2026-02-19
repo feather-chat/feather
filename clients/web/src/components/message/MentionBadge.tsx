@@ -3,7 +3,7 @@ import { Button as AriaButton, Popover, DialogTrigger } from 'react-aria-compone
 import { tv } from 'tailwind-variants';
 import { Avatar } from '../ui';
 import { useProfilePanel } from '../../hooks/usePanel';
-import type { WorkspaceMemberWithUser } from '@feather/api-client';
+import type { WorkspaceMemberWithUser } from '@enzyme/api-client';
 
 const mentionBadge = tv({
   base: [

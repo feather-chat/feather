@@ -2110,7 +2110,7 @@ export const SKIN_TONE_EMOJIS: Set<string> = new Set(
   EMOJI_CATEGORIES.flatMap((cat) => cat.emojis.filter((e) => e.skinTones).map((e) => e.emoji)),
 );
 
-const SKIN_TONE_KEY = 'feather:skin-tone';
+const SKIN_TONE_KEY = 'enzyme:skin-tone';
 
 export function getSavedSkinTone(): SkinTone {
   return (localStorage.getItem(SKIN_TONE_KEY) || '') as SkinTone;

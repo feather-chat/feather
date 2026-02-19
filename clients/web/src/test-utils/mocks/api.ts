@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { User, WorkspaceSummary } from '@feather/api-client';
+import type { User, WorkspaceSummary } from '@enzyme/api-client';
 import { createMockUser, createMockWorkspaceSummary } from './fixtures';
 
 // Mock the auth API module

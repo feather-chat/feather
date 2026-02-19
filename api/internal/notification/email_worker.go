@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/feather/api/internal/email"
-	"github.com/feather/api/internal/sse"
-	"github.com/feather/api/internal/user"
+	"github.com/enzyme/api/internal/email"
+	"github.com/enzyme/api/internal/sse"
+	"github.com/enzyme/api/internal/user"
 )
 
 // EmailWorker processes pending notifications and sends digest emails
@@ -124,7 +124,7 @@ func (w *EmailWorker) processPending(ctx context.Context) {
 
 			// Send email
 			err := w.emailService.SendNotificationDigest(ctx, usr.Email, email.NotificationDigestData{
-				WorkspaceName: "Feather", // Would need workspace name
+				WorkspaceName: "Enzyme", // Would need workspace name
 				Items:         items,
 				WorkspaceURL:  w.emailService.GetPublicURL(),
 			})

@@ -10,7 +10,7 @@ import { useMarkMessageUnread } from '../../hooks/useMessages';
 import { useCustomEmojiMap, useCustomEmojis } from '../../hooks/useCustomEmojis';
 import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
 import { cn, formatTime } from '../../lib/utils';
-import type { MessageWithUser } from '@feather/api-client';
+import type { MessageWithUser } from '@enzyme/api-client';
 
 interface SystemMessageProps {
   message: MessageWithUser;

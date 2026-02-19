@@ -1,8 +1,8 @@
-# Feather Web Client
+# Enzyme Web Client
 
-React frontend for Feather, a self-hostable Slack alternative.
+React frontend for Enzyme, a self-hostable Slack alternative.
 
-> Part of the [Feather monorepo](../../README.md). See root for full setup.
+> Part of the [Enzyme monorepo](../../README.md). See root for full setup.
 
 ## Tech Stack
 
@@ -33,7 +33,7 @@ make dev  # Starts API and web together
 Or just the web client:
 
 ```bash
-pnpm --filter @feather/web dev
+pnpm --filter @enzyme/web dev
 ```
 
 The app runs at `http://localhost:3000` and proxies `/api` requests to the backend.
@@ -41,7 +41,7 @@ The app runs at `http://localhost:3000` and proxies `/api` requests to the backe
 ### Build
 
 ```bash
-pnpm --filter @feather/web build
+pnpm --filter @enzyme/web build
 ```
 
 ## Project Structure
@@ -77,7 +77,7 @@ src/
     └── utils.ts      # Helper functions
 ```
 
-Types are imported from the shared `@feather/api-client` package (see `../../packages/api-client`).
+Types are imported from the shared `@enzyme/api-client` package (see `../../packages/api-client`).
 
 ## Features
 
@@ -199,11 +199,11 @@ import { Button, Input, Modal, Menu, MenuItem } from '../components/ui';
 
 ## API Integration
 
-API calls use the shared client from `@feather/api-client`:
+API calls use the shared client from `@enzyme/api-client`:
 
 ```typescript
-import { get, post, ApiError } from '@feather/api-client';
-import type { User, Message } from '@feather/api-client';
+import { get, post, ApiError } from '@enzyme/api-client';
+import type { User, Message } from '@enzyme/api-client';
 ```
 
 - `Authorization: Bearer` header for authentication

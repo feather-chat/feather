@@ -57,7 +57,7 @@ import {
 import { cn, getAvatarColor } from '../../lib/utils';
 import { useUserPresence } from '../../lib/presenceStore';
 import { AvatarStack } from '../ui';
-import type { ChannelWithMembership, ChannelType, SuggestedUser } from '@feather/api-client';
+import type { ChannelWithMembership, ChannelType, SuggestedUser } from '@enzyme/api-client';
 import { ChannelContextMenu } from './ChannelContextMenu';
 import type { WorkspaceSettingsTab } from '../settings/WorkspaceSettingsModal';
 

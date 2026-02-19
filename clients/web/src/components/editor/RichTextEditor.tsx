@@ -38,7 +38,7 @@ import type { MentionOption } from '../../lib/mentions';
 import { SPECIAL_MENTIONS } from '../../lib/mentions';
 import { cn } from '../../lib/utils';
 import type { EmojiSelectAttrs } from '../ui';
-import type { CustomEmoji } from '@feather/api-client';
+import type { CustomEmoji } from '@enzyme/api-client';
 
 const editorStyles = tv({
   slots: {

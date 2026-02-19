@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 
-const DARK_MODE_KEY = 'feather:dark-mode';
+const DARK_MODE_KEY = 'enzyme:dark-mode';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 

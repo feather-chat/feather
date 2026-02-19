@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import type { NotificationPreferences } from '@feather/api-client';
+import type { NotificationPreferences } from '@enzyme/api-client';
 
 // Hoist mocks
 const mockChannelsApi = vi.hoisted(() => ({

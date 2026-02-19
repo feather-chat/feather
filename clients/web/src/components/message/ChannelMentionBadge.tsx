@@ -2,7 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button as AriaButton, Popover, DialogTrigger } from 'react-aria-components';
 import { HashtagIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { tv } from 'tailwind-variants';
-import type { ChannelWithMembership } from '@feather/api-client';
+import type { ChannelWithMembership } from '@enzyme/api-client';
 
 const mentionBadge = tv({
   base: ['inline rounded px-0.5 -mx-0.5', 'transition-colors'],

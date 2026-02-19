@@ -7,7 +7,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/feather/api/internal/user"
+	"github.com/enzyme/api/internal/user"
 )
 
 var (

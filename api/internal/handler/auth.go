@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/feather/api/internal/auth"
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/user"
+	"github.com/enzyme/api/internal/auth"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/user"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 

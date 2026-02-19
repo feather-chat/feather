@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { uploadFile } from '@feather/api-client';
+import { uploadFile } from '@enzyme/api-client';
 
 export interface UploadedFile {
   id: string;

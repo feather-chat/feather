@@ -1,8 +1,8 @@
-# Feather API
+# Enzyme API
 
-Go backend for Feather, a self-hostable Slack alternative.
+Go backend for Enzyme, a self-hostable Slack alternative.
 
-> Part of the [Feather monorepo](../README.md). See root for full setup.
+> Part of the [Enzyme monorepo](../README.md). See root for full setup.
 
 ## Features
 
@@ -22,7 +22,7 @@ make dev
 
 # Or build binary
 make build
-./bin/feather
+./bin/enzyme
 ```
 
 The server starts on `http://localhost:8080` with zero configuration required.
@@ -42,7 +42,7 @@ server:
   public_url: "https://chat.example.com"
 
 database:
-  path: "./data/feather.db"
+  path: "./data/enzyme.db"
 
 auth:
   session_duration: "720h"  # 30 days
@@ -63,17 +63,17 @@ email:
 
 ### Environment Variables
 
-All config options can be set via environment variables with `FEATHER_` prefix:
+All config options can be set via environment variables with `ENZYME_` prefix:
 
 ```bash
-FEATHER_SERVER_PORT=3000
-FEATHER_DATABASE_PATH=/var/lib/feather/feather.db
+ENZYME_SERVER_PORT=3000
+ENZYME_DATABASE_PATH=/var/lib/enzyme/enzyme.db
 ```
 
 ### CLI Flags
 
 ```bash
-./feather --server.port=3000 --database.path=/data/feather.db
+./enzyme --server.port=3000 --database.path=/data/enzyme.db
 ```
 
 ## API Endpoints
@@ -167,7 +167,7 @@ Event types:
 
 ```
 api/
-├── cmd/feather/main.go           # Entry point, graceful shutdown
+├── cmd/enzyme/main.go           # Entry point, graceful shutdown
 ├── internal/
 │   ├── app/app.go                # Dependency wiring, startup
 │   ├── config/                   # Layered configuration
@@ -223,7 +223,7 @@ make deps
 
 SQLite with WAL mode for concurrent reads. Single connection pool to avoid SQLITE_BUSY errors.
 
-Migrations are embedded and run automatically on startup. Database file is created at the configured path (default: `./data/feather.db`).
+Migrations are embedded and run automatically on startup. Database file is created at the configured path (default: `./data/enzyme.db`).
 
 ## Authorization Model
 

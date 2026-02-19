@@ -17,7 +17,7 @@ server:
     auto:
       domain: chat.example.com
       email: admin@example.com
-      cache_dir: /var/lib/feather/certs
+      cache_dir: /var/lib/enzyme/certs
 `
 	if err := os.WriteFile(cfgPath, []byte(yaml), 0644); err != nil {
 		t.Fatal(err)
@@ -37,8 +37,8 @@ server:
 	if cfg.Server.TLS.Auto.Email != "admin@example.com" {
 		t.Fatalf("expected email 'admin@example.com', got %q", cfg.Server.TLS.Auto.Email)
 	}
-	if cfg.Server.TLS.Auto.CacheDir != "/var/lib/feather/certs" {
-		t.Fatalf("expected cache_dir '/var/lib/feather/certs', got %q", cfg.Server.TLS.Auto.CacheDir)
+	if cfg.Server.TLS.Auto.CacheDir != "/var/lib/enzyme/certs" {
+		t.Fatalf("expected cache_dir '/var/lib/enzyme/certs', got %q", cfg.Server.TLS.Auto.CacheDir)
 	}
 }
 

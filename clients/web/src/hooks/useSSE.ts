@@ -16,7 +16,7 @@ import type {
   ChannelWithMembership,
   NotificationData,
   CustomEmoji,
-} from '@feather/api-client';
+} from '@enzyme/api-client';
 
 export function useSSE(workspaceId: string | undefined) {
   const [isConnected, setIsConnected] = useState(false);

@@ -12,25 +12,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/feather/api/internal/auth"
-	"github.com/feather/api/internal/channel"
-	"github.com/feather/api/internal/config"
-	"github.com/feather/api/internal/database"
-	"github.com/feather/api/internal/email"
-	"github.com/feather/api/internal/emoji"
-	"github.com/feather/api/internal/file"
-	"github.com/feather/api/internal/handler"
-	"github.com/feather/api/internal/message"
-	"github.com/feather/api/internal/notification"
-	"github.com/feather/api/internal/presence"
-	"github.com/feather/api/internal/ratelimit"
-	"github.com/feather/api/internal/server"
-	"github.com/feather/api/internal/signing"
-	"github.com/feather/api/internal/sse"
-	"github.com/feather/api/internal/thread"
-	"github.com/feather/api/internal/user"
-	"github.com/feather/api/internal/web"
-	"github.com/feather/api/internal/workspace"
+	"github.com/enzyme/api/internal/auth"
+	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/config"
+	"github.com/enzyme/api/internal/database"
+	"github.com/enzyme/api/internal/email"
+	"github.com/enzyme/api/internal/emoji"
+	"github.com/enzyme/api/internal/file"
+	"github.com/enzyme/api/internal/handler"
+	"github.com/enzyme/api/internal/message"
+	"github.com/enzyme/api/internal/notification"
+	"github.com/enzyme/api/internal/presence"
+	"github.com/enzyme/api/internal/ratelimit"
+	"github.com/enzyme/api/internal/server"
+	"github.com/enzyme/api/internal/signing"
+	"github.com/enzyme/api/internal/sse"
+	"github.com/enzyme/api/internal/thread"
+	"github.com/enzyme/api/internal/user"
+	"github.com/enzyme/api/internal/web"
+	"github.com/enzyme/api/internal/workspace"
 )
 
 type App struct {
@@ -245,7 +245,7 @@ func (a *App) Start(ctx context.Context) error {
 		}
 	}()
 
-	slog.Info("starting feather backend",
+	slog.Info("starting enzyme backend",
 		"addr", a.Server.Addr(),
 		"database", a.Config.Database.Path,
 		"file_storage", a.Config.Files.StoragePath,

@@ -1,5 +1,5 @@
 import { EventSource } from 'eventsource';
-import { authHeaders, getApiBase, type SSEEvent, type SSEEventType } from '@feather/api-client';
+import { authHeaders, getApiBase, type SSEEvent, type SSEEventType } from '@enzyme/api-client';
 
 type EventHandler<T extends SSEEvent = SSEEvent> = (event: T) => void;
 

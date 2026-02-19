@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/feather/api/internal/testutil"
+	"github.com/enzyme/api/internal/testutil"
 )
 
 func TestRepository_Create(t *testing.T) {

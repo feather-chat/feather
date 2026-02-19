@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/user"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/user"
 	"github.com/go-chi/chi/v5"
 	"github.com/oklog/ulid/v2"
 )

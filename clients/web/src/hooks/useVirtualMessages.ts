@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMessages } from './useMessages';
-import type { MessageListResult } from '@feather/api-client';
+import type { MessageListResult } from '@enzyme/api-client';
 import { messagesApi } from '../api/messages';
 
 const PAGE_SIZE = 50;

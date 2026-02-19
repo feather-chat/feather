@@ -9,7 +9,7 @@ import { useUserThreads } from '../hooks/useThreads';
 import { useThreadPanel } from '../hooks/usePanel';
 import { Spinner, Avatar } from '../components/ui';
 import { cn, formatRelativeTime } from '../lib/utils';
-import type { ThreadMessage } from '@feather/api-client';
+import type { ThreadMessage } from '@enzyme/api-client';
 
 function ChannelIcon({ type }: { type: string }) {
   switch (type) {

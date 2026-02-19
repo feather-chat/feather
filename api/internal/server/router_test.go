@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/feather/api/internal/openapi"
+	"github.com/enzyme/api/internal/openapi"
 )
 
 func TestErrorHandlersProduceValidJSON(t *testing.T) {

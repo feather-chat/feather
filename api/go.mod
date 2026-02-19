@@ -1,4 +1,4 @@
-module github.com/feather/api
+module github.com/enzyme/api
 
 go 1.25.5
 

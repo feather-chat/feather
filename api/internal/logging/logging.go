@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/feather/api/internal/config"
+	"github.com/enzyme/api/internal/config"
 )
 
 // Setup configures the default slog logger based on the provided config.

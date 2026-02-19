@@ -8,8 +8,8 @@ import fs from 'fs';
 
 const config: ForgeConfig = {
   packagerConfig: {
-    name: 'Feather',
-    executableName: 'feather',
+    name: 'Enzyme',
+    executableName: 'enzyme',
     asar: true,
     icon: './icons/icon',
   },
@@ -19,7 +19,7 @@ const config: ForgeConfig = {
       const dest = path.join(buildPath, 'web-dist');
       if (!fs.existsSync(webDist)) {
         throw new Error(
-          'clients/web/dist/ not found. Run "pnpm --filter @feather/web build" first.',
+          'clients/web/dist/ not found. Run "pnpm --filter @enzyme/web build" first.',
         );
       }
       fs.cpSync(webDist, dest, { recursive: true });

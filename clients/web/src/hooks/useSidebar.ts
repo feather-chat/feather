@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 
-const SIDEBAR_KEY = 'feather:sidebar-collapsed';
+const SIDEBAR_KEY = 'enzyme:sidebar-collapsed';
 
 /**
  * localStorage-backed sidebar collapse state

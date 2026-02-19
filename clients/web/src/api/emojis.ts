@@ -1,5 +1,5 @@
-import { post, uploadFile } from '@feather/api-client';
-import type { CustomEmoji } from '@feather/api-client';
+import { post, uploadFile } from '@enzyme/api-client';
+import type { CustomEmoji } from '@enzyme/api-client';
 
 export const emojisApi = {
   list: (workspaceId: string) =>

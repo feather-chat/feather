@@ -6,7 +6,7 @@ import {
   Modal as AriaModal,
   ModalOverlay,
 } from 'react-aria-components';
-import type { Attachment } from '@feather/api-client';
+import type { Attachment } from '@enzyme/api-client';
 import { AuthImage } from '../ui';
 import { useSignedUrl } from '../../hooks/useSignedUrl';
 import { cn } from '../../lib/utils';

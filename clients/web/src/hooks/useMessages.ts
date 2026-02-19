@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { messagesApi, type SendMessageInput } from '../api/messages';
-import type { MessageWithUser, MessageListResult } from '@feather/api-client';
+import type { MessageWithUser, MessageListResult } from '@enzyme/api-client';
 
 const PAGE_SIZE = 50;
 

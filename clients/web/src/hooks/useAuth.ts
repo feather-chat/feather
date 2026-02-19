@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authApi, type LoginInput, type RegisterInput } from '../api/auth';
-import { ApiError, setAuthToken, type User, type WorkspaceSummary } from '@feather/api-client';
+import { ApiError, setAuthToken, type User, type WorkspaceSummary } from '@enzyme/api-client';
 
-const TOKEN_KEY = 'feather_auth_token';
+const TOKEN_KEY = 'enzyme_auth_token';
 
 function loadToken(): void {
   const token = localStorage.getItem(TOKEN_KEY);

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { emojisApi } from '../api/emojis';
 import { toast } from '../components/ui';
-import type { CustomEmoji } from '@feather/api-client';
+import type { CustomEmoji } from '@enzyme/api-client';
 
 export function useCustomEmojis(workspaceId: string | undefined) {
   return useQuery({

@@ -11,10 +11,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/feather/api/internal/emoji"
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/sse"
-	"github.com/feather/api/internal/workspace"
+	"github.com/enzyme/api/internal/emoji"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/sse"
+	"github.com/enzyme/api/internal/workspace"
 	"github.com/go-chi/chi/v5"
 )
 

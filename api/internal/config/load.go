@@ -42,9 +42,9 @@ func Load(configPath string, flags *pflag.FlagSet) (*Config, error) {
 		}
 	}
 
-	// 3. Load from environment variables (FEATHER_ prefix)
-	if err := k.Load(env.Provider("FEATHER_", ".", func(s string) string {
-		return strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, "FEATHER_")), "_", ".")
+	// 3. Load from environment variables (ENZYME_ prefix)
+	if err := k.Load(env.Provider("ENZYME_", ".", func(s string) string {
+		return strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, "ENZYME_")), "_", ".")
 	}), nil); err != nil {
 		return nil, fmt.Errorf("loading env vars: %w", err)
 	}
@@ -153,7 +153,7 @@ func (d *defaultsProviderStruct) Read() (map[string]interface{}, error) {
 }
 
 func SetupFlags() *pflag.FlagSet {
-	flags := pflag.NewFlagSet("feather", pflag.ContinueOnError)
+	flags := pflag.NewFlagSet("enzyme", pflag.ContinueOnError)
 	flags.String("config", "", "Path to config file")
 	flags.String("log.level", "", "Log level: debug, info, warn, error")
 	flags.String("log.format", "", "Log format: text or json")

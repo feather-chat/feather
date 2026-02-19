@@ -13,7 +13,7 @@ import {
   type SkinTone,
 } from '../../lib/emoji';
 import { CustomEmojiImg } from './CustomEmojiImg';
-import type { CustomEmoji } from '@feather/api-client';
+import type { CustomEmoji } from '@enzyme/api-client';
 
 const styles = tv({
   slots: {

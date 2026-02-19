@@ -42,7 +42,7 @@ jobs:
         run: make generate-types
 
       - name: Build frontend
-        run: pnpm --filter @feather/web build
+        run: pnpm --filter @enzyme/web build
 
       - name: Upload web dist
         uses: actions/upload-artifact@v4
@@ -91,18 +91,18 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
         run: |
           cd api
-          BINARY_NAME="feather-${{ matrix.goos }}-${{ matrix.goarch }}"
+          BINARY_NAME="enzyme-${{ matrix.goos }}-${{ matrix.goarch }}"
           if [ "${{ matrix.goos }}" = "windows" ]; then
             BINARY_NAME="${BINARY_NAME}.exe"
           fi
           VERSION="${GITHUB_REF_NAME#v}"
-          go build -ldflags="-s -w -X github.com/feather/api/internal/version.Version=${VERSION}" -o "../${BINARY_NAME}" ./cmd/feather
+          go build -ldflags="-s -w -X github.com/enzyme/api/internal/version.Version=${VERSION}" -o "../${BINARY_NAME}" ./cmd/enzyme
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: feather-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: feather-${{ matrix.goos }}-${{ matrix.goarch }}*
+          name: enzyme-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: enzyme-${{ matrix.goos }}-${{ matrix.goarch }}*
 
   release:
     needs: build-backend
@@ -119,7 +119,7 @@ jobs:
       - name: Prepare release files
         run: |
           mkdir -p release
-          find artifacts -type f -name "feather-*" -exec cp {} release/ \;
+          find artifacts -type f -name "enzyme-*" -exec cp {} release/ \;
           ls -la release/
 
       - name: Create Release

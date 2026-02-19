@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/feather/api/internal/channel"
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/testutil"
+	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/testutil"
 )
 
 func TestCreateChannel_Success(t *testing.T) {

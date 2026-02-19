@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/feather/api/internal/channel"
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/testutil"
+	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/testutil"
 )
 
 func TestSearchMessages_Success(t *testing.T) {
@@ -17,7 +17,7 @@ func TestSearchMessages_Success(t *testing.T) {
 	ws := testutil.CreateTestWorkspace(t, db, user.ID, "Test WS")
 	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "general", channel.TypePublic)
 
-	testutil.CreateTestMessage(t, db, ch.ID, user.ID, "hello world from feather")
+	testutil.CreateTestMessage(t, db, ch.ID, user.ID, "hello world from enzyme")
 	testutil.CreateTestMessage(t, db, ch.ID, user.ID, "another message about search")
 
 	ctx := ctxWithUser(t, h, user.ID)

@@ -2,7 +2,7 @@ import type {
   WorkspaceMemberWithUser,
   ChannelWithMembership,
   CustomEmoji,
-} from '@feather/api-client';
+} from '@enzyme/api-client';
 import { MrkdwnRenderer } from '../../lib/mrkdwn';
 
 interface MessageContentProps {

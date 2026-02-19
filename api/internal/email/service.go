@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"log/slog"
 
-	"github.com/feather/api/internal/config"
+	"github.com/enzyme/api/internal/config"
 )
 
 //go:embed templates/*.html templates/*.txt
@@ -59,7 +59,7 @@ func (s *Service) SendWorkspaceInvite(ctx context.Context, to string, data Invit
 	}
 
 	subject := "You've been invited to join " + data.WorkspaceName
-	body := "You've been invited to join " + data.WorkspaceName + " on Feather.\n\n"
+	body := "You've been invited to join " + data.WorkspaceName + " on Enzyme.\n\n"
 	body += "Click here to accept: " + data.InviteURL + "\n"
 
 	return s.sender.Send(ctx, to, subject, body, "")
@@ -75,7 +75,7 @@ func (s *Service) SendPasswordReset(ctx context.Context, to string, data Passwor
 		return nil
 	}
 
-	subject := "Reset your Feather password"
+	subject := "Reset your Enzyme password"
 	body := "You requested to reset your password.\n\n"
 	body += "Click here to reset: " + data.ResetURL + "\n\n"
 	body += "If you didn't request this, you can ignore this email.\n"
@@ -147,7 +147,7 @@ func (s *Service) SendNotificationDigest(ctx context.Context, to string, data No
 		}
 		body += prefix + item.SenderName + " in #" + item.ChannelName + ": " + item.Preview + "\n"
 	}
-	body += "\nOpen Feather: " + data.WorkspaceURL + "\n"
+	body += "\nOpen Enzyme: " + data.WorkspaceURL + "\n"
 
 	return s.sender.Send(ctx, to, subject, body, "")
 }

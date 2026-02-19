@@ -1,7 +1,7 @@
 import { Button as AriaButton } from 'react-aria-components';
 import { AvatarStack, Spinner } from '../ui';
 import { useChannelMembers } from '../../hooks/useChannels';
-import type { ChannelType } from '@feather/api-client';
+import type { ChannelType } from '@enzyme/api-client';
 
 interface ChannelMembersButtonProps {
   channelId: string;

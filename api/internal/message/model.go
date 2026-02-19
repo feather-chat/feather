@@ -3,7 +3,7 @@ package message
 import (
 	"time"
 
-	"github.com/feather/api/internal/file"
+	"github.com/enzyme/api/internal/file"
 )
 
 // Message types

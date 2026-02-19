@@ -1,5 +1,5 @@
 import { EmojiGrid, type EmojiSelectAttrs } from '../ui';
-import type { CustomEmoji } from '@feather/api-client';
+import type { CustomEmoji } from '@enzyme/api-client';
 
 interface EmojiPickerProps {
   onSelect: (emoji: string, attrs?: EmojiSelectAttrs) => void;

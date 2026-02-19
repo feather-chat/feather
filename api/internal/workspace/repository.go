@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/feather/api/internal/auth"
+	"github.com/enzyme/api/internal/auth"
 	"github.com/oklog/ulid/v2"
 )
 

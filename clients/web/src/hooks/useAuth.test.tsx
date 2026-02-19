@@ -19,8 +19,8 @@ vi.mock('../api/auth', () => ({
 }));
 
 // Mock ApiError with correct 3-arg signature: (code, message, status)
-vi.mock('@feather/api-client', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@feather/api-client')>();
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
   return {
     ...original,
     ApiError: class ApiError extends Error {
@@ -56,7 +56,7 @@ describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Set a token in localStorage so the query is enabled
-    localStorage.setItem('feather_auth_token', 'test-token');
+    localStorage.setItem('enzyme_auth_token', 'test-token');
   });
 
   it('returns loading state initially', () => {
@@ -87,7 +87,7 @@ describe('useAuth', () => {
   });
 
   it('returns unauthenticated state on 401 error', async () => {
-    const { ApiError } = await import('@feather/api-client');
+    const { ApiError } = await import('@enzyme/api-client');
     mockAuthApi.me.mockRejectedValue(new ApiError('UNAUTHORIZED', 'Unauthorized', 401));
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });

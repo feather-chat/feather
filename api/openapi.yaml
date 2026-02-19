@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Feather API
-  description: REST API for Feather, a self-hostable Slack alternative
+  title: Enzyme API
+  description: REST API for Enzyme, a self-hostable Slack alternative
   version: 1.0.0
 
 servers:

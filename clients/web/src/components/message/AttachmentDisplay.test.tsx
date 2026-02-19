@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within, userEvent } from '../../test-utils';
 import { AttachmentDisplay } from './AttachmentDisplay';
-import type { Attachment } from '@feather/api-client';
+import type { Attachment } from '@enzyme/api-client';
 
 // Mock the signedUrlCache so getCachedIfFresh returns URLs synchronously
 vi.mock('../../lib/signedUrlCache', () => ({

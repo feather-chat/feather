@@ -6,7 +6,7 @@ import {
   type EmojiSuggestionRef,
 } from './EmojiSuggestionList';
 import { searchAllEmojis } from '../../../lib/emoji';
-import type { CustomEmoji } from '@feather/api-client';
+import type { CustomEmoji } from '@enzyme/api-client';
 
 /**
  * Create suggestion configuration for TipTap emoji extension.

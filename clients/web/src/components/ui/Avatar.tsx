@@ -1,5 +1,5 @@
 import { cn, getInitials, getAvatarColor } from '../../lib/utils';
-import type { PresenceStatus } from '@feather/api-client';
+import type { PresenceStatus } from '@enzyme/api-client';
 
 interface AvatarProps {
   src?: string | null;

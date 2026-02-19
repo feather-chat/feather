@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { setApiBase } from '@feather/api-client';
+import { setApiBase } from '@enzyme/api-client';
 import './index.css';
 import App from './App.tsx';
 

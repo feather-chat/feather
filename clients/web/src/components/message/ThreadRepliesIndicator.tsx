@@ -2,7 +2,7 @@ import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { AvatarStack } from '../ui';
 import { useThreadPanel } from '../../hooks/usePanel';
 import { formatRelativeTime } from '../../lib/utils';
-import type { ThreadParticipant } from '@feather/api-client';
+import type { ThreadParticipant } from '@enzyme/api-client';
 
 interface ThreadRepliesIndicatorProps {
   messageId: string;

@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/smtp"
 
-	"github.com/feather/api/internal/config"
+	"github.com/enzyme/api/internal/config"
 )
 
 type Sender interface {

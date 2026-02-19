@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/feather/api/internal/database"
+	"github.com/enzyme/api/internal/database"
 	"github.com/oklog/ulid/v2"
 	"golang.org/x/crypto/bcrypt"
 )

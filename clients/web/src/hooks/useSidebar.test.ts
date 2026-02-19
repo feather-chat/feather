@@ -58,12 +58,12 @@ describe('useSidebar', () => {
       result.current.setCollapsed(true);
     });
 
-    const stored = localStorage.getItem('feather:sidebar-collapsed');
+    const stored = localStorage.getItem('enzyme:sidebar-collapsed');
     expect(stored).toBe('true');
   });
 
   it('reads initial value from localStorage', () => {
-    localStorage.setItem('feather:sidebar-collapsed', 'true');
+    localStorage.setItem('enzyme:sidebar-collapsed', 'true');
 
     const { result } = renderHook(() => useSidebar());
 

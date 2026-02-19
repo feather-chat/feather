@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, userEvent } from '../../test-utils';
 import { ChannelMentionBadge } from './ChannelMentionBadge';
-import type { ChannelWithMembership } from '@feather/api-client';
+import type { ChannelWithMembership } from '@enzyme/api-client';
 
 function makeChannel(overrides: Partial<ChannelWithMembership> = {}): ChannelWithMembership {
   return {

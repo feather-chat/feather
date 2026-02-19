@@ -10,7 +10,7 @@ import { SystemMessage } from './SystemMessage';
 import { JumpToLatestButton } from './JumpToLatestButton';
 import { MessageSkeleton } from '../ui';
 import { formatDate } from '../../lib/utils';
-import type { ChannelWithMembership } from '@feather/api-client';
+import type { ChannelWithMembership } from '@enzyme/api-client';
 
 interface MessageListProps {
   channelId: string;

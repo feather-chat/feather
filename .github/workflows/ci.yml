@@ -63,9 +63,9 @@ jobs:
         run: pnpm -r lint
 
       - name: Test web client
-        run: pnpm --filter @feather/web test:run
+        run: pnpm --filter @enzyme/web test:run
 
       - name: Build verification
         run: |
-          cd api && go build -o /dev/null ./cmd/feather
-          pnpm --filter @feather/web build
+          cd api && go build -o /dev/null ./cmd/enzyme
+          pnpm --filter @enzyme/web build

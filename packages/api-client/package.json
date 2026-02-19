@@ -1,5 +1,5 @@
 {
-  "name": "@feather/api-client",
+  "name": "@enzyme/api-client",
   "version": "0.1.0",
   "private": true,
   "type": "module",

@@ -2,7 +2,7 @@ import { Button as AriaButton } from 'react-aria-components';
 import { BellAlertIcon, BellIcon, BellSlashIcon } from '@heroicons/react/24/outline';
 import { SelectMenu, SelectMenuItem, Spinner } from '../ui';
 import { useChannelNotifications, useUpdateChannelNotifications } from '../../hooks';
-import type { ChannelType, NotifyLevel } from '@feather/api-client';
+import type { ChannelType, NotifyLevel } from '@enzyme/api-client';
 import { cn } from '../../lib/utils';
 
 interface ChannelNotificationButtonProps {

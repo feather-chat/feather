@@ -14,7 +14,7 @@ import { useChannels } from '../../hooks/useChannels';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
 import { DatePicker, Spinner } from '../ui';
 import { formatRelativeTime } from '../../lib/utils';
-import type { SearchMessage } from '@feather/api-client';
+import type { SearchMessage } from '@enzyme/api-client';
 
 function dateValueToISO(value: DateValue | null, endOfDay?: boolean): string | undefined {
   if (!value) return undefined;

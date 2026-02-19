@@ -6,8 +6,8 @@ import type { ReactNode } from 'react';
 // Hoist mocks
 const mockUploadFile = vi.hoisted(() => vi.fn());
 
-vi.mock('@feather/api-client', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@feather/api-client')>();
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
   return {
     ...original,
     uploadFile: mockUploadFile,

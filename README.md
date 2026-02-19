@@ -1,4 +1,4 @@
-# Feather
+# Enzyme
 
 A self-hostable Slack alternative built with Go and React.
 
@@ -29,7 +29,7 @@ This starts:
 ## Project Structure
 
 ```
-feather/
+enzyme/
 ├── api/                    # Go backend server
 ├── clients/
 │   ├── desktop/            # Electron desktop client
@@ -51,7 +51,7 @@ feather/
 
 ## Type Sharing
 
-Types are generated from `api/openapi.yaml` and shared via the `@feather/api-client` package:
+Types are generated from `api/openapi.yaml` and shared via the `@enzyme/api-client` package:
 
 ```bash
 # Regenerate after API changes
@@ -80,9 +80,9 @@ git push origin v0.1.0
 
 This builds binaries for 6 platforms (each with the web client embedded) and creates a GitHub Release:
 
-- `feather-linux-amd64`, `feather-linux-arm64`
-- `feather-darwin-amd64`, `feather-darwin-arm64`
-- `feather-windows-amd64.exe`, `feather-windows-arm64.exe`
+- `enzyme-linux-amd64`, `enzyme-linux-arm64`
+- `enzyme-darwin-amd64`, `enzyme-darwin-arm64`
+- `enzyme-windows-amd64.exe`, `enzyme-windows-arm64.exe`
 
 ## Documentation
 

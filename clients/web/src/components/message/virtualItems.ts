@@ -1,4 +1,4 @@
-import type { MessageWithUser } from '@feather/api-client';
+import type { MessageWithUser } from '@enzyme/api-client';
 
 export interface DateSeparatorItem {
   type: 'date-separator';

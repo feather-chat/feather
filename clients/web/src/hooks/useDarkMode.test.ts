@@ -207,12 +207,12 @@ describe('useDarkMode', () => {
     });
 
     // Check localStorage was updated
-    const stored = localStorage.getItem('feather:dark-mode');
+    const stored = localStorage.getItem('enzyme:dark-mode');
     expect(stored).toBe('true');
   });
 
   it('restores preference from localStorage', () => {
-    localStorage.setItem('feather:dark-mode', 'true');
+    localStorage.setItem('enzyme:dark-mode', 'true');
     window.matchMedia = mockMatchMedia(false);
 
     const { result } = renderHook(() => useDarkMode());

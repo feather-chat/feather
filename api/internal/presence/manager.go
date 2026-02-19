@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/feather/api/internal/sse"
+	"github.com/enzyme/api/internal/sse"
 	"github.com/oklog/ulid/v2"
 )
 

@@ -6,8 +6,8 @@ const mockPost = vi.hoisted(() => vi.fn());
 const mockDel = vi.hoisted(() => vi.fn());
 const mockUploadFile = vi.hoisted(() => vi.fn());
 
-vi.mock('@feather/api-client', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@feather/api-client')>();
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
   return {
     ...original,
     get: mockGet,

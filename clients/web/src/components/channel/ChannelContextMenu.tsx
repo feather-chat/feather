@@ -18,7 +18,7 @@ import {
   useChannelNotifications,
   useUpdateChannelNotifications,
 } from '../../hooks/useChannelNotifications';
-import type { ChannelWithMembership } from '@feather/api-client';
+import type { ChannelWithMembership } from '@enzyme/api-client';
 
 interface ChannelContextMenuProps {
   channel: ChannelWithMembership;

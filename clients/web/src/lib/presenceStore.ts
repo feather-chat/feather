@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { PresenceStatus, TypingEventData } from '@feather/api-client';
+import type { PresenceStatus, TypingEventData } from '@enzyme/api-client';
 
 interface TypingUser {
   userId: string;

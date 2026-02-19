@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/feather/api/internal/sse"
+	"github.com/enzyme/api/internal/sse"
 )
 
 // Default email delay before sending batched notifications

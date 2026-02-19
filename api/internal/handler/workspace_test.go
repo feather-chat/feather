@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/feather/api/internal/openapi"
-	"github.com/feather/api/internal/testutil"
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/testutil"
 )
 
 func TestCreateWorkspace_Success(t *testing.T) {

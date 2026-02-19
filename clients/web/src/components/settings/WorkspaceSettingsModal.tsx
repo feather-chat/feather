@@ -14,7 +14,7 @@ import { useAuth } from '../../hooks';
 import { Modal, Avatar, Button, Spinner, Tabs, TabList, Tab, TabPanel, toast } from '../ui';
 import { CustomEmojiManager } from './CustomEmojiManager';
 import { cn, getAvatarColor } from '../../lib/utils';
-import type { WorkspaceRole } from '@feather/api-client';
+import type { WorkspaceRole } from '@enzyme/api-client';
 
 export type WorkspaceSettingsTab = 'general' | 'members' | 'emoji' | 'invite';
 

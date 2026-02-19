@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Tooltip, Menu, MenuItem, EmojiGrid } from '../ui';
 import { cn } from '../../lib/utils';
-import type { CustomEmoji } from '@feather/api-client';
+import type { CustomEmoji } from '@enzyme/api-client';
 
 interface MessageActionBarProps {
   reactionPickerOpen: boolean;
