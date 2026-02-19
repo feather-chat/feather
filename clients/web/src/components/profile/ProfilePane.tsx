@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { Button as AriaButton } from 'react-aria-components';
 import { XMarkIcon, PhotoIcon, TrashIcon } from '@heroicons/react/24/outline';
 import {
   useUserProfile,
@@ -8,8 +9,8 @@ import {
   useAuth,
 } from '../../hooks';
 import { useProfilePanel } from '../../hooks/usePanel';
-import { Avatar, Button, Input, Spinner, toast } from '../ui';
-import { cn } from '../../lib/utils';
+import { Button, Input, Spinner, toast } from '../ui';
+import { cn, getInitials, getAvatarColor } from '../../lib/utils';
 import { useUserPresence } from '../../lib/presenceStore';
 
 interface ProfilePaneProps {
@@ -28,14 +29,14 @@ export function ProfilePane({ userId }: ProfilePaneProps) {
   return (
     <div className="flex w-80 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+      <div className="flex items-center justify-between border-b border-gray-200 p-3 dark:border-gray-700">
         <h3 className="font-semibold text-gray-900 dark:text-white">Profile</h3>
-        <button
+        <AriaButton
           onClick={closeProfile}
-          className="rounded p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="cursor-pointer rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <XMarkIcon className="h-4 w-4" />
-        </button>
+        </AriaButton>
       </div>
 
       {/* Content */}
@@ -94,16 +95,25 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
 
   return (
     <div className="space-y-6">
-      {/* Avatar and name */}
+      {/* Profile banner */}
+      {profile.avatar_url ? (
+        <div className="flex justify-center pt-2">
+          <img src={profile.avatar_url} alt={profile.display_name} className="w-full rounded-lg" />
+        </div>
+      ) : (
+        <div
+          className={cn(
+            'flex h-48 items-center justify-center rounded-lg text-5xl font-medium text-white',
+            getAvatarColor(profile.id),
+          )}
+        >
+          {getInitials(profile.display_name)}
+        </div>
+      )}
+
+      {/* Name and status */}
       <div className="flex flex-col items-center text-center">
-        <Avatar
-          src={profile.avatar_url}
-          name={profile.display_name}
-          id={profile.id}
-          size="lg"
-          className="h-24 w-24 text-3xl"
-        />
-        <h4 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
+        <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
           {profile.display_name}
         </h4>
         <span className={cn('mt-1 inline-flex items-center gap-1.5 text-sm', status.color)}>
@@ -222,23 +232,31 @@ function EditProfileForm({ userId, profile, onCancel, onSuccess }: EditProfileFo
     }
   };
 
-  // Determine which avatar to show in preview
-  const displayAvatarUrl = previewUrl || profile.avatar_url;
   const hasExistingAvatar = !!profile.avatar_url;
   const isPending = updateProfile.isPending || uploadAvatar.isPending || deleteAvatar.isPending;
 
+  const displayAvatarUrl = previewUrl || profile.avatar_url;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Avatar preview and upload */}
-      <div className="flex flex-col items-center gap-3">
-        <Avatar
-          src={displayAvatarUrl || undefined}
-          name={displayName || 'User'}
-          id={userId}
-          size="lg"
-          className="h-24 w-24 text-3xl"
-        />
+      {/* Profile banner */}
+      {displayAvatarUrl ? (
+        <div className="flex justify-center pt-2">
+          <img src={displayAvatarUrl} alt={displayName || 'User'} className="w-full rounded-lg" />
+        </div>
+      ) : (
+        <div
+          className={cn(
+            'flex h-48 items-center justify-center rounded-lg text-5xl font-medium text-white',
+            getAvatarColor(userId),
+          )}
+        >
+          {getInitials(displayName || 'User')}
+        </div>
+      )}
 
+      {/* Avatar upload */}
+      <div className="flex flex-col items-center gap-3">
         <input
           ref={fileInputRef}
           type="file"
