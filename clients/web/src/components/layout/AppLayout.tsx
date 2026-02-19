@@ -76,7 +76,11 @@ export function AppLayout() {
             sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-64',
           )}
         >
-          <ChannelSidebar workspaceId={workspaceId} onSearchClick={handleOpenSearch} />
+          <ChannelSidebar
+            workspaceId={workspaceId}
+            onSearchClick={handleOpenSearch}
+            onOpenWorkspaceSettings={handleOpenWorkspaceSettings}
+          />
         </div>
 
         {/* Main Content */}

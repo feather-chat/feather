@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Button as AriaButton } from 'react-aria-components';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   PlusIcon,
@@ -7,6 +8,12 @@ import {
   InboxIcon,
   ChatBubbleLeftEllipsisIcon,
   MagnifyingGlassIcon,
+  Cog6ToothIcon,
+  UsersIcon,
+  UserPlusIcon,
+  FaceSmileIcon,
+  EnvelopeOpenIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import {
   DndContext,
@@ -34,6 +41,9 @@ import {
   RadioGroup,
   Radio,
   Avatar,
+  Menu,
+  MenuItem,
+  MenuSeparator,
 } from '../ui';
 import {
   useCreateChannel,
@@ -42,12 +52,14 @@ import {
   useDMSuggestions,
   useStarChannel,
   useUnstarChannel,
+  useMarkAllChannelsAsRead,
 } from '../../hooks/useChannels';
 import { cn, getAvatarColor } from '../../lib/utils';
 import { useUserPresence } from '../../lib/presenceStore';
 import { AvatarStack } from '../ui';
 import type { ChannelWithMembership, ChannelType, SuggestedUser } from '@feather/api-client';
 import { ChannelContextMenu } from './ChannelContextMenu';
+import type { WorkspaceSettingsTab } from '../settings/WorkspaceSettingsModal';
 
 function ChannelIcon({ type, className }: { type: string; className?: string }) {
   const icon =
@@ -75,18 +87,27 @@ function DisclosureCaret({ isExpanded, className }: { isExpanded: boolean; class
 interface ChannelSidebarProps {
   workspaceId: string | undefined;
   onSearchClick?: () => void;
+  onOpenWorkspaceSettings?: (workspaceId: string, tab?: WorkspaceSettingsTab) => void;
 }
 
-export function ChannelSidebar({ workspaceId, onSearchClick }: ChannelSidebarProps) {
+export function ChannelSidebar({
+  workspaceId,
+  onSearchClick,
+  onOpenWorkspaceSettings,
+}: ChannelSidebarProps) {
   const { channelId } = useParams<{ channelId: string }>();
   const location = useLocation();
   const { data: workspaceData } = useWorkspace(workspaceId);
   const { data, isLoading } = useChannels(workspaceId);
+  const { workspaces } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isNewDMModalOpen, setIsNewDMModalOpen] = useState(false);
   const starChannel = useStarChannel(workspaceId || '');
   const unstarChannel = useUnstarChannel(workspaceId || '');
+  const markAllAsRead = useMarkAllChannelsAsRead(workspaceId || '');
   const [activeChannel, setActiveChannel] = useState<ChannelWithMembership | null>(null);
+  const workspaceMembership = workspaces?.find((w) => w.id === workspaceId);
+  const canInvite = workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin';
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -214,22 +235,66 @@ export function ChannelSidebar({ workspaceId, onSearchClick }: ChannelSidebarPro
   return (
     <div className="flex h-full flex-col bg-white dark:bg-gray-900">
       {/* Header */}
-      <div className="border-b border-gray-200 p-4 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <h2 className="truncate font-bold text-gray-900 dark:text-white">
-            {workspaceData?.workspace.name || 'Loading...'}
-          </h2>
-          <div className="flex items-center gap-1">
-            {onSearchClick && (
-              <button
-                onClick={onSearchClick}
-                className="cursor-pointer rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                title="Search messages (Cmd+K)"
-              >
-                <MagnifyingGlassIcon className="h-5 w-5" />
-              </button>
+      <div className="border-b border-gray-200 p-2 dark:border-gray-700">
+        <div className="flex items-center justify-between gap-1">
+          <Menu
+            trigger={
+              <AriaButton className="flex min-w-0 flex-1 items-center gap-1 rounded px-2 py-1.5 text-left outline-none hover:bg-gray-100 dark:hover:bg-gray-800">
+                <h2 className="truncate font-bold text-gray-900 dark:text-white">
+                  {workspaceData?.workspace.name || 'Loading...'}
+                </h2>
+                <ChevronDownIcon className="h-3.5 w-3.5 flex-shrink-0 text-gray-500" />
+              </AriaButton>
+            }
+            align="start"
+          >
+            {onOpenWorkspaceSettings && workspaceId && (
+              <>
+                <MenuItem
+                  onAction={() => onOpenWorkspaceSettings(workspaceId)}
+                  icon={<Cog6ToothIcon className="h-4 w-4" />}
+                >
+                  Workspace Settings
+                </MenuItem>
+                <MenuItem
+                  onAction={() => onOpenWorkspaceSettings(workspaceId, 'members')}
+                  icon={<UsersIcon className="h-4 w-4" />}
+                >
+                  Manage Members
+                </MenuItem>
+                {canInvite && (
+                  <MenuItem
+                    onAction={() => onOpenWorkspaceSettings(workspaceId, 'invite')}
+                    icon={<UserPlusIcon className="h-4 w-4" />}
+                  >
+                    Invite People
+                  </MenuItem>
+                )}
+                <MenuItem
+                  onAction={() => onOpenWorkspaceSettings(workspaceId, 'emoji')}
+                  icon={<FaceSmileIcon className="h-4 w-4" />}
+                >
+                  Custom Emoji
+                </MenuItem>
+                <MenuSeparator />
+              </>
             )}
-          </div>
+            <MenuItem
+              onAction={() => markAllAsRead.mutate()}
+              icon={<EnvelopeOpenIcon className="h-4 w-4" />}
+            >
+              Mark All as Read
+            </MenuItem>
+          </Menu>
+          {onSearchClick && (
+            <button
+              onClick={onSearchClick}
+              className="cursor-pointer rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Search messages (Cmd+K)"
+            >
+              <MagnifyingGlassIcon className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </div>
 
