@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
-          path: clients/web/dist/
+          path: apps/web/dist/
 
   build-backend:
     needs: build-frontend

@@ -3,7 +3,7 @@
 BINARY_NAME=enzyme
 BUILD_DIR=./bin
 VERSION ?= dev
-WEB_DIST_SRC=../clients/web/dist
+WEB_DIST_SRC=../apps/web/dist
 WEB_DIST_DST=./internal/web/dist
 
 generate:

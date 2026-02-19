@@ -31,9 +31,10 @@ This starts:
 ```
 enzyme/
 ├── api/                    # Go backend server
-├── clients/
+├── apps/
 │   ├── desktop/            # Electron desktop client
-│   └── web/                # React frontend
+│   ├── web/                # React frontend
+│   └── website/            # Marketing site (Eleventy)
 ├── packages/api-client/    # Shared TypeScript types
 └── Makefile                # Build orchestration
 ```
@@ -86,11 +87,14 @@ This builds binaries for 6 platforms (each with the web client embedded) and cre
 
 ## Documentation
 
-| Document    | Path                                           |
-| ----------- | ---------------------------------------------- |
-| API (Go)    | [api/README.md](api/README.md)                 |
-| Web (React) | [clients/web/README.md](clients/web/README.md) |
-| Permissions | [docs/permissions.md](docs/permissions.md)     |
+| Document      | Path                                           |
+| ------------- | ---------------------------------------------- |
+| API (Go)      | [api/README.md](api/README.md)                 |
+| Web (React)   | [apps/web/README.md](apps/web/README.md)       |
+| Self-Hosting  | [docs/self-hosting.md](docs/self-hosting.md)   |
+| Configuration | [docs/configuration.md](docs/configuration.md) |
+| Permissions   | [docs/permissions.md](docs/permissions.md)     |
+| Scaling       | [docs/scaling.md](docs/scaling.md)             |
 
 ## Tech Stack
 

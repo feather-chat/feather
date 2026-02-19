@@ -18,9 +18,7 @@ const config: ForgeConfig = {
       const webDist = path.resolve(__dirname, '..', 'web', 'dist');
       const dest = path.join(buildPath, 'web-dist');
       if (!fs.existsSync(webDist)) {
-        throw new Error(
-          'clients/web/dist/ not found. Run "pnpm --filter @enzyme/web build" first.',
-        );
+        throw new Error('apps/web/dist/ not found. Run "pnpm --filter @enzyme/web build" first.');
       }
       fs.cpSync(webDist, dest, { recursive: true });
     },
