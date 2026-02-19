@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { Button as AriaButton } from 'react-aria-components';
 import {
   XMarkIcon,
   HashtagIcon,
@@ -11,6 +12,9 @@ import {
   TrashIcon,
   UserIcon,
   ChatBubbleLeftIcon,
+  EllipsisVerticalIcon,
+  BellIcon,
+  BellSlashIcon,
 } from '@heroicons/react/24/outline';
 import {
   useThreadMessages,
@@ -32,12 +36,17 @@ import {
   toast,
   ContextMenu,
   useContextMenu,
+  Menu,
   MenuItem,
   MenuSeparator,
 } from '../ui';
 import { EmojiDisplay } from '../message/ReactionsDisplay';
 import { useCustomEmojiMap, useCustomEmojis } from '../../hooks/useCustomEmojis';
-import { ThreadNotificationButton } from './ThreadNotificationButton';
+import {
+  useThreadSubscription,
+  useSubscribeToThread,
+  useUnsubscribeFromThread,
+} from '../../hooks/useThreadSubscription';
 import { MessageActionBar } from '../message/MessageActionBar';
 import { AttachmentDisplay } from '../message/AttachmentDisplay';
 import { MessageContent } from '../message/MessageContent';
@@ -94,6 +103,10 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
   const { data: channelsData } = useChannels(workspaceId);
   const composerRef = useRef<MessageComposerRef>(null);
   const markThreadRead = useMarkThreadRead(workspaceId || '');
+  const { data: subscriptionData } = useThreadSubscription(messageId);
+  const subscribe = useSubscribeToThread();
+  const unsubscribe = useUnsubscribeFromThread();
+  const isSubscribed = subscriptionData?.status === 'subscribed';
 
   // Try to get parent message from cache first
   const cachedMessage = getParentMessageFromCache(queryClient, messageId);
@@ -162,13 +175,48 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
   return (
     <div className="flex w-96 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+      <div className="flex items-center justify-between border-b border-gray-200 p-3 dark:border-gray-700">
         <h3 className="font-semibold text-gray-900 dark:text-white">Thread</h3>
         <div className="flex items-center gap-1">
-          <ThreadNotificationButton messageId={messageId} />
+          <Menu
+            align="end"
+            trigger={
+              <AriaButton className="cursor-pointer rounded p-1.5 text-gray-500 outline-none hover:bg-gray-100 dark:hover:bg-gray-700">
+                <EllipsisVerticalIcon className="h-4 w-4" />
+              </AriaButton>
+            }
+          >
+            {isSubscribed ? (
+              <MenuItem
+                onAction={() => unsubscribe.mutate(messageId)}
+                icon={<BellSlashIcon className="h-4 w-4" />}
+              >
+                Turn off notifications for replies
+              </MenuItem>
+            ) : (
+              <MenuItem
+                onAction={() => subscribe.mutate(messageId)}
+                icon={<BellIcon className="h-4 w-4" />}
+              >
+                Get notified about new replies
+              </MenuItem>
+            )}
+            <MenuSeparator />
+            <MenuItem
+              onAction={() => {
+                if (!parentMessage) return;
+                const url = `${window.location.origin}/workspaces/${workspaceId}/channels/${parentMessage.channel_id}?thread=${messageId}`;
+                navigator.clipboard.writeText(url);
+                toast('Link copied to clipboard', 'success');
+              }}
+              icon={<LinkIcon className="h-4 w-4" />}
+            >
+              Copy link
+            </MenuItem>
+          </Menu>
           <button
             onClick={closeThread}
-            className="rounded p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="cursor-pointer rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <XMarkIcon className="h-4 w-4" />
           </button>
