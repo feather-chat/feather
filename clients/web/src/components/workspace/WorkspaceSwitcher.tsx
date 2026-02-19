@@ -242,7 +242,7 @@ function SortableWorkspaceItem({
             onPress={onPress}
             aria-label={workspace.name}
             className={cn('cursor-grab outline-none', isDragging && 'cursor-grabbing opacity-50')}
-            {...(pointerListeners as React.DOMAttributes<HTMLButtonElement>)}
+            {...(pointerListeners as React.DOMAttributes<Element>)}
             onContextMenu={onContextMenu}
           >
             <WorkspaceItemContent
