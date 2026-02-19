@@ -286,10 +286,7 @@ export function ChannelPage() {
                     className="h-4 w-4 text-gray-500 dark:text-gray-400"
                   />
                   <h1 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h1>
-                  <DisclosureCaret
-                    isExpanded
-                    className="flex-shrink-0 text-gray-400 dark:text-gray-600"
-                  />
+                  <DisclosureCaret isExpanded className="text-gray-500 dark:text-gray-400" />
                 </AriaButton>
               }
               align="start"

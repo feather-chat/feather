@@ -13,7 +13,6 @@ import {
   UserPlusIcon,
   FaceSmileIcon,
   EnvelopeOpenIcon,
-  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import {
   DndContext,
@@ -224,15 +223,15 @@ export function ChannelSidebar({
   return (
     <div className="flex h-full flex-col bg-white dark:bg-gray-900">
       {/* Header */}
-      <div className="border-b border-gray-200 p-2 dark:border-gray-700">
+      <div className="border-b border-gray-200 p-3 dark:border-gray-700">
         <div className="flex items-center justify-between gap-1">
           <Menu
             trigger={
-              <AriaButton className="flex min-w-0 cursor-pointer items-center gap-1 rounded px-2 py-1.5 text-left outline-none hover:bg-gray-100 dark:hover:bg-gray-800">
-                <h2 className="truncate font-bold text-gray-900 dark:text-white">
+              <AriaButton className="flex min-w-0 cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-left outline-none hover:bg-gray-100 dark:hover:bg-gray-800">
+                <h2 className="truncate font-semibold text-gray-900 dark:text-white">
                   {workspaceData?.workspace.name || 'Loading...'}
                 </h2>
-                <ChevronDownIcon className="h-3.5 w-3.5 flex-shrink-0 text-gray-500" />
+                <DisclosureCaret isExpanded className="text-gray-500 dark:text-gray-400" />
               </AriaButton>
             }
             align="start"
@@ -281,7 +280,7 @@ export function ChannelSidebar({
               className="cursor-pointer rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Search messages (Cmd+K)"
             >
-              <MagnifyingGlassIcon className="h-5 w-5" />
+              <MagnifyingGlassIcon className="h-4 w-4" />
             </button>
           )}
         </div>
