@@ -2,12 +2,17 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  EllipsisVerticalIcon,
   LockClosedIcon,
   HashtagIcon,
   StarIcon,
   ArrowLeftStartOnRectangleIcon,
   ArchiveBoxIcon,
+  Cog6ToothIcon,
+  UsersIcon,
+  UserPlusIcon,
+  BellSlashIcon,
+  BellIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { Button as AriaButton } from 'react-aria-components';
@@ -18,6 +23,8 @@ import {
   useJoinChannel,
   useAuth,
   useAutoFocusComposer,
+  useChannelNotifications,
+  useUpdateChannelNotifications,
 } from '../hooks';
 import { useThreadPanel } from '../hooks/usePanel';
 import { useMarkChannelAsRead, useStarChannel, useUnstarChannel } from '../hooks/useChannels';
@@ -26,7 +33,17 @@ import { ChannelMembersButton } from '../components/channel/ChannelMembersButton
 import { ChannelNotificationButton } from '../components/channel/ChannelNotificationButton';
 import { ChannelDetailsModal } from '../components/channel/ChannelDetailsModal';
 import { ConvertToChannelModal } from '../components/channel/ConvertToChannelModal';
-import { Spinner, Modal, Button, toast, Tooltip } from '../components/ui';
+import {
+  Spinner,
+  Modal,
+  Button,
+  Menu,
+  MenuItem,
+  MenuSeparator,
+  DisclosureCaret,
+  toast,
+  Tooltip,
+} from '../components/ui';
 
 function ChannelIcon({ type, className }: { type: string; className?: string }) {
   if (type === 'private') {
@@ -62,6 +79,9 @@ export function ChannelPage() {
   const markAsRead = useMarkChannelAsRead(workspaceId || '');
   const starChannel = useStarChannel(workspaceId || '');
   const unstarChannel = useUnstarChannel(workspaceId || '');
+  const isMember = channel?.channel_role !== undefined;
+  const { data: notifData } = useChannelNotifications(isMember ? channelId : undefined);
+  const updateNotifications = useUpdateChannelNotifications(channelId || '');
 
   // Get user's role in this workspace
   const workspaceMembership = workspaces?.find((w) => w.id === workspaceId);
@@ -70,14 +90,12 @@ export function ChannelPage() {
     workspaceMembership?.role === 'owner' ||
     channel?.channel_role !== undefined; // User is channel member
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [detailsModalTab, setDetailsModalTab] = useState<'about' | 'members' | 'add'>('about');
-  const menuRef = useRef<HTMLDivElement>(null);
   const markAsReadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const descriptionRef = useRef<HTMLElement>(null);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
@@ -139,17 +157,6 @@ export function ChannelPage() {
     setIsAtBottom(atBottom);
   }, []);
 
-  // Close menu when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const handleArchive = async () => {
     if (!channelId || !workspaceId) return;
     try {
@@ -194,7 +201,6 @@ export function ChannelPage() {
     }
   };
 
-  const isMember = channel?.channel_role !== undefined;
   const canJoin = channel && channel.type === 'public' && !isMember;
   const canArchive =
     channel && channel.type !== 'dm' && channel.type !== 'group_dm' && !channel.is_default;
@@ -205,6 +211,15 @@ export function ChannelPage() {
     channel.type !== 'dm' &&
     channel.type !== 'group_dm' &&
     channel.channel_role !== undefined;
+  const isChannel = channel?.type === 'public' || channel?.type === 'private';
+  const isMuted = notifData?.preferences?.notify_level === 'none';
+
+  const handleToggleMute = () => {
+    updateNotifications.mutate({
+      notify_level: isMuted ? 'mentions' : 'none',
+      email_enabled: notifData?.preferences?.email_enabled ?? true,
+    });
+  };
 
   // Auto-focus main composer only when no thread is open and user is a member
   useAutoFocusComposer(composerRef, isMember && !threadId);
@@ -263,16 +278,95 @@ export function ChannelPage() {
                 )}
               </button>
             )}
-            <button
-              onClick={() => openDetailsModal('about')}
-              className="-ml-1.5 flex flex-shrink-0 items-center gap-2 rounded px-1.5 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+            <Menu
+              trigger={
+                <AriaButton className="-ml-1.5 flex flex-shrink-0 cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <ChannelIcon
+                    type={channel.type}
+                    className="h-4 w-4 text-gray-500 dark:text-gray-400"
+                  />
+                  <h1 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h1>
+                  <DisclosureCaret
+                    isExpanded
+                    className="flex-shrink-0 text-gray-400 dark:text-gray-600"
+                  />
+                </AriaButton>
+              }
+              align="start"
             >
-              <ChannelIcon
-                type={channel.type}
-                className="h-5 w-5 text-gray-500 dark:text-gray-400"
-              />
-              <h1 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h1>
-            </button>
+              <MenuItem
+                onAction={() => openDetailsModal('about')}
+                icon={<Cog6ToothIcon className="h-4 w-4" />}
+              >
+                Channel Settings
+              </MenuItem>
+              <MenuItem
+                onAction={() => openDetailsModal('members')}
+                icon={<UsersIcon className="h-4 w-4" />}
+              >
+                Members
+              </MenuItem>
+              {canAddMembers && (
+                <MenuItem
+                  onAction={() => openDetailsModal('add')}
+                  icon={<UserPlusIcon className="h-4 w-4" />}
+                >
+                  Invite
+                </MenuItem>
+              )}
+              <MenuItem
+                onAction={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast('Link copied to clipboard', 'success');
+                }}
+                icon={<LinkIcon className="h-4 w-4" />}
+              >
+                Copy Link
+              </MenuItem>
+              {isChannel && isMember && (
+                <MenuItem
+                  onAction={handleToggleMute}
+                  icon={
+                    isMuted ? (
+                      <BellIcon className="h-4 w-4" />
+                    ) : (
+                      <BellSlashIcon className="h-4 w-4" />
+                    )
+                  }
+                >
+                  {isMuted ? 'Unmute Channel' : 'Mute Channel'}
+                </MenuItem>
+              )}
+              {canConvert && (
+                <MenuItem
+                  onAction={() => setIsConvertModalOpen(true)}
+                  icon={<HashtagIcon className="h-4 w-4" />}
+                >
+                  Convert to Channel
+                </MenuItem>
+              )}
+              {canLeave && (
+                <>
+                  <MenuSeparator />
+                  <MenuItem
+                    onAction={() => setIsLeaveModalOpen(true)}
+                    variant="danger"
+                    icon={<ArrowLeftStartOnRectangleIcon className="h-4 w-4" />}
+                  >
+                    {channel.type === 'group_dm' ? 'Leave Conversation' : 'Leave Channel'}
+                  </MenuItem>
+                </>
+              )}
+              {canArchive && (
+                <MenuItem
+                  onAction={() => setIsArchiveModalOpen(true)}
+                  variant="danger"
+                  icon={<ArchiveBoxIcon className="h-4 w-4" />}
+                >
+                  Archive Channel
+                </MenuItem>
+              )}
+            </Menu>
             {channel.description &&
               (isDescriptionTruncated ? (
                 <Tooltip content={channel.description} placement="bottom">
@@ -304,62 +398,6 @@ export function ChannelPage() {
 
             {/* Notification settings */}
             <ChannelNotificationButton channelId={channelId} channelType={channel.type} />
-
-            {/* Settings menu */}
-            {(canArchive || canLeave || canConvert) && (
-              <div className="relative" ref={menuRef}>
-                <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                >
-                  <EllipsisVerticalIcon className="h-5 w-5" />
-                </button>
-
-                {isMenuOpen && (
-                  <div className="absolute right-0 z-10 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                    {canConvert && (
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          setIsConvertModalOpen(true);
-                        }}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                      >
-                        <HashtagIcon className="h-4 w-4" />
-                        Convert to channel
-                      </button>
-                    )}
-                    {canLeave && (
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          setIsLeaveModalOpen(true);
-                        }}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                      >
-                        <ArrowLeftStartOnRectangleIcon className="h-4 w-4" />
-                        {channel.type === 'group_dm' ? 'Leave direct message' : 'Leave channel'}
-                      </button>
-                    )}
-                    {canArchive && (
-                      <>
-                        <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
-                        <button
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            setIsArchiveModalOpen(true);
-                          }}
-                          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
-                        >
-                          <ArchiveBoxIcon className="h-4 w-4" />
-                          Archive channel
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

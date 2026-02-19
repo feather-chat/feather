@@ -28,3 +28,4 @@ export { EmojiGrid, type EmojiSelectAttrs } from './EmojiGrid';
 export { CustomEmojiImg } from './CustomEmojiImg';
 export { AuthImage } from './AuthImage';
 export { DatePicker } from './DatePicker';
+export { DisclosureCaret } from './DisclosureCaret';

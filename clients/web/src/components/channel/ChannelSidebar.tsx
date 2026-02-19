@@ -44,6 +44,7 @@ import {
   Menu,
   MenuItem,
   MenuSeparator,
+  DisclosureCaret,
 } from '../ui';
 import {
   useCreateChannel,
@@ -70,18 +71,6 @@ function ChannelIcon({ type, className }: { type: string; className?: string }) 
     ) : null;
 
   return <span className={cn('flex w-5 items-center justify-center', className)}>{icon}</span>;
-}
-
-function DisclosureCaret({ isExpanded, className }: { isExpanded: boolean; className?: string }) {
-  return (
-    <svg
-      className={cn('h-3 w-3 transition-transform', isExpanded && 'rotate-90', className)}
-      viewBox="0 0 12 12"
-      fill="currentColor"
-    >
-      <path d="M4 2 L8 6 L4 10 Z" />
-    </svg>
-  );
 }
 
 interface ChannelSidebarProps {
