@@ -289,18 +289,25 @@ export function ChannelSidebar({
       {/* Channel List */}
       <div className="flex-1 overflow-y-auto">
         {/* All Unreads link */}
-        <div className="px-2 pt-2">
+        <div className="px-2 py-2">
           <Link
             to={`/workspaces/${workspaceId}/unreads`}
             className={cn(
-              'flex items-center gap-2 rounded px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800/50',
+              'flex items-center gap-2 rounded px-2 py-1',
               isUnreadsPage
                 ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                : 'text-gray-700 dark:text-gray-300',
+                : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50',
             )}
           >
             <span className="flex w-5 items-center justify-center">
-              <InboxIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <InboxIcon
+                className={cn(
+                  'h-4 w-4',
+                  isUnreadsPage
+                    ? 'text-primary-700 dark:text-primary-300'
+                    : 'text-gray-500 dark:text-gray-400',
+                )}
+              />
             </span>
             <span className={cn('truncate', hasUnread && 'font-semibold')}>All Unreads</span>
             {hasNotifications && (
@@ -312,14 +319,21 @@ export function ChannelSidebar({
           <Link
             to={`/workspaces/${workspaceId}/threads`}
             className={cn(
-              'mt-0.5 flex items-center gap-2 rounded px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800/50',
+              'flex items-center gap-2 rounded px-2 py-1',
               isThreadsPage
                 ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                : 'text-gray-700 dark:text-gray-300',
+                : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50',
             )}
           >
             <span className="flex w-5 items-center justify-center">
-              <ChatBubbleLeftEllipsisIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <ChatBubbleLeftEllipsisIcon
+                className={cn(
+                  'h-4 w-4',
+                  isThreadsPage
+                    ? 'text-primary-700 dark:text-primary-300'
+                    : 'text-gray-500 dark:text-gray-400',
+                )}
+              />
             </span>
             <span className={cn('truncate', unreadThreadCount > 0 && 'font-semibold')}>
               Threads
@@ -438,10 +452,10 @@ function DroppableChannelSection({
         showDropHighlight && 'bg-primary-50 dark:bg-primary-900/20',
       )}
     >
-      <div className="flex w-full items-center justify-between px-2 py-1 text-gray-500 dark:text-gray-400">
+      <div className="flex w-full items-center justify-between px-2 py-1 text-sm text-gray-700 dark:text-gray-300">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 px-2 hover:text-gray-700 dark:hover:text-gray-300"
+          className="flex cursor-pointer items-center gap-2 px-2"
         >
           <span className="flex w-5 items-center justify-center">
             <DisclosureCaret isExpanded={isExpanded} />
@@ -548,10 +562,10 @@ function DroppableDMSection({
         showDropHighlight && 'bg-primary-50 dark:bg-primary-900/20',
       )}
     >
-      <div className="flex w-full items-center justify-between px-2 py-1 text-gray-500 dark:text-gray-400">
+      <div className="flex w-full items-center justify-between px-2 py-1 text-sm text-gray-700 dark:text-gray-300">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 px-2 hover:text-gray-700 dark:hover:text-gray-300"
+          className="flex cursor-pointer items-center gap-2 px-2"
         >
           <span className="flex w-5 items-center justify-center">
             <DisclosureCaret isExpanded={isExpanded} />
