@@ -57,6 +57,7 @@ type MessageWithUser struct {
 	Message
 	UserDisplayName    string              `json:"user_display_name,omitempty"`
 	UserAvatarURL      *string             `json:"user_avatar_url,omitempty"`
+	UserEmail          string              `json:"-"`
 	Reactions          []Reaction          `json:"reactions,omitempty"`
 	ThreadParticipants []ThreadParticipant `json:"thread_participants,omitempty"`
 	Attachments        []file.Attachment   `json:"attachments,omitempty"`
@@ -66,6 +67,7 @@ type ThreadParticipant struct {
 	UserID      string  `json:"user_id"`
 	DisplayName string  `json:"display_name,omitempty"`
 	AvatarURL   *string `json:"avatar_url,omitempty"`
+	Email       string  `json:"-"`
 }
 
 type Reaction struct {

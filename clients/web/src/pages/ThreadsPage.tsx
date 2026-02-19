@@ -48,6 +48,7 @@ function ThreadItem({ thread, onOpen }: { thread: ThreadMessage; onOpen: (id: st
           <div className="flex items-start gap-2">
             <Avatar
               src={thread.user_avatar_url}
+              gravatarSrc={thread.user_gravatar_url}
               name={thread.user_display_name || 'Unknown'}
               id={thread.user_id}
               size="sm"
@@ -81,6 +82,7 @@ function ThreadItem({ thread, onOpen }: { thread: ThreadMessage; onOpen: (id: st
                   <Avatar
                     key={p.user_id}
                     src={p.avatar_url}
+                    gravatarSrc={p.gravatar_url}
                     name={p.display_name || ''}
                     id={p.user_id}
                     size="xs"

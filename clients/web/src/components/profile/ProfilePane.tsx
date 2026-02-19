@@ -55,6 +55,7 @@ export function ProfilePane({ userId }: ProfilePaneProps) {
             />
           ) : (
             <ViewProfile
+              key={profile.id}
               profile={profile}
               isOwnProfile={isOwnProfile}
               onEdit={() => setIsEditing(true)}
@@ -73,6 +74,7 @@ interface ViewProfileProps {
     id: string;
     display_name: string;
     avatar_url?: string;
+    gravatar_url?: string;
     status: string;
     created_at: string;
   };
@@ -81,6 +83,7 @@ interface ViewProfileProps {
 }
 
 function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
+  const [gravatarFailed, setGravatarFailed] = useState(false);
   const presence = useUserPresence(profile.id);
   const memberSince = new Date(profile.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -93,12 +96,19 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
   };
   const status = statusConfig[presence ?? 'offline'];
 
+  const bannerUrl = profile.avatar_url || (!gravatarFailed ? profile.gravatar_url : undefined);
+
   return (
     <div className="space-y-6">
       {/* Profile banner */}
-      {profile.avatar_url ? (
+      {bannerUrl ? (
         <div className="flex justify-center pt-2">
-          <img src={profile.avatar_url} alt={profile.display_name} className="w-full rounded-lg" />
+          <img
+            src={bannerUrl}
+            alt={profile.display_name}
+            className="w-full rounded-lg"
+            onError={!profile.avatar_url ? () => setGravatarFailed(true) : undefined}
+          />
         </div>
       ) : (
         <div
@@ -147,6 +157,7 @@ interface EditProfileFormProps {
   profile: {
     display_name: string;
     avatar_url?: string;
+    gravatar_url?: string;
   };
   onCancel: () => void;
   onSuccess: () => void;
@@ -235,7 +246,7 @@ function EditProfileForm({ userId, profile, onCancel, onSuccess }: EditProfileFo
   const hasExistingAvatar = !!profile.avatar_url;
   const isPending = updateProfile.isPending || uploadAvatar.isPending || deleteAvatar.isPending;
 
-  const displayAvatarUrl = previewUrl || profile.avatar_url;
+  const displayAvatarUrl = previewUrl || profile.avatar_url || profile.gravatar_url;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

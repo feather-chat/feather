@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/enzyme/api/internal/auth"
+	"github.com/enzyme/api/internal/gravatar"
 	"github.com/enzyme/api/internal/openapi"
 	"github.com/enzyme/api/internal/user"
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -191,6 +192,9 @@ func userToAPI(u *user.User) openapi.User {
 	}
 	if u.AvatarURL != nil {
 		apiUser.AvatarUrl = u.AvatarURL
+	}
+	if g := gravatar.URL(u.Email); g != "" {
+		apiUser.GravatarUrl = &g
 	}
 	return apiUser
 }

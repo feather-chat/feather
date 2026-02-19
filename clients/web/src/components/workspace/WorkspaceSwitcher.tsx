@@ -366,6 +366,7 @@ function UserMenu({ onOpenWorkspaceSettings, onOpenServerSettings }: UserMenuPro
         <AriaButton className="cursor-pointer rounded-lg outline-none hover:opacity-80">
           <Avatar
             src={user?.avatar_url}
+            gravatarSrc={user?.gravatar_url}
             name={user?.display_name || 'User'}
             id={user?.id}
             size="md"

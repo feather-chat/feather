@@ -58,7 +58,13 @@ export function UserMentionBadge({ userId, member }: UserMentionBadgeProps) {
       <AriaButton className={mentionBadge()}>@{displayName}</AriaButton>
       <Popover placement="top" className={styles.popover()}>
         <div className={styles.header()}>
-          <Avatar src={member?.avatar_url} name={displayName} id={userId} size="lg" />
+          <Avatar
+            src={member?.avatar_url}
+            gravatarSrc={member?.gravatar_url}
+            name={displayName}
+            id={userId}
+            size="lg"
+          />
           <div className={styles.info()}>
             <span className={styles.name()}>{displayName}</span>
             {member?.email && <span className={styles.email()}>{member.email}</span>}

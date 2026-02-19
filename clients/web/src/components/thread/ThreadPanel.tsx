@@ -537,6 +537,7 @@ function ParentMessage({
       <div className="flex items-start gap-3">
         <Avatar
           src={message.user_avatar_url}
+          gravatarSrc={message.user_gravatar_url}
           name={message.user_display_name || 'Unknown'}
           id={message.user_id}
           size="md"
@@ -969,6 +970,7 @@ function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMe
       <div className="flex items-start gap-3">
         <Avatar
           src={message.user_avatar_url}
+          gravatarSrc={message.user_gravatar_url}
           name={message.user_display_name || 'Unknown'}
           id={message.user_id}
           size="sm"

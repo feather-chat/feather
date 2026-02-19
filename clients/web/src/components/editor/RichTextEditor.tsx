@@ -147,6 +147,7 @@ export interface RichTextEditorProps {
     user_id: string;
     display_name: string;
     avatar_url?: string;
+    gravatar_url?: string;
   }>;
   workspaceChannels?: Array<{
     id: string;
@@ -219,6 +220,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
               id: member.user_id,
               displayName: member.display_name,
               avatarUrl: member.avatar_url,
+              gravatarUrl: member.gravatar_url,
             }));
 
             const allOptions = [...memberOptions, ...SPECIAL_MENTIONS];

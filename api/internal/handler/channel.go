@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/gravatar"
 	"github.com/enzyme/api/internal/message"
 	"github.com/enzyme/api/internal/notification"
 	"github.com/enzyme/api/internal/openapi"
@@ -620,6 +621,9 @@ func channelMemberToAPI(m channel.MemberInfo) openapi.ChannelMember {
 		role := openapi.ChannelRole(*m.ChannelRole)
 		apiMember.ChannelRole = &role
 	}
+	if g := gravatar.URL(m.Email); g != "" {
+		apiMember.GravatarUrl = &g
+	}
 	return apiMember
 }
 
@@ -1013,6 +1017,9 @@ func (h *Handler) GetDMSuggestions(ctx context.Context, request openapi.GetDMSug
 			}
 			email := openapi_types.Email(m.Email)
 			suggestedUser.Email = &email
+			if g := gravatar.URL(m.Email); g != "" {
+				suggestedUser.GravatarUrl = &g
+			}
 
 			apiSuggestedUsers = append(apiSuggestedUsers, suggestedUser)
 

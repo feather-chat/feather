@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/enzyme/api/internal/gravatar"
 	"github.com/enzyme/api/internal/openapi"
 	"github.com/enzyme/api/internal/user"
 	"github.com/go-chi/chi/v5"
@@ -34,14 +35,18 @@ func (h *Handler) GetUser(ctx context.Context, request openapi.GetUserRequestObj
 		return nil, err
 	}
 
+	profile := openapi.UserProfile{
+		Id:          u.ID,
+		DisplayName: u.DisplayName,
+		AvatarUrl:   u.AvatarURL,
+		Status:      u.Status,
+		CreatedAt:   u.CreatedAt,
+	}
+	if g := gravatar.URL(u.Email); g != "" {
+		profile.GravatarUrl = &g
+	}
 	return openapi.GetUser200JSONResponse{
-		User: &openapi.UserProfile{
-			Id:          u.ID,
-			DisplayName: u.DisplayName,
-			AvatarUrl:   u.AvatarURL,
-			Status:      u.Status,
-			CreatedAt:   u.CreatedAt,
-		},
+		User: &profile,
 	}, nil
 }
 

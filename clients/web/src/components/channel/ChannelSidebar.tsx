@@ -626,6 +626,7 @@ function SuggestedUserItem({ user, onClick, isLoading }: SuggestedUserItemProps)
     >
       <Avatar
         src={user.avatar_url}
+        gravatarSrc={user.gravatar_url}
         name={user.display_name}
         id={user.id}
         size="xs"
@@ -725,6 +726,7 @@ function ChannelItemContent({ channel, isActive }: ChannelItemContentProps) {
     user_id: p.user_id,
     display_name: p.display_name,
     avatar_url: p.avatar_url,
+    gravatar_url: p.gravatar_url,
   }));
 
   return (
@@ -734,6 +736,7 @@ function ChannelItemContent({ channel, isActive }: ChannelItemContentProps) {
       ) : isDM && dmParticipant ? (
         <Avatar
           src={dmParticipant.avatar_url}
+          gravatarSrc={dmParticipant.gravatar_url}
           name={dmParticipant.display_name}
           id={dmParticipant.user_id}
           size="xs"

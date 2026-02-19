@@ -1,8 +1,13 @@
+import { useState } from 'react';
 import { cn, getInitials, getAvatarColor } from '../../lib/utils';
 import type { PresenceStatus } from '@enzyme/api-client';
 
+// Module-level cache for gravatar URLs that returned 404
+const failedGravatarUrls = new Set<string>();
+
 interface AvatarProps {
   src?: string | null;
+  gravatarSrc?: string | null;
   name: string;
   id?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -15,6 +20,7 @@ interface AvatarProps {
 
 export function Avatar({
   src,
+  gravatarSrc,
   name,
   id,
   size = 'md',
@@ -24,6 +30,9 @@ export function Avatar({
   onClick,
   onContextMenu,
 }: AvatarProps) {
+  const gravatarFailed = !!gravatarSrc && failedGravatarUrls.has(gravatarSrc);
+  const [, forceUpdate] = useState(0);
+
   const sizes = {
     xs: 'w-5 h-5 text-[10px]',
     sm: 'w-6 h-6 text-xs',
@@ -43,10 +52,22 @@ export function Avatar({
     lg: 'w-3 h-3 right-0 bottom-0 border-2',
   };
 
+  const showGravatar = !src && gravatarSrc && !gravatarFailed;
+
   const content = (
     <>
       {src ? (
         <img src={src} alt={name} className={cn('rounded-full object-cover', sizes[size])} />
+      ) : showGravatar ? (
+        <img
+          src={gravatarSrc}
+          alt={name}
+          className={cn('rounded-full object-cover', sizes[size])}
+          onError={() => {
+            failedGravatarUrls.add(gravatarSrc);
+            forceUpdate((n) => n + 1);
+          }}
+        />
       ) : (
         <div
           className={cn(

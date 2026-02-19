@@ -5,6 +5,7 @@ interface AvatarStackUser {
   user_id: string;
   display_name?: string;
   avatar_url?: string | null;
+  gravatar_url?: string | null;
 }
 
 interface AvatarStackProps {
@@ -31,6 +32,7 @@ export function AvatarStack({
         <Avatar
           key={user.user_id}
           src={user.avatar_url}
+          gravatarSrc={user.gravatar_url}
           name={user.display_name || 'User'}
           id={user.user_id}
           size={size}

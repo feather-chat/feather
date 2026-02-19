@@ -142,7 +142,7 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*Message, error) {
 func (r *Repository) GetByIDWithUser(ctx context.Context, id string) (*MessageWithUser, error) {
 	row := r.db.QueryRowContext(ctx, `
 		SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email
 		FROM messages m
 		LEFT JOIN users u ON u.id = m.user_id
 		WHERE m.id = ?
@@ -233,7 +233,7 @@ func (r *Repository) List(ctx context.Context, channelID string, opts ListOption
 	if opts.Cursor == "" {
 		query = `
 			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
 			WHERE m.channel_id = ? AND (m.thread_parent_id IS NULL OR m.also_send_to_channel = TRUE)
@@ -244,7 +244,7 @@ func (r *Repository) List(ctx context.Context, channelID string, opts ListOption
 	} else if opts.Direction == "after" {
 		query = `
 			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
 			WHERE m.channel_id = ? AND (m.thread_parent_id IS NULL OR m.also_send_to_channel = TRUE) AND m.id > ?
@@ -255,7 +255,7 @@ func (r *Repository) List(ctx context.Context, channelID string, opts ListOption
 	} else {
 		query = `
 			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
 			WHERE m.channel_id = ? AND (m.thread_parent_id IS NULL OR m.also_send_to_channel = TRUE) AND m.id < ?
@@ -318,7 +318,7 @@ func (r *Repository) listAround(ctx context.Context, channelID string, opts List
 	// Query messages at or before cursor (DESC order, includes the cursor message)
 	beforeQuery := `
 		SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email
 		FROM messages m
 		LEFT JOIN users u ON u.id = m.user_id
 		WHERE m.channel_id = ? AND (m.thread_parent_id IS NULL OR m.also_send_to_channel = TRUE) AND m.id <= ?
@@ -351,7 +351,7 @@ func (r *Repository) listAround(ctx context.Context, channelID string, opts List
 	// Query messages after cursor (ASC order)
 	afterQuery := `
 		SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email
 		FROM messages m
 		LEFT JOIN users u ON u.id = m.user_id
 		WHERE m.channel_id = ? AND (m.thread_parent_id IS NULL OR m.also_send_to_channel = TRUE) AND m.id > ?
@@ -459,7 +459,7 @@ func (r *Repository) ListThread(ctx context.Context, parentID string, opts ListO
 	if opts.Cursor == "" {
 		query = `
 			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
 			WHERE m.thread_parent_id = ?
@@ -470,7 +470,7 @@ func (r *Repository) ListThread(ctx context.Context, parentID string, opts ListO
 	} else {
 		query = `
 			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
 			WHERE m.thread_parent_id = ? AND m.id > ?
@@ -607,7 +607,7 @@ func (r *Repository) getThreadParticipantsForMessages(ctx context.Context, messa
 
 	// Get distinct users who replied to each thread, ordered by first reply, limited to 3
 	query := `
-		SELECT m.thread_parent_id, m.user_id, COALESCE(u.display_name, '') as display_name, u.avatar_url
+		SELECT m.thread_parent_id, m.user_id, COALESCE(u.display_name, '') as display_name, u.avatar_url, COALESCE(u.email, '') as email
 		FROM (
 			SELECT thread_parent_id, user_id, MIN(id) as first_reply_id
 			FROM messages
@@ -627,8 +627,8 @@ func (r *Repository) getThreadParticipantsForMessages(ctx context.Context, messa
 	participants := make(map[string][]ThreadParticipant)
 	for rows.Next() {
 		var parentID, userID, displayName string
-		var avatarURL sql.NullString
-		if err := rows.Scan(&parentID, &userID, &displayName, &avatarURL); err != nil {
+		var avatarURL, email sql.NullString
+		if err := rows.Scan(&parentID, &userID, &displayName, &avatarURL, &email); err != nil {
 			return nil, err
 		}
 		// Limit to 3 participants per thread
@@ -639,6 +639,9 @@ func (r *Repository) getThreadParticipantsForMessages(ctx context.Context, messa
 			}
 			if avatarURL.Valid {
 				p.AvatarURL = &avatarURL.String
+			}
+			if email.Valid {
+				p.Email = email.String
 			}
 			participants[parentID] = append(participants[parentID], p)
 		}
@@ -741,11 +744,11 @@ type rowScanner interface {
 
 func (r *Repository) scanMessageWithUser(row rowScanner) (*MessageWithUser, error) {
 	var msg MessageWithUser
-	var userID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL, systemEventJSON sql.NullString
+	var userID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL, userEmail, systemEventJSON sql.NullString
 	var createdAt, updatedAt string
 
 	err := row.Scan(&msg.ID, &msg.ChannelID, &userID, &msg.Content, &msg.Type, &systemEventJSON, &threadParentID, &msg.AlsoSendToChannel, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt,
-		&msg.UserDisplayName, &avatarURL)
+		&msg.UserDisplayName, &avatarURL, &userEmail)
 	if err != nil {
 		return nil, err
 	}
@@ -782,6 +785,9 @@ func (r *Repository) scanMessageWithUser(row rowScanner) (*MessageWithUser, erro
 	if avatarURL.Valid {
 		msg.UserAvatarURL = &avatarURL.String
 	}
+	if userEmail.Valid {
+		msg.UserEmail = userEmail.String
+	}
 	msg.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 	msg.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
 
@@ -805,7 +811,7 @@ func (r *Repository) ListAllUnreads(ctx context.Context, workspaceID, userID str
 	if opts.Cursor == "" {
 		query = `
 			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url,
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email,
 			       c.name as channel_name, c.type as channel_type
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
@@ -822,7 +828,7 @@ func (r *Repository) ListAllUnreads(ctx context.Context, workspaceID, userID str
 	} else {
 		query = `
 			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url,
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email,
 			       c.name as channel_name, c.type as channel_type
 			FROM messages m
 			LEFT JOIN users u ON u.id = m.user_id
@@ -900,11 +906,11 @@ func (r *Repository) ListAllUnreads(ctx context.Context, workspaceID, userID str
 
 func (r *Repository) scanUnreadMessage(row rowScanner) (*UnreadMessage, string, string, error) {
 	var msg UnreadMessage
-	var userID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL, systemEventJSON sql.NullString
+	var userID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL, userEmail, systemEventJSON sql.NullString
 	var createdAt, updatedAt, channelName, channelType string
 
 	err := row.Scan(&msg.ID, &msg.ChannelID, &userID, &msg.Content, &msg.Type, &systemEventJSON, &threadParentID, &msg.AlsoSendToChannel, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt,
-		&msg.UserDisplayName, &avatarURL, &channelName, &channelType)
+		&msg.UserDisplayName, &avatarURL, &userEmail, &channelName, &channelType)
 	if err != nil {
 		return nil, "", "", err
 	}
@@ -940,6 +946,9 @@ func (r *Repository) scanUnreadMessage(row rowScanner) (*UnreadMessage, string, 
 	}
 	if avatarURL.Valid {
 		msg.UserAvatarURL = &avatarURL.String
+	}
+	if userEmail.Valid {
+		msg.UserEmail = userEmail.String
 	}
 	msg.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 	msg.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
@@ -1028,7 +1037,7 @@ func (r *Repository) Search(ctx context.Context, workspaceID, currentUserID stri
 	// Data query
 	dataQuery := `
 		SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url,
+		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email,
 		       c.name as channel_name, c.type as channel_type
 	` + joinSQL + " WHERE " + whereSQL + `
 		ORDER BY messages_fts.rank
@@ -1084,7 +1093,7 @@ func (r *Repository) ListUserThreads(ctx context.Context, workspaceID, userID st
 	if opts.Cursor == "" {
 		query = `
 			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url,
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email,
 			       c.name as channel_name, c.type as channel_type,
 			       CASE WHEN ts.last_read_reply_id IS NULL THEN 1
 			            WHEN EXISTS (SELECT 1 FROM messages r WHERE r.thread_parent_id = m.id AND r.id > ts.last_read_reply_id AND r.deleted_at IS NULL LIMIT 1) THEN 1
@@ -1105,7 +1114,7 @@ func (r *Repository) ListUserThreads(ctx context.Context, workspaceID, userID st
 	} else {
 		query = `
 			SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.created_at, m.updated_at,
-			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url,
+			       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email,
 			       c.name as channel_name, c.type as channel_type,
 			       CASE WHEN ts.last_read_reply_id IS NULL THEN 1
 			            WHEN EXISTS (SELECT 1 FROM messages r WHERE r.thread_parent_id = m.id AND r.id > ts.last_read_reply_id AND r.deleted_at IS NULL LIMIT 1) THEN 1
@@ -1136,12 +1145,12 @@ func (r *Repository) ListUserThreads(ctx context.Context, workspaceID, userID st
 	var threads []ThreadMessage
 	for rows.Next() {
 		var msg ThreadMessage
-		var msgUserID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL, systemEventJSON sql.NullString
+		var msgUserID, threadParentID, lastReplyAt, editedAt, deletedAt, avatarURL, userEmail, systemEventJSON sql.NullString
 		var createdAt, updatedAt, channelName, channelType string
 		var hasNewReplies int
 
 		err := rows.Scan(&msg.ID, &msg.ChannelID, &msgUserID, &msg.Content, &msg.Type, &systemEventJSON, &threadParentID, &msg.AlsoSendToChannel, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &createdAt, &updatedAt,
-			&msg.UserDisplayName, &avatarURL, &channelName, &channelType, &hasNewReplies)
+			&msg.UserDisplayName, &avatarURL, &userEmail, &channelName, &channelType, &hasNewReplies)
 		if err != nil {
 			return nil, err
 		}
@@ -1175,6 +1184,9 @@ func (r *Repository) ListUserThreads(ctx context.Context, workspaceID, userID st
 		}
 		if avatarURL.Valid {
 			msg.UserAvatarURL = &avatarURL.String
+		}
+		if userEmail.Valid {
+			msg.UserEmail = userEmail.String
 		}
 		msg.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 		msg.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/gravatar"
 	"github.com/enzyme/api/internal/message"
 	"github.com/enzyme/api/internal/openapi"
 	"github.com/enzyme/api/internal/thread"
@@ -295,6 +296,9 @@ func threadMessageToAPI(m *message.ThreadMessage) openapi.ThreadMessage {
 	if m.UserAvatarURL != nil {
 		apiMsg.UserAvatarUrl = m.UserAvatarURL
 	}
+	if g := gravatar.URL(m.UserEmail); g != "" {
+		apiMsg.UserGravatarUrl = &g
+	}
 	if len(m.Reactions) > 0 {
 		reactions := make([]openapi.Reaction, len(m.Reactions))
 		for i, r := range m.Reactions {
@@ -315,6 +319,9 @@ func threadMessageToAPI(m *message.ThreadMessage) openapi.ThreadMessage {
 				UserId:      p.UserID,
 				DisplayName: &p.DisplayName,
 				AvatarUrl:   p.AvatarURL,
+			}
+			if g := gravatar.URL(p.Email); g != "" {
+				participants[i].GravatarUrl = &g
 			}
 		}
 		apiMsg.ThreadParticipants = &participants

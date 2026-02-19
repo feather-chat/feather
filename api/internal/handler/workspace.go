@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/gravatar"
 	"github.com/enzyme/api/internal/message"
 	"github.com/enzyme/api/internal/openapi"
 	"github.com/enzyme/api/internal/workspace"
@@ -364,7 +365,7 @@ func workspaceToAPI(ws *workspace.Workspace) openapi.Workspace {
 
 // memberWithUserToAPI converts a workspace.MemberWithUser to openapi.WorkspaceMemberWithUser
 func memberWithUserToAPI(m workspace.MemberWithUser) openapi.WorkspaceMemberWithUser {
-	return openapi.WorkspaceMemberWithUser{
+	member := openapi.WorkspaceMemberWithUser{
 		Id:                  m.ID,
 		UserId:              m.UserID,
 		WorkspaceId:         m.WorkspaceID,
@@ -376,6 +377,10 @@ func memberWithUserToAPI(m workspace.MemberWithUser) openapi.WorkspaceMemberWith
 		DisplayName:         m.DisplayName,
 		AvatarUrl:           m.AvatarURL,
 	}
+	if g := gravatar.URL(m.Email); g != "" {
+		member.GravatarUrl = &g
+	}
+	return member
 }
 
 // inviteToAPI converts a workspace.Invite to openapi.Invite
@@ -659,6 +664,9 @@ func unreadMessageToAPI(m *message.UnreadMessage) openapi.UnreadMessage {
 	}
 	if m.UserAvatarURL != nil {
 		apiMsg.UserAvatarUrl = m.UserAvatarURL
+	}
+	if g := gravatar.URL(m.UserEmail); g != "" {
+		apiMsg.UserGravatarUrl = &g
 	}
 	if len(m.Reactions) > 0 {
 		reactions := make([]openapi.Reaction, len(m.Reactions))

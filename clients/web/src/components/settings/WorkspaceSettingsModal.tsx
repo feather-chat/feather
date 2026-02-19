@@ -374,6 +374,7 @@ export function WorkspaceSettingsModal({
                   <div className="flex items-center gap-3">
                     <Avatar
                       src={member.avatar_url}
+                      gravatarSrc={member.gravatar_url}
                       name={member.display_name || 'User'}
                       id={member.user_id}
                       size="md"

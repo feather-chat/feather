@@ -3,6 +3,7 @@ export interface MentionOption {
   id: string;
   displayName: string;
   avatarUrl?: string;
+  gravatarUrl?: string;
 }
 
 export interface ParsedMention {

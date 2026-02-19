@@ -106,6 +106,7 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
         {/* Avatar - uses the user who joined/left/was added */}
         <Avatar
           src={message.user_avatar_url}
+          gravatarSrc={message.user_gravatar_url}
           name={message.user_display_name || systemEvent?.user_display_name || 'System'}
           id={message.user_id}
           size="md"

@@ -146,6 +146,7 @@ type ChannelMember struct {
 	ChannelRole *ChannelRole        `json:"channel_role,omitempty"`
 	DisplayName string              `json:"display_name"`
 	Email       openapi_types.Email `json:"email"`
+	GravatarUrl *string             `json:"gravatar_url,omitempty"`
 	UserId      string              `json:"user_id"`
 }
 
@@ -311,6 +312,7 @@ type MessageWithUser struct {
 	UpdatedAt          time.Time            `json:"updated_at"`
 	UserAvatarUrl      *string              `json:"user_avatar_url,omitempty"`
 	UserDisplayName    *string              `json:"user_display_name,omitempty"`
+	UserGravatarUrl    *string              `json:"user_gravatar_url,omitempty"`
 	UserId             *string              `json:"user_id,omitempty"`
 }
 
@@ -367,6 +369,7 @@ type SearchMessage struct {
 	UpdatedAt          time.Time            `json:"updated_at"`
 	UserAvatarUrl      *string              `json:"user_avatar_url,omitempty"`
 	UserDisplayName    *string              `json:"user_display_name,omitempty"`
+	UserGravatarUrl    *string              `json:"user_gravatar_url,omitempty"`
 	UserId             *string              `json:"user_id,omitempty"`
 }
 
@@ -422,6 +425,7 @@ type SuggestedUser struct {
 	AvatarUrl   *string              `json:"avatar_url,omitempty"`
 	DisplayName string               `json:"display_name"`
 	Email       *openapi_types.Email `json:"email,omitempty"`
+	GravatarUrl *string              `json:"gravatar_url,omitempty"`
 	Id          string               `json:"id"`
 }
 
@@ -484,6 +488,7 @@ type ThreadMessage struct {
 	UpdatedAt          time.Time            `json:"updated_at"`
 	UserAvatarUrl      *string              `json:"user_avatar_url,omitempty"`
 	UserDisplayName    *string              `json:"user_display_name,omitempty"`
+	UserGravatarUrl    *string              `json:"user_gravatar_url,omitempty"`
 	UserId             *string              `json:"user_id,omitempty"`
 }
 
@@ -491,6 +496,7 @@ type ThreadMessage struct {
 type ThreadParticipant struct {
 	AvatarUrl   *string `json:"avatar_url,omitempty"`
 	DisplayName *string `json:"display_name,omitempty"`
+	GravatarUrl *string `json:"gravatar_url,omitempty"`
 	UserId      string  `json:"user_id"`
 }
 
@@ -519,6 +525,7 @@ type UnreadMessage struct {
 	UpdatedAt          time.Time            `json:"updated_at"`
 	UserAvatarUrl      *string              `json:"user_avatar_url,omitempty"`
 	UserDisplayName    *string              `json:"user_display_name,omitempty"`
+	UserGravatarUrl    *string              `json:"user_gravatar_url,omitempty"`
 	UserId             *string              `json:"user_id,omitempty"`
 }
 
@@ -554,6 +561,7 @@ type User struct {
 	DisplayName     string              `json:"display_name"`
 	Email           openapi_types.Email `json:"email"`
 	EmailVerifiedAt *time.Time          `json:"email_verified_at,omitempty"`
+	GravatarUrl     *string             `json:"gravatar_url,omitempty"`
 	Id              string              `json:"id"`
 	Status          string              `json:"status"`
 	UpdatedAt       time.Time           `json:"updated_at"`
@@ -564,6 +572,7 @@ type UserProfile struct {
 	AvatarUrl   *string   `json:"avatar_url,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`
 	DisplayName string    `json:"display_name"`
+	GravatarUrl *string   `json:"gravatar_url,omitempty"`
 	Id          string    `json:"id"`
 	Status      string    `json:"status"`
 }
@@ -593,6 +602,7 @@ type WorkspaceMemberWithUser struct {
 	DisplayName         string              `json:"display_name"`
 	DisplayNameOverride *string             `json:"display_name_override,omitempty"`
 	Email               openapi_types.Email `json:"email"`
+	GravatarUrl         *string             `json:"gravatar_url,omitempty"`
 	Id                  string              `json:"id"`
 	Role                WorkspaceRole       `json:"role"`
 	UpdatedAt           time.Time           `json:"updated_at"`

@@ -10,6 +10,7 @@ import (
 
 	"github.com/enzyme/api/internal/channel"
 	"github.com/enzyme/api/internal/file"
+	"github.com/enzyme/api/internal/gravatar"
 	"github.com/enzyme/api/internal/message"
 	"github.com/enzyme/api/internal/notification"
 	"github.com/enzyme/api/internal/openapi"
@@ -616,6 +617,9 @@ func searchMessageToAPI(m *message.SearchMessage) openapi.SearchMessage {
 	if m.UserAvatarURL != nil {
 		apiMsg.UserAvatarUrl = m.UserAvatarURL
 	}
+	if g := gravatar.URL(m.UserEmail); g != "" {
+		apiMsg.UserGravatarUrl = &g
+	}
 	if m.Type != "" {
 		msgType := openapi.MessageType(m.Type)
 		apiMsg.Type = &msgType
@@ -688,6 +692,9 @@ func messageWithUserToAPI(m *message.MessageWithUser) openapi.MessageWithUser {
 	if m.UserAvatarURL != nil {
 		apiMsg.UserAvatarUrl = m.UserAvatarURL
 	}
+	if g := gravatar.URL(m.UserEmail); g != "" {
+		apiMsg.UserGravatarUrl = &g
+	}
 	if len(m.Reactions) > 0 {
 		reactions := make([]openapi.Reaction, len(m.Reactions))
 		for i, r := range m.Reactions {
@@ -758,6 +765,9 @@ func threadParticipantToAPI(p *message.ThreadParticipant) openapi.ThreadParticip
 	}
 	if p.AvatarURL != nil {
 		participant.AvatarUrl = p.AvatarURL
+	}
+	if g := gravatar.URL(p.Email); g != "" {
+		participant.GravatarUrl = &g
 	}
 	return participant
 }

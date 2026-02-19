@@ -117,7 +117,12 @@ export function MentionPopover({
           aria-selected={index === selectedIndex}
         >
           {option.type === 'user' ? (
-            <Avatar src={option.avatarUrl} name={option.displayName} size="sm" />
+            <Avatar
+              src={option.avatarUrl}
+              gravatarSrc={option.gravatarUrl}
+              name={option.displayName}
+              size="sm"
+            />
           ) : (
             <div className={styles.specialIcon()}>
               <BellIcon className="h-4 w-4" />

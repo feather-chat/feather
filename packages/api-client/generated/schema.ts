@@ -1090,6 +1090,7 @@ export interface components {
             id: string;
             display_name: string;
             avatar_url?: string;
+            gravatar_url?: string;
             status: string;
             /** Format: date-time */
             created_at: string;
@@ -1111,6 +1112,7 @@ export interface components {
             email_verified_at?: string;
             display_name: string;
             avatar_url?: string;
+            gravatar_url?: string;
             status: string;
             /** Format: date-time */
             created_at: string;
@@ -1165,6 +1167,7 @@ export interface components {
             email: string;
             display_name: string;
             avatar_url?: string;
+            gravatar_url?: string;
         };
         /** @enum {string} */
         WorkspaceRole: "owner" | "admin" | "member" | "guest";
@@ -1219,6 +1222,7 @@ export interface components {
             email: string;
             display_name: string;
             avatar_url?: string;
+            gravatar_url?: string;
             channel_role?: components["schemas"]["ChannelRole"];
         };
         DMSuggestionsResponse: {
@@ -1233,6 +1237,7 @@ export interface components {
             email?: string;
             display_name: string;
             avatar_url?: string;
+            gravatar_url?: string;
         };
         /** @enum {string} */
         MessageType: "user" | "system";
@@ -1279,6 +1284,7 @@ export interface components {
         MessageWithUser: components["schemas"]["Message"] & {
             user_display_name?: string;
             user_avatar_url?: string;
+            user_gravatar_url?: string;
             reactions?: components["schemas"]["Reaction"][];
             thread_participants?: components["schemas"]["ThreadParticipant"][];
             attachments?: components["schemas"]["Attachment"][];
@@ -1287,6 +1293,7 @@ export interface components {
             user_id: string;
             display_name?: string;
             avatar_url?: string;
+            gravatar_url?: string;
         };
         Attachment: {
             id: string;

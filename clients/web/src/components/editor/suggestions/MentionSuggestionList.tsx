@@ -126,7 +126,13 @@ export const MentionSuggestionList = forwardRef<MentionSuggestionRef, MentionSug
             aria-selected={index === safeSelectedIndex}
           >
             {item.type === 'user' ? (
-              <Avatar src={item.avatarUrl} name={item.displayName} id={item.id} size="sm" />
+              <Avatar
+                src={item.avatarUrl}
+                gravatarSrc={item.gravatarUrl}
+                name={item.displayName}
+                id={item.id}
+                size="sm"
+              />
             ) : (
               <div className={s.specialIcon()}>
                 <BellIcon className="h-4 w-4" />

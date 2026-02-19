@@ -36,6 +36,7 @@ export function useMentions(
       id: member.user_id,
       displayName: member.display_name,
       avatarUrl: member.avatar_url,
+      gravatarUrl: member.gravatar_url,
     }));
 
     // Combine members and special mentions

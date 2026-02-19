@@ -221,6 +221,7 @@ export function ChannelDetailsModal({
         >
           <Avatar
             src={member.avatar_url}
+            gravatarSrc={member.gravatar_url}
             name={member.display_name}
             id={member.user_id}
             size="sm"
@@ -248,7 +249,13 @@ export function ChannelDetailsModal({
             key={member.user_id}
             className="flex items-center gap-3 rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50"
           >
-            <Avatar src={member.avatar_url} name={displayName} id={member.user_id} size="sm" />
+            <Avatar
+              src={member.avatar_url}
+              gravatarSrc={member.gravatar_url}
+              name={displayName}
+              id={member.user_id}
+              size="sm"
+            />
             <span className="flex-1 text-gray-900 dark:text-white">{displayName}</span>
             <Button
               size="sm"
