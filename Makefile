@@ -1,4 +1,4 @@
-.PHONY: dev build test clean generate-types install format format-check
+.PHONY: dev build test clean generate-types install format format-check seed
 
 # Development - runs API and web (add DESKTOP=1 for Electron)
 dev:
@@ -45,6 +45,10 @@ lint:
 format:
 	cd api && make fmt
 	pnpm format
+
+# Seed database with sample data
+seed:
+	cd api && make seed
 
 # Check formatting (for CI)
 format-check:

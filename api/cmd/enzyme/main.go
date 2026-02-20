@@ -11,10 +11,18 @@ import (
 
 	"github.com/enzyme/api/internal/app"
 	"github.com/enzyme/api/internal/config"
+	"github.com/enzyme/api/internal/database"
 	"github.com/enzyme/api/internal/logging"
+	"github.com/enzyme/api/internal/seed"
 )
 
 func main() {
+	// Check for subcommands before flag parsing
+	if len(os.Args) > 1 && os.Args[1] == "seed" {
+		runSeed(os.Args[2:])
+		return
+	}
+
 	// Setup CLI flags
 	flags := config.SetupFlags()
 	if err := flags.Parse(os.Args[1:]); err != nil {
@@ -71,4 +79,47 @@ func main() {
 	}
 
 	slog.Info("server stopped")
+}
+
+func runSeed(args []string) {
+	// Parse flags (supports --config, --database.path, etc.)
+	flags := config.SetupFlags()
+	if err := flags.Parse(args); err != nil {
+		slog.Error("error parsing flags", "error", err)
+		os.Exit(1)
+	}
+
+	configPath, _ := flags.GetString("config")
+
+	cfg, err := config.Load(configPath, flags)
+	if err != nil {
+		slog.Error("error loading config", "error", err)
+		os.Exit(1)
+	}
+
+	logging.Setup(cfg.Log)
+
+	// Open database and run migrations (no full app startup)
+	db, err := database.Open(cfg.Database.Path, database.Options{
+		MaxOpenConns: cfg.Database.MaxOpenConns,
+		BusyTimeout:  cfg.Database.BusyTimeout,
+		CacheSize:    cfg.Database.CacheSize,
+		MmapSize:     cfg.Database.MmapSize,
+	})
+	if err != nil {
+		slog.Error("error opening database", "error", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	if err := db.Migrate(); err != nil {
+		slog.Error("error running migrations", "error", err)
+		os.Exit(1)
+	}
+
+	ctx := context.Background()
+	if err := seed.Run(ctx, db.DB); err != nil {
+		slog.Error("error seeding database", "error", err)
+		os.Exit(1)
+	}
 }

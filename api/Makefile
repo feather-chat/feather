@@ -1,4 +1,4 @@
-.PHONY: build run test clean dev generate generate-types fmt embed-web
+.PHONY: build run test clean dev generate generate-types fmt embed-web seed
 
 BINARY_NAME=enzyme
 BUILD_DIR=./bin
@@ -44,6 +44,9 @@ deps:
 
 lint:
 	golangci-lint run ./...
+
+seed:
+	go run ./cmd/enzyme seed
 
 fmt:
 	gofmt -w .

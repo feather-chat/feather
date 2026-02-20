@@ -206,6 +206,10 @@ api/
 # Run in development mode
 make dev
 
+# Seed database with sample data (8 users, 2 workspaces, ~4k messages)
+# Login as alice@example.com / password (or any user — all use "password")
+make seed
+
 # Build binary
 make build
 
