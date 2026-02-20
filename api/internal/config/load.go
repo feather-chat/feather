@@ -43,8 +43,20 @@ func Load(configPath string, flags *pflag.FlagSet) (*Config, error) {
 	}
 
 	// 3. Load from environment variables (ENZYME_ prefix)
+	// Build reverse map from env var names to koanf keys using loaded defaults.
+	// This correctly handles keys with underscores (e.g. max_open_conns) that
+	// would otherwise be split into separate path segments.
+	envMap := make(map[string]string)
+	for _, key := range k.Keys() {
+		envKey := "ENZYME_" + strings.ToUpper(strings.ReplaceAll(key, ".", "_"))
+		envMap[envKey] = key
+	}
+
 	if err := k.Load(env.Provider("ENZYME_", ".", func(s string) string {
-		return strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, "ENZYME_")), "_", ".")
+		if key, ok := envMap[s]; ok {
+			return key
+		}
+		return ""
 	}), nil); err != nil {
 		return nil, fmt.Errorf("loading env vars: %w", err)
 	}
