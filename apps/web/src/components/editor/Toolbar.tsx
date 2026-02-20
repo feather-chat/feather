@@ -13,6 +13,7 @@ import {
   ListBulletIcon,
   NumberedListIcon,
 } from '@heroicons/react/24/outline';
+import { Tooltip } from '../ui';
 
 function BlockquoteIcon({ className }: { className?: string }) {
   return (
@@ -41,7 +42,7 @@ const toolbar = tv({
       'rounded-t-lg',
     ],
     button: [
-      'p-1.5 rounded transition-colors text-gray-500 dark:text-gray-400',
+      'p-1.5 rounded transition-colors text-gray-500 dark:text-gray-400 cursor-pointer',
       'hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200',
       'selected:bg-gray-200 dark:selected:bg-gray-700',
       'selected:text-gray-900 dark:selected:text-white',
@@ -111,101 +112,121 @@ export function Toolbar({ editor }: ToolbarProps) {
   return (
     <div className={s.container()}>
       {/* Text formatting: Bold, Italic, Underline, Strikethrough */}
-      <ToggleButton
-        isSelected={editorState?.isBold ?? false}
-        onPress={() => editor.chain().focus().toggleBold().run()}
-        className={s.button()}
-        aria-label="Bold (Cmd+B)"
-      >
-        <BoldIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Bold (⌘B)">
+        <ToggleButton
+          isSelected={editorState?.isBold ?? false}
+          onPress={() => editor.chain().focus().toggleBold().run()}
+          className={s.button()}
+          aria-label="Bold (⌘B)"
+        >
+          <BoldIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
 
-      <ToggleButton
-        isSelected={editorState?.isItalic ?? false}
-        onPress={() => editor.chain().focus().toggleItalic().run()}
-        className={s.button()}
-        aria-label="Italic (Cmd+I)"
-      >
-        <ItalicIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Italic (⌘I)">
+        <ToggleButton
+          isSelected={editorState?.isItalic ?? false}
+          onPress={() => editor.chain().focus().toggleItalic().run()}
+          className={s.button()}
+          aria-label="Italic (⌘I)"
+        >
+          <ItalicIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
 
-      <ToggleButton
-        isSelected={editorState?.isUnderline ?? false}
-        onPress={() => editor.chain().focus().toggleUnderline().run()}
-        className={s.button()}
-        aria-label="Underline (Cmd+U)"
-      >
-        <UnderlineIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Underline (⌘U)">
+        <ToggleButton
+          isSelected={editorState?.isUnderline ?? false}
+          onPress={() => editor.chain().focus().toggleUnderline().run()}
+          className={s.button()}
+          aria-label="Underline (⌘U)"
+        >
+          <UnderlineIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
 
-      <ToggleButton
-        isSelected={editorState?.isStrike ?? false}
-        onPress={() => editor.chain().focus().toggleStrike().run()}
-        className={s.button()}
-        aria-label="Strikethrough (Cmd+Shift+X)"
-      >
-        <StrikethroughIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Strikethrough (⌘⇧X)">
+        <ToggleButton
+          isSelected={editorState?.isStrike ?? false}
+          onPress={() => editor.chain().focus().toggleStrike().run()}
+          className={s.button()}
+          aria-label="Strikethrough (⌘⇧X)"
+        >
+          <StrikethroughIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
 
       <div className={s.separator()} />
 
       {/* Link, OrderedList, BulletList */}
-      <ToggleButton
-        isSelected={editorState?.isLink ?? false}
-        onPress={addLink}
-        className={s.button()}
-        aria-label="Insert link"
-      >
-        <LinkIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Insert link">
+        <ToggleButton
+          isSelected={editorState?.isLink ?? false}
+          onPress={addLink}
+          className={s.button()}
+          aria-label="Insert link"
+        >
+          <LinkIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
 
-      <ToggleButton
-        isSelected={editorState?.isOrderedList ?? false}
-        onPress={() => editor.chain().focus().toggleOrderedList().run()}
-        className={s.button()}
-        aria-label="Numbered list"
-      >
-        <NumberedListIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Numbered list">
+        <ToggleButton
+          isSelected={editorState?.isOrderedList ?? false}
+          onPress={() => editor.chain().focus().toggleOrderedList().run()}
+          className={s.button()}
+          aria-label="Numbered list"
+        >
+          <NumberedListIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
 
-      <ToggleButton
-        isSelected={editorState?.isBulletList ?? false}
-        onPress={() => editor.chain().focus().toggleBulletList().run()}
-        className={s.button()}
-        aria-label="Bullet list"
-      >
-        <ListBulletIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Bullet list">
+        <ToggleButton
+          isSelected={editorState?.isBulletList ?? false}
+          onPress={() => editor.chain().focus().toggleBulletList().run()}
+          className={s.button()}
+          aria-label="Bullet list"
+        >
+          <ListBulletIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
 
       <div className={s.separator()} />
 
       {/* Quote, Code, CodeBlock */}
-      <ToggleButton
-        isSelected={editorState?.isBlockquote ?? false}
-        onPress={() => editor.chain().focus().toggleBlockquote().run()}
-        className={s.button()}
-        aria-label="Blockquote"
-      >
-        <BlockquoteIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Blockquote">
+        <ToggleButton
+          isSelected={editorState?.isBlockquote ?? false}
+          onPress={() => editor.chain().focus().toggleBlockquote().run()}
+          className={s.button()}
+          aria-label="Blockquote"
+        >
+          <BlockquoteIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
 
-      <ToggleButton
-        isSelected={editorState?.isCode ?? false}
-        onPress={() => editor.chain().focus().toggleCode().run()}
-        className={s.button()}
-        aria-label="Inline code (Cmd+E)"
-      >
-        <CodeBracketIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Inline code (⌘E)">
+        <ToggleButton
+          isSelected={editorState?.isCode ?? false}
+          onPress={() => editor.chain().focus().toggleCode().run()}
+          className={s.button()}
+          aria-label="Inline code (⌘E)"
+        >
+          <CodeBracketIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
 
-      <ToggleButton
-        isSelected={editorState?.isCodeBlock ?? false}
-        onPress={() => editor.chain().focus().toggleCodeBlock().run()}
-        className={s.button()}
-        aria-label="Code block"
-      >
-        <CodeBracketSquareIcon className={s.icon()} />
-      </ToggleButton>
+      <Tooltip content="Code block">
+        <ToggleButton
+          isSelected={editorState?.isCodeBlock ?? false}
+          onPress={() => editor.chain().focus().toggleCodeBlock().run()}
+          className={s.button()}
+          aria-label="Code block"
+        >
+          <CodeBracketSquareIcon className={s.icon()} />
+        </ToggleButton>
+      </Tooltip>
     </div>
   );
 }

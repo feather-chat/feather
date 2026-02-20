@@ -284,7 +284,7 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
                 <button
                   type="button"
                   onClick={() => removeAttachment(attachment.id)}
-                  className="absolute top-0.5 right-0.5 rounded bg-black/50 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/70"
+                  className="absolute top-0.5 right-0.5 cursor-pointer rounded bg-black/50 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/70"
                   title="Remove"
                 >
                   <XMarkIcon className="h-4 w-4" />

@@ -140,7 +140,7 @@ export function SearchModal({ isOpen, onClose, initialChannelId }: SearchModalPr
                     setInputValue('');
                     inputRef.current?.focus();
                   }}
-                  className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="cursor-pointer p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <XMarkIcon className="h-4 w-4" />
                 </button>
@@ -237,7 +237,7 @@ export function SearchModal({ isOpen, onClose, initialChannelId }: SearchModalPr
                     <div className="p-4 text-center">
                       <button
                         onClick={handleLoadMore}
-                        className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+                        className="cursor-pointer text-sm text-blue-600 hover:underline dark:text-blue-400"
                       >
                         Load more results
                       </button>
@@ -257,7 +257,7 @@ function SearchResultItem({ message, onClick }: { message: SearchMessage; onClic
   return (
     <button
       onClick={onClick}
-      className="block w-full border-b border-gray-100 p-4 text-left last:border-b-0 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+      className="block w-full cursor-pointer border-b border-gray-100 p-4 text-left last:border-b-0 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 pt-1">

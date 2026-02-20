@@ -37,6 +37,7 @@ import { fromMrkdwn } from './serialization';
 import type { MentionOption } from '../../lib/mentions';
 import { SPECIAL_MENTIONS } from '../../lib/mentions';
 import { cn } from '../../lib/utils';
+import { Tooltip } from '../ui';
 import type { EmojiSelectAttrs } from '../ui';
 import type { CustomEmoji } from '@enzyme/api-client';
 
@@ -112,7 +113,7 @@ const editorStyles = tv({
       'bg-white dark:bg-gray-900 rounded-b-lg',
     ],
     actionButton: [
-      'p-1.5 rounded transition-colors',
+      'p-1.5 rounded transition-colors cursor-pointer',
       'text-gray-500 dark:text-gray-400',
       'hover:text-gray-700 dark:hover:text-gray-200',
       'hover:bg-gray-100 dark:hover:bg-gray-700',
@@ -607,25 +608,29 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
                   allowsMultiple
                   onSelect={(files) => files && onAttachmentClick(Array.from(files))}
                 >
-                  <AriaButton
-                    className={s.actionButton()}
-                    aria-label="Attach files"
-                    isDisabled={disabled}
-                  >
-                    <PlusIcon className="h-4 w-4" />
-                  </AriaButton>
+                  <Tooltip content="Attach files">
+                    <AriaButton
+                      className={s.actionButton()}
+                      aria-label="Attach files"
+                      isDisabled={disabled}
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                    </AriaButton>
+                  </Tooltip>
                 </FileTrigger>
               )}
 
               {/* Emoji picker button */}
               <DialogTrigger isOpen={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
-                <AriaButton
-                  className={s.actionButton()}
-                  aria-label="Add emoji"
-                  isDisabled={disabled}
-                >
-                  <FaceSmileIcon className="h-4 w-4" />
-                </AriaButton>
+                <Tooltip content="Add emoji">
+                  <AriaButton
+                    className={s.actionButton()}
+                    aria-label="Add emoji"
+                    isDisabled={disabled}
+                  >
+                    <FaceSmileIcon className="h-4 w-4" />
+                  </AriaButton>
+                </Tooltip>
                 <Popover placement="top start" className={s.emojiPopover()}>
                   <EmojiPicker
                     onSelect={handleEmojiSelect}
@@ -643,40 +648,45 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
               </DialogTrigger>
 
               {/* @ mention button */}
-              <AriaButton
-                className={s.actionButton()}
-                aria-label="Mention someone"
-                isDisabled={disabled}
-                onPress={insertAtSymbol}
-              >
-                <AtSymbolIcon className="h-4 w-4" />
-              </AriaButton>
+              <Tooltip content="Mention someone">
+                <AriaButton
+                  className={s.actionButton()}
+                  aria-label="Mention someone"
+                  isDisabled={disabled}
+                  onPress={insertAtSymbol}
+                >
+                  <AtSymbolIcon className="h-4 w-4" />
+                </AriaButton>
+              </Tooltip>
 
               {/* # channel mention button */}
-              <AriaButton
-                className={s.actionButton()}
-                aria-label="Mention channel"
-                isDisabled={disabled}
-                onPress={insertHashSymbol}
-              >
-                <HashtagIcon className="h-4 w-4" />
-              </AriaButton>
+              <Tooltip content="Mention channel">
+                <AriaButton
+                  className={s.actionButton()}
+                  aria-label="Mention channel"
+                  isDisabled={disabled}
+                  onPress={insertHashSymbol}
+                >
+                  <HashtagIcon className="h-4 w-4" />
+                </AriaButton>
+              </Tooltip>
             </div>
 
             {/* Send button */}
-            <button
-              type="submit"
-              disabled={!canSend}
-              className={cn(
-                s.sendButton(),
-                canSend
-                  ? 'text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900'
-                  : 'cursor-not-allowed text-gray-400',
-              )}
-              onClick={handleSubmit}
-            >
-              <PaperAirplaneIcon className="h-4 w-4" />
-            </button>
+            <Tooltip content="Send message">
+              <AriaButton
+                isDisabled={!canSend}
+                className={cn(
+                  s.sendButton(),
+                  canSend
+                    ? 'cursor-pointer text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900'
+                    : 'cursor-not-allowed text-gray-400',
+                )}
+                onPress={handleSubmit}
+              >
+                <PaperAirplaneIcon className="h-4 w-4" />
+              </AriaButton>
+            </Tooltip>
           </div>
         )}
       </div>

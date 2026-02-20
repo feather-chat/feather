@@ -36,7 +36,7 @@ function CarouselDownloadLink({ fileId, filename }: { fileId: string; filename: 
       href={url ?? '#'}
       download={filename}
       className={cn(
-        'rounded-lg bg-black/50 p-2 text-white transition-colors hover:bg-black/70',
+        'cursor-pointer rounded-lg bg-black/50 p-2 text-white transition-colors hover:bg-black/70',
         !url && 'pointer-events-none opacity-50',
       )}
       title="Download"
@@ -101,7 +101,7 @@ function ImageCarousel({ images, initialIndex, isOpen, onClose }: ImageCarouselP
             {images.length > 1 && (
               <AriaButton
                 onPress={() => setCurrentIndex((i) => (i === 0 ? images.length - 1 : i - 1))}
-                className="absolute left-2 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
+                className="absolute left-2 z-10 cursor-pointer rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                 aria-label="Previous image"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,7 +124,7 @@ function ImageCarousel({ images, initialIndex, isOpen, onClose }: ImageCarouselP
             {images.length > 1 && (
               <AriaButton
                 onPress={() => setCurrentIndex((i) => (i === images.length - 1 ? 0 : i + 1))}
-                className="absolute right-2 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
+                className="absolute right-2 z-10 cursor-pointer rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                 aria-label="Next image"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -142,7 +142,7 @@ function ImageCarousel({ images, initialIndex, isOpen, onClose }: ImageCarouselP
               <CarouselDownloadLink fileId={current.id} filename={current.filename} />
               <button
                 onClick={onClose}
-                className="rounded-lg bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
+                className="cursor-pointer rounded-lg bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                 title="Close"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -280,7 +280,7 @@ function FileAttachment({ attachment }: { attachment: Attachment }) {
       href={url ?? '#'}
       download={attachment.filename}
       className={cn(
-        'flex max-w-xs items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800',
+        'flex max-w-xs cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800',
         !url && 'pointer-events-none opacity-50',
       )}
     >

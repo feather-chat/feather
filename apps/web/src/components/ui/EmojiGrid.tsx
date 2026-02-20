@@ -428,7 +428,7 @@ export function EmojiGrid({
           <button
             type="button"
             onClick={onAddEmoji}
-            className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+            className="cursor-pointer rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
           >
             Add Emoji
           </button>

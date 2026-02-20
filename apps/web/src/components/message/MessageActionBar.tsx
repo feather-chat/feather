@@ -55,7 +55,7 @@ export function MessageActionBar({
     >
       <DialogTrigger isOpen={reactionPickerOpen} onOpenChange={onReactionPickerOpenChange}>
         <Tooltip content="Add reaction">
-          <AriaButton className="group/btn rounded-l-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700">
+          <AriaButton className="group/btn cursor-pointer rounded-l-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700">
             <FaceSmileIcon className="h-4 w-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
           </AriaButton>
         </Tooltip>
@@ -68,7 +68,7 @@ export function MessageActionBar({
         <Tooltip content="Reply in thread">
           <AriaButton
             onPress={onReplyClick}
-            className="group/btn p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="group/btn cursor-pointer p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <ChatBubbleBottomCenterTextIcon className="h-4 w-4 text-gray-500 transition-transform group-hover/btn:scale-110 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300" />
           </AriaButton>
@@ -83,7 +83,7 @@ export function MessageActionBar({
           trigger={
             <AriaButton
               className={cn(
-                'group/btn rounded-r-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700',
+                'group/btn cursor-pointer rounded-r-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700',
                 showDropdown && 'bg-gray-100 dark:bg-gray-700',
               )}
               aria-label="More options"

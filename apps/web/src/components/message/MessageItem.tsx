@@ -277,7 +277,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
             <button
               type="button"
               onClick={() => openThread(message.thread_parent_id!)}
-              className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+              className="cursor-pointer text-xs text-blue-600 hover:underline dark:text-blue-400"
             >
               replied to a thread
             </button>
@@ -298,13 +298,13 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="cursor-pointer rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="rounded px-3 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                  className="cursor-pointer rounded px-3 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>

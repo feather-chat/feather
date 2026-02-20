@@ -614,7 +614,7 @@ function SuggestedUserItem({ user, onClick, isLoading }: SuggestedUserItemProps)
       onClick={onClick}
       disabled={isLoading}
       className={cn(
-        'flex w-full items-center gap-2 rounded px-2 py-1 text-left text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
+        'flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1 text-left text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
         isLoading && 'cursor-not-allowed opacity-50',
       )}
     >
@@ -989,7 +989,7 @@ function NewDMModal({
                   <button
                     type="button"
                     onClick={() => removeUser(member.user_id)}
-                    className="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                    className="ml-0.5 cursor-pointer rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
                   >
                     <svg className="h-3 w-3" viewBox="0 0 12 12" fill="currentColor">
                       <path d="M3.05 3.05a.75.75 0 011.06 0L6 4.94l1.89-1.89a.75.75 0 111.06 1.06L7.06 6l1.89 1.89a.75.75 0 11-1.06 1.06L6 7.06 4.11 8.95a.75.75 0 01-1.06-1.06L4.94 6 3.05 4.11a.75.75 0 010-1.06z" />
@@ -1018,7 +1018,7 @@ function NewDMModal({
                 type="button"
                 onClick={() => toggleUser(member.user_id)}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded px-3 py-2 text-left',
+                  'flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left',
                   isSelected
                     ? 'bg-blue-100 dark:bg-blue-900'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-700',

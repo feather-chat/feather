@@ -62,7 +62,7 @@ export function ReactionsDisplay({
             <AriaButton
               onPress={() => onReactionClick(emoji, hasOwn)}
               className={cn(
-                'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-sm transition-colors',
+                'inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-sm transition-colors',
                 hasOwn
                   ? 'border-blue-300 bg-blue-100 dark:border-blue-700 dark:bg-blue-900'
                   : 'border-gray-200 bg-gray-100 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
