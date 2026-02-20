@@ -10,20 +10,6 @@
 @custom-variant pressed (&[data-pressed]);
 @custom-variant focused (&[data-focused]);
 
-/* --- Custom theme colors --- */
-@theme {
-  --color-primary-50: #f0f4ff;
-  --color-primary-100: #dbe4ff;
-  --color-primary-200: #bac8ff;
-  --color-primary-300: #91a7ff;
-  --color-primary-400: #748ffc;
-  --color-primary-500: #5c7cfa;
-  --color-primary-600: #4c6ef5;
-  --color-primary-700: #4263eb;
-  --color-primary-800: #3b5bdb;
-  --color-primary-900: #364fc7;
-}
-
 html,
 body,
 #root {

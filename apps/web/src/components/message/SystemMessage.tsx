@@ -92,8 +92,8 @@ export function SystemMessage({ message, channelId }: SystemMessageProps) {
     <div
       className={cn(
         'group relative px-4 py-1.5',
-        'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-        showDropdown && 'bg-gray-50 dark:bg-gray-800/50',
+        'hover:bg-gray-100 dark:hover:bg-gray-800',
+        showDropdown && 'bg-gray-100 dark:bg-gray-800',
       )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {

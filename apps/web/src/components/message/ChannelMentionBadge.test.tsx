@@ -65,7 +65,7 @@ describe('ChannelMentionBadge', () => {
     render(<ChannelMentionBadge channelId="ch-1" channels={channels} />, { routerProps });
 
     const button = screen.getByRole('button', { name: /general/ });
-    expect(button).toHaveClass('bg-blue-50');
+    expect(button).toHaveClass('bg-blue-100');
     expect(button).toHaveClass('cursor-pointer');
   });
 

@@ -295,8 +295,8 @@ export function ChannelSidebar({
             className={cn(
               'flex items-center gap-2 rounded px-2 py-1',
               isUnreadsPage
-                ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50',
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
             )}
           >
             <span className="flex w-5 items-center justify-center">
@@ -304,14 +304,14 @@ export function ChannelSidebar({
                 className={cn(
                   'h-4 w-4',
                   isUnreadsPage
-                    ? 'text-primary-700 dark:text-primary-300'
+                    ? 'text-blue-700 dark:text-blue-300'
                     : 'text-gray-500 dark:text-gray-400',
                 )}
               />
             </span>
             <span className={cn('truncate', hasUnread && 'font-semibold')}>All Unreads</span>
             {hasNotifications && (
-              <span className="bg-primary-600 ml-auto rounded-full px-1.5 py-0.5 text-xs text-white">
+              <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-xs text-white">
                 {totalNotificationCount}
               </span>
             )}
@@ -321,8 +321,8 @@ export function ChannelSidebar({
             className={cn(
               'flex items-center gap-2 rounded px-2 py-1',
               isThreadsPage
-                ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50',
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
             )}
           >
             <span className="flex w-5 items-center justify-center">
@@ -330,7 +330,7 @@ export function ChannelSidebar({
                 className={cn(
                   'h-4 w-4',
                   isThreadsPage
-                    ? 'text-primary-700 dark:text-primary-300'
+                    ? 'text-blue-700 dark:text-blue-300'
                     : 'text-gray-500 dark:text-gray-400',
                 )}
               />
@@ -339,7 +339,7 @@ export function ChannelSidebar({
               Threads
             </span>
             {unreadThreadCount > 0 && (
-              <span className="bg-primary-600 ml-auto rounded-full px-1.5 py-0.5 text-xs text-white">
+              <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-xs text-white">
                 {unreadThreadCount}
               </span>
             )}
@@ -447,10 +447,7 @@ function DroppableChannelSection({
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        'py-2 transition-colors',
-        showDropHighlight && 'bg-primary-50 dark:bg-primary-900/20',
-      )}
+      className={cn('py-2 transition-colors', showDropHighlight && 'bg-blue-100 dark:bg-blue-900')}
     >
       <div className="flex w-full items-center justify-between px-2 py-1 text-sm text-gray-700 dark:text-gray-300">
         <button
@@ -557,10 +554,7 @@ function DroppableDMSection({
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        'py-2 transition-colors',
-        showDropHighlight && 'bg-primary-50 dark:bg-primary-900/20',
-      )}
+      className={cn('py-2 transition-colors', showDropHighlight && 'bg-blue-100 dark:bg-blue-900')}
     >
       <div className="flex w-full items-center justify-between px-2 py-1 text-sm text-gray-700 dark:text-gray-300">
         <button
@@ -620,7 +614,7 @@ function SuggestedUserItem({ user, onClick, isLoading }: SuggestedUserItemProps)
       onClick={onClick}
       disabled={isLoading}
       className={cn(
-        'flex w-full items-center gap-2 rounded px-2 py-1 text-left text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50',
+        'flex w-full items-center gap-2 rounded px-2 py-1 text-left text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
         isLoading && 'cursor-not-allowed opacity-50',
       )}
     >
@@ -686,14 +680,14 @@ function ChannelItemLink({ channel, workspaceId, isActive, isMenuOpen }: Channel
       className={cn(
         'flex items-center gap-2 rounded px-2 py-1',
         isActive
-          ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-          : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50',
-        !isActive && isMenuOpen && 'bg-gray-50 dark:bg-gray-800/50',
+          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+        !isActive && isMenuOpen && 'bg-gray-100 dark:bg-gray-800',
       )}
     >
       <ChannelItemContent channel={channel} isActive={isActive} />
       {hasNotifications && (
-        <span className="bg-primary-600 ml-auto rounded-full px-1.5 py-0.5 text-xs text-white">
+        <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-xs text-white">
           {channel.notification_count}
         </span>
       )}
@@ -746,7 +740,7 @@ function ChannelItemContent({ channel, isActive }: ChannelItemContentProps) {
         <ChannelIcon
           type={channel.type}
           className={
-            isActive ? 'text-primary-700 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400'
+            isActive ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'
           }
         />
       )}
@@ -989,13 +983,13 @@ function NewDMModal({
               return (
                 <span
                   key={member.user_id}
-                  className="bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm"
+                  className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 text-sm text-blue-700 dark:bg-blue-900 dark:text-blue-300"
                 >
                   {displayName}
                   <button
                     type="button"
                     onClick={() => removeUser(member.user_id)}
-                    className="hover:bg-primary-200 dark:hover:bg-primary-800/50 ml-0.5 rounded-full p-0.5"
+                    className="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
                   >
                     <svg className="h-3 w-3" viewBox="0 0 12 12" fill="currentColor">
                       <path d="M3.05 3.05a.75.75 0 011.06 0L6 4.94l1.89-1.89a.75.75 0 111.06 1.06L7.06 6l1.89 1.89a.75.75 0 11-1.06 1.06L6 7.06 4.11 8.95a.75.75 0 01-1.06-1.06L4.94 6 3.05 4.11a.75.75 0 010-1.06z" />
@@ -1026,7 +1020,7 @@ function NewDMModal({
                 className={cn(
                   'flex w-full items-center gap-3 rounded px-3 py-2 text-left',
                   isSelected
-                    ? 'bg-primary-100 dark:bg-primary-900/30'
+                    ? 'bg-blue-100 dark:bg-blue-900'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-700',
                 )}
               >
@@ -1045,7 +1039,7 @@ function NewDMModal({
                 <span className="flex-1 text-gray-900 dark:text-white">{displayName}</span>
                 {isSelected && (
                   <svg
-                    className="text-primary-600 dark:text-primary-400 h-5 w-5"
+                    className="h-5 w-5 text-blue-600 dark:text-blue-400"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >

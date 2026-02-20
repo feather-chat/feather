@@ -199,7 +199,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
   // Deleted messages with replies: show placeholder with thread indicator
   if (isDeleted) {
     return (
-      <div className="group px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+      <div className="group px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800">
         <div className="flex items-start gap-3">
           {/* Trash icon in avatar-sized circle */}
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
@@ -233,8 +233,8 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
         'group relative px-4 py-1.5',
         isDeleting
           ? '!max-h-0 overflow-hidden bg-red-400 !py-0 opacity-0 transition-all duration-500 dark:bg-red-700'
-          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-        (showDropdown || msgCtx.isOpen) && !isDeleting && 'bg-gray-50 dark:bg-gray-800/50',
+          : 'hover:bg-gray-100 dark:hover:bg-gray-800',
+        (showDropdown || msgCtx.isOpen) && !isDeleting && 'bg-gray-100 dark:bg-gray-800',
       )}
       style={isDeleting ? { marginTop: 0, marginBottom: 0 } : undefined}
       onContextMenu={msgCtx.onContextMenu}
@@ -277,7 +277,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
             <button
               type="button"
               onClick={() => openThread(message.thread_parent_id!)}
-              className="text-primary-600 dark:text-primary-400 text-xs hover:underline"
+              className="text-xs text-blue-600 hover:underline dark:text-blue-400"
             >
               replied to a thread
             </button>
@@ -291,14 +291,14 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleEditKeyDown}
-                className="focus:ring-primary-500 w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:ring-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                className="w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 rows={3}
               />
               <div className="flex items-center gap-2 text-sm">
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="bg-primary-600 hover:bg-primary-700 rounded px-3 py-1 text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>

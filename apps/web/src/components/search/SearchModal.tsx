@@ -237,7 +237,7 @@ export function SearchModal({ isOpen, onClose, initialChannelId }: SearchModalPr
                     <div className="p-4 text-center">
                       <button
                         onClick={handleLoadMore}
-                        className="text-primary-600 dark:text-primary-400 text-sm hover:underline"
+                        className="text-sm text-blue-600 hover:underline dark:text-blue-400"
                       >
                         Load more results
                       </button>
@@ -257,7 +257,7 @@ function SearchResultItem({ message, onClick }: { message: SearchMessage; onClic
   return (
     <button
       onClick={onClick}
-      className="block w-full border-b border-gray-100 p-4 text-left last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50"
+      className="block w-full border-b border-gray-100 p-4 text-left last:border-b-0 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 pt-1">

@@ -280,7 +280,7 @@ function FileAttachment({ attachment }: { attachment: Attachment }) {
       href={url ?? '#'}
       download={attachment.filename}
       className={cn(
-        'flex max-w-xs items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800',
+        'flex max-w-xs items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800',
         !url && 'pointer-events-none opacity-50',
       )}
     >

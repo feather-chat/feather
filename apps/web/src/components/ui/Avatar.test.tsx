@@ -30,7 +30,7 @@ describe('Avatar', () => {
   it('uses primary color when no id provided', () => {
     render(<Avatar name="John" />);
 
-    expect(screen.getByText('J')).toHaveClass('bg-primary-500');
+    expect(screen.getByText('J')).toHaveClass('bg-blue-500');
   });
 
   it('renders different sizes', () => {

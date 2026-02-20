@@ -45,7 +45,7 @@ const editorStyles = tv({
     container: [
       'border border-gray-300 dark:border-gray-700 rounded-lg',
       'bg-white dark:bg-gray-900',
-      'focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500',
+      'focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500',
       'transition-shadow',
     ],
     content: [
@@ -66,8 +66,8 @@ const editorStyles = tv({
       // Mention styles
       '[&_.mention]:text-blue-600',
       '[&_.mention]:dark:text-blue-400',
-      '[&_.mention]:bg-blue-50',
-      '[&_.mention]:dark:bg-blue-900/30',
+      '[&_.mention]:bg-blue-100',
+      '[&_.mention]:dark:bg-blue-900',
       '[&_.mention]:rounded',
       '[&_.mention]:px-0.5',
       // Code styles
@@ -103,8 +103,8 @@ const editorStyles = tv({
       '[&_.ProseMirror_ol]:list-decimal',
       '[&_.ProseMirror_ol]:pl-5',
       // Link styles
-      '[&_.ProseMirror_a]:text-primary-600',
-      '[&_.ProseMirror_a]:dark:text-primary-400',
+      '[&_.ProseMirror_a]:text-blue-600',
+      '[&_.ProseMirror_a]:dark:text-blue-400',
       '[&_.ProseMirror_a]:underline',
     ],
     actionRow: [
@@ -670,7 +670,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
               className={cn(
                 s.sendButton(),
                 canSend
-                  ? 'text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'
+                  ? 'text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900'
                   : 'cursor-not-allowed text-gray-400',
               )}
               onClick={handleSubmit}

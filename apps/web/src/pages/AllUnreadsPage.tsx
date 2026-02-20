@@ -27,7 +27,7 @@ function UnreadMessageItem({
   return (
     <Link
       to={`/workspaces/${workspaceId}/channels/${message.channel_id}`}
-      className="block border-b border-gray-200 p-4 last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50"
+      className="block border-b border-gray-200 p-4 last:border-b-0 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 pt-1">
@@ -136,7 +136,7 @@ export function AllUnreadsPage() {
                 <button
                   onClick={() => fetchNextPage()}
                   disabled={isFetchingNextPage}
-                  className="text-primary-600 dark:text-primary-400 text-sm hover:underline disabled:opacity-50"
+                  className="text-sm text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"
                 >
                   {isFetchingNextPage ? 'Loading...' : 'Load more'}
                 </button>

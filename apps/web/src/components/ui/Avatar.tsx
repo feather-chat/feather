@@ -72,7 +72,7 @@ export function Avatar({
         <div
           className={cn(
             'flex items-center justify-center rounded-full font-medium text-white',
-            id ? getAvatarColor(id) : 'bg-primary-500',
+            id ? getAvatarColor(id) : 'bg-blue-500',
             sizes[size],
           )}
         >

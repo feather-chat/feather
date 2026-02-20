@@ -26,7 +26,7 @@ const modal = tv({
       'flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700',
     title: 'text-lg font-semibold text-gray-900 dark:text-white',
     closeButton:
-      'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+      'p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
     content: 'p-6',
   },
   variants: {

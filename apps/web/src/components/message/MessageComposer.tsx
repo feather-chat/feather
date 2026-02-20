@@ -311,13 +311,13 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
           }}
           className={cn(
             'relative rounded-lg transition-colors',
-            isDragging && 'bg-primary-50 ring-primary-500 dark:bg-primary-900/20 ring-2',
+            isDragging && 'bg-blue-100 ring-2 ring-blue-500 dark:bg-blue-900',
           )}
         >
           {/* Drop overlay */}
           {isDragging && (
-            <div className="bg-primary-50/90 dark:bg-primary-900/80 pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg">
-              <span className="text-primary-600 dark:text-primary-400 text-sm font-medium">
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900">
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                 Drop files to upload
               </span>
             </div>
@@ -344,7 +344,7 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
                       type="checkbox"
                       checked={alsoSendToChannel}
                       onChange={(e) => setAlsoSendToChannel(e.target.checked)}
-                      className="text-primary-600 focus:ring-primary-500 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                     />
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       Also send to{' '}

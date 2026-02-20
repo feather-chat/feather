@@ -50,7 +50,7 @@ export function MessageActionBar({
     <div
       className={cn(
         'absolute top-0 right-4 flex -translate-y-1/2 items-center rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900',
-        showDropdown && 'bg-gray-50 dark:bg-gray-800/50',
+        showDropdown && 'bg-gray-100 dark:bg-gray-800',
       )}
     >
       <DialogTrigger isOpen={reactionPickerOpen} onOpenChange={onReactionPickerOpenChange}>

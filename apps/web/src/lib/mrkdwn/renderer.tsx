@@ -34,7 +34,7 @@ const styles = tv({
       'italic',
     ],
     list: ['my-1 pl-5'],
-    link: ['text-primary-600 dark:text-primary-400', 'underline hover:no-underline'],
+    link: ['text-blue-600 dark:text-blue-400', 'underline hover:no-underline'],
   },
 });
 

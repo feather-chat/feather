@@ -10,8 +10,8 @@ const mentionBadge = tv({
     variant: {
       known: [
         'text-blue-600 dark:text-blue-400',
-        'bg-blue-50 dark:bg-blue-900/30',
-        'cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/50',
+        'bg-blue-100 dark:bg-blue-900',
+        'cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900',
       ],
       private: [
         'text-gray-500 dark:text-gray-400',

@@ -323,7 +323,7 @@ function WorkspaceItemContent({
         </span>
       )}
       {totalNotifications === 0 && hasUnread && (
-        <span className="bg-primary-500 absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full" />
+        <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-blue-500" />
       )}
     </div>
   );

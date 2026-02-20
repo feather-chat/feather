@@ -29,7 +29,7 @@ const styles = tv({
       'bg-white dark:bg-gray-900',
       'text-gray-900 dark:text-white',
       'placeholder-gray-400 dark:placeholder-gray-500',
-      'focus:outline-none focus:ring-2 focus:ring-primary-500',
+      'focus:outline-none focus:ring-2 focus:ring-blue-500',
     ],
     categoryBar: [
       'flex items-center gap-0.5 py-1 px-1',
@@ -83,7 +83,7 @@ const styles = tv({
       'text-lg w-8 h-8 flex items-center justify-center rounded',
       'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors',
     ],
-    skinToneOptionActive: 'ring-2 ring-primary-500 ring-offset-1 dark:ring-offset-gray-800',
+    skinToneOptionActive: 'ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-gray-800',
   },
 });
 

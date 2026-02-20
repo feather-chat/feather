@@ -9,8 +9,8 @@ const mentionBadge = tv({
   base: [
     'inline rounded px-0.5 -mx-0.5 cursor-pointer',
     'text-blue-600 dark:text-blue-400',
-    'bg-blue-50 dark:bg-blue-900/30',
-    'hover:bg-blue-100 dark:hover:bg-blue-900/50',
+    'bg-blue-100 dark:bg-blue-900',
+    'hover:bg-blue-100 dark:hover:bg-blue-900',
     'transition-colors',
   ],
 });

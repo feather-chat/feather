@@ -26,13 +26,13 @@ const datePicker = tv({
     label: 'mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300',
     fieldGroup: [
       'flex items-center rounded border border-gray-300 bg-white text-xs text-gray-700',
-      'focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500',
+      'focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500',
       'dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300',
     ],
     input: 'flex flex-1 px-2 py-1',
     segment: [
       'rounded px-0.5 text-end tabular-nums outline-none',
-      'focused:bg-primary-500 focused:text-white',
+      'focused:bg-blue-500 focused:text-white',
       'placeholder:text-gray-400 dark:placeholder:text-gray-500',
       'data-[type=literal]:px-0',
     ],
@@ -59,10 +59,10 @@ const datePicker = tv({
     calendarCell: [
       'flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-xs text-gray-700 outline-none',
       'hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
-      'selected:bg-primary-500 selected:text-white selected:hover:bg-primary-600',
+      'selected:bg-blue-500 selected:text-white selected:hover:bg-blue-600',
       'disabled:cursor-default disabled:text-gray-300 disabled:hover:bg-transparent dark:disabled:text-gray-600',
       'outside-month:text-gray-300 dark:outside-month:text-gray-600',
-      'focused:ring-2 focused:ring-primary-500 focused:ring-offset-1',
+      'focused:ring-2 focused:ring-blue-500 focused:ring-offset-1',
     ],
   },
 });

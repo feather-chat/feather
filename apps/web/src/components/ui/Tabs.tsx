@@ -17,8 +17,8 @@ const tabs = tv({
     tab: [
       'px-4 py-2 text-sm font-medium border-b-2 -mb-px cursor-pointer outline-none',
       'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
-      'focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset',
-      'selected:border-primary-600 selected:text-primary-600',
+      'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
+      'selected:border-blue-600 selected:text-blue-600',
     ],
     panel: 'outline-none',
   },

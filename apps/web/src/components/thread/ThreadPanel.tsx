@@ -276,7 +276,7 @@ export function ThreadPanel({ messageId }: ThreadPanelProps) {
               <button
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="text-primary-600 hover:text-primary-700 dark:text-primary-400 w-full py-2 text-sm"
+                className="w-full py-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
               >
                 {isFetchingNextPage ? 'Loading...' : 'Load more replies'}
               </button>
@@ -523,8 +523,8 @@ function ParentMessage({
     <div
       className={cn(
         'group relative px-4 py-1.5',
-        'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-        (showDropdown || msgCtx.isOpen) && 'bg-gray-50 dark:bg-gray-800/50',
+        'hover:bg-gray-100 dark:hover:bg-gray-800',
+        (showDropdown || msgCtx.isOpen) && 'bg-gray-100 dark:bg-gray-800',
       )}
       onContextMenu={msgCtx.onContextMenu}
       onMouseEnter={() => setShowActions(true)}
@@ -564,14 +564,14 @@ function ParentMessage({
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleEditKeyDown}
-                className="focus:ring-primary-500 w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:ring-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                className="w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 rows={3}
               />
               <div className="flex items-center gap-2 text-sm">
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="bg-primary-600 hover:bg-primary-700 rounded px-3 py-1 text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>
@@ -614,7 +614,7 @@ function ParentMessage({
                   className={cn(
                     'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-sm transition-colors',
                     hasOwn
-                      ? 'border-primary-300 bg-primary-100 dark:border-primary-700 dark:bg-primary-900/30'
+                      ? 'border-blue-300 bg-blue-100 dark:border-blue-700 dark:bg-blue-900'
                       : 'border-gray-200 bg-gray-100 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
                   )}
                 >
@@ -947,10 +947,10 @@ function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMe
         'group relative px-4 py-2',
         message.also_send_to_channel
           ? 'bg-yellow-50 dark:bg-yellow-900/10'
-          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+          : 'hover:bg-gray-100 dark:hover:bg-gray-800',
         (showDropdown || msgCtx.isOpen) &&
           !message.also_send_to_channel &&
-          'bg-gray-50 dark:bg-gray-800/50',
+          'bg-gray-100 dark:bg-gray-800',
       )}
       onContextMenu={msgCtx.onContextMenu}
       onMouseEnter={() => setShowActions(true)}
@@ -998,14 +998,14 @@ function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMe
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleEditKeyDown}
-                className="focus:ring-primary-500 w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 focus:ring-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                className="w-full resize-none rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 rows={3}
               />
               <div className="flex items-center gap-2 text-sm">
                 <button
                   onClick={handleSaveEdit}
                   disabled={updateMessage.isPending || !editContent.trim()}
-                  className="bg-primary-600 hover:bg-primary-700 rounded px-3 py-1 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {updateMessage.isPending ? 'Saving...' : 'Save'}
                 </button>
@@ -1048,7 +1048,7 @@ function ThreadMessage({ message, parentMessageId, members, channels }: ThreadMe
                   className={cn(
                     'inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs transition-colors',
                     hasOwn
-                      ? 'border-primary-300 bg-primary-100 dark:border-primary-700 dark:bg-primary-900/30'
+                      ? 'border-blue-300 bg-blue-100 dark:border-blue-700 dark:bg-blue-900'
                       : 'border-gray-200 bg-gray-100 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
                   )}
                 >
