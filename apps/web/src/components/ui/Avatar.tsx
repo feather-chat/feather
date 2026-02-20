@@ -82,7 +82,7 @@ export function Avatar({
       {status && (
         <span
           className={cn(
-            'absolute rounded-full border-white dark:border-gray-900',
+            'absolute rounded-full border-[var(--avatar-ring)]',
             statusColors[status],
             statusSizes[size],
           )}

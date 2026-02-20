@@ -36,14 +36,14 @@ export function AvatarStack({
           name={user.display_name || 'User'}
           id={user.user_id}
           size={size}
-          className="ring-2 ring-white dark:ring-gray-900"
+          className="ring-2 ring-[var(--avatar-ring)]"
           style={{ zIndex: visibleUsers.length - index }}
         />
       ))}
       {showCount && remainingCount > 0 && (
         <div
           className={cn(
-            'flex items-center justify-center rounded-full bg-gray-200 font-medium text-gray-600 ring-2 ring-white dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-900',
+            'flex items-center justify-center rounded-full bg-gray-200 font-medium text-gray-600 ring-2 ring-[var(--avatar-ring)] dark:bg-gray-700 dark:text-gray-300',
             size === 'xs' ? 'h-5 w-5 text-[9px]' : 'h-6 w-6 text-[10px]',
           )}
         >

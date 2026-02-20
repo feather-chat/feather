@@ -10,6 +10,14 @@
 @custom-variant pressed (&[data-pressed]);
 @custom-variant focused (&[data-focused]);
 
+/* Avatar ring/border color — matches parent background for "cutaway" effect */
+:root {
+  --avatar-ring: #fff;
+}
+.dark {
+  --avatar-ring: var(--color-gray-900);
+}
+
 html,
 body,
 #root {

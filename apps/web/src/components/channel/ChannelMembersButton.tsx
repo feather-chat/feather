@@ -45,7 +45,7 @@ export function ChannelMembersButton({
   return (
     <AriaButton
       onPress={onPress}
-      className="flex cursor-pointer items-center gap-1.5 rounded px-2 py-1 outline-none hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-gray-800"
+      className="flex cursor-pointer items-center gap-1.5 rounded px-2 py-1 outline-none hover:bg-gray-100 hover:[--avatar-ring:var(--color-gray-100)] focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-gray-800 dark:hover:[--avatar-ring:var(--color-gray-800)]"
       aria-label={`View ${members.length} channel members`}
     >
       <AvatarStack users={avatarUsers} max={3} size="xs" showCount={false} />

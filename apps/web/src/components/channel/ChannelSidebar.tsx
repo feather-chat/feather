@@ -313,7 +313,7 @@ export function ChannelSidebar({
             </span>
             <span className={cn('truncate', hasUnread && 'font-semibold')}>All Unreads</span>
             {hasNotifications && (
-              <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-xs text-white">
+              <span className="ml-auto rounded-full bg-red-500 px-1.5 py-0.5 text-xs text-white">
                 {totalNotificationCount}
               </span>
             )}
@@ -336,7 +336,7 @@ export function ChannelSidebar({
               Threads
             </span>
             {unreadThreadCount > 0 && (
-              <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-xs text-white">
+              <span className="ml-auto rounded-full bg-red-500 px-1.5 py-0.5 text-xs text-white">
                 {unreadThreadCount}
               </span>
             )}
@@ -611,7 +611,7 @@ function SuggestedUserItem({ user, onClick, isLoading }: SuggestedUserItemProps)
       onClick={onClick}
       disabled={isLoading}
       className={cn(
-        'flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1 text-left text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+        'flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1 text-left text-gray-700 hover:bg-gray-100 hover:[--avatar-ring:var(--color-gray-100)] dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:[--avatar-ring:var(--color-gray-800)]',
         isLoading && 'cursor-not-allowed opacity-50',
       )}
     >
@@ -677,14 +677,16 @@ function ChannelItemLink({ channel, workspaceId, isActive, isMenuOpen }: Channel
       className={cn(
         'flex items-center gap-2 rounded px-2 py-1',
         isActive
-          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
-        !isActive && isMenuOpen && 'bg-gray-100 dark:bg-gray-800',
+          ? 'bg-blue-100 text-blue-700 [--avatar-ring:var(--color-blue-100)] dark:bg-blue-900 dark:text-blue-300 dark:[--avatar-ring:var(--color-blue-900)]'
+          : 'text-gray-700 hover:bg-gray-100 hover:[--avatar-ring:var(--color-gray-100)] dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:[--avatar-ring:var(--color-gray-800)]',
+        !isActive &&
+          isMenuOpen &&
+          'bg-gray-100 [--avatar-ring:var(--color-gray-100)] dark:bg-gray-800 dark:[--avatar-ring:var(--color-gray-800)]',
       )}
     >
       <ChannelItemContent channel={channel} />
       {hasNotifications && (
-        <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-xs text-white">
+        <span className="ml-auto rounded-full bg-red-500 px-1.5 py-0.5 text-xs text-white">
           {channel.notification_count}
         </span>
       )}

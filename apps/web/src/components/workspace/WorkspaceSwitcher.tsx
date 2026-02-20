@@ -130,9 +130,9 @@ export function WorkspaceSwitcher({
   const workspaceIds = localWorkspaces.map((ws) => ws.id);
 
   return (
-    <div className="flex w-16 flex-col items-center gap-4 border-r border-gray-200 bg-white py-4 dark:border-gray-700 dark:bg-gray-900">
+    <div className="flex w-16 flex-col items-center gap-4 border-r border-gray-200 bg-white pt-3 pb-4 dark:border-gray-700 dark:bg-gray-900">
       {/* Workspaces */}
-      <div className="flex flex-1 flex-col items-center gap-3 overflow-y-auto p-1">
+      <div className="flex flex-1 flex-col items-center gap-3 overflow-y-auto px-2 py-2">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -317,13 +317,13 @@ function WorkspaceItemContent({
           </span>
         )}
       </div>
-      {totalNotifications > 0 && (
-        <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+      {!isActive && totalNotifications > 0 && (
+        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-[var(--avatar-ring)]">
           {totalNotifications > 99 ? '99+' : totalNotifications}
         </span>
       )}
-      {totalNotifications === 0 && hasUnread && (
-        <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-blue-500" />
+      {!isActive && totalNotifications === 0 && hasUnread && (
+        <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-gray-900 ring-2 ring-[var(--avatar-ring)] dark:bg-gray-100" />
       )}
     </div>
   );
