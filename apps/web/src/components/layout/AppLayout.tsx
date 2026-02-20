@@ -9,7 +9,6 @@ import {
   WorkspaceSettingsModal,
   type WorkspaceSettingsTab,
 } from '../settings/WorkspaceSettingsModal';
-import { ServerSettingsModal } from '../settings/ServerSettingsModal';
 import { useSSE } from '../../hooks';
 import { useThreadPanel, useProfilePanel } from '../../hooks/usePanel';
 import { useSidebar } from '../../hooks/useSidebar';
@@ -25,8 +24,6 @@ export function AppLayout() {
   const [isWorkspaceSettingsOpen, setIsWorkspaceSettingsOpen] = useState(false);
   const [workspaceSettingsTab, setWorkspaceSettingsTab] = useState<WorkspaceSettingsTab>('general');
   const [settingsWorkspaceId, setSettingsWorkspaceId] = useState<string>('');
-  const [isServerSettingsOpen, setIsServerSettingsOpen] = useState(false);
-
   const handleOpenSearch = useCallback(() => {
     setIsSearchOpen(true);
   }, []);
@@ -35,10 +32,6 @@ export function AppLayout() {
     setSettingsWorkspaceId(wsId);
     setWorkspaceSettingsTab(tab ?? 'general');
     setIsWorkspaceSettingsOpen(true);
-  }, []);
-
-  const handleOpenServerSettings = useCallback(() => {
-    setIsServerSettingsOpen(true);
   }, []);
 
   // Global Cmd+K / Ctrl+K keyboard shortcut
@@ -64,10 +57,7 @@ export function AppLayout() {
 
       <div className="flex min-h-0 flex-1">
         {/* Workspace Switcher */}
-        <WorkspaceSwitcher
-          onOpenWorkspaceSettings={handleOpenWorkspaceSettings}
-          onOpenServerSettings={handleOpenServerSettings}
-        />
+        <WorkspaceSwitcher onOpenWorkspaceSettings={handleOpenWorkspaceSettings} />
 
         {/* Channel Sidebar */}
         <div
@@ -111,12 +101,6 @@ export function AppLayout() {
           defaultTab={workspaceSettingsTab}
         />
       )}
-
-      {/* Server Settings Modal */}
-      <ServerSettingsModal
-        isOpen={isServerSettingsOpen}
-        onClose={() => setIsServerSettingsOpen(false)}
-      />
     </div>
   );
 }

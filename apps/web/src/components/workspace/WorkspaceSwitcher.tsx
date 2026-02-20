@@ -24,9 +24,6 @@ import {
   SunIcon,
   MoonIcon,
   UserIcon,
-  Cog6ToothIcon,
-  UserPlusIcon,
-  ServerStackIcon,
   ArrowRightStartOnRectangleIcon,
   ComputerDesktopIcon,
   CheckIcon,
@@ -61,13 +58,9 @@ import type { WorkspaceSettingsTab } from '../settings/WorkspaceSettingsModal';
 
 interface WorkspaceSwitcherProps {
   onOpenWorkspaceSettings: (workspaceId: string, tab?: WorkspaceSettingsTab) => void;
-  onOpenServerSettings: () => void;
 }
 
-export function WorkspaceSwitcher({
-  onOpenWorkspaceSettings,
-  onOpenServerSettings,
-}: WorkspaceSwitcherProps) {
+export function WorkspaceSwitcher({ onOpenWorkspaceSettings }: WorkspaceSwitcherProps) {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const navigate = useNavigate();
   const { workspaces: serverWorkspaces } = useAuth();
@@ -178,10 +171,7 @@ export function WorkspaceSwitcher({
       {/* Bottom section */}
       <div className="flex flex-col items-center gap-3">
         {/* User menu */}
-        <UserMenu
-          onOpenWorkspaceSettings={onOpenWorkspaceSettings}
-          onOpenServerSettings={onOpenServerSettings}
-        />
+        <UserMenu />
       </div>
 
       <CreateWorkspaceModal
@@ -329,19 +319,11 @@ function WorkspaceItemContent({
   );
 }
 
-interface UserMenuProps {
-  onOpenWorkspaceSettings: (workspaceId: string, tab?: WorkspaceSettingsTab) => void;
-  onOpenServerSettings: () => void;
-}
-
-function UserMenu({ onOpenWorkspaceSettings, onOpenServerSettings }: UserMenuProps) {
-  const { user, workspaces, logout } = useAuth();
+function UserMenu() {
+  const { user, logout } = useAuth();
   const { openProfile } = useProfilePanel();
-  const { workspaceId } = useParams<{ workspaceId: string }>();
   const navigate = useNavigate();
   const { mode, setMode } = useDarkMode();
-  const workspaceMembership = workspaces?.find((w) => w.id === workspaceId);
-  const canManage = workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin';
 
   const handleLogout = async () => {
     try {
@@ -406,29 +388,6 @@ function UserMenu({ onOpenWorkspaceSettings, onOpenServerSettings }: UserMenuPro
             {mode === 'dark' && <CheckIcon className="h-4 w-4" />}
           </MenuItem>
         </SubmenuTrigger>
-
-        {workspaceId && (
-          <>
-            <MenuItem
-              onAction={() => onOpenWorkspaceSettings(workspaceId)}
-              icon={<Cog6ToothIcon className="h-4 w-4" />}
-            >
-              Workspace Settings
-            </MenuItem>
-            {canManage && (
-              <MenuItem
-                onAction={() => onOpenWorkspaceSettings(workspaceId, 'invite')}
-                icon={<UserPlusIcon className="h-4 w-4" />}
-              >
-                Invite People
-              </MenuItem>
-            )}
-          </>
-        )}
-
-        <MenuItem onAction={onOpenServerSettings} icon={<ServerStackIcon className="h-4 w-4" />}>
-          Server Settings
-        </MenuItem>
 
         <MenuSeparator />
 
