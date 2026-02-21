@@ -15,13 +15,13 @@ import { isEmojiOnly } from './isEmojiOnly';
 const styles = tv({
   slots: {
     code: [
-      'bg-gray-100 dark:bg-gray-700',
+      'bg-gray-200 dark:bg-gray-700',
       'px-1 py-0.5 rounded',
       'text-sm font-mono',
       'text-pink-600 dark:text-pink-400',
     ],
     codeBlock: [
-      'block bg-gray-100 dark:bg-gray-800',
+      'block bg-gray-200 dark:bg-gray-700',
       'p-3 rounded-lg my-2',
       'overflow-x-auto',
       'text-sm font-mono',
