@@ -105,11 +105,9 @@ export function ChannelContextMenu({ channel, workspaceId, children }: ChannelCo
           </MenuItem>
         )}
 
-        {isChannel && (
-          <MenuItem onAction={handleCopyLink} icon={<LinkIcon className="h-4 w-4" />}>
-            Copy Link
-          </MenuItem>
-        )}
+        <MenuItem onAction={handleCopyLink} icon={<LinkIcon className="h-4 w-4" />}>
+          Copy Link
+        </MenuItem>
 
         {canLeave && (
           <>
