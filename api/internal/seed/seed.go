@@ -172,15 +172,31 @@ func Run(ctx context.Context, db *sql.DB) error {
 		return fmt.Errorf("add Bob to #admins-only: %w", err)
 	}
 
-	// DMs in Acme Corp
-	dmAliceBob, err := channelRepo.CreateDM(ctx, ws1.ID, []string{alice.ID, bob.ID})
-	if err != nil {
-		return fmt.Errorf("create DM Alice-Bob: %w", err)
+	// Auto-create DMs in Acme Corp (mirrors runtime behavior).
+	// Each member after the creator gets DMs with up to 5 earlier members.
+	acmeMembers := []*user.User{alice, bob, carol, dave, eve, frank, grace, hank}
+	type dmKey struct{ a, b string }
+	dmChannels := make(map[dmKey]*channel.Channel)
+	for i := 1; i < len(acmeMembers); i++ {
+		joiner := acmeMembers[i]
+		limit := 5
+		if i < limit {
+			limit = i
+		}
+		for j := 0; j < limit; j++ {
+			other := acmeMembers[j]
+			dm, err := channelRepo.CreateDM(ctx, ws1.ID, []string{joiner.ID, other.ID})
+			if err != nil {
+				return fmt.Errorf("create DM %s-%s: %w", joiner.DisplayName, other.DisplayName, err)
+			}
+			dmChannels[dmKey{joiner.ID, other.ID}] = dm
+			dmChannels[dmKey{other.ID, joiner.ID}] = dm
+		}
 	}
-	dmCarolDave, err := channelRepo.CreateDM(ctx, ws1.ID, []string{carol.ID, dave.ID})
-	if err != nil {
-		return fmt.Errorf("create DM Carol-Dave: %w", err)
-	}
+	dmAliceBob := dmChannels[dmKey{alice.ID, bob.ID}]
+	dmCarolDave := dmChannels[dmKey{carol.ID, dave.ID}]
+
+	// Group DM (not auto-created, but kept for realistic seed data)
 	gdmAliceCarolEve, err := channelRepo.CreateDM(ctx, ws1.ID, []string{alice.ID, carol.ID, eve.ID})
 	if err != nil {
 		return fmt.Errorf("create group DM Alice-Carol-Eve: %w", err)

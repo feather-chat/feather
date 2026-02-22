@@ -404,12 +404,14 @@ export function useSSE(workspaceId: string | undefined) {
       const { channel_id } = event.data;
       queryClient.invalidateQueries({ queryKey: ['channels', workspaceId] });
       queryClient.invalidateQueries({ queryKey: ['channel', channel_id, 'members'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace', workspaceId, 'members'] });
     });
 
     connection.on('channel.member_removed', (event) => {
       const { channel_id } = event.data;
       queryClient.invalidateQueries({ queryKey: ['channels', workspaceId] });
       queryClient.invalidateQueries({ queryKey: ['channel', channel_id, 'members'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace', workspaceId, 'members'] });
     });
 
     // Handle channel read events (for syncing across tabs/devices)

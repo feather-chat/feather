@@ -22,8 +22,6 @@ export type ChannelRole = components['schemas']['ChannelRole'];
 export type ChannelMember = components['schemas']['ChannelMember'];
 export type MarkReadResponse = components['schemas']['MarkReadResponse'];
 export type ChannelReadEventData = components['schemas']['ChannelReadEventData'];
-export type DMSuggestionsResponse = components['schemas']['DMSuggestionsResponse'];
-export type SuggestedUser = components['schemas']['SuggestedUser'];
 
 // Message types
 export type Message = components['schemas']['Message'];

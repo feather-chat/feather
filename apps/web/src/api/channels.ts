@@ -8,7 +8,6 @@ import {
   type ChannelType,
   type MarkReadResponse,
   type NotificationPreferences,
-  type DMSuggestionsResponse,
 } from '@enzyme/api-client';
 
 export interface CreateChannelInput {
@@ -79,9 +78,6 @@ export const channelsApi = {
   star: (channelId: string) => post<{ success: boolean }>(`/channels/${channelId}/star`),
 
   unstar: (channelId: string) => del<{ success: boolean }>(`/channels/${channelId}/star`),
-
-  getDMSuggestions: (workspaceId: string) =>
-    post<DMSuggestionsResponse>(`/workspaces/${workspaceId}/dm-suggestions`),
 
   convertGroupDM: (channelId: string, input: ConvertGroupDMInput) =>
     post<{ channel: Channel }>(`/channels/${channelId}/convert`, input),

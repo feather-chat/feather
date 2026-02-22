@@ -252,12 +252,3 @@ export function useConvertGroupDMToChannel(workspaceId: string, channelId: strin
     },
   });
 }
-
-export function useDMSuggestions(workspaceId: string | undefined) {
-  return useQuery({
-    queryKey: ['dm-suggestions', workspaceId],
-    queryFn: () => channelsApi.getDMSuggestions(workspaceId!),
-    enabled: !!workspaceId,
-    staleTime: 60000, // Cache for 1 minute
-  });
-}

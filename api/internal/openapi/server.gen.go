@@ -213,15 +213,6 @@ type CustomEmoji struct {
 	WorkspaceId string    `json:"workspace_id"`
 }
 
-// DMSuggestionsResponse defines model for DMSuggestionsResponse.
-type DMSuggestionsResponse struct {
-	// RecentDms DM channels with recent activity
-	RecentDms []ChannelWithMembership `json:"recent_dms"`
-
-	// SuggestedUsers Workspace members suggested for starting new conversations
-	SuggestedUsers []SuggestedUser `json:"suggested_users"`
-}
-
 // Invite defines model for Invite.
 type Invite struct {
 	Code         string               `json:"code"`
@@ -429,15 +420,6 @@ type SignedUrl struct {
 // SuccessResponse defines model for SuccessResponse.
 type SuccessResponse struct {
 	Success bool `json:"success"`
-}
-
-// SuggestedUser defines model for SuggestedUser.
-type SuggestedUser struct {
-	AvatarUrl   *string              `json:"avatar_url,omitempty"`
-	DisplayName string               `json:"display_name"`
-	Email       *openapi_types.Email `json:"email,omitempty"`
-	GravatarUrl *string              `json:"gravatar_url,omitempty"`
-	Id          string               `json:"id"`
 }
 
 // SystemEventData defines model for SystemEventData.
@@ -1059,9 +1041,6 @@ type ServerInterface interface {
 	// Mark all channels as read
 	// (POST /workspaces/{wid}/channels/mark-all-read)
 	MarkAllChannelsRead(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
-	// Get DM suggestions for sidebar
-	// (POST /workspaces/{wid}/dm-suggestions)
-	GetDMSuggestions(w http.ResponseWriter, r *http.Request, wid WorkspaceId)
 	// List custom emojis for a workspace
 	// (POST /workspaces/{wid}/emojis/list)
 	ListCustomEmojis(w http.ResponseWriter, r *http.Request, wid string)
@@ -1413,12 +1392,6 @@ func (_ Unimplemented) ListChannels(w http.ResponseWriter, r *http.Request, wid 
 // Mark all channels as read
 // (POST /workspaces/{wid}/channels/mark-all-read)
 func (_ Unimplemented) MarkAllChannelsRead(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Get DM suggestions for sidebar
-// (POST /workspaces/{wid}/dm-suggestions)
-func (_ Unimplemented) GetDMSuggestions(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2940,37 +2913,6 @@ func (siw *ServerInterfaceWrapper) MarkAllChannelsRead(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
-// GetDMSuggestions operation middleware
-func (siw *ServerInterfaceWrapper) GetDMSuggestions(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "wid" -------------
-	var wid WorkspaceId
-
-	err = runtime.BindStyledParameterWithOptions("simple", "wid", chi.URLParam(r, "wid"), &wid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "wid", Err: err})
-		return
-	}
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetDMSuggestions(w, r, wid)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // ListCustomEmojis operation middleware
 func (siw *ServerInterfaceWrapper) ListCustomEmojis(w http.ResponseWriter, r *http.Request) {
 
@@ -3611,9 +3553,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/workspaces/{wid}/channels/mark-all-read", wrapper.MarkAllChannelsRead)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/workspaces/{wid}/dm-suggestions", wrapper.GetDMSuggestions)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/workspaces/{wid}/emojis/list", wrapper.ListCustomEmojis)
@@ -5675,32 +5614,6 @@ func (response MarkAllChannelsRead401JSONResponse) VisitMarkAllChannelsReadRespo
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetDMSuggestionsRequestObject struct {
-	Wid WorkspaceId `json:"wid"`
-}
-
-type GetDMSuggestionsResponseObject interface {
-	VisitGetDMSuggestionsResponse(w http.ResponseWriter) error
-}
-
-type GetDMSuggestions200JSONResponse DMSuggestionsResponse
-
-func (response GetDMSuggestions200JSONResponse) VisitGetDMSuggestionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetDMSuggestions401JSONResponse struct{ UnauthorizedJSONResponse }
-
-func (response GetDMSuggestions401JSONResponse) VisitGetDMSuggestionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(401)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
 type ListCustomEmojisRequestObject struct {
 	Wid string `json:"wid"`
 }
@@ -6352,9 +6265,6 @@ type StrictServerInterface interface {
 	// Mark all channels as read
 	// (POST /workspaces/{wid}/channels/mark-all-read)
 	MarkAllChannelsRead(ctx context.Context, request MarkAllChannelsReadRequestObject) (MarkAllChannelsReadResponseObject, error)
-	// Get DM suggestions for sidebar
-	// (POST /workspaces/{wid}/dm-suggestions)
-	GetDMSuggestions(ctx context.Context, request GetDMSuggestionsRequestObject) (GetDMSuggestionsResponseObject, error)
 	// List custom emojis for a workspace
 	// (POST /workspaces/{wid}/emojis/list)
 	ListCustomEmojis(ctx context.Context, request ListCustomEmojisRequestObject) (ListCustomEmojisResponseObject, error)
@@ -7908,32 +7818,6 @@ func (sh *strictHandler) MarkAllChannelsRead(w http.ResponseWriter, r *http.Requ
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(MarkAllChannelsReadResponseObject); ok {
 		if err := validResponse.VisitMarkAllChannelsReadResponse(w); err != nil {
-			sh.options.ResponseErrorHandlerFunc(w, r, err)
-		}
-	} else if response != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// GetDMSuggestions operation middleware
-func (sh *strictHandler) GetDMSuggestions(w http.ResponseWriter, r *http.Request, wid WorkspaceId) {
-	var request GetDMSuggestionsRequestObject
-
-	request.Wid = wid
-
-	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.GetDMSuggestions(ctx, request.(GetDMSuggestionsRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetDMSuggestions")
-	}
-
-	response, err := handler(r.Context(), w, r, request)
-
-	if err != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(GetDMSuggestionsResponseObject); ok {
-		if err := validResponse.VisitGetDMSuggestionsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

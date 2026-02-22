@@ -5,7 +5,6 @@ import (
 	"errors"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/enzyme/api/internal/channel"
 	"github.com/enzyme/api/internal/gravatar"
@@ -960,83 +959,6 @@ func (h *Handler) UnstarChannel(ctx context.Context, request openapi.UnstarChann
 
 	return openapi.UnstarChannel200JSONResponse{
 		Success: true,
-	}, nil
-}
-
-// GetDMSuggestions returns recent DMs and suggested users for starting conversations
-func (h *Handler) GetDMSuggestions(ctx context.Context, request openapi.GetDMSuggestionsRequestObject) (openapi.GetDMSuggestionsResponseObject, error) {
-	userID := h.getUserID(ctx)
-	if userID == "" {
-		return openapi.GetDMSuggestions401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
-	}
-
-	// Check workspace membership
-	_, err := h.workspaceRepo.GetMembership(ctx, userID, string(request.Wid))
-	if err != nil {
-		return nil, err
-	}
-
-	// Get DMs with messages in the last 30 days
-	since := time.Now().AddDate(0, 0, -30)
-	recentDMs, err := h.channelRepo.ListRecentDMs(ctx, string(request.Wid), userID, since, 10)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert to API types
-	apiRecentDMs := make([]openapi.ChannelWithMembership, len(recentDMs))
-	recentDMUserIDs := make(map[string]bool)
-	for i, dm := range recentDMs {
-		apiRecentDMs[i] = channelWithMembershipToAPI(dm)
-		// Track users in recent DMs
-		for _, p := range dm.DMParticipants {
-			recentDMUserIDs[p.UserID] = true
-		}
-	}
-
-	// Get suggested users if we have fewer than 5 recent DMs
-	var apiSuggestedUsers []openapi.SuggestedUser
-	if len(recentDMs) < 5 {
-		// Get workspace members, excluding those already in recent DMs
-		members, err := h.workspaceRepo.ListMembers(ctx, string(request.Wid))
-		if err != nil {
-			return nil, err
-		}
-
-		// Filter and build suggested users
-		for _, m := range members {
-			// Skip current user and users already in recent DMs
-			if m.UserID == userID || recentDMUserIDs[m.UserID] {
-				continue
-			}
-
-			suggestedUser := openapi.SuggestedUser{
-				Id:          m.UserID,
-				DisplayName: m.DisplayName,
-				AvatarUrl:   m.AvatarURL,
-			}
-			email := openapi_types.Email(m.Email)
-			suggestedUser.Email = &email
-			if g := gravatar.URL(m.Email); g != "" {
-				suggestedUser.GravatarUrl = &g
-			}
-
-			apiSuggestedUsers = append(apiSuggestedUsers, suggestedUser)
-
-			// Limit to 10 suggestions
-			if len(apiSuggestedUsers) >= 10 {
-				break
-			}
-		}
-	}
-
-	if apiSuggestedUsers == nil {
-		apiSuggestedUsers = []openapi.SuggestedUser{}
-	}
-
-	return openapi.GetDMSuggestions200JSONResponse{
-		RecentDms:      apiRecentDMs,
-		SuggestedUsers: apiSuggestedUsers,
 	}, nil
 }
 

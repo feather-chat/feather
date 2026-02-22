@@ -344,26 +344,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/workspaces/{wid}/dm-suggestions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Get DM suggestions for sidebar
-         * @description Returns recent DMs and suggested users to start conversations with
-         */
-        post: operations["getDMSuggestions"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/channels/{id}/update": {
         parameters: {
             query?: never;
@@ -1241,20 +1221,6 @@ export interface components {
             avatar_url?: string;
             gravatar_url?: string;
             channel_role?: components["schemas"]["ChannelRole"];
-        };
-        DMSuggestionsResponse: {
-            /** @description DM channels with recent activity */
-            recent_dms: components["schemas"]["ChannelWithMembership"][];
-            /** @description Workspace members suggested for starting new conversations */
-            suggested_users: components["schemas"]["SuggestedUser"][];
-        };
-        SuggestedUser: {
-            id: string;
-            /** Format: email */
-            email?: string;
-            display_name: string;
-            avatar_url?: string;
-            gravatar_url?: string;
         };
         /** @enum {string} */
         MessageType: "user" | "system";
@@ -2317,30 +2283,6 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-        };
-    };
-    getDMSuggestions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace ID */
-                wid: components["parameters"]["workspaceId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description DM suggestions */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DMSuggestionsResponse"];
-                };
-            };
             401: components["responses"]["Unauthorized"];
         };
     };

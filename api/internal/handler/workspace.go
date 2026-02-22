@@ -14,6 +14,7 @@ import (
 	"github.com/enzyme/api/internal/gravatar"
 	"github.com/enzyme/api/internal/message"
 	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/sse"
 	"github.com/enzyme/api/internal/workspace"
 	"github.com/go-chi/chi/v5"
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -334,13 +335,61 @@ func (h *Handler) AcceptInvite(ctx context.Context, request openapi.AcceptInvite
 		_, addErr := h.channelRepo.AddMember(ctx, userID, defaultChannel.ID, &memberRole)
 		if addErr == nil && h.hub != nil {
 			h.hub.AddChannelMember(defaultChannel.ID, userID)
+			h.hub.BroadcastToWorkspace(ws.ID, sse.Event{
+				Type: sse.EventMemberAdded,
+				Data: map[string]string{
+					"channel_id": defaultChannel.ID,
+					"user_id":    userID,
+				},
+			})
 		}
 	}
+
+	// Auto-create DMs with up to 5 existing members
+	h.autoCreateDMs(ctx, ws.ID, userID)
 
 	apiWs := workspaceToAPI(ws)
 	return openapi.AcceptInvite200JSONResponse{
 		Workspace: &apiWs,
 	}, nil
+}
+
+// autoCreateDMs creates DM channels between the joining user and up to 5
+// existing workspace members (earliest first). This is best-effort — errors
+// are logged but do not fail the join.
+func (h *Handler) autoCreateDMs(ctx context.Context, workspaceID, joiningUserID string) {
+	members, err := h.workspaceRepo.ListMembers(ctx, workspaceID)
+	if err != nil {
+		return
+	}
+
+	const maxDMs = 5
+	created := 0
+	for _, m := range members {
+		if created >= maxDMs {
+			break
+		}
+		if m.UserID == joiningUserID {
+			continue
+		}
+
+		dm, err := h.channelRepo.CreateDM(ctx, workspaceID, []string{joiningUserID, m.UserID})
+		if err != nil {
+			continue
+		}
+		if h.hub != nil {
+			h.hub.AddChannelMember(dm.ID, joiningUserID)
+			h.hub.AddChannelMember(dm.ID, m.UserID)
+		}
+		created++
+	}
+
+	// Single broadcast so all connected clients refetch their channel list
+	if created > 0 && h.hub != nil {
+		h.hub.BroadcastToWorkspace(workspaceID, sse.Event{
+			Type: sse.EventChannelCreated,
+		})
+	}
 }
 
 // workspaceToAPI converts a workspace.Workspace to openapi.Workspace

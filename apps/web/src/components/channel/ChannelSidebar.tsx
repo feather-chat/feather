@@ -52,7 +52,6 @@ import {
   useCreateChannel,
   useCreateDM,
   useJoinChannel,
-  useDMSuggestions,
   useStarChannel,
   useUnstarChannel,
   useMarkAllChannelsAsRead,
@@ -60,7 +59,7 @@ import {
 import { cn, getAvatarColor } from '../../lib/utils';
 import { useUserPresence } from '../../lib/presenceStore';
 import { AvatarStack } from '../ui';
-import type { ChannelWithMembership, ChannelType, SuggestedUser } from '@enzyme/api-client';
+import type { ChannelWithMembership, ChannelType } from '@enzyme/api-client';
 import { ChannelContextMenu } from './ChannelContextMenu';
 import type { WorkspaceSettingsTab } from '../settings/WorkspaceSettingsModal';
 
@@ -373,7 +372,6 @@ export function ChannelSidebar({
             <DroppableDMSection
               id="dms-drop-zone"
               channels={groupedChannels.dm}
-              allChannels={channels}
               workspaceId={workspaceId}
               activeChannelId={channelId}
               onAddClick={() => setIsNewDMModalOpen(true)}
@@ -501,7 +499,6 @@ function DroppableChannelSection({
 interface DroppableDMSectionProps {
   id: string;
   channels: ChannelWithMembership[];
-  allChannels: ChannelWithMembership[];
   workspaceId: string;
   activeChannelId: string | undefined;
   onAddClick?: () => void;
@@ -511,48 +508,14 @@ interface DroppableDMSectionProps {
 function DroppableDMSection({
   id,
   channels,
-  allChannels,
   workspaceId,
   activeChannelId,
   onAddClick,
   canDrop = true,
 }: DroppableDMSectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const navigate = useNavigate();
-  const { data: suggestionsData } = useDMSuggestions(workspaceId);
-  const createDM = useCreateDM(workspaceId);
   const { isOver, setNodeRef } = useDroppable({ id });
   const showDropHighlight = isOver && canDrop;
-
-  const handleSuggestedUserClick = async (userId: string) => {
-    try {
-      const result = await createDM.mutateAsync({ user_ids: [userId] });
-      navigate(`/workspaces/${workspaceId}/channels/${result.channel.id}`);
-    } catch {
-      toast('Failed to start conversation', 'error');
-    }
-  };
-
-  // Get user IDs that already have DM channels (including starred DMs)
-  const existingDMUserIds = useMemo(() => {
-    const ids = new Set<string>();
-    allChannels.forEach((channel) => {
-      if (channel.type === 'dm' && channel.dm_participants) {
-        channel.dm_participants.forEach((p) => ids.add(p.user_id));
-      }
-    });
-    return ids;
-  }, [allChannels]);
-
-  // Filter out suggested users who already have DMs
-  const filteredSuggestions = useMemo(() => {
-    if (!suggestionsData?.suggested_users) return [];
-    return suggestionsData.suggested_users.filter((user) => !existingDMUserIds.has(user.id));
-  }, [suggestionsData, existingDMUserIds]);
-
-  // Show suggestions to fill up to ~5 total items
-  const maxSuggestions = Math.max(0, 5 - channels.length);
-  const suggestionsToShow = filteredSuggestions.slice(0, maxSuggestions);
 
   return (
     <div
@@ -589,48 +552,9 @@ function DroppableDMSection({
               isActive={channel.id === activeChannelId}
             />
           ))}
-          {suggestionsToShow.map((user) => (
-            <SuggestedUserItem
-              key={user.id}
-              user={user}
-              onClick={() => handleSuggestedUserClick(user.id)}
-              isLoading={createDM.isPending}
-            />
-          ))}
         </div>
       )}
     </div>
-  );
-}
-
-interface SuggestedUserItemProps {
-  user: SuggestedUser;
-  onClick: () => void;
-  isLoading: boolean;
-}
-
-function SuggestedUserItem({ user, onClick, isLoading }: SuggestedUserItemProps) {
-  const presence = useUserPresence(user.id);
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={isLoading}
-      className={cn(
-        'flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1 text-left text-gray-700 hover:bg-gray-100 hover:[--avatar-ring:var(--color-gray-100)] dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:[--avatar-ring:var(--color-gray-800)]',
-        isLoading && 'cursor-not-allowed opacity-50',
-      )}
-    >
-      <Avatar
-        src={user.avatar_url}
-        gravatarSrc={user.gravatar_url}
-        name={user.display_name}
-        id={user.id}
-        size="xs"
-        status={presence ?? 'offline'}
-      />
-      <span className="truncate">{user.display_name}</span>
-    </button>
   );
 }
 

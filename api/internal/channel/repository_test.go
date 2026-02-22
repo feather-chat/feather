@@ -1001,52 +1001,6 @@ func TestRepository_ListForWorkspace_NotificationCount_MentionsExplicit(t *testi
 	}
 }
 
-func TestRepository_ListRecentDMs_NotificationCount(t *testing.T) {
-	db := testutil.TestDB(t)
-	repo := NewRepository(db)
-	ctx := context.Background()
-
-	user1 := testutil.CreateTestUser(t, db, "user1@example.com", "User 1")
-	user2 := testutil.CreateTestUser(t, db, "user2@example.com", "User 2")
-	ws := testutil.CreateTestWorkspace(t, db, user1.ID, "Test WS")
-
-	// Create DM
-	dm, err := repo.CreateDM(ctx, ws.ID, []string{user1.ID, user2.ID})
-	if err != nil {
-		t.Fatalf("CreateDM() error = %v", err)
-	}
-
-	// Add messages (DMs always notify regardless of mentions)
-	testutil.CreateTestMessage(t, db, dm.ID, user2.ID, "Hello")
-	testutil.CreateTestMessage(t, db, dm.ID, user2.ID, "How are you?")
-	testutil.CreateTestMessage(t, db, dm.ID, user2.ID, "Are you there?")
-
-	channels, err := repo.ListRecentDMs(ctx, ws.ID, user1.ID, time.Now().Add(-24*time.Hour), 50)
-	if err != nil {
-		t.Fatalf("ListRecentDMs() error = %v", err)
-	}
-
-	var dmChannel *ChannelWithMembership
-	for i, c := range channels {
-		if c.ID == dm.ID {
-			dmChannel = &channels[i]
-			break
-		}
-	}
-
-	if dmChannel == nil {
-		t.Fatal("DM channel not found in results")
-	}
-
-	if dmChannel.UnreadCount != 3 {
-		t.Errorf("UnreadCount = %d, want 3", dmChannel.UnreadCount)
-	}
-	// DMs should always have notification_count == unread_count
-	if dmChannel.NotificationCount != dmChannel.UnreadCount {
-		t.Errorf("NotificationCount = %d, want %d (same as UnreadCount)", dmChannel.NotificationCount, dmChannel.UnreadCount)
-	}
-}
-
 func TestRepository_GetWorkspaceNotificationSummaries(t *testing.T) {
 	db := testutil.TestDB(t)
 	repo := NewRepository(db)
