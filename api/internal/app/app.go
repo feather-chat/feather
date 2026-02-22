@@ -20,6 +20,7 @@ import (
 	"github.com/enzyme/api/internal/emoji"
 	"github.com/enzyme/api/internal/file"
 	"github.com/enzyme/api/internal/handler"
+	"github.com/enzyme/api/internal/linkpreview"
 	"github.com/enzyme/api/internal/message"
 	"github.com/enzyme/api/internal/notification"
 	"github.com/enzyme/api/internal/presence"
@@ -44,6 +45,7 @@ type App struct {
 	EmailWorker         *notification.EmailWorker
 	RateLimiter         *ratelimit.Limiter
 	SessionStore        *auth.SessionStore
+	LinkPreviewRepo     *linkpreview.Repository
 }
 
 func New(cfg *config.Config) (*App, error) {
@@ -84,6 +86,8 @@ func New(cfg *config.Config) (*App, error) {
 	channelRepo := channel.NewRepository(db.DB)
 	messageRepo := message.NewRepository(db.DB)
 	fileRepo := file.NewRepository(db.DB)
+	linkPreviewRepo := linkpreview.NewRepository(db.DB)
+	linkPreviewFetcher := linkpreview.NewFetcher(linkPreviewRepo)
 	emojiRepo := emoji.NewRepository(db.DB)
 	threadRepo := thread.NewRepository(db.DB)
 
@@ -143,6 +147,8 @@ func New(cfg *config.Config) (*App, error) {
 		ChannelRepo:         channelRepo,
 		MessageRepo:         messageRepo,
 		FileRepo:            fileRepo,
+		LinkPreviewRepo:     linkPreviewRepo,
+		LinkPreviewFetcher:  linkPreviewFetcher,
 		ThreadRepo:          threadRepo,
 		EmojiRepo:           emojiRepo,
 		NotificationService: notificationService,
@@ -208,6 +214,7 @@ func New(cfg *config.Config) (*App, error) {
 		EmailWorker:         emailWorker,
 		RateLimiter:         limiter,
 		SessionStore:        sessionStore,
+		LinkPreviewRepo:     linkPreviewRepo,
 	}, nil
 }
 
@@ -247,6 +254,20 @@ func (a *App) Start(ctx context.Context) error {
 				return
 			case <-ticker.C:
 				_ = a.SessionStore.DeleteExpired()
+			}
+		}
+	}()
+
+	// Start link preview cache cleanup (daily)
+	go func() {
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				_ = a.LinkPreviewRepo.CleanExpiredCache(context.Background())
 			}
 		}
 	}()

@@ -2357,6 +2357,8 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/Attachment'
+            link_preview:
+              $ref: '#/components/schemas/LinkPreview'
 
     ThreadParticipant:
       type: object
@@ -2390,6 +2392,21 @@ components:
         created_at:
           type: string
           format: date-time
+
+    LinkPreview:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        image_url:
+          type: string
+        site_name:
+          type: string
 
     Reaction:
       type: object

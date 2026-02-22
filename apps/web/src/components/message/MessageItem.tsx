@@ -21,6 +21,7 @@ import {
 import { LazyRichTextEditor, useEditorMembers, useEditorChannels } from '../editor';
 import type { RichTextEditorRef } from '../editor';
 import { AttachmentDisplay } from './AttachmentDisplay';
+import { LinkPreviewDisplay } from './LinkPreviewDisplay';
 import { CollapsibleMessage } from './CollapsibleMessage';
 import { MessageContent } from './MessageContent';
 import { ThreadRepliesIndicator } from './ThreadRepliesIndicator';
@@ -313,6 +314,7 @@ export function MessageItem({ message, channelId, channels }: MessageItemProps) 
               {message.attachments && message.attachments.length > 0 && (
                 <AttachmentDisplay attachments={message.attachments} />
               )}
+              {message.link_preview && <LinkPreviewDisplay preview={message.link_preview} />}
             </CollapsibleMessage>
           )}
 

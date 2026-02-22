@@ -236,6 +236,15 @@ type Invite struct {
 	WorkspaceId  string               `json:"workspace_id"`
 }
 
+// LinkPreview defines model for LinkPreview.
+type LinkPreview struct {
+	Description *string `json:"description,omitempty"`
+	ImageUrl    *string `json:"image_url,omitempty"`
+	SiteName    *string `json:"site_name,omitempty"`
+	Title       *string `json:"title,omitempty"`
+	Url         string  `json:"url"`
+}
+
 // ListMessagesInput defines model for ListMessagesInput.
 type ListMessagesInput struct {
 	Cursor    *string                     `json:"cursor,omitempty"`
@@ -303,6 +312,7 @@ type MessageWithUser struct {
 	EditedAt           *time.Time           `json:"edited_at,omitempty"`
 	Id                 string               `json:"id"`
 	LastReplyAt        *time.Time           `json:"last_reply_at,omitempty"`
+	LinkPreview        *LinkPreview         `json:"link_preview,omitempty"`
 	Reactions          *[]Reaction          `json:"reactions,omitempty"`
 	ReplyCount         int                  `json:"reply_count"`
 	SystemEvent        *SystemEventData     `json:"system_event,omitempty"`
@@ -360,6 +370,7 @@ type SearchMessage struct {
 	EditedAt           *time.Time           `json:"edited_at,omitempty"`
 	Id                 string               `json:"id"`
 	LastReplyAt        *time.Time           `json:"last_reply_at,omitempty"`
+	LinkPreview        *LinkPreview         `json:"link_preview,omitempty"`
 	Reactions          *[]Reaction          `json:"reactions,omitempty"`
 	ReplyCount         int                  `json:"reply_count"`
 	SystemEvent        *SystemEventData     `json:"system_event,omitempty"`
@@ -479,6 +490,7 @@ type ThreadMessage struct {
 	HasNewReplies      bool                 `json:"has_new_replies"`
 	Id                 string               `json:"id"`
 	LastReplyAt        *time.Time           `json:"last_reply_at,omitempty"`
+	LinkPreview        *LinkPreview         `json:"link_preview,omitempty"`
 	Reactions          *[]Reaction          `json:"reactions,omitempty"`
 	ReplyCount         int                  `json:"reply_count"`
 	SystemEvent        *SystemEventData     `json:"system_event,omitempty"`
@@ -516,6 +528,7 @@ type UnreadMessage struct {
 	EditedAt           *time.Time           `json:"edited_at,omitempty"`
 	Id                 string               `json:"id"`
 	LastReplyAt        *time.Time           `json:"last_reply_at,omitempty"`
+	LinkPreview        *LinkPreview         `json:"link_preview,omitempty"`
 	Reactions          *[]Reaction          `json:"reactions,omitempty"`
 	ReplyCount         int                  `json:"reply_count"`
 	SystemEvent        *SystemEventData     `json:"system_event,omitempty"`

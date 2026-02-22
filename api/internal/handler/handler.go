@@ -8,6 +8,7 @@ import (
 	"github.com/enzyme/api/internal/channel"
 	"github.com/enzyme/api/internal/emoji"
 	"github.com/enzyme/api/internal/file"
+	"github.com/enzyme/api/internal/linkpreview"
 	"github.com/enzyme/api/internal/message"
 	"github.com/enzyme/api/internal/notification"
 	"github.com/enzyme/api/internal/openapi"
@@ -30,6 +31,8 @@ type Handler struct {
 	channelRepo         *channel.Repository
 	messageRepo         *message.Repository
 	fileRepo            *file.Repository
+	linkPreviewRepo     *linkpreview.Repository
+	linkPreviewFetcher  *linkpreview.Fetcher
 	threadRepo          *thread.Repository
 	emojiRepo           *emoji.Repository
 	notificationService *notification.Service
@@ -49,6 +52,8 @@ type Dependencies struct {
 	ChannelRepo         *channel.Repository
 	MessageRepo         *message.Repository
 	FileRepo            *file.Repository
+	LinkPreviewRepo     *linkpreview.Repository
+	LinkPreviewFetcher  *linkpreview.Fetcher
 	ThreadRepo          *thread.Repository
 	EmojiRepo           *emoji.Repository
 	NotificationService *notification.Service
@@ -69,6 +74,8 @@ func New(deps Dependencies) *Handler {
 		channelRepo:         deps.ChannelRepo,
 		messageRepo:         deps.MessageRepo,
 		fileRepo:            deps.FileRepo,
+		linkPreviewRepo:     deps.LinkPreviewRepo,
+		linkPreviewFetcher:  deps.LinkPreviewFetcher,
 		threadRepo:          deps.ThreadRepo,
 		emojiRepo:           deps.EmojiRepo,
 		notificationService: deps.NotificationService,

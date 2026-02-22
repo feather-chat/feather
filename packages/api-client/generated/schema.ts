@@ -1288,6 +1288,7 @@ export interface components {
             reactions?: components["schemas"]["Reaction"][];
             thread_participants?: components["schemas"]["ThreadParticipant"][];
             attachments?: components["schemas"]["Attachment"][];
+            link_preview?: components["schemas"]["LinkPreview"];
         };
         ThreadParticipant: {
             user_id: string;
@@ -1305,6 +1306,13 @@ export interface components {
             url: string;
             /** Format: date-time */
             created_at: string;
+        };
+        LinkPreview: {
+            url: string;
+            title?: string;
+            description?: string;
+            image_url?: string;
+            site_name?: string;
         };
         Reaction: {
             id: string;

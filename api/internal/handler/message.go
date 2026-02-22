@@ -13,6 +13,7 @@ import (
 	"github.com/enzyme/api/internal/channel"
 	"github.com/enzyme/api/internal/file"
 	"github.com/enzyme/api/internal/gravatar"
+	"github.com/enzyme/api/internal/linkpreview"
 	"github.com/enzyme/api/internal/message"
 	"github.com/enzyme/api/internal/notification"
 	"github.com/enzyme/api/internal/openapi"
@@ -195,6 +196,68 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 		msgWithUser.Attachments = attachments
 	}
 
+	// Link preview: extract first URL and fetch/cache preview
+	if h.linkPreviewFetcher != nil && content != "" {
+		if firstURL := linkpreview.ExtractFirstURL(content); firstURL != "" {
+			// Check cache synchronously
+			cached, cacheErr := h.linkPreviewRepo.GetCachedURL(ctx, firstURL)
+			if cacheErr != nil {
+				slog.Error("link preview cache lookup failed", "url", firstURL, "error", cacheErr)
+			}
+			if cached != nil && cached.FetchError == "" {
+				// Cache hit — attach synchronously
+				preview := &linkpreview.Preview{
+					MessageID:   msg.ID,
+					URL:         cached.URL,
+					Title:       cached.Title,
+					Description: cached.Description,
+					ImageURL:    cached.ImageURL,
+					SiteName:    cached.SiteName,
+				}
+				if err := h.linkPreviewRepo.CreatePreview(ctx, preview); err != nil {
+					slog.Error("link preview create failed", "url", firstURL, "error", err)
+				}
+				msgWithUser.LinkPreview = preview
+			} else if cached == nil && cacheErr == nil {
+				// Cache miss — fetch asynchronously
+				go func() {
+					bgCtx := context.Background()
+					p, fetchErr := h.linkPreviewFetcher.FetchPreview(bgCtx, firstURL)
+					if fetchErr != nil {
+						slog.Error("link preview fetch failed", "url", firstURL, "error", fetchErr)
+						return
+					}
+					if p == nil {
+						slog.Debug("link preview returned no data", "url", firstURL)
+						return
+					}
+					p.MessageID = msg.ID
+					if createErr := h.linkPreviewRepo.CreatePreview(bgCtx, p); createErr != nil {
+						slog.Error("link preview create failed", "url", firstURL, "error", createErr)
+						return
+					}
+					// Re-load full message and broadcast update
+					updated, loadErr := h.messageRepo.GetByIDWithUser(bgCtx, msg.ID)
+					if loadErr != nil {
+						return
+					}
+					if attch, attErr := h.fileRepo.ListForMessage(bgCtx, msg.ID); attErr == nil {
+						updated.Attachments = attch
+					}
+					updated.LinkPreview = p
+					apiUpdated := messageWithUserToAPI(updated)
+					if h.hub != nil {
+						h.hub.BroadcastToChannel(ch.WorkspaceID, msg.ChannelID, sse.Event{
+							Type: sse.EventMessageUpdated,
+							Data: apiUpdated,
+						})
+					}
+				}()
+			}
+			// cached with FetchError — skip (error cached, don't retry)
+		}
+	}
+
 	apiMsg := messageWithUserToAPI(msgWithUser)
 
 	// Broadcast message via SSE (use API type to include attachment URLs)
@@ -289,6 +352,9 @@ func (h *Handler) ListMessages(ctx context.Context, request openapi.ListMessages
 	// Load attachments for all messages
 	h.loadAttachmentsForMessages(ctx, result.Messages)
 
+	// Load link previews for all messages
+	h.loadLinkPreviewsForMessages(ctx, result.Messages)
+
 	return openapi.ListMessages200JSONResponse(messageListResultToAPI(result)), nil
 }
 
@@ -341,6 +407,13 @@ func (h *Handler) UpdateMessage(ctx context.Context, request openapi.UpdateMessa
 	if msgWithUser != nil {
 		attachments, _ := h.fileRepo.ListForMessage(ctx, msg.ID)
 		msgWithUser.Attachments = attachments
+
+		// Load link preview for the message
+		if h.linkPreviewRepo != nil {
+			if preview, err := h.linkPreviewRepo.GetForMessage(ctx, msg.ID); err == nil && preview != nil {
+				msgWithUser.LinkPreview = preview
+			}
+		}
 	}
 
 	apiMsg := messageWithUserToAPI(msgWithUser)
@@ -556,6 +629,9 @@ func (h *Handler) ListThread(ctx context.Context, request openapi.ListThreadRequ
 	// Load attachments for all messages
 	h.loadAttachmentsForMessages(ctx, result.Messages)
 
+	// Load link previews for all messages
+	h.loadLinkPreviewsForMessages(ctx, result.Messages)
+
 	return openapi.ListThread200JSONResponse(messageListResultToAPI(result)), nil
 }
 
@@ -728,6 +804,10 @@ func messageWithUserToAPI(m *message.MessageWithUser) openapi.MessageWithUser {
 		}
 		apiMsg.Attachments = &attachments
 	}
+	if m.LinkPreview != nil {
+		lp := linkPreviewToAPI(m.LinkPreview)
+		apiMsg.LinkPreview = &lp
+	}
 	return apiMsg
 }
 
@@ -763,6 +843,47 @@ func (h *Handler) loadAttachmentsForMessages(ctx context.Context, messages []mes
 	for i := range messages {
 		if attachments, ok := attachmentsMap[messages[i].ID]; ok {
 			messages[i].Attachments = attachments
+		}
+	}
+}
+
+// linkPreviewToAPI converts a linkpreview.Preview to openapi.LinkPreview
+func linkPreviewToAPI(p *linkpreview.Preview) openapi.LinkPreview {
+	lp := openapi.LinkPreview{Url: p.URL}
+	if p.Title != "" {
+		lp.Title = &p.Title
+	}
+	if p.Description != "" {
+		lp.Description = &p.Description
+	}
+	if p.ImageURL != "" {
+		lp.ImageUrl = &p.ImageURL
+	}
+	if p.SiteName != "" {
+		lp.SiteName = &p.SiteName
+	}
+	return lp
+}
+
+// loadLinkPreviewsForMessages loads link previews for a slice of messages in batch
+func (h *Handler) loadLinkPreviewsForMessages(ctx context.Context, messages []message.MessageWithUser) {
+	if h.linkPreviewRepo == nil || len(messages) == 0 {
+		return
+	}
+
+	messageIDs := make([]string, len(messages))
+	for i, m := range messages {
+		messageIDs[i] = m.ID
+	}
+
+	previewMap, err := h.linkPreviewRepo.ListForMessages(ctx, messageIDs)
+	if err != nil {
+		return
+	}
+
+	for i := range messages {
+		if p, ok := previewMap[messages[i].ID]; ok {
+			messages[i].LinkPreview = p
 		}
 	}
 }
@@ -862,6 +983,13 @@ func (h *Handler) GetMessage(ctx context.Context, request openapi.GetMessageRequ
 	// Load attachments for the message
 	attachments, _ := h.fileRepo.ListForMessage(ctx, msgWithUser.ID)
 	msgWithUser.Attachments = attachments
+
+	// Load link preview for the message
+	if h.linkPreviewRepo != nil {
+		if preview, err := h.linkPreviewRepo.GetForMessage(ctx, msgWithUser.ID); err == nil && preview != nil {
+			msgWithUser.LinkPreview = preview
+		}
+	}
 
 	// Load thread participants if this is a parent message with replies
 	if msgWithUser.ReplyCount > 0 {

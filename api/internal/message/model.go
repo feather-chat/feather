@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/enzyme/api/internal/file"
+	"github.com/enzyme/api/internal/linkpreview"
 )
 
 // Message types
@@ -55,12 +56,13 @@ type Message struct {
 
 type MessageWithUser struct {
 	Message
-	UserDisplayName    string              `json:"user_display_name,omitempty"`
-	UserAvatarURL      *string             `json:"user_avatar_url,omitempty"`
-	UserEmail          string              `json:"-"`
-	Reactions          []Reaction          `json:"reactions,omitempty"`
-	ThreadParticipants []ThreadParticipant `json:"thread_participants,omitempty"`
-	Attachments        []file.Attachment   `json:"attachments,omitempty"`
+	UserDisplayName    string               `json:"user_display_name,omitempty"`
+	UserAvatarURL      *string              `json:"user_avatar_url,omitempty"`
+	UserEmail          string               `json:"-"`
+	Reactions          []Reaction           `json:"reactions,omitempty"`
+	ThreadParticipants []ThreadParticipant  `json:"thread_participants,omitempty"`
+	Attachments        []file.Attachment    `json:"attachments,omitempty"`
+	LinkPreview        *linkpreview.Preview `json:"link_preview,omitempty"`
 }
 
 type ThreadParticipant struct {
