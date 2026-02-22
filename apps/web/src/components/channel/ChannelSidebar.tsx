@@ -14,6 +14,8 @@ import {
   FaceSmileIcon,
   EnvelopeOpenIcon,
   InformationCircleIcon,
+  XMarkIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 import {
   DndContext,
@@ -71,7 +73,7 @@ function ChannelIcon({
   className?: string;
   bold?: boolean;
 }) {
-  const iconClass = cn('h-4 w-4', bold && '[stroke-width:2.5]');
+  const iconClass = cn('h-4 w-4', bold && '[stroke-width:2]');
   const icon =
     type === 'private' ? (
       <LockClosedIcon className={iconClass} />
@@ -310,7 +312,7 @@ export function ChannelSidebar({
             )}
           >
             <span className="flex w-5 items-center justify-center">
-              <InboxIcon className={cn('h-4 w-4', hasUnread && '[stroke-width:2.5]')} />
+              <InboxIcon className={cn('h-4 w-4', hasUnread && '[stroke-width:2]')} />
             </span>
             <span className={cn('truncate', hasUnread && 'font-semibold')}>All Unreads</span>
             {hasNotifications && (
@@ -330,7 +332,7 @@ export function ChannelSidebar({
           >
             <span className="flex w-5 items-center justify-center">
               <ChatBubbleLeftEllipsisIcon
-                className={cn('h-4 w-4', unreadThreadCount > 0 && '[stroke-width:2.5]')}
+                className={cn('h-4 w-4', unreadThreadCount > 0 && '[stroke-width:2]')}
               />
             </span>
             <span className={cn('truncate', unreadThreadCount > 0 && 'font-semibold')}>
@@ -988,9 +990,7 @@ function NewDMModal({
                     onClick={() => removeUser(member.user_id)}
                     className="ml-0.5 cursor-pointer rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
                   >
-                    <svg className="h-3 w-3" viewBox="0 0 12 12" fill="currentColor">
-                      <path d="M3.05 3.05a.75.75 0 011.06 0L6 4.94l1.89-1.89a.75.75 0 111.06 1.06L7.06 6l1.89 1.89a.75.75 0 11-1.06 1.06L6 7.06 4.11 8.95a.75.75 0 01-1.06-1.06L4.94 6 3.05 4.11a.75.75 0 010-1.06z" />
-                    </svg>
+                    <XMarkIcon className="h-3 w-3" />
                   </button>
                 </span>
               );
@@ -1034,19 +1034,7 @@ function NewDMModal({
                   </div>
                 )}
                 <span className="flex-1 text-gray-900 dark:text-white">{displayName}</span>
-                {isSelected && (
-                  <svg
-                    className="h-5 w-5 text-blue-600 dark:text-blue-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
+                {isSelected && <CheckIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
               </button>
             );
           })}
