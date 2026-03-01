@@ -5,6 +5,7 @@ import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { getWebAutoInstrumentations } from '@opentelemetry/auto-instrumentations-web';
+import { trace, SpanStatusCode } from '@opentelemetry/api';
 import { getApiBase } from '@enzyme/api-client';
 
 export function initTelemetry(config?: { endpoint?: string }): void {
@@ -52,5 +53,21 @@ export function initTelemetry(config?: { endpoint?: string }): void {
         },
       }),
     ],
+  });
+
+  const tracer = trace.getTracer('enzyme-web');
+
+  window.addEventListener('error', (event) => {
+    const span = tracer.startSpan('error.unhandled');
+    span.setStatus({ code: SpanStatusCode.ERROR });
+    span.recordException(event.error ?? event.message);
+    span.end();
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const span = tracer.startSpan('error.unhandled_rejection');
+    span.setStatus({ code: SpanStatusCode.ERROR });
+    span.recordException(event.reason instanceof Error ? event.reason : String(event.reason));
+    span.end();
   });
 }

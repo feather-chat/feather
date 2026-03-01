@@ -157,6 +157,7 @@ VITE_OTEL_ENABLED=true VITE_OTEL_ENDPOINT=/v1/traces pnpm --filter @enzyme/web d
 
 - **Fetch calls**: Every `fetch()` request creates a span with URL, method, status, and duration. Since the `@enzyme/api-client` uses native `fetch`, all API calls are automatically covered.
 - **Page loads**: Document load timing (DNS, TCP, TLS, TTFB, DOM content loaded, load complete).
+- **Unhandled errors**: Uncaught exceptions (`error.unhandled`) and unhandled promise rejections (`error.unhandled_rejection`) are captured as error spans with `exception.type`, `exception.message`, and `exception.stacktrace` attributes.
 - **Trace propagation**: W3C `traceparent` header is injected into requests to same-origin and the configured API base URL. Third-party requests are not affected.
 
 ### How It Works

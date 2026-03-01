@@ -201,7 +201,7 @@ func New(cfg *config.Config) (*App, error) {
 	var spaHandler http.Handler
 	if web.HasContent() {
 		spaHandler = web.Handler(web.Config{
-			TelemetryEnabled:  cfg.Telemetry.Enabled,
+			TelemetryEnabled:  cfg.Telemetry.Enabled && cfg.Telemetry.Traces,
 			TelemetryEndpoint: "/v1/traces",
 		})
 		slog.Info("embedded web client enabled")
