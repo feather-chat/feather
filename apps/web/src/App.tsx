@@ -21,6 +21,12 @@ const ThreadsPage = lazy(() =>
 const ScheduledMessagesPage = lazy(() =>
   import('./pages/ScheduledMessagesPage').then((m) => ({ default: m.ScheduledMessagesPage })),
 );
+const ForgotPasswordPage = lazy(() =>
+  import('./pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })),
+);
+const ResetPasswordPage = lazy(() =>
+  import('./pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })),
+);
 
 function PageSpinner() {
   return (
@@ -45,6 +51,22 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/forgot-password"
+            element={
+              <Suspense fallback={<PageSpinner />}>
+                <ForgotPasswordPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <Suspense fallback={<PageSpinner />}>
+                <ResetPasswordPage />
+              </Suspense>
+            }
+          />
           <Route
             path="/invites/:code"
             element={

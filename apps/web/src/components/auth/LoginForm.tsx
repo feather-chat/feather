@@ -59,6 +59,15 @@ export function LoginForm() {
           autoComplete="current-password"
         />
 
+        <div className="text-right">
+          <Link
+            to="/forgot-password"
+            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
         <Button type="submit" className="w-full" isLoading={isLoggingIn}>
           Sign in
         </Button>

@@ -12,6 +12,8 @@ import (
 
 	"github.com/enzyme/api/internal/auth"
 	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/config"
+	"github.com/enzyme/api/internal/email"
 	"github.com/enzyme/api/internal/emoji"
 	"github.com/enzyme/api/internal/file"
 	"github.com/enzyme/api/internal/linkpreview"
@@ -53,6 +55,8 @@ func testHandler(t *testing.T) (*Handler, *sql.DB) {
 
 	moderationRepo := moderation.NewRepository(db)
 
+	emailService, _ := email.NewService(config.EmailConfig{Enabled: false}, "http://localhost:8080")
+
 	h := New(Dependencies{
 		AuthService:         authService,
 		SessionStore:        sessionStore,
@@ -65,6 +69,7 @@ func testHandler(t *testing.T) (*Handler, *sql.DB) {
 		EmojiRepo:           emojiRepo,
 		ModerationRepo:      moderationRepo,
 		NotificationService: notifService,
+		EmailService:        emailService,
 		Hub:                 hub,
 		Signer:              signing.NewSigner("test-signing-secret"),
 		StoragePath:         t.TempDir(),
@@ -177,6 +182,8 @@ func testHandlerWithLinkPreviews(t *testing.T, httpClient *http.Client) (*Handle
 	lpFetcher := linkpreview.NewFetcherWithClient(lpRepo, httpClient)
 	moderationRepo := moderation.NewRepository(db)
 
+	emailService, _ := email.NewService(config.EmailConfig{Enabled: false}, "http://localhost:8080")
+
 	h := New(Dependencies{
 		AuthService:         authService,
 		SessionStore:        sessionStore,
@@ -191,6 +198,7 @@ func testHandlerWithLinkPreviews(t *testing.T, httpClient *http.Client) (*Handle
 		EmojiRepo:           emojiRepo,
 		ModerationRepo:      moderationRepo,
 		NotificationService: notifService,
+		EmailService:        emailService,
 		Hub:                 hub,
 		Signer:              signing.NewSigner("test-signing-secret"),
 		StoragePath:         t.TempDir(),

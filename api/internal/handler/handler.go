@@ -6,6 +6,7 @@ import (
 
 	"github.com/enzyme/api/internal/auth"
 	"github.com/enzyme/api/internal/channel"
+	"github.com/enzyme/api/internal/email"
 	"github.com/enzyme/api/internal/emoji"
 	"github.com/enzyme/api/internal/file"
 	"github.com/enzyme/api/internal/linkpreview"
@@ -38,6 +39,7 @@ type Handler struct {
 	threadRepo          *thread.Repository
 	emojiRepo           *emoji.Repository
 	scheduledRepo       *scheduled.Repository
+	emailService        *email.Service
 	notificationService *notification.Service
 	moderationRepo      *moderation.Repository
 	hub                 *sse.Hub
@@ -61,6 +63,7 @@ type Dependencies struct {
 	ThreadRepo          *thread.Repository
 	EmojiRepo           *emoji.Repository
 	ScheduledRepo       *scheduled.Repository
+	EmailService        *email.Service
 	NotificationService *notification.Service
 	ModerationRepo      *moderation.Repository
 	Hub                 *sse.Hub
@@ -85,6 +88,7 @@ func New(deps Dependencies) *Handler {
 		threadRepo:          deps.ThreadRepo,
 		emojiRepo:           deps.EmojiRepo,
 		scheduledRepo:       deps.ScheduledRepo,
+		emailService:        deps.EmailService,
 		notificationService: deps.NotificationService,
 		moderationRepo:      deps.ModerationRepo,
 		hub:                 deps.Hub,

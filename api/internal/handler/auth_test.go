@@ -1,10 +1,14 @@
 package handler
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/testutil"
 	"github.com/enzyme/api/internal/user"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 func TestUserToAPI(t *testing.T) {
@@ -63,6 +67,41 @@ func TestUserToAPI_NilOptionalFields(t *testing.T) {
 	}
 	if apiUser.EmailVerifiedAt != nil {
 		t.Error("expected EmailVerifiedAt to be nil")
+	}
+}
+
+func TestForgotPassword(t *testing.T) {
+	h, db := testHandler(t)
+	ctx := context.Background()
+
+	tests := []struct {
+		name  string
+		email string
+	}{
+		{"registered email returns success", "alice@example.com"},
+		{"unknown email returns success", "nobody@example.com"},
+	}
+
+	// Create a test user
+	testutil.CreateTestUser(t, db, "alice@example.com", "Alice")
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body := openapi.ForgotPasswordJSONRequestBody{
+				Email: openapi_types.Email(tt.email),
+			}
+			resp, err := h.ForgotPassword(ctx, openapi.ForgotPasswordRequestObject{Body: &body})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			okResp, ok := resp.(openapi.ForgotPassword200JSONResponse)
+			if !ok {
+				t.Fatalf("expected 200 response, got %T", resp)
+			}
+			if okResp.Success == nil || !*okResp.Success {
+				t.Error("expected success=true")
+			}
+		})
 	}
 }
 

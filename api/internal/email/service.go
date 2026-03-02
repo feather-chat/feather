@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"log/slog"
+	"net/url"
 
 	"github.com/enzyme/api/internal/config"
 )
@@ -65,19 +66,17 @@ func (s *Service) SendWorkspaceInvite(ctx context.Context, to string, data Invit
 	return s.sender.Send(ctx, to, subject, body, "")
 }
 
-type PasswordResetEmailData struct {
-	ResetURL string
-}
+func (s *Service) SendPasswordReset(ctx context.Context, to string, token string) error {
+	resetURL := s.publicURL + "/reset-password?" + url.Values{"token": {token}}.Encode()
 
-func (s *Service) SendPasswordReset(ctx context.Context, to string, data PasswordResetEmailData) error {
 	if !s.enabled {
-		slog.Debug("would send password reset", "component", "email", "to", to)
+		slog.Debug("would send password reset", "component", "email", "to", to, "url", resetURL)
 		return nil
 	}
 
 	subject := "Reset your Enzyme password"
 	body := "You requested to reset your password.\n\n"
-	body += "Click here to reset: " + data.ResetURL + "\n\n"
+	body += "Click here to reset: " + resetURL + "\n\n"
 	body += "If you didn't request this, you can ignore this email.\n"
 
 	return s.sender.Send(ctx, to, subject, body, "")
