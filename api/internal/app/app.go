@@ -173,6 +173,7 @@ func New(cfg *config.Config) (*App, error) {
 		ThreadRepo:          threadRepo,
 		EmojiRepo:           emojiRepo,
 		ScheduledRepo:       scheduledRepo,
+		EmailService:        emailService,
 		NotificationService: notificationService,
 		ModerationRepo:      moderationRepo,
 		Hub:                 hub,

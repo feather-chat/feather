@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/enzyme/api/internal/auth"
@@ -153,8 +154,21 @@ func (h *Handler) GetMe(ctx context.Context, request openapi.GetMeRequestObject)
 
 // ForgotPassword handles password reset requests
 func (h *Handler) ForgotPassword(ctx context.Context, request openapi.ForgotPasswordRequestObject) (openapi.ForgotPasswordResponseObject, error) {
-	// Always return success to not reveal if email exists
-	_, _ = h.authService.CreatePasswordResetToken(ctx, string(request.Body.Email))
+	token, err := h.authService.CreatePasswordResetToken(ctx, string(request.Body.Email))
+	if err != nil {
+		slog.Error("failed to create password reset token", "error", err)
+	}
+
+	if token != "" {
+		emailAddr := string(request.Body.Email)
+		go func() {
+			sendCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			if err := h.emailService.SendPasswordReset(sendCtx, emailAddr, token); err != nil {
+				slog.Error("failed to send password reset email", "error", err)
+			}
+		}()
+	}
 
 	success := true
 	msg := "If the email exists, a reset link will be sent"
