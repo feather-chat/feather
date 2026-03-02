@@ -1,8 +1,5 @@
 interface EnzymeRuntimeConfig {
-  telemetry?: {
-    enabled: boolean;
-    endpoint?: string;
-  };
+  telemetry?: boolean;
 }
 
 interface Window {
