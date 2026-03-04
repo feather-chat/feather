@@ -14,6 +14,7 @@ import {
   BellIcon,
   LinkIcon,
   ChevronLeftIcon,
+  EnvelopeOpenIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { Button as AriaButton } from 'react-aria-components';
@@ -390,6 +391,14 @@ export function ChannelPage() {
               >
                 Copy Link
               </MenuItem>
+              {channel.unread_count > 0 && (
+                <MenuItem
+                  onAction={() => markAsRead.mutate({ channelId: channel.id })}
+                  icon={<EnvelopeOpenIcon className="h-4 w-4" />}
+                >
+                  Mark as Read
+                </MenuItem>
+              )}
               {isChannel && isMember && (
                 <MenuItem
                   onAction={handleToggleMute}
