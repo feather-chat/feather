@@ -1,9 +1,20 @@
-import { Cog6ToothIcon, UserPlusIcon, EnvelopeOpenIcon } from '@heroicons/react/24/outline';
-import { ContextMenu, useContextMenu, MenuItem, MenuSeparator } from '../ui';
+import { useState } from 'react';
+import {
+  Cog6ToothIcon,
+  UserPlusIcon,
+  EnvelopeOpenIcon,
+  ArrowRightStartOnRectangleIcon,
+} from '@heroicons/react/24/outline';
+import { ContextMenu, useContextMenu, MenuItem, MenuSeparator, Modal, Button } from '../ui';
 import { useMarkAllChannelsAsRead } from '../../hooks/useChannels';
+import { useLeaveAndNavigate } from '../../hooks/useWorkspaces';
+import { useAuth } from '../../hooks';
+import type { WorkspaceRole } from '@enzyme/api-client';
 
 interface WorkspaceContextMenuProps {
   workspaceId: string;
+  workspaceName: string;
+  workspaceRole: WorkspaceRole;
   onOpenWorkspaceSettings: () => void;
   onOpenInvite: () => void;
   canInvite?: boolean;
@@ -12,6 +23,8 @@ interface WorkspaceContextMenuProps {
 
 export function WorkspaceContextMenu({
   workspaceId,
+  workspaceName,
+  workspaceRole,
   onOpenWorkspaceSettings,
   onOpenInvite,
   canInvite,
@@ -19,6 +32,16 @@ export function WorkspaceContextMenu({
 }: WorkspaceContextMenuProps) {
   const { isOpen, setIsOpen, position, onContextMenu } = useContextMenu();
   const markAllAsRead = useMarkAllChannelsAsRead(workspaceId);
+  const { workspaces } = useAuth();
+  const { leave, isPending } = useLeaveAndNavigate(workspaces);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+  const isOwner = workspaceRole === 'owner';
+
+  const handleLeave = async () => {
+    await leave(workspaceId);
+    setShowLeaveConfirm(false);
+  };
 
   return (
     <>
@@ -39,7 +62,39 @@ export function WorkspaceContextMenu({
         >
           Mark All as Read
         </MenuItem>
+        {!isOwner && (
+          <>
+            <MenuSeparator />
+            <MenuItem
+              onAction={() => setShowLeaveConfirm(true)}
+              icon={<ArrowRightStartOnRectangleIcon className="h-4 w-4" />}
+              className="text-red-600 dark:text-red-400"
+            >
+              Leave Workspace
+            </MenuItem>
+          </>
+        )}
       </ContextMenu>
+
+      <Modal
+        isOpen={showLeaveConfirm}
+        onClose={() => setShowLeaveConfirm(false)}
+        title={`Leave ${workspaceName}?`}
+        size="sm"
+      >
+        <p className="mb-5 text-sm text-gray-600 dark:text-gray-300">
+          You will lose access to all channels in this workspace. You can rejoin later with an
+          invite.
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onPress={() => setShowLeaveConfirm(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onPress={handleLeave} isLoading={isPending}>
+            Leave Workspace
+          </Button>
+        </div>
+      </Modal>
     </>
   );
 }

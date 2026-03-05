@@ -99,7 +99,7 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
   const presence = useUserPresence(profile.id);
   const { workspaces } = useAuth();
   const { data: blocksData } = useBlocks(workspaceId);
-  const { data: membersData } = useWorkspaceMembers(workspaceId || '');
+  const { data: membersData, isSuccess: membersLoaded } = useWorkspaceMembers(workspaceId || '');
   const blockUserMutation = useBlockUser(workspaceId || '');
   const unblockUserMutation = useUnblockUser(workspaceId || '');
   const [showBlockConfirm, setShowBlockConfirm] = useState(false);
@@ -107,6 +107,7 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
   const targetMember = membersData?.members?.find((m) => m.user_id === profile.id);
   const targetRole = targetMember?.role;
   const targetIsBanned = targetMember?.is_banned ?? false;
+  const targetIsDeparted = !isOwnProfile && membersLoaded && !targetMember;
   const canBlock = targetRole !== 'owner' && targetRole !== 'admin';
   const viewerRole = workspaces?.find((w) => w.id === workspaceId)?.role;
   const viewerIsAdmin = viewerRole === 'owner' || viewerRole === 'admin';
@@ -177,6 +178,11 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
               Deactivated
             </span>
           )
+        ) : targetIsDeparted ? (
+          <span className="mt-1 inline-flex items-center gap-1.5 text-sm text-gray-500">
+            <span className="h-2 w-2 rounded-full bg-gray-400" />
+            No longer a member
+          </span>
         ) : (
           <span className={cn('mt-1 inline-flex items-center gap-1.5 text-sm', status.color)}>
             <span className={cn('h-2 w-2 rounded-full', status.dot)} />
@@ -204,7 +210,7 @@ function ViewProfile({ profile, isOwnProfile, onEdit }: ViewProfileProps) {
 
       {/* Block button (only for other profiles, hidden for banned users) */}
       {(() => {
-        if (isOwnProfile || targetIsBanned) return null;
+        if (isOwnProfile || targetIsBanned || targetIsDeparted) return null;
 
         if (!canBlock && !isBlocked) {
           return (

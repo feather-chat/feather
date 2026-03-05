@@ -225,6 +225,8 @@ function SortableWorkspaceItem({
   return (
     <WorkspaceContextMenu
       workspaceId={workspace.id}
+      workspaceName={workspace.name}
+      workspaceRole={workspace.role}
       onOpenWorkspaceSettings={() => onOpenWorkspaceSettings(workspace.id)}
       onOpenInvite={() => onOpenWorkspaceSettings(workspace.id, 'invite')}
       canInvite={canInvite}

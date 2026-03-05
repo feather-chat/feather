@@ -567,6 +567,13 @@ export function useSSE(workspaceId: string | undefined) {
       }
     });
 
+    // Handle member left (other users leaving — the actor's own leave is handled
+    // by useLeaveWorkspace's onSuccess before the SSE event arrives, since the
+    // server disconnects the leaving user's SSE connection after broadcasting)
+    connection.on('member.left', () => {
+      queryClient.invalidateQueries({ queryKey: ['workspace', workspaceId, 'members'] });
+    });
+
     // Handle typing events
     connection.on('typing.start', (event) => {
       addTypingUser(event.data.channel_id, event.data);

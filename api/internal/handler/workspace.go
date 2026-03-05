@@ -209,6 +209,76 @@ func (h *Handler) RemoveWorkspaceMember(ctx context.Context, request openapi.Rem
 	}, nil
 }
 
+// LeaveWorkspace allows a user to voluntarily leave a workspace
+func (h *Handler) LeaveWorkspace(ctx context.Context, request openapi.LeaveWorkspaceRequestObject) (openapi.LeaveWorkspaceResponseObject, error) {
+	userID := h.getUserID(ctx)
+	if userID == "" {
+		return openapi.LeaveWorkspace401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
+	}
+
+	workspaceID := string(request.Wid)
+
+	// Check membership
+	membership, err := h.workspaceRepo.GetMembership(ctx, userID, workspaceID)
+	if err != nil {
+		if errors.Is(err, workspace.ErrNotAMember) {
+			return openapi.LeaveWorkspace404JSONResponse{NotFoundJSONResponse: notFoundResponse("Not a member of this workspace")}, nil
+		}
+		return nil, err
+	}
+
+	// Owners must transfer ownership before leaving
+	if membership.Role == workspace.RoleOwner {
+		return openapi.LeaveWorkspace403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Workspace owners must transfer ownership before leaving")}, nil
+	}
+
+	// Begin transaction: remove channel memberships then workspace membership
+	tx, err := h.workspaceRepo.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	removedChannelIDs, err := h.channelRepo.RemoveAllNonDMMemberships(ctx, tx, userID, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := h.workspaceRepo.RemoveMemberTx(ctx, tx, userID, workspaceID); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	// Update SSE hub and broadcast events
+	if h.hub != nil {
+		for _, channelID := range removedChannelIDs {
+			h.hub.RemoveChannelMember(channelID, userID)
+			h.hub.BroadcastToWorkspace(workspaceID, sse.Event{
+				Type: sse.EventMemberRemoved,
+				Data: map[string]string{
+					"channel_id": channelID,
+					"user_id":    userID,
+				},
+			})
+		}
+
+		h.hub.BroadcastToWorkspace(workspaceID, sse.Event{
+			Type: sse.EventMemberLeft,
+			Data: map[string]string{
+				"user_id":      userID,
+				"workspace_id": workspaceID,
+			},
+		})
+
+		h.hub.DisconnectUserClients(workspaceID, userID)
+	}
+
+	return openapi.LeaveWorkspace200JSONResponse{Success: true}, nil
+}
+
 // UpdateWorkspaceMemberRole updates a member's role
 func (h *Handler) UpdateWorkspaceMemberRole(ctx context.Context, request openapi.UpdateWorkspaceMemberRoleRequestObject) (openapi.UpdateWorkspaceMemberRoleResponseObject, error) {
 	userID := h.getUserID(ctx)
