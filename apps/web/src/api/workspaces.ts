@@ -70,6 +70,10 @@ export const workspacesApi = {
   reorder: (workspaceIds: string[]) =>
     post<{ success: boolean }>('/workspaces/reorder', { workspace_ids: workspaceIds }),
 
+  // Leave workspace
+  leave: (workspaceId: string) =>
+    post<{ success: boolean }>(`/workspaces/${workspaceId}/leave`),
+
   // Notification summaries across all workspaces
   getNotifications: () =>
     get<{ workspaces: WorkspaceNotificationSummary[] }>('/workspaces/notifications'),

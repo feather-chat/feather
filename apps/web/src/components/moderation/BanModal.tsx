@@ -2,6 +2,7 @@ import { ShieldExclamationIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui';
 import { useAuth } from '../../hooks';
+import { useLeaveAndNavigate } from '../../hooks/useWorkspaces';
 import type { WorkspaceSummary } from '@enzyme/api-client';
 
 interface BanScreenProps {
@@ -11,6 +12,7 @@ interface BanScreenProps {
 export function BanScreen({ workspace }: BanScreenProps) {
   const navigate = useNavigate();
   const { workspaces } = useAuth();
+  const { leave, isPending } = useLeaveAndNavigate(workspaces);
   if (!workspace.ban) return null;
   const ban = workspace.ban;
 
@@ -38,16 +40,27 @@ export function BanScreen({ workspace }: BanScreenProps) {
           {formattedExpiry ? `Expires: ${formattedExpiry}` : 'This ban is permanent'}
         </p>
 
-        {otherWorkspaces.length > 0 && (
-          <div className="mt-6 w-full">
+        <div className="mt-6 flex w-full flex-col gap-3">
+          {otherWorkspaces.length > 0 && (
             <Button
               onPress={() => navigate(`/workspaces/${otherWorkspaces[0].id}`)}
               className="w-full"
             >
               Switch to {otherWorkspaces[0].name}
             </Button>
-          </div>
-        )}
+          )}
+          <Button
+            variant="secondary"
+            onPress={() => leave(workspace.id)}
+            isLoading={isPending}
+            className="w-full"
+          >
+            Leave Workspace
+          </Button>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Remove this workspace from your list
+          </p>
+        </div>
       </div>
     </div>
   );

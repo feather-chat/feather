@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
   workspacesApi,
   type CreateWorkspaceInput,
@@ -11,6 +12,7 @@ import type {
   WorkspaceSummary,
   WorkspaceNotificationSummary,
 } from '@enzyme/api-client';
+import { toast } from '../components/ui';
 
 export function useWorkspace(workspaceId: string | undefined) {
   return useQuery({
@@ -72,6 +74,40 @@ export function useRemoveMember(workspaceId: string) {
       queryClient.invalidateQueries({ queryKey: ['workspace', workspaceId, 'members'] });
     },
   });
+}
+
+export function useLeaveWorkspace() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (workspaceId: string) => workspacesApi.leave(workspaceId),
+    onSuccess: (_data, workspaceId) => {
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace', workspaceId, 'members'] });
+    },
+  });
+}
+
+export function useLeaveAndNavigate(workspaces: WorkspaceSummary[] | undefined) {
+  const leaveWorkspace = useLeaveWorkspace();
+  const navigate = useNavigate();
+
+  const leave = useCallback(
+    async (workspaceId: string) => {
+      const otherWorkspaces = workspaces?.filter((ws) => ws.id !== workspaceId && !ws.ban) ?? [];
+      const redirectTo = otherWorkspaces.length > 0 ? `/workspaces/${otherWorkspaces[0].id}` : '/';
+
+      try {
+        await leaveWorkspace.mutateAsync(workspaceId);
+        navigate(redirectTo);
+      } catch {
+        toast('Failed to leave workspace', 'error');
+      }
+    },
+    [workspaces, leaveWorkspace, navigate],
+  );
+
+  return { leave, isPending: leaveWorkspace.isPending };
 }
 
 export function useCreateInvite(workspaceId: string) {

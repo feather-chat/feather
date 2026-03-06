@@ -318,6 +318,29 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /workspaces/{wid}/leave:
+    post:
+      tags: [workspaces]
+      summary: Leave a workspace
+      operationId: leaveWorkspace
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+      responses:
+        '200':
+          description: Successfully left workspace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /workspaces/{wid}/members/update-role:
     post:
       tags: [workspaces]
@@ -3305,6 +3328,7 @@ components:
         - message.unpinned
         - member.banned
         - member.unbanned
+        - member.left
         - scheduled_message.created
         - scheduled_message.updated
         - scheduled_message.deleted
@@ -3341,6 +3365,7 @@ components:
         - $ref: '#/components/schemas/SSEEventMessageUnpinned'
         - $ref: '#/components/schemas/SSEEventMemberBanned'
         - $ref: '#/components/schemas/SSEEventMemberUnbanned'
+        - $ref: '#/components/schemas/SSEEventMemberLeft'
       discriminator:
         propertyName: type
         mapping:
@@ -3372,6 +3397,7 @@ components:
           message.unpinned: '#/components/schemas/SSEEventMessageUnpinned'
           member.banned: '#/components/schemas/SSEEventMemberBanned'
           member.unbanned: '#/components/schemas/SSEEventMemberUnbanned'
+          member.left: '#/components/schemas/SSEEventMemberLeft'
 
     SSEEventConnected:
       type: object
@@ -3767,6 +3793,24 @@ components:
         type:
           type: string
           enum: [member.unbanned]
+        data:
+          type: object
+          required: [user_id, workspace_id]
+          properties:
+            user_id:
+              type: string
+            workspace_id:
+              type: string
+
+    SSEEventMemberLeft:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [member.left]
         data:
           type: object
           required: [user_id, workspace_id]

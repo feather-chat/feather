@@ -208,6 +208,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{wid}/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Leave a workspace */
+        post: operations["leaveWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{wid}/members/update-role": {
         parameters: {
             query?: never;
@@ -1778,8 +1795,8 @@ export interface components {
             last_read_message_id: string;
         };
         /** @enum {string} */
-        SSEEventType: "connected" | "heartbeat" | "message.new" | "message.updated" | "message.deleted" | "reaction.added" | "reaction.removed" | "channel.created" | "channel.updated" | "channel.archived" | "channel.member_added" | "channel.member_removed" | "channel.read" | "typing.start" | "typing.stop" | "presence.changed" | "presence.initial" | "notification" | "emoji.created" | "emoji.deleted" | "message.pinned" | "message.unpinned" | "member.banned" | "member.unbanned" | "scheduled_message.created" | "scheduled_message.updated" | "scheduled_message.deleted" | "scheduled_message.sent" | "scheduled_message.failed";
-        SSEEvent: components["schemas"]["SSEEventConnected"] | components["schemas"]["SSEEventHeartbeat"] | components["schemas"]["SSEEventMessageNew"] | components["schemas"]["SSEEventMessageUpdated"] | components["schemas"]["SSEEventMessageDeleted"] | components["schemas"]["SSEEventReactionAdded"] | components["schemas"]["SSEEventReactionRemoved"] | components["schemas"]["SSEEventChannelCreated"] | components["schemas"]["SSEEventChannelUpdated"] | components["schemas"]["SSEEventChannelArchived"] | components["schemas"]["SSEEventChannelMemberAdded"] | components["schemas"]["SSEEventChannelMemberRemoved"] | components["schemas"]["SSEEventChannelRead"] | components["schemas"]["SSEEventTypingStart"] | components["schemas"]["SSEEventTypingStop"] | components["schemas"]["SSEEventPresenceChanged"] | components["schemas"]["SSEEventPresenceInitial"] | components["schemas"]["SSEEventNotification"] | components["schemas"]["SSEEventEmojiCreated"] | components["schemas"]["SSEEventEmojiDeleted"] | components["schemas"]["SSEEventScheduledMessageCreated"] | components["schemas"]["SSEEventScheduledMessageUpdated"] | components["schemas"]["SSEEventScheduledMessageDeleted"] | components["schemas"]["SSEEventScheduledMessageSent"] | components["schemas"]["SSEEventMessagePinned"] | components["schemas"]["SSEEventMessageUnpinned"] | components["schemas"]["SSEEventMemberBanned"] | components["schemas"]["SSEEventMemberUnbanned"];
+        SSEEventType: "connected" | "heartbeat" | "message.new" | "message.updated" | "message.deleted" | "reaction.added" | "reaction.removed" | "channel.created" | "channel.updated" | "channel.archived" | "channel.member_added" | "channel.member_removed" | "channel.read" | "typing.start" | "typing.stop" | "presence.changed" | "presence.initial" | "notification" | "emoji.created" | "emoji.deleted" | "message.pinned" | "message.unpinned" | "member.banned" | "member.unbanned" | "member.left" | "scheduled_message.created" | "scheduled_message.updated" | "scheduled_message.deleted" | "scheduled_message.sent" | "scheduled_message.failed";
+        SSEEvent: components["schemas"]["SSEEventConnected"] | components["schemas"]["SSEEventHeartbeat"] | components["schemas"]["SSEEventMessageNew"] | components["schemas"]["SSEEventMessageUpdated"] | components["schemas"]["SSEEventMessageDeleted"] | components["schemas"]["SSEEventReactionAdded"] | components["schemas"]["SSEEventReactionRemoved"] | components["schemas"]["SSEEventChannelCreated"] | components["schemas"]["SSEEventChannelUpdated"] | components["schemas"]["SSEEventChannelArchived"] | components["schemas"]["SSEEventChannelMemberAdded"] | components["schemas"]["SSEEventChannelMemberRemoved"] | components["schemas"]["SSEEventChannelRead"] | components["schemas"]["SSEEventTypingStart"] | components["schemas"]["SSEEventTypingStop"] | components["schemas"]["SSEEventPresenceChanged"] | components["schemas"]["SSEEventPresenceInitial"] | components["schemas"]["SSEEventNotification"] | components["schemas"]["SSEEventEmojiCreated"] | components["schemas"]["SSEEventEmojiDeleted"] | components["schemas"]["SSEEventScheduledMessageCreated"] | components["schemas"]["SSEEventScheduledMessageUpdated"] | components["schemas"]["SSEEventScheduledMessageDeleted"] | components["schemas"]["SSEEventScheduledMessageSent"] | components["schemas"]["SSEEventMessagePinned"] | components["schemas"]["SSEEventMessageUnpinned"] | components["schemas"]["SSEEventMemberBanned"] | components["schemas"]["SSEEventMemberUnbanned"] | components["schemas"]["SSEEventMemberLeft"];
         SSEEventConnected: {
             id?: string;
             /**
@@ -2060,6 +2077,18 @@ export interface components {
              * @enum {string}
              */
             type: "member.unbanned";
+            data: {
+                user_id: string;
+                workspace_id: string;
+            };
+        };
+        SSEEventMemberLeft: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "member.left";
             data: {
                 user_id: string;
                 workspace_id: string;
@@ -2606,6 +2635,32 @@ export interface operations {
         };
         responses: {
             /** @description Member removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    leaveWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                wid: components["parameters"]["workspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully left workspace */
             200: {
                 headers: {
                     [name: string]: unknown;

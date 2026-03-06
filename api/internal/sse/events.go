@@ -26,6 +26,7 @@ const (
 	EventMessageUnpinned = "message.unpinned"
 	EventMemberBanned    = "member.banned"
 	EventMemberUnbanned  = "member.unbanned"
+	EventMemberLeft      = "member.left"
 
 	EventScheduledMessageCreated = "scheduled_message.created"
 	EventScheduledMessageUpdated = "scheduled_message.updated"

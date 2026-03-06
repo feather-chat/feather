@@ -179,6 +179,12 @@ func BanCheckMiddleware(moderationRepo *moderation.Repository) func(http.Handler
 				return
 			}
 
+			// Allow banned users to leave a workspace (removes it from their list).
+			if r.Method == http.MethodPost && strings.HasSuffix(r.URL.Path, "/workspaces/"+wid+"/leave") {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			userID := auth.GetUserID(r.Context())
 			if userID == "" {
 				next.ServeHTTP(w, r)

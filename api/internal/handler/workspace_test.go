@@ -378,6 +378,94 @@ func TestGetWorkspaceNotifications_Unauthenticated(t *testing.T) {
 	}
 }
 
+func TestLeaveWorkspace_MemberSuccess(t *testing.T) {
+	h, db := testHandler(t)
+
+	owner := testutil.CreateTestUser(t, db, "owner@test.com", "Owner")
+	member := testutil.CreateTestUser(t, db, "member@test.com", "Member")
+	ws := testutil.CreateTestWorkspace(t, db, owner.ID, "WS")
+	addWorkspaceMember(t, db, member.ID, ws.ID, "member")
+
+	// Also add member to a channel to verify channel membership cleanup
+	ch := testutil.CreateTestChannel(t, db, ws.ID, owner.ID, "general", "public")
+	addChannelMember(t, db, member.ID, ch.ID, nil)
+
+	ctx := ctxWithUser(t, h, member.ID)
+	resp, err := h.LeaveWorkspace(ctx, openapi.LeaveWorkspaceRequestObject{
+		Wid: ws.ID,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.LeaveWorkspace200JSONResponse); !ok {
+		t.Fatalf("expected 200 response, got %T", resp)
+	}
+
+	// Verify workspace membership is gone
+	_, err = h.workspaceRepo.GetMembership(context.Background(), member.ID, ws.ID)
+	if err == nil {
+		t.Error("expected workspace membership to be removed")
+	}
+
+	// Verify channel membership is gone
+	_, err = h.channelRepo.GetMembership(context.Background(), member.ID, ch.ID)
+	if err == nil {
+		t.Error("expected channel membership to be removed")
+	}
+}
+
+func TestLeaveWorkspace_OwnerForbidden(t *testing.T) {
+	h, db := testHandler(t)
+
+	owner := testutil.CreateTestUser(t, db, "owner@test.com", "Owner")
+	ws := testutil.CreateTestWorkspace(t, db, owner.ID, "WS")
+
+	ctx := ctxWithUser(t, h, owner.ID)
+	resp, err := h.LeaveWorkspace(ctx, openapi.LeaveWorkspaceRequestObject{
+		Wid: ws.ID,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.LeaveWorkspace403JSONResponse); !ok {
+		t.Fatalf("expected 403 response, got %T", resp)
+	}
+}
+
+func TestLeaveWorkspace_NotMember(t *testing.T) {
+	h, db := testHandler(t)
+
+	owner := testutil.CreateTestUser(t, db, "owner@test.com", "Owner")
+	outsider := testutil.CreateTestUser(t, db, "outsider@test.com", "Outsider")
+	ws := testutil.CreateTestWorkspace(t, db, owner.ID, "WS")
+
+	ctx := ctxWithUser(t, h, outsider.ID)
+	resp, err := h.LeaveWorkspace(ctx, openapi.LeaveWorkspaceRequestObject{
+		Wid: ws.ID,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.LeaveWorkspace404JSONResponse); !ok {
+		t.Fatalf("expected 404 response, got %T", resp)
+	}
+}
+
+func TestLeaveWorkspace_Unauthenticated(t *testing.T) {
+	h, _ := testHandler(t)
+
+	ctx := context.Background()
+	resp, err := h.LeaveWorkspace(ctx, openapi.LeaveWorkspaceRequestObject{
+		Wid: "any-workspace-id",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.LeaveWorkspace401JSONResponse); !ok {
+		t.Fatalf("expected 401 response, got %T", resp)
+	}
+}
+
 func TestCreateWorkspaceInvite_NotAdmin(t *testing.T) {
 	h, db := testHandler(t)
 
