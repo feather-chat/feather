@@ -11,7 +11,7 @@ layout: layouts/page.njk
         <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Documentation</h3>
         {% for doc in collections.docs %}
           <a href="{{ doc.url }}"
-             class="block px-3 py-2 rounded-lg text-sm transition-colors
+             class="block px-3 py-2 rounded-lg transition-colors
                {% if doc.url == page.url %}
                  bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium
                {% else %}
@@ -26,7 +26,7 @@ layout: layouts/page.njk
     <!-- Mobile sidebar toggle -->
     <div class="lg:hidden mb-6">
       <details class="group">
-        <summary class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer">
+        <summary class="flex items-center gap-2 px-3 py-2 font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer">
           <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
           </svg>
@@ -35,7 +35,7 @@ layout: layouts/page.njk
         <nav class="mt-2 space-y-1 pl-2">
           {% for doc in collections.docs %}
             <a href="{{ doc.url }}"
-               class="block px-3 py-2 rounded-lg text-sm transition-colors
+               class="block px-3 py-2 rounded-lg transition-colors
                  {% if doc.url == page.url %}
                    bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium
                  {% else %}

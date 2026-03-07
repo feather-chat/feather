@@ -8,7 +8,11 @@ module.exports = function (eleventyConfig) {
   // Markdown config with heading anchors
   eleventyConfig.amendLibrary('md', (mdLib) => {
     mdLib.use(markdownItAnchor, {
-      permalink: markdownItAnchor.permalink.headerLink(),
+      permalink: markdownItAnchor.permalink.ariaHidden({
+        placement: 'after',
+        symbol: '#',
+        class: 'header-anchor',
+      }),
       level: [2, 3, 4],
     });
   });
