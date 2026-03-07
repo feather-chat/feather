@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"net/http"
 	"testing"
 	"time"
@@ -58,8 +59,11 @@ func TestNew_ModeManual(t *testing.T) {
 		KeyFile:  "/path/to/key.pem",
 	}, 30*time.Second, 60*time.Second, 120*time.Second)
 
-	if s.httpServer.TLSConfig != nil {
-		t.Fatal("expected no TLSConfig for mode manual (certs loaded from file)")
+	if s.httpServer.TLSConfig == nil {
+		t.Fatal("expected TLSConfig to be set for mode manual")
+	}
+	if s.httpServer.TLSConfig.MinVersion != tls.VersionTLS12 {
+		t.Fatal("expected MinVersion TLS 1.2 for mode manual")
 	}
 	if s.certManager != nil {
 		t.Fatal("expected no certManager for mode manual")

@@ -44,7 +44,8 @@ func New(host string, port int, handler http.Handler, tlsOpts TLSOptions, readTi
 		},
 	}
 
-	if tlsOpts.Mode == "auto" {
+	switch tlsOpts.Mode {
+	case "auto":
 		s.certManager = &autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist(tlsOpts.Domain),
@@ -60,6 +61,10 @@ func New(host string, port int, handler http.Handler, tlsOpts TLSOptions, readTi
 			Handler:      s.certManager.HTTPHandler(nil),
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
+		}
+	case "manual":
+		s.httpServer.TLSConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
 		}
 	}
 
