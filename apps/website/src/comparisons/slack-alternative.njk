@@ -1,8 +1,9 @@
 ---
-layout: layouts/marketing.njk
+layout: layouts/page.njk
 title: "Slack Alternative"
 description: "Enzyme is a self-hostable open-source alternative to Slack. Own your data, pay nothing per seat."
-permalink: /slack-alternative/
+permalink: /comparisons/slack-alternative/
+order: 2
 ---
 
 <!-- Hero -->
@@ -38,7 +39,7 @@ permalink: /slack-alternative/
       </div>
     </div>
     <div class="mt-10 lg:mt-0 flex justify-center">
-      <img src="/assets/illustrations/11.svg" alt="Illustration of a person thinking and evaluating options" class="w-full max-w-sm" />
+      <img src="/assets/illustrations/11.svg" alt="Illustration of a person thinking and evaluating options" class="w-full max-w-sm" width="384" height="265" loading="lazy" />
     </div>
   </div>
 </section>
@@ -144,19 +145,7 @@ permalink: /slack-alternative/
   </div>
 </section>
 
-<!-- Getting started CTA -->
-<section class="bg-indigo-600 dark:bg-indigo-700">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
-    <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Ready to make the switch?</h2>
-    <p class="text-lg text-indigo-100 mb-8 max-w-2xl mx-auto">Get Enzyme running on your server in under five minutes. No credit card, no signup, no vendor lock-in.</p>
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-      <a href="/docs/self-hosting/" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-700 font-semibold rounded-xl hover:bg-indigo-50 transition-colors">
-        Self-hosting guide
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-      </a>
-      <a href="/docs/alternatives/" class="inline-flex items-center gap-2 px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition-colors">
-        Full comparison guide
-      </a>
-    </div>
-  </div>
-</section>
+<!-- CTA -->
+{% set ctaHeadline = "Ready to make the switch?" %}
+{% set ctaSubtext = "Get Enzyme running on your server in under five minutes. No credit card, no signup, no vendor lock-in." %}
+{% include "components/cta.njk" %}

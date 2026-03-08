@@ -1,7 +1,7 @@
 ---
 title: 'Alternatives Comparison'
 description: 'How Enzyme compares to other team chat platforms'
-order: 11
+order: 1
 ---
 
 # Alternatives

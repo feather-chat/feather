@@ -159,6 +159,6 @@ There is no server-level admin role to gate signups. Restrict network access to 
 
 ## Reporting Vulnerabilities
 
-If you discover a security vulnerability in Enzyme, please report it responsibly by opening a security advisory on the [GitHub repository](https://github.com/anthropics/enzyme). Do not open a public issue for security vulnerabilities.
+If you discover a security vulnerability in Enzyme, please report it responsibly by opening a security advisory on the [GitHub repository](https://github.com/enzyme/enzyme). Do not open a public issue for security vulnerabilities.
 
 Include a description of the vulnerability, steps to reproduce, and the potential impact. We will acknowledge receipt and work on a fix promptly.

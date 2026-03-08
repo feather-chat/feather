@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"eleventy --serve\" \"tailwindcss -i src/css/main.css -o _site/css/main.css --watch\"",
+    "dev": "tailwindcss -i src/css/main.css -o _site/css/main.css && concurrently \"eleventy --serve\" \"tailwindcss -i src/css/main.css -o _site/css/main.css --watch\"",
     "build": "tailwindcss -i src/css/main.css -o _site/css/main.css --minify && eleventy"
   },
   "devDependencies": {

@@ -28,12 +28,24 @@ module.exports = function (eleventyConfig) {
   });
 
   eleventyConfig.addCollection('posts', function (collectionApi) {
-    return collectionApi.getFilteredByTag('posts').sort((a, b) => b.date - a.date);
+    return collectionApi
+      .getFilteredByTag('posts')
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+  });
+
+  eleventyConfig.addCollection('comparisons', function (collectionApi) {
+    return collectionApi
+      .getFilteredByTag('comparisons')
+      .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
   });
 
   // Filters
   eleventyConfig.addFilter('dateFormat', function (date) {
-    return new Date(date).toLocaleDateString('en-US', {
+    var d = new Date(date);
+    if (isNaN(d.getTime())) {
+      throw new Error('dateFormat filter received invalid date: ' + date);
+    }
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

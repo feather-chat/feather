@@ -1,5 +1,5 @@
 ---
-layout: layouts/marketing.njk
+layout: layouts/page.njk
 title: ""
 description: "Enzyme is a self-hostable team chat platform. Real-time messaging, threads, file sharing — all on your own infrastructure."
 ---
@@ -16,20 +16,19 @@ description: "Enzyme is a self-hostable team chat platform. Real-time messaging,
           A self-hostable Slack alternative built for teams that care about data ownership. Real-time messaging, threads, and file sharing — all on your infrastructure.
         </p>
         <div class="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-          <a href="/docs/self-hosting/" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors text-lg">
-            Self-host guide
+          <a href="{{ site.appUrl }}" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors text-lg">
+            Try the demo
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
             </svg>
           </a>
-          <a href="https://github.com/anthropics/enzyme" class="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-lg">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-            View on GitHub
+          <a href="/docs/self-hosting/" class="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-lg">
+            Self-hosting guide
           </a>
         </div>
       </div>
       <div class="mt-12 lg:mt-0 flex justify-center">
-        <img src="/assets/illustrations/1.svg" alt="Illustration of people collaborating with colorful geometric shapes" class="w-full max-w-md lg:max-w-lg" />
+        <img src="/assets/illustrations/1.svg" alt="Illustration of people collaborating with colorful geometric shapes" class="w-full max-w-md lg:max-w-lg" width="500" height="343" />
       </div>
     </div>
   </div>
@@ -51,7 +50,7 @@ description: "Enzyme is a self-hostable team chat platform. Real-time messaging,
     </div>
     <!-- Screenshot placeholder -->
     <div class="aspect-[16/9] bg-gray-900 flex items-center justify-center">
-      <img src="" alt="Screenshot of the Enzyme chat interface showing a workspace with channels in the sidebar, a message thread, and real-time conversation" class="w-full h-full object-cover" />
+      <img src="/assets/placeholder.svg" alt="Screenshot of the Enzyme chat interface showing a workspace with channels in the sidebar, a message thread, and real-time conversation" class="w-full h-full object-cover" width="800" height="450" loading="lazy" />
     </div>
   </div>
 </section>
@@ -167,7 +166,7 @@ description: "Enzyme is a self-hostable team chat platform. Real-time messaging,
         </ul>
       </div>
       <div class="mt-10 lg:mt-0 flex justify-center">
-        <img src="/assets/illustrations/3.svg" alt="Illustration of a person working at a desk with colorful abstract shapes" class="w-full max-w-sm" />
+        <img src="/assets/illustrations/3.svg" alt="Illustration of a person working at a desk with colorful abstract shapes" class="w-full max-w-sm" width="384" height="265" loading="lazy" />
       </div>
     </div>
   </div>

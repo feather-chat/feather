@@ -21,7 +21,7 @@ We built Enzyme for that second group. Teams in regulated industries, privacy-co
 
 **All the features you expect.** Real-time messaging via Server-Sent Events, threaded conversations, file uploads, emoji reactions, typing indicators, presence tracking, role-based permissions, dark mode — the things you actually use daily.
 
-**Open source and MIT licensed.** No "open core" upsell, no enterprise features behind a paywall. The whole thing is on [GitHub](https://github.com/anthropics/enzyme).
+**Open source and MIT licensed.** No "open core" upsell, no enterprise features behind a paywall. The whole thing is on [GitHub](https://github.com/enzyme/enzyme).
 
 ## What's Next
 
