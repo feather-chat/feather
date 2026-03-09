@@ -185,7 +185,7 @@ export function AppLayout() {
                 <div
                   className={cn(
                     'flex-shrink-0',
-                    'md:!block',
+                    'md:!block md:!flex-none',
                     activePanel === 'thread' || activePanel === 'profile'
                       ? 'flex min-h-0 flex-1 flex-col'
                       : 'hidden',
