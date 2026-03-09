@@ -1,7 +1,8 @@
 ---
-title: 'Messages'
-description: 'Message features and functionality'
-order: 6
+title: 'Message Formatting'
+description: 'Formatting syntax, mentions, emoji, and attachments'
+section: 'Using Enzyme'
+order: 13
 ---
 
 # Message Formatting

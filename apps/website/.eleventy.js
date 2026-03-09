@@ -21,10 +21,28 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/assets': 'assets' });
 
   // Collections
+  const DOC_SECTIONS = [
+    'Getting Started',
+    'Using Enzyme',
+    'Administration',
+    'Self-Hosting & Operations',
+  ];
+
   eleventyConfig.addCollection('docs', function (collectionApi) {
     return collectionApi
       .getFilteredByTag('docs')
       .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
+  });
+
+  eleventyConfig.addCollection('docSections', function (collectionApi) {
+    const docs = collectionApi
+      .getFilteredByTag('docs')
+      .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
+
+    return DOC_SECTIONS.map((name) => ({
+      name,
+      docs: docs.filter((doc) => doc.data.section === name),
+    })).filter((section) => section.docs.length > 0);
   });
 
   eleventyConfig.addCollection('posts', function (collectionApi) {

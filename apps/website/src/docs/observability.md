@@ -1,7 +1,8 @@
 ---
 title: 'Observability'
 description: 'Monitoring, logging, metrics, and tracing'
-order: 10
+section: 'Self-Hosting & Operations'
+order: 45
 ---
 
 # Observability Guide

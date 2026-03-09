@@ -1,7 +1,8 @@
 ---
 title: 'Self-Hosting Guide'
 description: 'Deploy Enzyme on your own server'
-order: 1
+section: 'Self-Hosting & Operations'
+order: 41
 ---
 
 # Self-Hosting Guide

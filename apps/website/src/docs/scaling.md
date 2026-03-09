@@ -1,7 +1,8 @@
 ---
 title: 'Scaling'
 description: 'Performance tuning and scaling considerations'
-order: 9
+section: 'Self-Hosting & Operations'
+order: 44
 ---
 
 # Scaling Guide

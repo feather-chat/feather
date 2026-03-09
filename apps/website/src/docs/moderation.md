@@ -1,7 +1,8 @@
 ---
 title: 'Moderation'
 description: 'Moderation tools, bans, blocks, and audit logs'
-order: 8
+section: 'Administration'
+order: 33
 ---
 
 # Moderation

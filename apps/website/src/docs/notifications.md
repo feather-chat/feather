@@ -1,7 +1,8 @@
 ---
-title: 'Notifications'
-description: 'Notification settings and behavior'
-order: 7
+title: 'Notifications & Presence'
+description: 'Notification settings, email digests, presence, and typing indicators'
+section: 'Using Enzyme'
+order: 20
 ---
 
 # Notifications & Presence

@@ -1,7 +1,8 @@
 ---
 title: 'Security'
 description: 'Security architecture and best practices'
-order: 5
+section: 'Self-Hosting & Operations'
+order: 43
 ---
 
 # Security

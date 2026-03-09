@@ -1,7 +1,8 @@
 ---
-title: 'Permissions'
+title: 'Permissions & Roles'
 description: 'Role-based access control and permission matrix'
-order: 4
+section: 'Administration'
+order: 32
 ---
 
 # Permissions & Roles

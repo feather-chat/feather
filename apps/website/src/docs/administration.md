@@ -1,7 +1,8 @@
 ---
 title: 'Administration'
 description: 'Workspace administration and member management'
-order: 3
+section: 'Administration'
+order: 31
 ---
 
 # Workspace Administration

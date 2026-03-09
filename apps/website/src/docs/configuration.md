@@ -1,7 +1,8 @@
 ---
 title: 'Configuration'
 description: 'Server configuration options and environment variables'
-order: 2
+section: 'Self-Hosting & Operations'
+order: 42
 ---
 
 # Configuration Reference
