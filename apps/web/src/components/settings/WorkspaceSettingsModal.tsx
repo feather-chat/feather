@@ -10,6 +10,7 @@ import {
   TrashIcon,
   XMarkIcon,
   NoSymbolIcon,
+  KeyIcon,
 } from '@heroicons/react/24/outline';
 import {
   useWorkspace,
@@ -26,10 +27,16 @@ import { Modal, Avatar, Button, IconButton, Spinner, toast, ConfirmDialog } from
 import { useBlocks, useBlockUser, useUnblockUser } from '../../hooks/useModeration';
 import { CustomEmojiManager } from './CustomEmojiManager';
 import { ModerationPanel } from './ModerationPanel';
-import { cn, getAvatarColor } from '../../lib/utils';
-import type { WorkspaceRole } from '@enzyme/api-client';
+import { cn, getAvatarColor, hasPermission } from '../../lib/utils';
+import type { WorkspaceRole, PermissionLevel } from '@enzyme/api-client';
 
-export type WorkspaceSettingsTab = 'general' | 'members' | 'emoji' | 'invite' | 'moderation';
+export type WorkspaceSettingsTab =
+  | 'general'
+  | 'members'
+  | 'emoji'
+  | 'invite'
+  | 'permissions'
+  | 'moderation';
 
 interface NavItem {
   id: WorkspaceSettingsTab;
@@ -43,6 +50,7 @@ const navItems: NavItem[] = [
   { id: 'members', label: 'Manage Members', icon: UsersIcon },
   { id: 'emoji', label: 'Custom Emoji', icon: FaceSmileIcon },
   { id: 'invite', label: 'Invite People', icon: UserPlusIcon, adminOnly: true },
+  { id: 'permissions', label: 'Permissions', icon: KeyIcon, adminOnly: true },
   { id: 'moderation', label: 'Moderation', icon: ShieldExclamationIcon, adminOnly: true },
 ];
 
@@ -98,6 +106,11 @@ export function WorkspaceSettingsModal({
   const ownerCount = useMemo(() => members.filter((m) => m.role === 'owner').length, [members]);
   const isBlockedUser = (userId: string) =>
     blocksData?.blocks?.some((b) => b.blocked_id === userId) ?? false;
+  const parsedSettings = workspace?.workspace.parsed_settings;
+  const canInvite = hasPermission(
+    workspaceMembership?.role,
+    parsedSettings?.who_can_create_invites,
+  );
 
   // Reset state when modal opens (React-recommended "adjust state during render" pattern)
   const [prevOpen, setPrevOpen] = useState(false);
@@ -105,7 +118,7 @@ export function WorkspaceSettingsModal({
   if ((isOpen && !prevOpen) || (isOpen && defaultTab !== prevDefaultTab)) {
     setPrevOpen(isOpen);
     setPrevDefaultTab(defaultTab);
-    setSelectedTab(!canManage && defaultTab === 'invite' ? 'general' : defaultTab);
+    setSelectedTab(!canManage && defaultTab === 'invite' && !canInvite ? 'general' : defaultTab);
     setSelectedFile(null);
     setPreviewUrl(null);
     setInviteLink(null);
@@ -280,7 +293,10 @@ export function WorkspaceSettingsModal({
     }
   };
 
-  const visibleNavItems = navItems.filter((item) => !item.adminOnly || canManage);
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.id === 'invite') return canInvite;
+    return !item.adminOnly || canManage;
+  });
 
   return (
     <>
@@ -653,7 +669,7 @@ export function WorkspaceSettingsModal({
 
               {selectedTab === 'emoji' && <CustomEmojiManager workspaceId={workspaceId} />}
 
-              {selectedTab === 'invite' && canManage && (
+              {selectedTab === 'invite' && canInvite && (
                 <div className="space-y-6 rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
                   <p className="text-gray-600 dark:text-gray-300">
                     Create an invite link to share with people you want to join this workspace.
@@ -713,6 +729,62 @@ export function WorkspaceSettingsModal({
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {selectedTab === 'permissions' && canManage && (
+                <div className="space-y-6">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Control which roles can perform key actions in this workspace.
+                  </p>
+
+                  <PermissionSelect
+                    label="Who can create channels"
+                    value={parsedSettings?.who_can_create_channels ?? 'members'}
+                    includeEveryone
+                    onChange={(value) =>
+                      updateWorkspace.mutate(
+                        { settings: { who_can_create_channels: value } },
+                        { onError: () => toast('Failed to update permission', 'error') },
+                      )
+                    }
+                  />
+
+                  <PermissionSelect
+                    label="Who can create invites"
+                    value={parsedSettings?.who_can_create_invites ?? 'admins'}
+                    includeEveryone
+                    onChange={(value) =>
+                      updateWorkspace.mutate(
+                        { settings: { who_can_create_invites: value } },
+                        { onError: () => toast('Failed to update permission', 'error') },
+                      )
+                    }
+                  />
+
+                  <PermissionSelect
+                    label="Who can pin messages"
+                    value={parsedSettings?.who_can_pin_messages ?? 'members'}
+                    includeEveryone
+                    onChange={(value) =>
+                      updateWorkspace.mutate(
+                        { settings: { who_can_pin_messages: value } },
+                        { onError: () => toast('Failed to update permission', 'error') },
+                      )
+                    }
+                  />
+
+                  <PermissionSelect
+                    label="Who can manage custom emoji"
+                    value={parsedSettings?.who_can_manage_custom_emoji ?? 'members'}
+                    includeEveryone
+                    onChange={(value) =>
+                      updateWorkspace.mutate(
+                        { settings: { who_can_manage_custom_emoji: value } },
+                        { onError: () => toast('Failed to update permission', 'error') },
+                      )
+                    }
+                  />
                 </div>
               )}
 
@@ -785,5 +857,34 @@ export function WorkspaceSettingsModal({
         />
       )}
     </>
+  );
+}
+
+function PermissionSelect({
+  label,
+  value,
+  includeEveryone,
+  onChange,
+}: {
+  label: string;
+  value: PermissionLevel;
+  includeEveryone?: boolean;
+  onChange: (value: PermissionLevel) => void;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as PermissionLevel)}
+        className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+      >
+        {includeEveryone && <option value="everyone">Everyone</option>}
+        <option value="members">Members</option>
+        <option value="admins">Admins</option>
+      </select>
+    </div>
   );
 }

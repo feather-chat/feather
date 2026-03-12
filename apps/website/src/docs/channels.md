@@ -20,7 +20,7 @@ Channel type can be changed between public and private by channel admins or work
 
 ## Creating a Channel
 
-Members, admins, and owners can create channels (guests cannot). To create a channel:
+By default, members, admins, and owners can create channels. This is configurable by workspace admins via the **who can create channels** [permission setting](/docs/permissions/#configurable-permission-settings). To create a channel:
 
 1. Open the command palette (**Cmd+K**) and type "Create channel", or click the **+** next to "Channels" in the sidebar.
 2. Enter a channel name — lowercase letters, numbers, and hyphens only (e.g., `project-alpha`, `design-reviews`).

@@ -67,22 +67,42 @@ func TestCanDeleteWorkspace(t *testing.T) {
 	}
 }
 
-func TestCanCreateChannels(t *testing.T) {
+func TestHasPermission(t *testing.T) {
 	tests := []struct {
-		name string
-		role string
-		want bool
+		name  string
+		role  string
+		level PermissionLevel
+		want  bool
 	}{
-		{"owner can create", RoleOwner, true},
-		{"admin can create", RoleAdmin, true},
-		{"member can create", RoleMember, true},
-		{"guest cannot create", RoleGuest, false},
+		// everyone level: all roles allowed
+		{"everyone/owner", RoleOwner, PermissionEveryone, true},
+		{"everyone/admin", RoleAdmin, PermissionEveryone, true},
+		{"everyone/member", RoleMember, PermissionEveryone, true},
+		{"everyone/guest", RoleGuest, PermissionEveryone, true},
+		{"everyone/invalid", "invalid", PermissionEveryone, false},
+
+		// members level: guest excluded
+		{"members/owner", RoleOwner, PermissionMembers, true},
+		{"members/admin", RoleAdmin, PermissionMembers, true},
+		{"members/member", RoleMember, PermissionMembers, true},
+		{"members/guest", RoleGuest, PermissionMembers, false},
+		{"members/invalid", "invalid", PermissionMembers, false},
+
+		// admins level: only admin and owner
+		{"admins/owner", RoleOwner, PermissionAdmins, true},
+		{"admins/admin", RoleAdmin, PermissionAdmins, true},
+		{"admins/member", RoleMember, PermissionAdmins, false},
+		{"admins/guest", RoleGuest, PermissionAdmins, false},
+		{"admins/invalid", "invalid", PermissionAdmins, false},
+
+		// invalid level
+		{"invalid level", RoleOwner, PermissionLevel("invalid"), false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := CanCreateChannels(tt.role); got != tt.want {
-				t.Errorf("CanCreateChannels(%q) = %v, want %v", tt.role, got, tt.want)
+			if got := HasPermission(tt.role, tt.level); got != tt.want {
+				t.Errorf("HasPermission(%q, %q) = %v, want %v", tt.role, tt.level, got, tt.want)
 			}
 		})
 	}
@@ -146,16 +166,38 @@ func TestParseSettings(t *testing.T) {
 		{
 			name:     "show_join_leave_messages true",
 			json:     `{"show_join_leave_messages":true}`,
-			expected: WorkspaceSettings{ShowJoinLeaveMessages: true},
+			expected: DefaultSettings(),
 		},
 		{
-			name:     "show_join_leave_messages false",
-			json:     `{"show_join_leave_messages":false}`,
-			expected: WorkspaceSettings{ShowJoinLeaveMessages: false},
+			name: "show_join_leave_messages false",
+			json: `{"show_join_leave_messages":false}`,
+			expected: WorkspaceSettings{
+				ShowJoinLeaveMessages:   false,
+				WhoCanCreateChannels:    PermissionMembers,
+				WhoCanCreateInvites:     PermissionAdmins,
+				WhoCanPinMessages:       PermissionMembers,
+				WhoCanManageCustomEmoji: PermissionMembers,
+			},
 		},
 		{
 			name:     "invalid json returns defaults",
 			json:     "not json",
+			expected: DefaultSettings(),
+		},
+		{
+			name: "permission fields override defaults",
+			json: `{"who_can_create_channels":"admins","who_can_create_invites":"members","who_can_pin_messages":"everyone","who_can_manage_custom_emoji":"admins"}`,
+			expected: WorkspaceSettings{
+				ShowJoinLeaveMessages:   true,
+				WhoCanCreateChannels:    PermissionAdmins,
+				WhoCanCreateInvites:     PermissionMembers,
+				WhoCanPinMessages:       PermissionEveryone,
+				WhoCanManageCustomEmoji: PermissionAdmins,
+			},
+		},
+		{
+			name:     "backward compat: missing permission fields get defaults",
+			json:     `{"show_join_leave_messages":true,"who_can_create_channels":"members"}`,
 			expected: DefaultSettings(),
 		},
 	}
@@ -171,14 +213,17 @@ func TestParseSettings(t *testing.T) {
 }
 
 func TestWorkspaceSettings_ToJSON(t *testing.T) {
-	settings := WorkspaceSettings{ShowJoinLeaveMessages: false}
-	json := settings.ToJSON()
-	if json != `{"show_join_leave_messages":false}` {
-		t.Errorf("ToJSON() = %q, want %q", json, `{"show_join_leave_messages":false}`)
+	settings := WorkspaceSettings{
+		ShowJoinLeaveMessages:   false,
+		WhoCanCreateChannels:    PermissionAdmins,
+		WhoCanCreateInvites:     PermissionMembers,
+		WhoCanPinMessages:       PermissionEveryone,
+		WhoCanManageCustomEmoji: PermissionAdmins,
 	}
+	jsonStr := settings.ToJSON()
 
 	// Verify round-trip
-	parsed := ParseSettings(json)
+	parsed := ParseSettings(jsonStr)
 	if parsed != settings {
 		t.Errorf("Round-trip failed: got %+v, want %+v", parsed, settings)
 	}
@@ -188,6 +233,18 @@ func TestDefaultSettings(t *testing.T) {
 	defaults := DefaultSettings()
 	if !defaults.ShowJoinLeaveMessages {
 		t.Error("default ShowJoinLeaveMessages should be true")
+	}
+	if defaults.WhoCanCreateChannels != PermissionMembers {
+		t.Errorf("default WhoCanCreateChannels should be %q, got %q", PermissionMembers, defaults.WhoCanCreateChannels)
+	}
+	if defaults.WhoCanCreateInvites != PermissionAdmins {
+		t.Errorf("default WhoCanCreateInvites should be %q, got %q", PermissionAdmins, defaults.WhoCanCreateInvites)
+	}
+	if defaults.WhoCanPinMessages != PermissionMembers {
+		t.Errorf("default WhoCanPinMessages should be %q, got %q", PermissionMembers, defaults.WhoCanPinMessages)
+	}
+	if defaults.WhoCanManageCustomEmoji != PermissionMembers {
+		t.Errorf("default WhoCanManageCustomEmoji should be %q, got %q", PermissionMembers, defaults.WhoCanManageCustomEmoji)
 	}
 }
 

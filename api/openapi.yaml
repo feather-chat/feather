@@ -2720,6 +2720,11 @@ components:
           type: string
           format: date-time
 
+    PermissionLevel:
+      type: string
+      enum: [everyone, members, admins]
+      description: Controls which workspace roles can perform an action
+
     # Workspace schemas
     WorkspaceSettings:
       type: object
@@ -2728,6 +2733,18 @@ components:
           type: boolean
           default: true
           description: Whether to show system messages when users join or leave channels
+        who_can_create_channels:
+          $ref: '#/components/schemas/PermissionLevel'
+          default: members
+        who_can_create_invites:
+          $ref: '#/components/schemas/PermissionLevel'
+          default: admins
+        who_can_pin_messages:
+          $ref: '#/components/schemas/PermissionLevel'
+          default: members
+        who_can_manage_custom_emoji:
+          $ref: '#/components/schemas/PermissionLevel'
+          default: members
 
     Workspace:
       type: object

@@ -9,6 +9,8 @@ import { useAuth } from '../../hooks';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
 import { Button, Spinner, toast, CustomEmojiImg, ConfirmDialog } from '../ui';
 import { resolveStandardShortcode } from '../../lib/emoji';
+import { useWorkspace } from '../../hooks/useWorkspaces';
+import { hasPermission } from '../../lib/utils';
 
 const NAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}$/;
 
@@ -29,8 +31,13 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
   const [emojiToDelete, setEmojiToDelete] = useState<{ id: string; name: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { data: workspaceData } = useWorkspace(workspaceId);
   const currentMember = membersData?.members.find((m) => m.user_id === user?.id);
   const isAdmin = currentMember?.role === 'owner' || currentMember?.role === 'admin';
+  const canManageEmoji = hasPermission(
+    currentMember?.role,
+    workspaceData?.workspace.parsed_settings?.who_can_manage_custom_emoji,
+  );
 
   const nameError = (() => {
     if (!name) return null;
@@ -107,75 +114,77 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
   return (
     <div className="space-y-6">
       {/* Upload form */}
-      <div className="space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Custom Emoji</h3>
+      {canManageEmoji && (
+        <div className="space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Custom Emoji</h3>
 
-        <div className="flex items-start gap-4">
-          {/* Preview */}
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-700">
-            {previewUrl ? (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="max-h-full max-w-full object-contain"
-              />
-            ) : (
-              <span className="text-xs text-gray-400">Preview</span>
-            )}
-          </div>
-
-          <div className="flex-1 space-y-3">
-            {/* File input */}
-            <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/gif"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <Button variant="secondary" size="sm" onPress={() => fileInputRef.current?.click()}>
-                {selectedFile ? 'Change Image' : 'Choose Image'}
-              </Button>
-              {selectedFile && (
-                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                  {selectedFile.name}
-                </span>
-              )}
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                PNG or GIF. Max 256KB.
-              </p>
-            </div>
-
-            {/* Name input */}
-            <div>
-              <label className="mb-1 block text-sm text-gray-600 dark:text-gray-400">Name</label>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400">:</span>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value.replace(/\s/g, ''))}
-                  placeholder="emoji_name"
-                  className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          <div className="flex items-start gap-4">
+            {/* Preview */}
+            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-700">
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="max-h-full max-w-full object-contain"
                 />
-                <span className="text-gray-400">:</span>
-              </div>
-              {nameError && <p className="mt-1 text-xs text-red-500">{nameError}</p>}
+              ) : (
+                <span className="text-xs text-gray-400">Preview</span>
+              )}
             </div>
 
-            {/* Upload button */}
-            <Button
-              size="sm"
-              onPress={handleUpload}
-              isDisabled={!selectedFile || !name || !!nameError}
-              isLoading={uploadEmoji.isPending}
-            >
-              Upload Emoji
-            </Button>
+            <div className="flex-1 space-y-3">
+              {/* File input */}
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/gif"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <Button variant="secondary" size="sm" onPress={() => fileInputRef.current?.click()}>
+                  {selectedFile ? 'Change Image' : 'Choose Image'}
+                </Button>
+                {selectedFile && (
+                  <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                    {selectedFile.name}
+                  </span>
+                )}
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  PNG or GIF. Max 256KB.
+                </p>
+              </div>
+
+              {/* Name input */}
+              <div>
+                <label className="mb-1 block text-sm text-gray-600 dark:text-gray-400">Name</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">:</span>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value.replace(/\s/g, ''))}
+                    placeholder="emoji_name"
+                    className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  />
+                  <span className="text-gray-400">:</span>
+                </div>
+                {nameError && <p className="mt-1 text-xs text-red-500">{nameError}</p>}
+              </div>
+
+              {/* Upload button */}
+              <Button
+                size="sm"
+                onPress={handleUpload}
+                isDisabled={!selectedFile || !name || !!nameError}
+                isLoading={uploadEmoji.isPending}
+              >
+                Upload Emoji
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Emoji list */}
       <div>

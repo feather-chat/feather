@@ -8,6 +8,7 @@ import {
   type WorkspaceNotificationSummary,
   type Invite,
   type WorkspaceRole,
+  type WorkspaceSettings,
 } from '@enzyme/api-client';
 
 export interface CreateWorkspaceInput {
@@ -16,6 +17,7 @@ export interface CreateWorkspaceInput {
 
 export interface UpdateWorkspaceInput {
   name?: string;
+  settings?: Partial<WorkspaceSettings>;
 }
 
 export interface CreateInviteInput {

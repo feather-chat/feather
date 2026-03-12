@@ -82,9 +82,16 @@ interface MessageItemProps {
   channelId: string;
   channels?: ChannelWithMembership[];
   isAdmin?: boolean;
+  canPin?: boolean;
 }
 
-export function MessageItem({ message, channelId, channels, isAdmin }: MessageItemProps) {
+export function MessageItem({
+  message,
+  channelId,
+  channels,
+  isAdmin,
+  canPin: canPinProp,
+}: MessageItemProps) {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const customEmojiMap = useCustomEmojiMap(workspaceId);
   const { data: customEmojis } = useCustomEmojis(workspaceId);
@@ -127,7 +134,7 @@ export function MessageItem({ message, channelId, channels, isAdmin }: MessageIt
   const isEdited = !!message.edited_at;
   const isOwnMessage = user?.id === message.user_id;
   const isPinned = !!message.pinned_at;
-  const canPin = !!isAdmin;
+  const canPin = canPinProp ?? !!isAdmin;
   const canDelete = isOwnMessage || !!isAdmin;
 
   const handleReactionClick = (emoji: string, hasOwn: boolean) => {

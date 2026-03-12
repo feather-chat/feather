@@ -27,7 +27,7 @@ Messages containing **only 1-3 emoji** (with no other text) render at 4x size.
 
 ## Custom Emoji
 
-Workspace members can upload custom emoji that everyone in the workspace can use.
+Workspace members can upload custom emoji that everyone in the workspace can use. Upload access is controlled by the **who can manage custom emoji** [permission setting](/docs/permissions/#configurable-permission-settings) (default: members).
 
 ### Uploading
 

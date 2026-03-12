@@ -1518,12 +1518,25 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
+        /**
+         * @description Controls which workspace roles can perform an action
+         * @enum {string}
+         */
+        PermissionLevel: "everyone" | "members" | "admins";
         WorkspaceSettings: {
             /**
              * @description Whether to show system messages when users join or leave channels
              * @default true
              */
             show_join_leave_messages: boolean;
+            /** @default members */
+            who_can_create_channels: components["schemas"]["PermissionLevel"];
+            /** @default admins */
+            who_can_create_invites: components["schemas"]["PermissionLevel"];
+            /** @default members */
+            who_can_pin_messages: components["schemas"]["PermissionLevel"];
+            /** @default members */
+            who_can_manage_custom_emoji: components["schemas"]["PermissionLevel"];
         };
         Workspace: {
             id: string;

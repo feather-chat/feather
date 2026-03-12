@@ -91,7 +91,7 @@ func TestDeleteCustomEmoji_Admin(t *testing.T) {
 	}
 }
 
-func TestDeleteCustomEmoji_NotCreator(t *testing.T) {
+func TestDeleteCustomEmoji_MemberCanDeleteOthers(t *testing.T) {
 	h, db := testHandler(t)
 
 	owner := testutil.CreateTestUser(t, db, "owner@test.com", "Owner")
@@ -102,8 +102,32 @@ func TestDeleteCustomEmoji_NotCreator(t *testing.T) {
 	addWorkspaceMember(t, db, other.ID, ws.ID, "member")
 	em := testutil.CreateTestEmoji(t, db, ws.ID, creator.ID, "not-yours")
 
-	// other (regular member) tries to delete creator's emoji
+	// Default who_can_manage_custom_emoji is "members", so member can delete
 	ctx := ctxWithUser(t, h, other.ID)
+	resp, err := h.DeleteCustomEmoji(ctx, openapi.DeleteCustomEmojiRequestObject{
+		Id: em.ID,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.DeleteCustomEmoji200JSONResponse); !ok {
+		t.Fatalf("expected 200 response, got %T", resp)
+	}
+}
+
+func TestDeleteCustomEmoji_GuestDenied(t *testing.T) {
+	h, db := testHandler(t)
+
+	owner := testutil.CreateTestUser(t, db, "owner@test.com", "Owner")
+	creator := testutil.CreateTestUser(t, db, "creator@test.com", "Creator")
+	guest := testutil.CreateTestUser(t, db, "guest@test.com", "Guest")
+	ws := testutil.CreateTestWorkspace(t, db, owner.ID, "WS")
+	addWorkspaceMember(t, db, creator.ID, ws.ID, "member")
+	addWorkspaceMember(t, db, guest.ID, ws.ID, "guest")
+	em := testutil.CreateTestEmoji(t, db, ws.ID, creator.ID, "not-yours")
+
+	// Default who_can_manage_custom_emoji is "members", so guest is denied
+	ctx := ctxWithUser(t, h, guest.ID)
 	resp, err := h.DeleteCustomEmoji(ctx, openapi.DeleteCustomEmojiRequestObject{
 		Id: em.ID,
 	})

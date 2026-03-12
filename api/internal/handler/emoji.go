@@ -58,9 +58,19 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 	workspaceID := request.Wid
 
 	// Check workspace membership
-	_, err := h.workspaceRepo.GetMembership(ctx, userID, workspaceID)
+	membership, err := h.workspaceRepo.GetMembership(ctx, userID, workspaceID)
 	if err != nil {
 		return openapi.UploadCustomEmoji403JSONResponse{ForbiddenJSONResponse: notAMemberResponse("Not a member of this workspace")}, nil
+	}
+
+	// Check workspace-level emoji permission
+	ws, err := h.workspaceRepo.GetByID(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	wsSettings := ws.ParsedSettings()
+	if !workspace.HasPermission(membership.Role, wsSettings.WhoCanManageCustomEmoji) {
+		return openapi.UploadCustomEmoji403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	// Parse multipart: read "name" field and "file" field
@@ -218,13 +228,17 @@ func (h *Handler) DeleteCustomEmoji(ctx context.Context, request openapi.DeleteC
 		return nil, err
 	}
 
-	// Check permission: creator or admin
+	// Check permission: creator, or has manage emoji permission
 	canDelete := e.CreatedBy == userID
 
 	if !canDelete {
 		membership, err := h.workspaceRepo.GetMembership(ctx, userID, e.WorkspaceID)
-		if err == nil && workspace.CanManageMembers(membership.Role) {
-			canDelete = true
+		if err == nil {
+			ws, wsErr := h.workspaceRepo.GetByID(ctx, e.WorkspaceID)
+			if wsErr == nil {
+				wsSettings := ws.ParsedSettings()
+				canDelete = workspace.HasPermission(membership.Role, wsSettings.WhoCanManageCustomEmoji)
+			}
 		}
 	}
 

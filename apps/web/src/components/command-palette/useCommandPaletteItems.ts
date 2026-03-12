@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useChannels, useAuth } from '../../hooks';
-import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
+import { useWorkspaceMembers, useWorkspace } from '../../hooks/useWorkspaces';
 import { fuzzyMatch } from '../../lib/fuzzyMatch';
 import { getRecentChannels } from '../../lib/recentChannels';
+import { hasPermission } from '../../lib/utils';
 import type { ChannelWithMembership, WorkspaceMemberWithUser } from '@enzyme/api-client';
 
 export type CommandPaletteItemType = 'channel' | 'person' | 'action';
@@ -45,18 +46,34 @@ const ACTIONS: ActionDef[] = [
   { key: 'threads', label: 'Threads' },
   { key: 'scheduled', label: 'Scheduled messages' },
   { key: 'workspace-settings', label: 'Workspace settings' },
-  { key: 'invite', label: 'Invite people', adminOnly: true },
+  { key: 'invite', label: 'Invite people' },
 ];
 
 export function useCommandPaletteItems(query: string): CommandPaletteItem[] {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { data: channelsData } = useChannels(workspaceId);
   const { data: membersData } = useWorkspaceMembers(workspaceId);
+  const { data: workspaceData } = useWorkspace(workspaceId);
   const { user, workspaces } = useAuth();
 
   const workspaceMembership = workspaces?.find((w) => w.id === workspaceId);
-  const isAdminOrOwner =
-    workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin';
+  const role = workspaceMembership?.role;
+  const parsedSettings = workspaceData?.workspace.parsed_settings;
+
+  const actionFilter = useMemo(() => {
+    return (action: ActionDef) => {
+      if (action.key === 'create-channel') {
+        return hasPermission(role, parsedSettings?.who_can_create_channels);
+      }
+      if (action.key === 'invite') {
+        return hasPermission(role, parsedSettings?.who_can_create_invites);
+      }
+      if (action.adminOnly) {
+        return role === 'owner' || role === 'admin';
+      }
+      return true;
+    };
+  }, [role, parsedSettings]);
 
   return useMemo(() => {
     const channels = channelsData?.channels ?? [];
@@ -64,16 +81,16 @@ export function useCommandPaletteItems(query: string): CommandPaletteItem[] {
     const trimmed = query.trim();
 
     if (!trimmed) {
-      return buildEmptyQueryItems(channels, isAdminOrOwner, workspaceId);
+      return buildEmptyQueryItems(channels, actionFilter, workspaceId);
     }
 
-    return buildFilteredItems(trimmed, channels, members, user?.id, isAdminOrOwner);
-  }, [query, channelsData, membersData, user, isAdminOrOwner, workspaceId]);
+    return buildFilteredItems(trimmed, channels, members, user?.id, actionFilter);
+  }, [query, channelsData, membersData, user, actionFilter, workspaceId]);
 }
 
 function buildEmptyQueryItems(
   channels: ChannelWithMembership[],
-  isAdminOrOwner: boolean,
+  actionFilter: (action: ActionDef) => boolean,
   workspaceId: string | undefined,
 ): CommandPaletteItem[] {
   const items: CommandPaletteItem[] = [];
@@ -92,7 +109,7 @@ function buildEmptyQueryItems(
 
   // Actions
   for (const action of ACTIONS) {
-    if (action.adminOnly && !isAdminOrOwner) continue;
+    if (!actionFilter(action)) continue;
     items.push(actionToItem(action, 'Actions', 0));
   }
 
@@ -104,7 +121,7 @@ function buildFilteredItems(
   channels: ChannelWithMembership[],
   members: WorkspaceMemberWithUser[],
   currentUserId: string | undefined,
-  isAdminOrOwner: boolean,
+  actionFilter: (action: ActionDef) => boolean,
 ): CommandPaletteItem[] {
   // Collect items into section buckets, each sorted by score
   const channelItems: CommandPaletteItem[] = [];
@@ -162,7 +179,7 @@ function buildFilteredItems(
 
   // Actions
   for (const action of ACTIONS) {
-    if (action.adminOnly && !isAdminOrOwner) continue;
+    if (!actionFilter(action)) continue;
     const result = fuzzyMatch(query, action.label);
     if (result.matches) {
       actionItems.push(actionToItem(action, 'Actions', result.score));

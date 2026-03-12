@@ -68,6 +68,29 @@ export function groupReactions(
   return grouped;
 }
 
+import type { WorkspaceRole, PermissionLevel } from '@enzyme/api-client';
+
+/**
+ * Returns true if the given workspace role satisfies the required permission level.
+ * Mirrors the backend workspace.HasPermission logic.
+ */
+export function hasPermission(
+  role: WorkspaceRole | undefined,
+  level: PermissionLevel | undefined,
+): boolean {
+  if (!role || !level) return false;
+  switch (level) {
+    case 'everyone':
+      return role === 'owner' || role === 'admin' || role === 'member' || role === 'guest';
+    case 'members':
+      return role === 'owner' || role === 'admin' || role === 'member';
+    case 'admins':
+      return role === 'owner' || role === 'admin';
+    default:
+      return false;
+  }
+}
+
 const AVATAR_COLORS = [
   'bg-red-500',
   'bg-orange-500',

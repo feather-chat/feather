@@ -1500,19 +1500,30 @@ func (h *Handler) PinMessage(ctx context.Context, request openapi.PinMessageRequ
 		return nil, err
 	}
 
-	// Check permission: channel member who can post, or workspace admin for public channels
+	// Check permission: must be channel member who can post (or ws admin for public channels),
+	// AND must satisfy the workspace-level who_can_pin_messages setting.
+	wsMembership, wsErr := h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
+	if wsErr != nil {
+		return openapi.PinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
+	}
+
 	membership, memberErr := h.channelRepo.GetMembership(ctx, userID, msg.ChannelID)
 	if memberErr != nil {
-		// Not a channel member — check if workspace admin for public channels
-		if ch.Type == channel.TypePublic {
-			wsMembership, wsErr := h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
-			if wsErr != nil || !workspace.CanManageMembers(wsMembership.Role) {
-				return openapi.PinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
-			}
-		} else {
+		// Not a channel member — only workspace admins can pin in public channels
+		if ch.Type != channel.TypePublic || !workspace.CanManageMembers(wsMembership.Role) {
 			return openapi.PinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 		}
 	} else if !channel.CanPost(membership.ChannelRole) {
+		return openapi.PinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
+	}
+
+	// Check workspace-level pin permission setting
+	ws, err := h.workspaceRepo.GetByID(ctx, ch.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	wsSettings := ws.ParsedSettings()
+	if !workspace.HasPermission(wsMembership.Role, wsSettings.WhoCanPinMessages) {
 		return openapi.PinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
@@ -1592,17 +1603,27 @@ func (h *Handler) UnpinMessage(ctx context.Context, request openapi.UnpinMessage
 	}
 
 	// Check permission: same as pin
+	wsMembership, wsErr := h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
+	if wsErr != nil {
+		return openapi.UnpinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
+	}
+
 	membership, memberErr := h.channelRepo.GetMembership(ctx, userID, msg.ChannelID)
 	if memberErr != nil {
-		if ch.Type == channel.TypePublic {
-			wsMembership, wsErr := h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
-			if wsErr != nil || !workspace.CanManageMembers(wsMembership.Role) {
-				return openapi.UnpinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
-			}
-		} else {
+		if ch.Type != channel.TypePublic || !workspace.CanManageMembers(wsMembership.Role) {
 			return openapi.UnpinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 		}
 	} else if !channel.CanPost(membership.ChannelRole) {
+		return openapi.UnpinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
+	}
+
+	// Check workspace-level pin permission setting
+	ws, err := h.workspaceRepo.GetByID(ctx, ch.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	wsSettings := ws.ParsedSettings()
+	if !workspace.HasPermission(wsMembership.Role, wsSettings.WhoCanPinMessages) {
 		return openapi.UnpinMessage403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
