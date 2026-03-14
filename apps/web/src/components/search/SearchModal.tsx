@@ -15,7 +15,7 @@ import {
   IconButton,
   Spinner,
   Dialog,
-  AriaModal,
+  BaseModal,
   ModalOverlay,
   type DateValue,
 } from '../ui';
@@ -126,7 +126,7 @@ export function SearchModal({ isOpen, onClose, initialChannelId, initialQuery }:
       isDismissable
       className="entering:animate-in entering:fade-in exiting:animate-out exiting:fade-out entering:duration-200 exiting:duration-150 fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[15vh]"
     >
-      <AriaModal className="entering:animate-in entering:zoom-in-95 exiting:animate-out exiting:zoom-out-95 entering:duration-200 exiting:duration-150 relative mx-4 w-full max-w-2xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
+      <BaseModal className="entering:animate-in entering:zoom-in-95 exiting:animate-out exiting:zoom-out-95 entering:duration-200 exiting:duration-150 relative mx-4 w-full max-w-2xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
         <Dialog>
           <div className="flex flex-col">
             {/* Search input */}
@@ -256,7 +256,7 @@ export function SearchModal({ isOpen, onClose, initialChannelId, initialQuery }:
             </div>
           </div>
         </Dialog>
-      </AriaModal>
+      </BaseModal>
     </ModalOverlay>
   );
 }

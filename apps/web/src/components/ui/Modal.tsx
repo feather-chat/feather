@@ -1,14 +1,9 @@
 import { type ReactNode } from 'react';
-import {
-  Dialog,
-  DialogTrigger,
-  Modal as AriaModal,
-  ModalOverlay,
-  Heading,
-} from 'react-aria-components';
+import { DialogTrigger, Modal as BaseModal, ModalOverlay, Heading } from 'react-aria-components';
 import { tv, type VariantProps } from 'tailwind-variants';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { IconButton } from './IconButton';
+import { Dialog } from './Dialog';
 
 const modal = tv({
   slots: {
@@ -65,10 +60,8 @@ export function Modal({ isOpen, onClose, title, children, size }: ModalProps) {
       isDismissable
       className={styles.overlay()}
     >
-      <AriaModal className={styles.container()}>
-        <Dialog
-          className={size === 'settings' ? 'flex h-full flex-col outline-none' : 'outline-none'}
-        >
+      <BaseModal className={styles.container()}>
+        <Dialog className={size === 'settings' ? 'flex h-full flex-col' : undefined}>
           {({ close }) => (
             <>
               {title && (
@@ -96,10 +89,10 @@ export function Modal({ isOpen, onClose, title, children, size }: ModalProps) {
             </>
           )}
         </Dialog>
-      </AriaModal>
+      </BaseModal>
     </ModalOverlay>
   );
 }
 
 export { DialogTrigger };
-export { ModalOverlay, AriaModal };
+export { ModalOverlay, BaseModal };

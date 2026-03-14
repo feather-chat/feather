@@ -4,7 +4,7 @@ export { Input } from './Input';
 export { Spinner } from './Spinner';
 export { Avatar } from './Avatar';
 export { AvatarStack } from './AvatarStack';
-export { Modal, DialogTrigger, ModalOverlay, AriaModal } from './Modal';
+export { Modal, DialogTrigger, ModalOverlay, BaseModal } from './Modal';
 export { ConfirmDialog } from './ConfirmDialog';
 export { Skeleton, MessageSkeleton, ChannelListSkeleton } from './Skeleton';
 export { toast } from './toast-store';
@@ -34,6 +34,8 @@ export { TimeField } from './TimeField';
 export { DisclosureCaret } from './DisclosureCaret';
 export { PinOutlineIcon, PinSolidIcon } from './icons';
 export { Dialog } from './Dialog';
+// Thin re-exports: these RAC primitives don't need custom defaults yet.
+// Centralizing them here lets us add wrappers later without changing consumers.
 export {
   Button as UnstyledButton,
   Popover,
