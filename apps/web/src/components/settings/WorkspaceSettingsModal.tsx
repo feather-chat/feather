@@ -891,7 +891,7 @@ function PermissionSelect({
   return (
     <Select
       selectedKey={value}
-      onSelectionChange={(key: Key) => onChange(key as PermissionLevel)}
+      onSelectionChange={(key: Key | null) => key && onChange(key as PermissionLevel)}
       className="max-w-xs"
     >
       <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
