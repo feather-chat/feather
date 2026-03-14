@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
-import { Dialog, Modal as AriaModal, ModalOverlay, Heading } from 'react-aria-components';
+import { Modal as BaseModal, ModalOverlay, Heading } from 'react-aria-components';
+import { Dialog } from './Dialog';
 import { tv } from 'tailwind-variants';
 import { Button } from './Button';
 
@@ -54,8 +55,8 @@ export function ConfirmDialog({
       isKeyboardDismissDisabled={isLoading}
       className={styles.overlay()}
     >
-      <AriaModal className={styles.container()}>
-        <Dialog role="alertdialog" className="p-6 outline-none">
+      <BaseModal className={styles.container()}>
+        <Dialog role="alertdialog" className="p-6">
           <Heading slot="title" className={styles.title()}>
             {title}
           </Heading>
@@ -75,7 +76,7 @@ export function ConfirmDialog({
             </Button>
           </div>
         </Dialog>
-      </AriaModal>
+      </BaseModal>
     </ModalOverlay>
   );
 }

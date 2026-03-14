@@ -102,7 +102,7 @@ describe('Modal', () => {
       </Modal>,
     );
 
-    // The size class is on the AriaModal container, parent of the dialog
+    // The size class is on the BaseModal container, parent of the dialog
     const dialog = screen.getByRole('dialog');
     expect(dialog.parentElement).toHaveClass('max-w-sm');
   });

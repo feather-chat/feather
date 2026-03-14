@@ -1,13 +1,4 @@
 import { useState, useRef, useEffect, useMemo, type Key } from 'react';
-import {
-  Select,
-  Label,
-  Button as AriaButton,
-  SelectValue,
-  Popover,
-  ListBox,
-  ListBoxItem,
-} from 'react-aria-components';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import {
   Cog6ToothIcon,
@@ -33,7 +24,22 @@ import {
   useCreateInvite,
 } from '../../hooks/useWorkspaces';
 import { useAuth } from '../../hooks';
-import { Modal, Avatar, Button, IconButton, Spinner, toast, ConfirmDialog } from '../ui';
+import {
+  Modal,
+  Avatar,
+  Button,
+  UnstyledButton,
+  IconButton,
+  Spinner,
+  toast,
+  ConfirmDialog,
+  Select,
+  Label,
+  SelectValue,
+  Popover,
+  ListBox,
+  ListBoxItem,
+} from '../ui';
 import { useBlocks, useBlockUser, useUnblockUser } from '../../hooks/useModeration';
 import { CustomEmojiManager } from './CustomEmojiManager';
 import { ModerationPanel } from './ModerationPanel';
@@ -330,9 +336,9 @@ export function WorkspaceSettingsModal({
             {/* Left sidebar nav */}
             <nav className="flex w-56 flex-shrink-0 flex-col gap-1 border-r border-gray-200 p-2 dark:border-gray-700">
               {visibleNavItems.map((item) => (
-                <button
+                <UnstyledButton
                   key={item.id}
-                  onClick={() => setSelectedTab(item.id)}
+                  onPress={() => setSelectedTab(item.id)}
                   className={cn(
                     'flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-left transition-colors',
                     selectedTab === item.id
@@ -347,7 +353,7 @@ export function WorkspaceSettingsModal({
                       {members.length}
                     </span>
                   )}
-                </button>
+                </UnstyledButton>
               ))}
             </nav>
 
@@ -897,10 +903,10 @@ function PermissionSelect({
       <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
       </Label>
-      <AriaButton className="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+      <UnstyledButton className="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
         <SelectValue />
         <ChevronDownIcon className="h-4 w-4 text-gray-500" />
-      </AriaButton>
+      </UnstyledButton>
       <Popover
         offset={4}
         className="w-(--trigger-width) rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"

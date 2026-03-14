@@ -7,12 +7,19 @@ import {
   LockClosedIcon,
   ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
-import { Dialog, Modal as AriaModal, ModalOverlay } from 'react-aria-components';
-import { type DateValue } from '@internationalized/date';
 import { useSearch } from '../../hooks/useSearch';
 import { useChannels } from '../../hooks/useChannels';
 import { useWorkspaceMembers } from '../../hooks/useWorkspaces';
-import { DatePicker, IconButton, Spinner } from '../ui';
+import {
+  DatePicker,
+  IconButton,
+  UnstyledButton,
+  Spinner,
+  Dialog,
+  BaseModal,
+  ModalOverlay,
+  type DateValue,
+} from '../ui';
 import { formatRelativeTime } from '../../lib/utils';
 import type { SearchMessage } from '@enzyme/api-client';
 
@@ -120,8 +127,8 @@ export function SearchModal({ isOpen, onClose, initialChannelId, initialQuery }:
       isDismissable
       className="entering:animate-in entering:fade-in exiting:animate-out exiting:fade-out entering:duration-200 exiting:duration-150 fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[15vh]"
     >
-      <AriaModal className="entering:animate-in entering:zoom-in-95 exiting:animate-out exiting:zoom-out-95 entering:duration-200 exiting:duration-150 relative mx-4 w-full max-w-2xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
-        <Dialog className="outline-none">
+      <BaseModal className="entering:animate-in entering:zoom-in-95 exiting:animate-out exiting:zoom-out-95 entering:duration-200 exiting:duration-150 relative mx-4 w-full max-w-2xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
+        <Dialog>
           <div className="flex flex-col">
             {/* Search input */}
             <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 dark:border-gray-700">
@@ -237,12 +244,12 @@ export function SearchModal({ isOpen, onClose, initialChannelId, initialQuery }:
 
                   {data?.has_more && (
                     <div className="p-4 text-center">
-                      <button
-                        onClick={handleLoadMore}
+                      <UnstyledButton
+                        onPress={handleLoadMore}
                         className="cursor-pointer text-sm text-blue-600 hover:underline dark:text-blue-400"
                       >
                         Load more results
-                      </button>
+                      </UnstyledButton>
                     </div>
                   )}
                 </>
@@ -250,15 +257,15 @@ export function SearchModal({ isOpen, onClose, initialChannelId, initialQuery }:
             </div>
           </div>
         </Dialog>
-      </AriaModal>
+      </BaseModal>
     </ModalOverlay>
   );
 }
 
 function SearchResultItem({ message, onClick }: { message: SearchMessage; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
+    <UnstyledButton
+      onPress={onClick}
       className="block w-full cursor-pointer border-b border-gray-100 p-4 text-left last:border-b-0 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
     >
       <div className="flex items-start gap-3">
@@ -297,6 +304,6 @@ function SearchResultItem({ message, onClick }: { message: SearchMessage; onClic
           </div>
         </div>
       </div>
-    </button>
+    </UnstyledButton>
   );
 }

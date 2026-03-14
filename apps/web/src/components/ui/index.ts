@@ -4,7 +4,7 @@ export { Input } from './Input';
 export { Spinner } from './Spinner';
 export { Avatar } from './Avatar';
 export { AvatarStack } from './AvatarStack';
-export { Modal, DialogTrigger } from './Modal';
+export { Modal, DialogTrigger, ModalOverlay, BaseModal } from './Modal';
 export { ConfirmDialog } from './ConfirmDialog';
 export { Skeleton, MessageSkeleton, ChannelListSkeleton } from './Skeleton';
 export { toast } from './toast-store';
@@ -33,3 +33,20 @@ export { DatePicker } from './DatePicker';
 export { TimeField } from './TimeField';
 export { DisclosureCaret } from './DisclosureCaret';
 export { PinOutlineIcon, PinSolidIcon } from './icons';
+export { Dialog } from './Dialog';
+// Thin re-exports: these RAC primitives don't need custom defaults yet.
+// Centralizing them here lets us add wrappers later without changing consumers.
+export {
+  Button as UnstyledButton,
+  Popover,
+  ToggleButton,
+  DropZone,
+  FileTrigger,
+  Heading,
+  Label,
+  Select,
+  SelectValue,
+  ListBox,
+  ListBoxItem,
+} from 'react-aria-components';
+export type { DateValue, TimeValue } from 'react-aria-components';
