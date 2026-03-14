@@ -31,7 +31,13 @@ func (h *Handler) CreateChannel(ctx context.Context, request openapi.CreateChann
 		return nil, err
 	}
 
-	if !workspace.CanCreateChannels(membership.Role) {
+	ws, err := h.workspaceRepo.GetByID(ctx, string(request.Wid))
+	if err != nil {
+		return nil, err
+	}
+	settings := ws.ParsedSettings()
+
+	if !workspace.HasPermission(membership.Role, settings.WhoCanCreateChannels) {
 		return openapi.CreateChannel403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
@@ -688,7 +694,13 @@ func (h *Handler) ConvertGroupDMToChannel(ctx context.Context, request openapi.C
 		return nil, err
 	}
 
-	if !workspace.CanCreateChannels(membership.Role) {
+	ws, err := h.workspaceRepo.GetByID(ctx, ch.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	wsSettings := ws.ParsedSettings()
+
+	if !workspace.HasPermission(membership.Role, wsSettings.WhoCanCreateChannels) {
 		return openapi.ConvertGroupDMToChannel403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 

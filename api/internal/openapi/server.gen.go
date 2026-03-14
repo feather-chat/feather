@@ -63,6 +63,13 @@ const (
 	NotifyLevelNone     NotifyLevel = "none"
 )
 
+// Defines values for PermissionLevel.
+const (
+	Admins   PermissionLevel = "admins"
+	Everyone PermissionLevel = "everyone"
+	Members  PermissionLevel = "members"
+)
+
 // Defines values for ScheduledMessageStatus.
 const (
 	Failed  ScheduledMessageStatus = "failed"
@@ -422,6 +429,9 @@ type NotificationPreferences struct {
 // NotifyLevel defines model for NotifyLevel.
 type NotifyLevel string
 
+// PermissionLevel Controls which workspace roles can perform an action
+type PermissionLevel string
+
 // Reaction defines model for Reaction.
 type Reaction struct {
 	CreatedAt time.Time `json:"created_at"`
@@ -776,6 +786,18 @@ type WorkspaceRole string
 type WorkspaceSettings struct {
 	// ShowJoinLeaveMessages Whether to show system messages when users join or leave channels
 	ShowJoinLeaveMessages *bool `json:"show_join_leave_messages,omitempty"`
+
+	// WhoCanCreateChannels Controls which workspace roles can perform an action
+	WhoCanCreateChannels *PermissionLevel `json:"who_can_create_channels,omitempty"`
+
+	// WhoCanCreateInvites Controls which workspace roles can perform an action
+	WhoCanCreateInvites *PermissionLevel `json:"who_can_create_invites,omitempty"`
+
+	// WhoCanManageCustomEmoji Controls which workspace roles can perform an action
+	WhoCanManageCustomEmoji *PermissionLevel `json:"who_can_manage_custom_emoji,omitempty"`
+
+	// WhoCanPinMessages Controls which workspace roles can perform an action
+	WhoCanPinMessages *PermissionLevel `json:"who_can_pin_messages,omitempty"`
 }
 
 // WorkspaceSummary defines model for WorkspaceSummary.

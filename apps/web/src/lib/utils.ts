@@ -1,5 +1,6 @@
 // Re-export cn from tailwind-variants for class name merging
 export { cn } from 'tailwind-variants';
+import type { WorkspaceRole, PermissionLevel } from '@enzyme/api-client';
 
 export function formatTime(dateString: string): string {
   const date = new Date(dateString);
@@ -66,6 +67,27 @@ export function groupReactions(
     grouped.set(emoji, users);
   });
   return grouped;
+}
+
+/**
+ * Returns true if the given workspace role satisfies the required permission level.
+ * Mirrors the backend workspace.HasPermission logic.
+ */
+export function hasPermission(
+  role: WorkspaceRole | undefined,
+  level: PermissionLevel | undefined,
+): boolean {
+  if (!role || !level) return false;
+  switch (level) {
+    case 'everyone':
+      return role === 'owner' || role === 'admin' || role === 'member' || role === 'guest';
+    case 'members':
+      return role === 'owner' || role === 'admin' || role === 'member';
+    case 'admins':
+      return role === 'owner' || role === 'admin';
+    default:
+      return false;
+  }
 }
 
 const AVATAR_COLORS = [

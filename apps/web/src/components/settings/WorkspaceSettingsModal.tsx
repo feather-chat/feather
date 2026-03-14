@@ -1,4 +1,14 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, type Key } from 'react';
+import {
+  Select,
+  Label,
+  Button as AriaButton,
+  SelectValue,
+  Popover,
+  ListBox,
+  ListBoxItem,
+} from 'react-aria-components';
+import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import {
   Cog6ToothIcon,
   UsersIcon,
@@ -10,6 +20,7 @@ import {
   TrashIcon,
   XMarkIcon,
   NoSymbolIcon,
+  KeyIcon,
 } from '@heroicons/react/24/outline';
 import {
   useWorkspace,
@@ -26,10 +37,16 @@ import { Modal, Avatar, Button, IconButton, Spinner, toast, ConfirmDialog } from
 import { useBlocks, useBlockUser, useUnblockUser } from '../../hooks/useModeration';
 import { CustomEmojiManager } from './CustomEmojiManager';
 import { ModerationPanel } from './ModerationPanel';
-import { cn, getAvatarColor } from '../../lib/utils';
-import type { WorkspaceRole } from '@enzyme/api-client';
+import { cn, getAvatarColor, hasPermission } from '../../lib/utils';
+import type { WorkspaceRole, PermissionLevel } from '@enzyme/api-client';
 
-export type WorkspaceSettingsTab = 'general' | 'members' | 'emoji' | 'invite' | 'moderation';
+export type WorkspaceSettingsTab =
+  | 'general'
+  | 'members'
+  | 'emoji'
+  | 'invite'
+  | 'permissions'
+  | 'moderation';
 
 interface NavItem {
   id: WorkspaceSettingsTab;
@@ -43,6 +60,7 @@ const navItems: NavItem[] = [
   { id: 'members', label: 'Manage Members', icon: UsersIcon },
   { id: 'emoji', label: 'Custom Emoji', icon: FaceSmileIcon },
   { id: 'invite', label: 'Invite People', icon: UserPlusIcon, adminOnly: true },
+  { id: 'permissions', label: 'Permissions', icon: KeyIcon, adminOnly: true },
   { id: 'moderation', label: 'Moderation', icon: ShieldExclamationIcon, adminOnly: true },
 ];
 
@@ -98,6 +116,11 @@ export function WorkspaceSettingsModal({
   const ownerCount = useMemo(() => members.filter((m) => m.role === 'owner').length, [members]);
   const isBlockedUser = (userId: string) =>
     blocksData?.blocks?.some((b) => b.blocked_id === userId) ?? false;
+  const parsedSettings = workspace?.workspace.parsed_settings;
+  const canInvite = hasPermission(
+    workspaceMembership?.role,
+    parsedSettings?.who_can_create_invites,
+  );
 
   // Reset state when modal opens (React-recommended "adjust state during render" pattern)
   const [prevOpen, setPrevOpen] = useState(false);
@@ -105,7 +128,12 @@ export function WorkspaceSettingsModal({
   if ((isOpen && !prevOpen) || (isOpen && defaultTab !== prevDefaultTab)) {
     setPrevOpen(isOpen);
     setPrevDefaultTab(defaultTab);
-    setSelectedTab(!canManage && defaultTab === 'invite' ? 'general' : defaultTab);
+    setSelectedTab(() => {
+      if (defaultTab === 'invite' && !canInvite) return 'general';
+      if ((defaultTab === 'permissions' || defaultTab === 'moderation') && !canManage)
+        return 'general';
+      return defaultTab;
+    });
     setSelectedFile(null);
     setPreviewUrl(null);
     setInviteLink(null);
@@ -280,7 +308,10 @@ export function WorkspaceSettingsModal({
     }
   };
 
-  const visibleNavItems = navItems.filter((item) => !item.adminOnly || canManage);
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.id === 'invite') return canInvite;
+    return !item.adminOnly || canManage;
+  });
 
   return (
     <>
@@ -297,7 +328,7 @@ export function WorkspaceSettingsModal({
         ) : (
           <div className="flex h-full">
             {/* Left sidebar nav */}
-            <nav className="flex w-56 flex-shrink-0 flex-col gap-1 border-r border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-900">
+            <nav className="flex w-56 flex-shrink-0 flex-col gap-1 border-r border-gray-200 p-2 dark:border-gray-700">
               {visibleNavItems.map((item) => (
                 <button
                   key={item.id}
@@ -306,7 +337,7 @@ export function WorkspaceSettingsModal({
                     'flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-left transition-colors',
                     selectedTab === item.id
                       ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
                   )}
                 >
                   <item.icon className="h-4 w-4 flex-shrink-0" />
@@ -653,7 +684,7 @@ export function WorkspaceSettingsModal({
 
               {selectedTab === 'emoji' && <CustomEmojiManager workspaceId={workspaceId} />}
 
-              {selectedTab === 'invite' && canManage && (
+              {selectedTab === 'invite' && canInvite && (
                 <div className="space-y-6 rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
                   <p className="text-gray-600 dark:text-gray-300">
                     Create an invite link to share with people you want to join this workspace.
@@ -713,6 +744,58 @@ export function WorkspaceSettingsModal({
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {selectedTab === 'permissions' && canManage && (
+                <div className="space-y-6">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Control which roles can perform key actions in this workspace.
+                  </p>
+
+                  <PermissionSelect
+                    label="Who can create channels"
+                    value={parsedSettings?.who_can_create_channels ?? 'members'}
+                    onChange={(value) =>
+                      updateWorkspace.mutate(
+                        { settings: { who_can_create_channels: value } },
+                        { onError: () => toast('Failed to update permission', 'error') },
+                      )
+                    }
+                  />
+
+                  <PermissionSelect
+                    label="Who can create invites"
+                    value={parsedSettings?.who_can_create_invites ?? 'admins'}
+                    onChange={(value) =>
+                      updateWorkspace.mutate(
+                        { settings: { who_can_create_invites: value } },
+                        { onError: () => toast('Failed to update permission', 'error') },
+                      )
+                    }
+                  />
+
+                  <PermissionSelect
+                    label="Who can pin messages"
+                    value={parsedSettings?.who_can_pin_messages ?? 'members'}
+                    onChange={(value) =>
+                      updateWorkspace.mutate(
+                        { settings: { who_can_pin_messages: value } },
+                        { onError: () => toast('Failed to update permission', 'error') },
+                      )
+                    }
+                  />
+
+                  <PermissionSelect
+                    label="Who can manage custom emoji"
+                    value={parsedSettings?.who_can_manage_custom_emoji ?? 'members'}
+                    onChange={(value) =>
+                      updateWorkspace.mutate(
+                        { settings: { who_can_manage_custom_emoji: value } },
+                        { onError: () => toast('Failed to update permission', 'error') },
+                      )
+                    }
+                  />
                 </div>
               )}
 
@@ -785,5 +868,55 @@ export function WorkspaceSettingsModal({
         />
       )}
     </>
+  );
+}
+
+const permissionLabels: Record<PermissionLevel, string> = {
+  everyone: 'Everyone',
+  members: 'Members',
+  admins: 'Admins',
+};
+
+function PermissionSelect({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: PermissionLevel;
+  onChange: (value: PermissionLevel) => void;
+}) {
+  const items: PermissionLevel[] = ['everyone', 'members', 'admins'];
+
+  return (
+    <Select
+      selectedKey={value}
+      onSelectionChange={(key: Key | null) => key && onChange(key as PermissionLevel)}
+      className="max-w-xs"
+    >
+      <Label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {label}
+      </Label>
+      <AriaButton className="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+        <SelectValue />
+        <ChevronDownIcon className="h-4 w-4 text-gray-500" />
+      </AriaButton>
+      <Popover
+        offset={4}
+        className="w-(--trigger-width) rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+      >
+        <ListBox className="py-1 outline-none">
+          {items.map((level) => (
+            <ListBoxItem
+              key={level}
+              id={level}
+              className="cursor-pointer px-3 py-1.5 text-sm text-gray-700 outline-none focus:bg-gray-100 dark:text-gray-200 dark:focus:bg-gray-700"
+            >
+              {permissionLabels[level]}
+            </ListBoxItem>
+          ))}
+        </ListBox>
+      </Popover>
+    </Select>
   );
 }

@@ -123,6 +123,34 @@ func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWor
 		if request.Body.Settings.ShowJoinLeaveMessages != nil {
 			settings.ShowJoinLeaveMessages = *request.Body.Settings.ShowJoinLeaveMessages
 		}
+		if request.Body.Settings.WhoCanCreateChannels != nil {
+			v := workspace.PermissionLevel(*request.Body.Settings.WhoCanCreateChannels)
+			if !workspace.IsValidPermissionLevel(v) {
+				return openapi.UpdateWorkspace400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid value for who_can_create_channels")}, nil
+			}
+			settings.WhoCanCreateChannels = v
+		}
+		if request.Body.Settings.WhoCanCreateInvites != nil {
+			v := workspace.PermissionLevel(*request.Body.Settings.WhoCanCreateInvites)
+			if !workspace.IsValidPermissionLevel(v) {
+				return openapi.UpdateWorkspace400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid value for who_can_create_invites")}, nil
+			}
+			settings.WhoCanCreateInvites = v
+		}
+		if request.Body.Settings.WhoCanPinMessages != nil {
+			v := workspace.PermissionLevel(*request.Body.Settings.WhoCanPinMessages)
+			if !workspace.IsValidPermissionLevel(v) {
+				return openapi.UpdateWorkspace400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid value for who_can_pin_messages")}, nil
+			}
+			settings.WhoCanPinMessages = v
+		}
+		if request.Body.Settings.WhoCanManageCustomEmoji != nil {
+			v := workspace.PermissionLevel(*request.Body.Settings.WhoCanManageCustomEmoji)
+			if !workspace.IsValidPermissionLevel(v) {
+				return openapi.UpdateWorkspace400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid value for who_can_manage_custom_emoji")}, nil
+			}
+			settings.WhoCanManageCustomEmoji = v
+		}
 
 		// Serialize back to JSON string
 		ws.Settings = settings.ToJSON()
@@ -133,6 +161,15 @@ func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWor
 	}
 
 	apiWs := workspaceToAPI(ws)
+
+	// Broadcast workspace update so all connected clients refresh permission-gated UI
+	if h.hub != nil {
+		h.hub.BroadcastToWorkspace(string(request.Wid), sse.Event{
+			Type: sse.EventWorkspaceUpdated,
+			Data: apiWs,
+		})
+	}
+
 	return openapi.UpdateWorkspace200JSONResponse{
 		Workspace: &apiWs,
 	}, nil
@@ -395,7 +432,13 @@ func (h *Handler) CreateWorkspaceInvite(ctx context.Context, request openapi.Cre
 		return nil, err
 	}
 
-	if !workspace.CanManageMembers(membership.Role) {
+	ws, err := h.workspaceRepo.GetByID(ctx, string(request.Wid))
+	if err != nil {
+		return nil, err
+	}
+	settings := ws.ParsedSettings()
+
+	if !workspace.HasPermission(membership.Role, settings.WhoCanCreateInvites) {
 		return openapi.CreateWorkspaceInvite403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
@@ -406,6 +449,11 @@ func (h *Handler) CreateWorkspaceInvite(ctx context.Context, request openapi.Cre
 	}
 	if role == workspace.RoleOwner {
 		role = workspace.RoleMember
+	}
+
+	// Non-admins cannot create invites with admin role
+	if role == workspace.RoleAdmin && !workspace.CanManageMembers(membership.Role) {
+		return openapi.CreateWorkspaceInvite403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Only admins and owners can create admin invites")}, nil
 	}
 
 	invite := &workspace.Invite{
@@ -558,8 +606,16 @@ func workspaceToAPI(ws *workspace.Workspace) openapi.Workspace {
 
 	// Add parsed settings
 	settings := ws.ParsedSettings()
+	whoCanCreateChannels := openapi.PermissionLevel(settings.WhoCanCreateChannels)
+	whoCanCreateInvites := openapi.PermissionLevel(settings.WhoCanCreateInvites)
+	whoCanPinMessages := openapi.PermissionLevel(settings.WhoCanPinMessages)
+	whoCanManageCustomEmoji := openapi.PermissionLevel(settings.WhoCanManageCustomEmoji)
 	apiWs.ParsedSettings = &openapi.WorkspaceSettings{
-		ShowJoinLeaveMessages: &settings.ShowJoinLeaveMessages,
+		ShowJoinLeaveMessages:   &settings.ShowJoinLeaveMessages,
+		WhoCanCreateChannels:    &whoCanCreateChannels,
+		WhoCanCreateInvites:     &whoCanCreateInvites,
+		WhoCanPinMessages:       &whoCanPinMessages,
+		WhoCanManageCustomEmoji: &whoCanManageCustomEmoji,
 	}
 
 	return apiWs

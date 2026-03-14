@@ -7,13 +7,21 @@ import (
 
 // WorkspaceSettings contains parsed workspace settings
 type WorkspaceSettings struct {
-	ShowJoinLeaveMessages bool `json:"show_join_leave_messages"`
+	ShowJoinLeaveMessages   bool            `json:"show_join_leave_messages"`
+	WhoCanCreateChannels    PermissionLevel `json:"who_can_create_channels"`
+	WhoCanCreateInvites     PermissionLevel `json:"who_can_create_invites"`
+	WhoCanPinMessages       PermissionLevel `json:"who_can_pin_messages"`
+	WhoCanManageCustomEmoji PermissionLevel `json:"who_can_manage_custom_emoji"`
 }
 
 // DefaultSettings returns the default workspace settings
 func DefaultSettings() WorkspaceSettings {
 	return WorkspaceSettings{
-		ShowJoinLeaveMessages: true,
+		ShowJoinLeaveMessages:   true,
+		WhoCanCreateChannels:    PermissionMembers,
+		WhoCanCreateInvites:     PermissionAdmins,
+		WhoCanPinMessages:       PermissionMembers,
+		WhoCanManageCustomEmoji: PermissionMembers,
 	}
 }
 
@@ -22,6 +30,20 @@ func ParseSettings(settingsJSON string) WorkspaceSettings {
 	settings := DefaultSettings()
 	if settingsJSON != "" && settingsJSON != "{}" {
 		_ = json.Unmarshal([]byte(settingsJSON), &settings)
+	}
+	// Reset invalid permission levels to defaults
+	defaults := DefaultSettings()
+	if !IsValidPermissionLevel(settings.WhoCanCreateChannels) {
+		settings.WhoCanCreateChannels = defaults.WhoCanCreateChannels
+	}
+	if !IsValidPermissionLevel(settings.WhoCanCreateInvites) {
+		settings.WhoCanCreateInvites = defaults.WhoCanCreateInvites
+	}
+	if !IsValidPermissionLevel(settings.WhoCanPinMessages) {
+		settings.WhoCanPinMessages = defaults.WhoCanPinMessages
+	}
+	if !IsValidPermissionLevel(settings.WhoCanManageCustomEmoji) {
+		settings.WhoCanManageCustomEmoji = defaults.WhoCanManageCustomEmoji
 	}
 	return settings
 }
@@ -81,6 +103,29 @@ type Invite struct {
 	CreatedAt    time.Time  `json:"created_at"`
 }
 
+// PermissionLevel controls which roles can perform a given action
+type PermissionLevel string
+
+const (
+	PermissionEveryone PermissionLevel = "everyone"
+	PermissionMembers  PermissionLevel = "members"
+	PermissionAdmins   PermissionLevel = "admins"
+)
+
+// HasPermission returns true if the given role satisfies the required permission level
+func HasPermission(role string, level PermissionLevel) bool {
+	switch level {
+	case PermissionEveryone:
+		return role == RoleOwner || role == RoleAdmin || role == RoleMember || role == RoleGuest
+	case PermissionMembers:
+		return role == RoleOwner || role == RoleAdmin || role == RoleMember
+	case PermissionAdmins:
+		return role == RoleOwner || role == RoleAdmin
+	default:
+		return false
+	}
+}
+
 const (
 	RoleOwner  = "owner"
 	RoleAdmin  = "admin"
@@ -103,9 +148,9 @@ func CanDeleteWorkspace(role string) bool {
 	return role == RoleOwner
 }
 
-// CanCreateChannels returns true if the role can create channels
-func CanCreateChannels(role string) bool {
-	return role == RoleOwner || role == RoleAdmin || role == RoleMember
+// IsValidPermissionLevel returns true if the level is a known permission level
+func IsValidPermissionLevel(level PermissionLevel) bool {
+	return level == PermissionEveryone || level == PermissionMembers || level == PermissionAdmins
 }
 
 // RoleRank returns the rank of a role (higher = more permissions)

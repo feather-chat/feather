@@ -19,9 +19,20 @@ Owners and admins can update the following workspace settings:
 | **Icon**                     | JPEG, PNG, GIF, or WebP image (max 5 MB)                                 |
 | **Show join/leave messages** | Toggle system messages when members join or leave channels (default: on) |
 
+### Permission Settings
+
+Owners and admins can configure which roles are allowed to perform certain actions via the **Permissions** tab. See [Configurable Permission Settings](/docs/permissions/#configurable-permission-settings) for details.
+
+| Setting                     | Default |
+| --------------------------- | ------- |
+| Who can create channels     | Members |
+| Who can create invites      | Admins  |
+| Who can pin messages        | Members |
+| Who can manage custom emoji | Members |
+
 ## Invites
 
-Owners and admins can create invite links to add new members.
+By default, only owners and admins can create invite links (configurable via the **who can create invites** permission setting).
 
 **Invite properties:**
 
@@ -56,7 +67,7 @@ See [Permissions & Roles](/docs/permissions/) for the complete permission matrix
 
 ### Creating Channels
 
-Members, admins, and owners can create channels. Guests cannot.
+By default, members, admins, and owners can create channels. This is configurable via the **who can create channels** permission setting — see [Permission Settings](/docs/permissions/#configurable-permission-settings).
 
 Channel names must match the pattern `^[a-z0-9]+(-[a-z0-9]+)*$` — lowercase alphanumeric characters separated by single hyphens. Names cannot start or end with a hyphen, and consecutive hyphens are not allowed. There is no explicit length limit.
 
@@ -99,4 +110,4 @@ DMs and group DMs are created automatically when users start a conversation.
 - **Group DMs** have 3-8 participants.
 - Visibility cannot be changed (they are always private to participants).
 - They cannot be archived.
-- Group DMs can be **converted to channels** by members, admins, or owners (guests cannot). See [Permission Matrix](/docs/permissions/#permission-matrix). This gives the channel a name and makes it appear in the channel list.
+- Group DMs can be **converted to channels** by users who have the channel creation permission. See [Permission Matrix](/docs/permissions/#permission-matrix). This gives the channel a name and makes it appear in the channel list.

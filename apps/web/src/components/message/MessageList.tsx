@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useCallback, useMemo, useSta
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAuth, useChannels } from '../../hooks';
+import { useWorkspace } from '../../hooks/useWorkspaces';
 import { useVirtualMessages } from '../../hooks/useVirtualMessages';
 import { usePrewarmSignedUrls } from '../../hooks/usePrewarmSignedUrls';
 import { buildVirtualItems, type VirtualItem } from './virtualItems';
@@ -9,7 +10,7 @@ import { MessageItem } from './MessageItem';
 import { SystemMessage } from './SystemMessage';
 import { JumpToLatestButton } from './JumpToLatestButton';
 import { MessageSkeleton } from '../ui';
-import { formatDate } from '../../lib/utils';
+import { formatDate, hasPermission } from '../../lib/utils';
 import type { ChannelWithMembership } from '@enzyme/api-client';
 
 interface MessageListProps {
@@ -41,9 +42,14 @@ export function MessageList({
     onReachBottom,
   } = useVirtualMessages(channelId);
   const { data: channelsData } = useChannels(workspaceId);
+  const { data: workspaceData } = useWorkspace(workspaceId);
   const { workspaces } = useAuth();
   const workspaceRole = workspaces?.find((w) => w.id === workspaceId)?.role;
   const isAdmin = workspaceRole === 'owner' || workspaceRole === 'admin';
+  const canPin = hasPermission(
+    workspaceRole,
+    workspaceData?.workspace.parsed_settings?.who_can_pin_messages,
+  );
 
   usePrewarmSignedUrls(data?.pages);
 
@@ -606,6 +612,7 @@ export function MessageList({
                   channelId={channelId}
                   channels={channelsData?.channels}
                   isAdmin={isAdmin}
+                  canPin={canPin}
                 />
               </div>
             );
@@ -648,11 +655,13 @@ const VirtualRow = React.memo(function VirtualRow({
   channelId,
   channels,
   isAdmin,
+  canPin,
 }: {
   item: VirtualItem;
   channelId: string;
   channels?: ChannelWithMembership[];
   isAdmin?: boolean;
+  canPin?: boolean;
 }) {
   switch (item.type) {
     case 'date-separator':
@@ -685,6 +694,7 @@ const VirtualRow = React.memo(function VirtualRow({
           channelId={channelId}
           channels={channels}
           isAdmin={isAdmin}
+          canPin={canPin}
         />
       );
   }

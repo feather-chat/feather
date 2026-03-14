@@ -1518,12 +1518,25 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
+        /**
+         * @description Controls which workspace roles can perform an action
+         * @enum {string}
+         */
+        PermissionLevel: "everyone" | "members" | "admins";
         WorkspaceSettings: {
             /**
              * @description Whether to show system messages when users join or leave channels
              * @default true
              */
             show_join_leave_messages: boolean;
+            /** @default members */
+            who_can_create_channels: components["schemas"]["PermissionLevel"];
+            /** @default admins */
+            who_can_create_invites: components["schemas"]["PermissionLevel"];
+            /** @default members */
+            who_can_pin_messages: components["schemas"]["PermissionLevel"];
+            /** @default members */
+            who_can_manage_custom_emoji: components["schemas"]["PermissionLevel"];
         };
         Workspace: {
             id: string;
@@ -1830,7 +1843,7 @@ export interface components {
             last_read_message_id: string;
         };
         /** @enum {string} */
-        SSEEventType: "connected" | "heartbeat" | "message.new" | "message.updated" | "message.deleted" | "reaction.added" | "reaction.removed" | "channel.created" | "channel.updated" | "channel.archived" | "channel.member_added" | "channel.member_removed" | "channel.read" | "typing.start" | "typing.stop" | "presence.changed" | "presence.initial" | "notification" | "emoji.created" | "emoji.deleted" | "message.pinned" | "message.unpinned" | "member.banned" | "member.unbanned" | "member.left" | "member.role_changed" | "scheduled_message.created" | "scheduled_message.updated" | "scheduled_message.deleted" | "scheduled_message.sent" | "scheduled_message.failed";
+        SSEEventType: "connected" | "heartbeat" | "message.new" | "message.updated" | "message.deleted" | "reaction.added" | "reaction.removed" | "channel.created" | "channel.updated" | "channel.archived" | "channel.member_added" | "channel.member_removed" | "channel.read" | "typing.start" | "typing.stop" | "presence.changed" | "presence.initial" | "notification" | "emoji.created" | "emoji.deleted" | "message.pinned" | "message.unpinned" | "member.banned" | "member.unbanned" | "member.left" | "member.role_changed" | "workspace.updated" | "scheduled_message.created" | "scheduled_message.updated" | "scheduled_message.deleted" | "scheduled_message.sent" | "scheduled_message.failed";
         SSEEvent: components["schemas"]["SSEEventConnected"] | components["schemas"]["SSEEventHeartbeat"] | components["schemas"]["SSEEventMessageNew"] | components["schemas"]["SSEEventMessageUpdated"] | components["schemas"]["SSEEventMessageDeleted"] | components["schemas"]["SSEEventReactionAdded"] | components["schemas"]["SSEEventReactionRemoved"] | components["schemas"]["SSEEventChannelCreated"] | components["schemas"]["SSEEventChannelUpdated"] | components["schemas"]["SSEEventChannelArchived"] | components["schemas"]["SSEEventChannelMemberAdded"] | components["schemas"]["SSEEventChannelMemberRemoved"] | components["schemas"]["SSEEventChannelRead"] | components["schemas"]["SSEEventTypingStart"] | components["schemas"]["SSEEventTypingStop"] | components["schemas"]["SSEEventPresenceChanged"] | components["schemas"]["SSEEventPresenceInitial"] | components["schemas"]["SSEEventNotification"] | components["schemas"]["SSEEventEmojiCreated"] | components["schemas"]["SSEEventEmojiDeleted"] | components["schemas"]["SSEEventScheduledMessageCreated"] | components["schemas"]["SSEEventScheduledMessageUpdated"] | components["schemas"]["SSEEventScheduledMessageDeleted"] | components["schemas"]["SSEEventScheduledMessageSent"] | components["schemas"]["SSEEventMessagePinned"] | components["schemas"]["SSEEventMessageUnpinned"] | components["schemas"]["SSEEventMemberBanned"] | components["schemas"]["SSEEventMemberUnbanned"] | components["schemas"]["SSEEventMemberLeft"] | components["schemas"]["SSEEventMemberRoleChanged"];
         SSEEventConnected: {
             id?: string;

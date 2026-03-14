@@ -1,6 +1,8 @@
 package handler
 
-import "github.com/enzyme/api/internal/openapi"
+import (
+	"github.com/enzyme/api/internal/openapi"
+)
 
 // newError creates an ApiError with the given code and message
 func newError(code, message string) openapi.ApiError {

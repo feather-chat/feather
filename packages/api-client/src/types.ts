@@ -11,6 +11,8 @@ export type WorkspaceSummary = components['schemas']['WorkspaceSummary'];
 export type WorkspaceMembership = components['schemas']['WorkspaceMembership'];
 export type WorkspaceMemberWithUser = components['schemas']['WorkspaceMemberWithUser'];
 export type WorkspaceRole = components['schemas']['WorkspaceRole'];
+export type WorkspaceSettings = components['schemas']['WorkspaceSettings'];
+export type PermissionLevel = components['schemas']['PermissionLevel'];
 export type Invite = components['schemas']['Invite'];
 export type WorkspaceNotificationSummary = components['schemas']['WorkspaceNotificationSummary'];
 

@@ -18,7 +18,7 @@ Every workspace member has exactly one role. Roles are ordered by privilege:
 | **Owner**  | 4    | Highest privilege, full workspace control |
 | **Admin**  | 3    | Can manage members and workspace settings |
 | **Member** | 2    | Standard participant                      |
-| **Guest**  | 1    | Limited access, cannot create channels    |
+| **Guest**  | 1    | Limited access, restricted by default     |
 
 See [Workspace Administration](/docs/administration/) for the operational guide on managing members, invites, and settings.
 
@@ -30,22 +30,25 @@ See [Workspace Administration](/docs/administration/) for the operational guide 
 | React to messages                   |   ✓   |   ✓   |   ✓    |   ✓   |
 | Edit own messages                   |   ✓   |   ✓   |   ✓    |   ✓   |
 | Delete own messages                 |   ✓   |   ✓   |   ✓    |   ✓   |
-| Upload custom emoji                 |   ✓   |   ✓   |   ✓    |   ✓   |
 | Delete own custom emoji             |   ✓   |   ✓   |   ✓    |   ✓   |
-| Create channels                     |   ✓   |   ✓   |   ✓    |       |
-| Convert group DM to channel         |   ✓   |   ✓   |   ✓    |       |
+| Create channels ⚙                   |   ✓   |   ✓   |   ✓    |       |
+| Convert group DM to channel ⚙       |   ✓   |   ✓   |   ✓    |       |
+| Upload custom emoji ⚙               |   ✓   |   ✓   |   ✓    |       |
+| Pin/unpin messages ⚙                |   ✓   |   ✓   |   ✓    |       |
+| Create invite links ⚙               |   ✓   |   ✓   |        |       |
 | Delete any message                  |   ✓   |   ✓   |        |       |
 | Delete any custom emoji             |   ✓   |   ✓   |        |       |
 | Delete any file                     |   ✓   |   ✓   |        |       |
 | Manage members (add/remove)         |   ✓   |   ✓   |        |       |
 | Change member roles                 |   ✓   |   ✓   |        |       |
-| Create invite links                 |   ✓   |   ✓   |        |       |
 | Update workspace name/settings      |   ✓   |   ✓   |        |       |
 | Upload/remove workspace icon        |   ✓   |   ✓   |        |       |
 | Archive channels                    |   ✓   |   ✓   |        |       |
 | Promote member to admin             |   ✓   |       |        |       |
 | Promote member to owner             |   ✓   |       |        |       |
 | Delete workspace                    |   ✓   |       |        |       |
+
+Actions marked with ⚙ are **configurable** — see [Configurable Permission Settings](#configurable-permission-settings) below.
 
 ### Special Rules
 
@@ -55,16 +58,37 @@ See [Workspace Administration](/docs/administration/) for the operational guide 
 - **Admins cannot promote to admin**: Only an owner can make someone an admin. Admins can only assign the "member" role.
 - **Self-removal**: Any member can leave a workspace. Owners can leave if at least one other owner exists.
 
+### Configurable Permission Settings
+
+Workspace owners and admins can adjust who can perform certain actions via the **Permissions** tab in workspace settings. Each setting accepts one of three levels:
+
+| Level        | Includes                    |
+| ------------ | --------------------------- |
+| **Everyone** | Owner, Admin, Member, Guest |
+| **Members**  | Owner, Admin, Member        |
+| **Admins**   | Owner, Admin                |
+
+The four configurable permissions and their defaults:
+
+| Setting                         | Default | Controls                                                                |
+| ------------------------------- | ------- | ----------------------------------------------------------------------- |
+| **Who can create channels**     | Members | Creating channels, converting group DMs to channels                     |
+| **Who can create invites**      | Admins  | Generating workspace invite links                                       |
+| **Who can pin messages**        | Members | Pinning and unpinning messages                                          |
+| **Who can manage custom emoji** | Members | Uploading custom emoji (deletion of others' emoji is always admin-only) |
+
+Changes take effect immediately. Existing workspaces that haven't configured these settings use the defaults, preserving backward compatibility.
+
 ### Permission Functions (Go)
 
 These are defined in `api/internal/workspace/model.go`:
 
-| Function               | Returns true for     | Used for                                                      |
-| ---------------------- | -------------------- | ------------------------------------------------------------- |
-| `CanManageMembers()`   | Owner, Admin         | Add/remove members, invites, settings, icon, archive channels |
-| `CanChangeRole()`      | Owner, Admin         | Change member roles (with additional restrictions)            |
-| `CanCreateChannels()`  | Owner, Admin, Member | Create channels, convert group DMs                            |
-| `CanDeleteWorkspace()` | Owner                | Delete workspace (not yet implemented in handler)             |
+| Function               | Returns true for | Used for                                              |
+| ---------------------- | ---------------- | ----------------------------------------------------- |
+| `CanManageMembers()`   | Owner, Admin     | Add/remove members, settings, icon, archive channels  |
+| `CanChangeRole()`      | Owner, Admin     | Change member roles (with additional restrictions)    |
+| `HasPermission()`      | Depends on level | Configurable actions (channels, invites, pins, emoji) |
+| `CanDeleteWorkspace()` | Owner            | Delete workspace (not yet implemented in handler)     |
 
 ## Channel Roles
 
@@ -106,12 +130,12 @@ These are defined in `api/internal/channel/model.go`:
 
 ## File & Emoji Permissions
 
-| Action                  | Who can do it                           |
-| ----------------------- | --------------------------------------- |
-| **Upload file**         | Any channel member who can post         |
-| **Delete file**         | File uploader OR workspace owner/admin  |
-| **Upload custom emoji** | Any workspace member                    |
-| **Delete custom emoji** | Emoji uploader OR workspace owner/admin |
+| Action                  | Who can do it                                                            |
+| ----------------------- | ------------------------------------------------------------------------ |
+| **Upload file**         | Any channel member who can post                                          |
+| **Delete file**         | File uploader OR workspace owner/admin                                   |
+| **Upload custom emoji** | Controlled by **who can manage custom emoji** setting (default: members) |
+| **Delete custom emoji** | Emoji uploader OR workspace owner/admin                                  |
 
 ## Moderation
 
@@ -134,11 +158,15 @@ Workspace owners and admins can ban members from a workspace. Banning removes th
 
 ### Message Pinning
 
-| Action          | Owner | Admin | Member | Guest |
-| --------------- | :---: | :---: | :----: | :---: |
-| Pin a message   |   ✓   |   ✓   |        |       |
-| Unpin a message |   ✓   |   ✓   |        |       |
-| View pinned     |   ✓   |   ✓   |   ✓    |   ✓   |
+Pinning is controlled by the **who can pin messages** workspace setting (default: members).
+
+| Action          | Default permission       |
+| --------------- | ------------------------ |
+| Pin a message   | Members (configurable ⚙) |
+| Unpin a message | Members (configurable ⚙) |
+| View pinned     | All channel members      |
+
+The user must also be a channel member who can post (or a workspace admin for public channels).
 
 ### Personal Blocking
 

@@ -15,6 +15,7 @@ import {
   FaceSmileIcon,
   EnvelopeOpenIcon,
   ShieldExclamationIcon,
+  KeyIcon,
   ArrowRightStartOnRectangleIcon,
   InformationCircleIcon,
   XMarkIcon,
@@ -62,7 +63,7 @@ import {
   useUnstarChannel,
   useMarkAllChannelsAsRead,
 } from '../../hooks/useChannels';
-import { cn, getAvatarColor } from '../../lib/utils';
+import { cn, getAvatarColor, hasPermission } from '../../lib/utils';
 import { useUserPresence } from '../../lib/presenceStore';
 import { AvatarStack } from '../ui';
 import type { ChannelWithMembership, ChannelType } from '@enzyme/api-client';
@@ -123,7 +124,17 @@ export function ChannelSidebar({
   const markAllAsRead = useMarkAllChannelsAsRead(workspaceId || '');
   const [activeChannel, setActiveChannel] = useState<ChannelWithMembership | null>(null);
   const workspaceMembership = workspaces?.find((w) => w.id === workspaceId);
-  const canInvite = workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin';
+  const parsedSettings = workspaceData?.workspace.parsed_settings;
+  const canInvite = hasPermission(
+    workspaceMembership?.role,
+    parsedSettings?.who_can_create_invites,
+  );
+  const canCreateChannels = hasPermission(
+    workspaceMembership?.role,
+    parsedSettings?.who_can_create_channels,
+  );
+  const isAdminOrOwner =
+    workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin';
   const isOwner = workspaceMembership?.role === 'owner';
   const { leave, isPending: isLeavePending } = useLeaveAndNavigate(workspaces);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
@@ -305,7 +316,15 @@ export function ChannelSidebar({
                 >
                   Custom Emoji
                 </MenuItem>
-                {canInvite && (
+                {isAdminOrOwner && (
+                  <MenuItem
+                    onAction={() => onOpenWorkspaceSettings(workspaceId, 'permissions')}
+                    icon={<KeyIcon className="h-4 w-4" />}
+                  >
+                    Permissions
+                  </MenuItem>
+                )}
+                {isAdminOrOwner && (
                   <MenuItem
                     onAction={() => onOpenWorkspaceSettings(workspaceId, 'moderation')}
                     icon={<ShieldExclamationIcon className="h-4 w-4" />}
@@ -429,7 +448,7 @@ export function ChannelSidebar({
               channels={groupedChannels.channels}
               workspaceId={workspaceId}
               activeChannelId={channelId}
-              onAddClick={onCreateChannel}
+              onAddClick={canCreateChannels ? onCreateChannel : undefined}
               canDrop={activeChannel !== null && activeChannel.is_starred && !isDraggingDM}
             />
 
