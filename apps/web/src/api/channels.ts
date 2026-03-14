@@ -1,26 +1,11 @@
-import {
-  get,
-  post,
-  del,
-  type Channel,
-  type ChannelWithMembership,
-  type ChannelMember,
-  type ChannelType,
-  type MarkReadResponse,
-  type NotificationPreferences,
+import { apiClient, throwIfError } from '@enzyme/api-client';
+import type {
+  CreateChannelInput,
+  UpdateChannelInput,
+  NotificationPreferences,
 } from '@enzyme/api-client';
 
-export interface CreateChannelInput {
-  name: string;
-  description?: string;
-  type: ChannelType;
-}
-
-export interface UpdateChannelInput {
-  name?: string;
-  description?: string;
-  type?: 'public' | 'private';
-}
+export type { CreateChannelInput, UpdateChannelInput };
 
 export interface CreateDMInput {
   user_ids: string[];
@@ -34,51 +19,101 @@ export interface ConvertGroupDMInput {
 
 export const channelsApi = {
   create: (workspaceId: string, input: CreateChannelInput) =>
-    post<{ channel: Channel }>(`/workspaces/${workspaceId}/channels/create`, input),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/channels/create', {
+        params: { path: { wid: workspaceId } },
+        body: input,
+      }),
+    ),
 
   list: (workspaceId: string) =>
-    post<{ channels: ChannelWithMembership[] }>(`/workspaces/${workspaceId}/channels/list`),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/channels/list', {
+        params: { path: { wid: workspaceId } },
+      }),
+    ),
 
   createDM: (workspaceId: string, input: CreateDMInput) =>
-    post<{ channel: Channel }>(`/workspaces/${workspaceId}/channels/dm`, input),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/channels/dm', {
+        params: { path: { wid: workspaceId } },
+        body: input,
+      }),
+    ),
 
   update: (channelId: string, input: UpdateChannelInput) =>
-    post<{ channel: Channel }>(`/channels/${channelId}/update`, input),
+    throwIfError(
+      apiClient.POST('/channels/{id}/update', {
+        params: { path: { id: channelId } },
+        body: input,
+      }),
+    ),
 
-  archive: (channelId: string) => post<{ success: boolean }>(`/channels/${channelId}/archive`),
+  archive: (channelId: string) =>
+    throwIfError(
+      apiClient.POST('/channels/{id}/archive', { params: { path: { id: channelId } } }),
+    ),
 
   addMember: (channelId: string, userId: string, role?: string) =>
-    post<{ success: boolean }>(`/channels/${channelId}/members/add`, { user_id: userId, role }),
+    throwIfError(
+      apiClient.POST('/channels/{id}/members/add', {
+        params: { path: { id: channelId } },
+        body: { user_id: userId, role },
+      }),
+    ),
 
   listMembers: (channelId: string) =>
-    post<{ members: ChannelMember[] }>(`/channels/${channelId}/members/list`),
+    throwIfError(
+      apiClient.POST('/channels/{id}/members/list', { params: { path: { id: channelId } } }),
+    ),
 
-  join: (channelId: string) => post<{ success: boolean }>(`/channels/${channelId}/join`),
+  join: (channelId: string) =>
+    throwIfError(apiClient.POST('/channels/{id}/join', { params: { path: { id: channelId } } })),
 
-  leave: (channelId: string) => post<{ success: boolean }>(`/channels/${channelId}/leave`),
+  leave: (channelId: string) =>
+    throwIfError(apiClient.POST('/channels/{id}/leave', { params: { path: { id: channelId } } })),
 
   markAsRead: (channelId: string, messageId?: string) =>
-    post<MarkReadResponse>(
-      `/channels/${channelId}/mark-read`,
-      messageId ? { message_id: messageId } : {},
+    throwIfError(
+      apiClient.POST('/channels/{id}/mark-read', {
+        params: { path: { id: channelId } },
+        body: messageId ? { message_id: messageId } : {},
+      }),
     ),
 
   markAllAsRead: (workspaceId: string) =>
-    post<{ success: boolean }>(`/workspaces/${workspaceId}/channels/mark-all-read`),
-
-  getNotifications: (channelId: string) =>
-    get<{ preferences: NotificationPreferences }>(`/channels/${channelId}/notifications`),
-
-  updateNotifications: (channelId: string, preferences: NotificationPreferences) =>
-    post<{ preferences: NotificationPreferences }>(
-      `/channels/${channelId}/notifications`,
-      preferences,
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/channels/mark-all-read', {
+        params: { path: { wid: workspaceId } },
+      }),
     ),
 
-  star: (channelId: string) => post<{ success: boolean }>(`/channels/${channelId}/star`),
+  getNotifications: (channelId: string) =>
+    throwIfError(
+      apiClient.GET('/channels/{id}/notifications', { params: { path: { id: channelId } } }),
+    ),
 
-  unstar: (channelId: string) => del<{ success: boolean }>(`/channels/${channelId}/star`),
+  updateNotifications: (channelId: string, preferences: NotificationPreferences) =>
+    throwIfError(
+      apiClient.POST('/channels/{id}/notifications', {
+        params: { path: { id: channelId } },
+        body: preferences,
+      }),
+    ),
+
+  star: (channelId: string) =>
+    throwIfError(apiClient.POST('/channels/{id}/star', { params: { path: { id: channelId } } })),
+
+  unstar: (channelId: string) =>
+    throwIfError(
+      apiClient.DELETE('/channels/{id}/star', { params: { path: { id: channelId } } }),
+    ),
 
   convertGroupDM: (channelId: string, input: ConvertGroupDMInput) =>
-    post<{ channel: Channel }>(`/channels/${channelId}/convert`, input),
+    throwIfError(
+      apiClient.POST('/channels/{id}/convert', {
+        params: { path: { id: channelId } },
+        body: input,
+      }),
+    ),
 };

@@ -1,28 +1,35 @@
-import {
-  post,
-  type ScheduledMessage,
-  type ScheduleMessageInput,
-  type UpdateScheduledMessageInput,
-  type MessageWithUser,
-} from '@enzyme/api-client';
+import { apiClient, throwIfError } from '@enzyme/api-client';
+import type { ScheduleMessageInput, UpdateScheduledMessageInput } from '@enzyme/api-client';
 
 export const scheduledMessagesApi = {
   schedule: (channelId: string, input: ScheduleMessageInput) =>
-    post<{ scheduled_message: ScheduledMessage }>(`/channels/${channelId}/messages/schedule`, input),
+    throwIfError(
+      apiClient.POST('/channels/{id}/messages/schedule', {
+        params: { path: { id: channelId } },
+        body: input,
+      }),
+    ),
 
   list: (workspaceId: string) =>
-    post<{ scheduled_messages: ScheduledMessage[]; count: number }>(
-      `/workspaces/${workspaceId}/scheduled-messages`,
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/scheduled-messages', {
+        params: { path: { wid: workspaceId } },
+      }),
     ),
 
   get: (id: string) =>
-    post<{ scheduled_message: ScheduledMessage }>(`/scheduled-messages/${id}`),
+    throwIfError(apiClient.POST('/scheduled-messages/{id}', { params: { path: { id } } })),
 
   update: (id: string, input: UpdateScheduledMessageInput) =>
-    post<{ scheduled_message: ScheduledMessage }>(`/scheduled-messages/${id}/update`, input),
+    throwIfError(
+      apiClient.POST('/scheduled-messages/{id}/update', { params: { path: { id } }, body: input }),
+    ),
 
-  delete: (id: string) => post<{ success: boolean }>(`/scheduled-messages/${id}/delete`),
+  delete: (id: string) =>
+    throwIfError(apiClient.POST('/scheduled-messages/{id}/delete', { params: { path: { id } } })),
 
   sendNow: (id: string) =>
-    post<{ message: MessageWithUser }>(`/scheduled-messages/${id}/send-now`),
+    throwIfError(
+      apiClient.POST('/scheduled-messages/{id}/send-now', { params: { path: { id } } }),
+    ),
 };

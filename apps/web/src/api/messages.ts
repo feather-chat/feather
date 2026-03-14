@@ -1,75 +1,117 @@
-import {
-  get,
-  post,
-  type MessageWithUser,
-  type MessageListResult,
-  type Reaction,
-  type ThreadSubscriptionStatus,
-  type ThreadListResult,
-  type SearchMessagesResult,
-  type SearchMessagesInput,
+import { apiClient, throwIfError } from '@enzyme/api-client';
+import type {
+  SendMessageInput,
+  ListMessagesInput,
+  SearchMessagesInput,
 } from '@enzyme/api-client';
 
-export interface SendMessageInput {
-  content?: string;
-  thread_parent_id?: string;
-  attachment_ids?: string[];
-  also_send_to_channel?: boolean;
-}
-
-export interface ListMessagesInput {
-  cursor?: string;
-  limit?: number;
-  direction?: 'before' | 'after' | 'around';
-}
+export type { SendMessageInput, ListMessagesInput };
 
 export const messagesApi = {
-  get: (messageId: string) => get<{ message: MessageWithUser }>(`/messages/${messageId}`),
+  get: (messageId: string) =>
+    throwIfError(apiClient.GET('/messages/{id}', { params: { path: { id: messageId } } })),
 
   send: (channelId: string, input: SendMessageInput) =>
-    post<{ message: MessageWithUser }>(`/channels/${channelId}/messages/send`, input),
+    throwIfError(
+      apiClient.POST('/channels/{id}/messages/send', {
+        params: { path: { id: channelId } },
+        body: input,
+      }),
+    ),
 
   list: (channelId: string, input?: ListMessagesInput) =>
-    post<MessageListResult>(`/channels/${channelId}/messages/list`, input || {}),
+    throwIfError(
+      apiClient.POST('/channels/{id}/messages/list', {
+        params: { path: { id: channelId } },
+        body: input || {},
+      }),
+    ),
 
   update: (messageId: string, content: string) =>
-    post<{ message: MessageWithUser }>(`/messages/${messageId}/update`, { content }),
+    throwIfError(
+      apiClient.POST('/messages/{id}/update', {
+        params: { path: { id: messageId } },
+        body: { content },
+      }),
+    ),
 
-  delete: (messageId: string) => post<{ success: boolean }>(`/messages/${messageId}/delete`),
+  delete: (messageId: string) =>
+    throwIfError(
+      apiClient.POST('/messages/{id}/delete', { params: { path: { id: messageId } } }),
+    ),
 
   deleteLinkPreview: (messageId: string) =>
-    post<{ success: boolean }>(`/messages/${messageId}/link-preview/delete`),
+    throwIfError(
+      apiClient.POST('/messages/{id}/link-preview/delete', {
+        params: { path: { id: messageId } },
+      }),
+    ),
 
   addReaction: (messageId: string, emoji: string) =>
-    post<{ reaction: Reaction }>(`/messages/${messageId}/reactions/add`, { emoji }),
+    throwIfError(
+      apiClient.POST('/messages/{id}/reactions/add', {
+        params: { path: { id: messageId } },
+        body: { emoji },
+      }),
+    ),
 
   removeReaction: (messageId: string, emoji: string) =>
-    post<{ success: boolean }>(`/messages/${messageId}/reactions/remove`, { emoji }),
+    throwIfError(
+      apiClient.POST('/messages/{id}/reactions/remove', {
+        params: { path: { id: messageId } },
+        body: { emoji },
+      }),
+    ),
 
   listThread: (messageId: string, input?: ListMessagesInput) =>
-    post<MessageListResult>(`/messages/${messageId}/thread/list`, input || {}),
+    throwIfError(
+      apiClient.POST('/messages/{id}/thread/list', {
+        params: { path: { id: messageId } },
+        body: input || {},
+      }),
+    ),
 
   markUnread: (messageId: string) =>
-    post<{ success: boolean }>(`/messages/${messageId}/mark-unread`),
+    throwIfError(
+      apiClient.POST('/messages/{id}/mark-unread', { params: { path: { id: messageId } } }),
+    ),
 
   getThreadSubscription: (messageId: string) =>
-    get<{ status: ThreadSubscriptionStatus }>(`/messages/${messageId}/subscription`),
+    throwIfError(
+      apiClient.GET('/messages/{id}/subscription', { params: { path: { id: messageId } } }),
+    ),
 
   subscribeToThread: (messageId: string) =>
-    post<{ status: ThreadSubscriptionStatus }>(`/messages/${messageId}/subscribe`),
+    throwIfError(
+      apiClient.POST('/messages/{id}/subscribe', { params: { path: { id: messageId } } }),
+    ),
 
   unsubscribeFromThread: (messageId: string) =>
-    post<{ status: ThreadSubscriptionStatus }>(`/messages/${messageId}/unsubscribe`),
+    throwIfError(
+      apiClient.POST('/messages/{id}/unsubscribe', { params: { path: { id: messageId } } }),
+    ),
 
   listUserThreads: (workspaceId: string, input?: { limit?: number; cursor?: string }) =>
-    post<ThreadListResult>(`/workspaces/${workspaceId}/threads`, input || {}),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/threads', {
+        params: { path: { wid: workspaceId } },
+        body: input || {},
+      }),
+    ),
 
   markThreadRead: (messageId: string, lastReadReplyId?: string) =>
-    post<{ success: boolean }>(
-      `/messages/${messageId}/thread/mark-read`,
-      lastReadReplyId ? { last_read_reply_id: lastReadReplyId } : {},
+    throwIfError(
+      apiClient.POST('/messages/{id}/thread/mark-read', {
+        params: { path: { id: messageId } },
+        body: lastReadReplyId ? { last_read_reply_id: lastReadReplyId } : {},
+      }),
     ),
 
   search: (workspaceId: string, input: SearchMessagesInput) =>
-    post<SearchMessagesResult>(`/workspaces/${workspaceId}/messages/search`, input),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/messages/search', {
+        params: { path: { wid: workspaceId } },
+        body: input,
+      }),
+    ),
 };

@@ -1,9 +1,29 @@
+import createClient from 'openapi-fetch';
+import type { paths } from '../generated/schema';
 import type { ApiErrorResponse } from './types';
 
 let apiBase = '/api';
+let apiClient = createApiClient(apiBase);
+
+function createApiClient(baseUrl: string) {
+  const client = createClient<paths>({ baseUrl });
+  client.use({
+    async onRequest({ request }) {
+      const token = getAuthToken();
+      if (token) {
+        request.headers.set('Authorization', `Bearer ${token}`);
+      }
+      return request;
+    },
+  });
+  return client;
+}
+
+export { apiClient };
 
 export function setApiBase(url: string): void {
   apiBase = url;
+  apiClient = createApiClient(url);
 }
 
 export function getApiBase(): string {
@@ -32,16 +52,31 @@ export class ApiError extends Error {
   }
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const data = (await response.json()) as ApiErrorResponse;
-    throw new ApiError(
-      data.error?.code || 'UNKNOWN_ERROR',
-      data.error?.message || 'An unknown error occurred',
-      response.status,
-    );
+export async function throwIfError<T>(
+  promise: Promise<{ data?: T; error?: unknown; response: Response }>,
+): Promise<T> {
+  const { data, error, response } = await promise;
+  if (error) {
+    let code = 'UNKNOWN_ERROR';
+    let message = 'An unknown error occurred';
+    if (typeof error === 'object' && error !== null) {
+      const apiErr = error as ApiErrorResponse;
+      code = apiErr.error?.code || code;
+      message = apiErr.error?.message || message;
+    }
+    throw new ApiError(code, message, response.status);
   }
-  return response.json() as Promise<T>;
+  if (data === undefined) {
+    throw new ApiError('EMPTY_RESPONSE', 'No data returned', response.status);
+  }
+  return data;
+}
+
+export function multipartRequest(formData: FormData) {
+  return {
+    body: formData as never,
+    bodySerializer: () => formData,
+  };
 }
 
 export function authHeaders(): Record<string, string> {
@@ -50,59 +85,4 @@ export function authHeaders(): Record<string, string> {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
   return headers;
-}
-
-export async function get<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${apiBase}${endpoint}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(),
-    },
-  });
-  return handleResponse<T>(response);
-}
-
-export async function post<T>(endpoint: string, data?: unknown): Promise<T> {
-  const response = await fetch(`${apiBase}${endpoint}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(),
-    },
-    body: data ? JSON.stringify(data) : undefined,
-  });
-  return handleResponse<T>(response);
-}
-
-export async function uploadFile(
-  endpoint: string,
-  file: File,
-  fields?: Record<string, string>,
-): Promise<unknown> {
-  const formData = new FormData();
-  if (fields) {
-    for (const [key, value] of Object.entries(fields)) {
-      formData.append(key, value);
-    }
-  }
-  formData.append('file', file);
-
-  const response = await fetch(`${apiBase}${endpoint}`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: formData,
-  });
-  return handleResponse(response);
-}
-
-export async function del<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${apiBase}${endpoint}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(),
-    },
-  });
-  return handleResponse<T>(response);
 }

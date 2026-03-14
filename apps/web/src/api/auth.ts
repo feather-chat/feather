@@ -1,44 +1,27 @@
-import { get, post, type User, type WorkspaceSummary } from '@enzyme/api-client';
+import { apiClient, throwIfError } from '@enzyme/api-client';
+import type { LoginInput, RegisterInput } from '@enzyme/api-client';
 
-export interface LoginInput {
-  email: string;
-  password: string;
-}
-
-export interface RegisterInput {
-  email: string;
-  password: string;
-  display_name: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-}
-
-export interface MeResponse {
-  user: User;
-  workspaces?: WorkspaceSummary[];
-}
+export type { LoginInput, RegisterInput };
 
 export const authApi = {
-  login: (input: LoginInput) => post<AuthResponse>('/auth/login', input),
+  login: (input: LoginInput) =>
+    throwIfError(apiClient.POST('/auth/login', { body: input })),
 
-  register: (input: RegisterInput) => post<AuthResponse>('/auth/register', input),
+  register: (input: RegisterInput) =>
+    throwIfError(apiClient.POST('/auth/register', { body: input })),
 
-  logout: () => post<{ success: boolean }>('/auth/logout'),
+  logout: () => throwIfError(apiClient.POST('/auth/logout')),
 
-  me: () => get<MeResponse>('/auth/me'),
+  me: () => throwIfError(apiClient.GET('/auth/me')),
 
   forgotPassword: (email: string) =>
-    post<{ success: boolean; message: string }>('/auth/forgot-password', { email }),
+    throwIfError(apiClient.POST('/auth/forgot-password', { body: { email } })),
 
   resetPassword: (token: string, new_password: string) =>
-    post<{ success: boolean }>('/auth/reset-password', { token, new_password }),
+    throwIfError(apiClient.POST('/auth/reset-password', { body: { token, new_password } })),
 
   verifyEmail: (token: string) =>
-    post<{ success: boolean }>('/auth/verify-email', { token }),
+    throwIfError(apiClient.POST('/auth/verify-email', { body: { token } })),
 
-  resendVerification: () =>
-    post<{ success?: boolean; message?: string }>('/auth/resend-verification'),
+  resendVerification: () => throwIfError(apiClient.POST('/auth/resend-verification')),
 };

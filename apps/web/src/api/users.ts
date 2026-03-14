@@ -1,28 +1,22 @@
-import { get, post, del, uploadFile, type User } from '@enzyme/api-client';
+import { apiClient, throwIfError, multipartRequest } from '@enzyme/api-client';
+import type { UpdateProfileInput } from '@enzyme/api-client';
 
-export interface UserProfile {
-  id: string;
-  display_name: string;
-  avatar_url?: string;
-  status: string;
-  created_at: string;
-}
-
-export interface UpdateProfileInput {
-  display_name?: string;
-}
-
-export interface AvatarUploadResponse {
-  avatar_url: string;
-}
+export type { UpdateProfileInput };
 
 export const usersApi = {
-  getUser: (userId: string) => get<{ user: UserProfile }>(`/users/${userId}`),
+  getUser: (userId: string) =>
+    throwIfError(apiClient.GET('/users/{id}', { params: { path: { id: userId } } })),
 
-  updateProfile: (input: UpdateProfileInput) => post<{ user: User }>('/users/me/profile', input),
+  updateProfile: (input: UpdateProfileInput) =>
+    throwIfError(apiClient.POST('/users/me/profile', { body: input })),
 
-  uploadAvatar: (file: File) =>
-    uploadFile('/users/me/avatar', file) as Promise<AvatarUploadResponse>,
+  uploadAvatar: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return throwIfError(
+      apiClient.POST('/users/me/avatar', multipartRequest(formData)),
+    );
+  },
 
-  deleteAvatar: () => del<{ success: boolean }>('/users/me/avatar'),
+  deleteAvatar: () => throwIfError(apiClient.DELETE('/users/me/avatar')),
 };

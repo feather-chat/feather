@@ -4,6 +4,11 @@ import type { components } from '../generated/schema';
 
 // User types
 export type User = components['schemas']['User'];
+export type UpdateProfileInput = components['schemas']['UpdateProfileInput'];
+
+// Auth input types
+export type LoginInput = components['schemas']['LoginInput'];
+export type RegisterInput = components['schemas']['RegisterInput'];
 
 // Workspace types
 export type Workspace = components['schemas']['Workspace'];
@@ -15,6 +20,9 @@ export type WorkspaceSettings = components['schemas']['WorkspaceSettings'];
 export type PermissionLevel = components['schemas']['PermissionLevel'];
 export type Invite = components['schemas']['Invite'];
 export type WorkspaceNotificationSummary = components['schemas']['WorkspaceNotificationSummary'];
+export type CreateWorkspaceInput = components['schemas']['CreateWorkspaceInput'];
+export type UpdateWorkspaceInput = components['schemas']['UpdateWorkspaceInput'];
+export type CreateInviteInput = components['schemas']['CreateInviteInput'];
 
 // Channel types
 export type Channel = components['schemas']['Channel'];
@@ -24,6 +32,8 @@ export type ChannelRole = components['schemas']['ChannelRole'];
 export type ChannelMember = components['schemas']['ChannelMember'];
 export type MarkReadResponse = components['schemas']['MarkReadResponse'];
 export type ChannelReadEventData = components['schemas']['ChannelReadEventData'];
+export type CreateChannelInput = components['schemas']['CreateChannelInput'];
+export type UpdateChannelInput = components['schemas']['UpdateChannelInput'];
 
 // Message types
 export type Message = components['schemas']['Message'];
@@ -34,6 +44,8 @@ export type MessageListResult = components['schemas']['MessageListResult'];
 export type Attachment = components['schemas']['Attachment'];
 export type LinkPreview = components['schemas']['LinkPreview'];
 export type ThreadParticipant = components['schemas']['ThreadParticipant'];
+export type SendMessageInput = components['schemas']['SendMessageInput'];
+export type ListMessagesInput = components['schemas']['ListMessagesInput'];
 
 // Server types
 export type ServerInfo = components['schemas']['ServerInfo'];

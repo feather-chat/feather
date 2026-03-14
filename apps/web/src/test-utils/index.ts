@@ -6,3 +6,4 @@ export { default as userEvent } from '@testing-library/user-event';
 // Re-export mocks
 export * from './mocks/fixtures';
 export * from './mocks/api';
+export * from './mocks/api-client';

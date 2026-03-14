@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { uploadFile } from '@enzyme/api-client';
+import { apiClient, throwIfError, multipartRequest } from '@enzyme/api-client';
 
 export interface UploadedFile {
   id: string;
@@ -15,7 +15,14 @@ export interface UploadResult {
 export function useUploadFile(channelId: string) {
   return useMutation({
     mutationFn: async (file: File): Promise<UploadResult> => {
-      const result = await uploadFile(`/channels/${channelId}/files/upload`, file);
+      const formData = new FormData();
+      formData.append('file', file);
+      const result = await throwIfError(
+        apiClient.POST('/channels/{id}/files/upload', {
+          params: { path: { id: channelId } },
+          ...multipartRequest(formData),
+        }),
+      );
       return result as UploadResult;
     },
   });

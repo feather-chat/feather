@@ -3,18 +3,18 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
-// Hoist mocks
-const mockPost = vi.hoisted(() => vi.fn());
+const mockApiClient = vi.hoisted(() => ({
+  POST: vi.fn(),
+}));
 
 vi.mock('@enzyme/api-client', async (importOriginal) => {
   const original = await importOriginal<typeof import('@enzyme/api-client')>();
-  return {
-    ...original,
-    post: mockPost,
-  };
+  const { mockThrowIfError } = await import('../test-utils/mocks/api-client');
+  return { ...original, apiClient: mockApiClient, throwIfError: mockThrowIfError };
 });
 
 import { useAllUnreads } from './useAllUnreads';
+import { mockResponse } from '../test-utils/mocks/api-client';
 
 function createTestQueryClient() {
   return new QueryClient({
@@ -42,7 +42,7 @@ describe('useAllUnreads', () => {
       messages: [{ id: 'msg-1', channel_id: 'ch-1', content: 'Unread message' }],
       next_cursor: undefined,
     };
-    mockPost.mockResolvedValue(unreadsResult);
+    mockApiClient.POST.mockResolvedValue(mockResponse(unreadsResult));
 
     const { result } = renderHook(() => useAllUnreads({ workspaceId: 'ws-1' }), {
       wrapper: createWrapper(),
@@ -52,9 +52,9 @@ describe('useAllUnreads', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockPost).toHaveBeenCalledWith('/workspaces/ws-1/unreads', {
-      limit: 50,
-      cursor: undefined,
+    expect(mockApiClient.POST).toHaveBeenCalledWith('/workspaces/{wid}/unreads', {
+      params: { path: { wid: 'ws-1' } },
+      body: { limit: 50, cursor: undefined },
     });
     expect(result.current.data?.pages[0]).toEqual(unreadsResult);
   });
@@ -64,7 +64,7 @@ describe('useAllUnreads', () => {
       messages: [{ id: 'msg-1', content: 'First' }],
       next_cursor: 'cursor-1',
     };
-    mockPost.mockResolvedValue(firstPage);
+    mockApiClient.POST.mockResolvedValue(mockResponse(firstPage));
 
     const { result } = renderHook(() => useAllUnreads({ workspaceId: 'ws-1' }), {
       wrapper: createWrapper(),
@@ -83,7 +83,7 @@ describe('useAllUnreads', () => {
     });
 
     expect(result.current.fetchStatus).toBe('idle');
-    expect(mockPost).not.toHaveBeenCalled();
+    expect(mockApiClient.POST).not.toHaveBeenCalled();
   });
 
   it('disabled when enabled option is false', () => {
@@ -92,11 +92,11 @@ describe('useAllUnreads', () => {
     });
 
     expect(result.current.fetchStatus).toBe('idle');
-    expect(mockPost).not.toHaveBeenCalled();
+    expect(mockApiClient.POST).not.toHaveBeenCalled();
   });
 
   it('returns loading state initially', () => {
-    mockPost.mockImplementation(() => new Promise(() => {}));
+    mockApiClient.POST.mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useAllUnreads({ workspaceId: 'ws-1' }), {
       wrapper: createWrapper(),

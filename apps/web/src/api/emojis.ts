@@ -1,14 +1,25 @@
-import { post, uploadFile } from '@enzyme/api-client';
-import type { CustomEmoji } from '@enzyme/api-client';
+import { apiClient, throwIfError, multipartRequest } from '@enzyme/api-client';
 
 export const emojisApi = {
   list: (workspaceId: string) =>
-    post<{ emojis: CustomEmoji[] }>(`/workspaces/${workspaceId}/emojis/list`),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/emojis/list', {
+        params: { path: { wid: workspaceId } },
+      }),
+    ),
 
-  upload: (workspaceId: string, file: File, name: string) =>
-    uploadFile(`/workspaces/${workspaceId}/emojis/upload`, file, { name }) as Promise<{
-      emoji: CustomEmoji;
-    }>,
+  upload: (workspaceId: string, file: File, name: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('name', name);
+    return throwIfError(
+      apiClient.POST('/workspaces/{wid}/emojis/upload', {
+        params: { path: { wid: workspaceId } },
+        ...multipartRequest(formData),
+      }),
+    );
+  },
 
-  delete: (emojiId: string) => post<{ success: boolean }>(`/emojis/${emojiId}/delete`),
+  delete: (emojiId: string) =>
+    throwIfError(apiClient.POST('/emojis/{id}/delete', { params: { path: { id: emojiId } } })),
 };

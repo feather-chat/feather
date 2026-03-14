@@ -4,10 +4,9 @@ export * from './types';
 // Re-export client utilities
 export {
   ApiError,
-  get,
-  post,
-  uploadFile,
-  del,
+  apiClient,
+  throwIfError,
+  multipartRequest,
   setAuthToken,
   getAuthToken,
   setApiBase,
