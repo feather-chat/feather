@@ -27,6 +27,7 @@ import {
   Menu,
   MenuItem,
   DisclosureCaret,
+  Button,
   UnstyledButton,
   FileTrigger,
   Popover,
@@ -838,25 +839,13 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
               {submitLabel ? (
                 <div className="flex items-center gap-1.5">
                   {onEscape && (
-                    <UnstyledButton
-                      className="cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
-                      onPress={onEscape}
-                    >
+                    <Button variant="outline" size="xs" onPress={onEscape}>
                       Cancel
-                    </UnstyledButton>
+                    </Button>
                   )}
-                  <UnstyledButton
-                    isDisabled={!canSend}
-                    className={cn(
-                      'rounded px-2 py-1 text-xs font-medium transition-colors',
-                      canSend
-                        ? 'cursor-pointer bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600'
-                        : 'cursor-not-allowed bg-blue-600/50 text-white/70',
-                    )}
-                    onPress={handleSubmit}
-                  >
+                  <Button size="xs" isDisabled={!canSend} onPress={handleSubmit}>
                     {isPending ? 'Saving...' : submitLabel}
-                  </UnstyledButton>
+                  </Button>
                 </div>
               ) : (
                 <div className="flex items-center">

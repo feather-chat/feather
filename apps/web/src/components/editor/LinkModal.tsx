@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Modal, Input, UnstyledButton } from '../ui';
+import { Modal, Input, Button } from '../ui';
 
 export interface LinkModalData {
   text: string;
@@ -93,19 +93,12 @@ function LinkForm({
         />
       </div>
       <div className="flex justify-end gap-2">
-        <UnstyledButton
-          onPress={onClose}
-          className="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-        >
+        <Button variant="outline" size="sm" onPress={onClose}>
           Cancel
-        </UnstyledButton>
-        <UnstyledButton
-          onPress={handleSave}
-          isDisabled={!url.trim()}
-          className="cursor-pointer rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        </Button>
+        <Button size="sm" onPress={handleSave} isDisabled={!url.trim()}>
           Save
-        </UnstyledButton>
+        </Button>
       </div>
     </div>
   );
