@@ -161,7 +161,7 @@ type Ban struct {
 type BanUserInput struct {
 	// DurationHours Hours until ban expires. Omit for permanent.
 	DurationHours *int    `json:"duration_hours,omitempty"`
-	HideMessages  *bool   `json:"hide_messages,omitempty"`
+	HideMessages  bool    `json:"hide_messages"`
 	Reason        *string `json:"reason,omitempty"`
 	UserId        string  `json:"user_id"`
 }
@@ -698,8 +698,24 @@ type UpdateScheduledMessageInput struct {
 
 // UpdateWorkspaceInput defines model for UpdateWorkspaceInput.
 type UpdateWorkspaceInput struct {
-	Name     *string            `json:"name,omitempty"`
-	Settings *WorkspaceSettings `json:"settings,omitempty"`
+	Name *string `json:"name,omitempty"`
+
+	// Settings Partial workspace settings to update. Only provided fields are changed.
+	Settings *struct {
+		ShowJoinLeaveMessages *bool `json:"show_join_leave_messages,omitempty"`
+
+		// WhoCanCreateChannels Controls which workspace roles can perform an action
+		WhoCanCreateChannels *PermissionLevel `json:"who_can_create_channels,omitempty"`
+
+		// WhoCanCreateInvites Controls which workspace roles can perform an action
+		WhoCanCreateInvites *PermissionLevel `json:"who_can_create_invites,omitempty"`
+
+		// WhoCanManageCustomEmoji Controls which workspace roles can perform an action
+		WhoCanManageCustomEmoji *PermissionLevel `json:"who_can_manage_custom_emoji,omitempty"`
+
+		// WhoCanPinMessages Controls which workspace roles can perform an action
+		WhoCanPinMessages *PermissionLevel `json:"who_can_pin_messages,omitempty"`
+	} `json:"settings,omitempty"`
 }
 
 // User defines model for User.
@@ -4646,8 +4662,8 @@ type ForgotPasswordResponseObject interface {
 }
 
 type ForgotPassword200JSONResponse struct {
-	Message *string `json:"message,omitempty"`
-	Success *bool   `json:"success,omitempty"`
+	Message string `json:"message"`
+	Success bool   `json:"success"`
 }
 
 func (response ForgotPassword200JSONResponse) VisitForgotPasswordResponse(w http.ResponseWriter) error {
@@ -4908,7 +4924,7 @@ type ConvertGroupDMToChannelResponseObject interface {
 }
 
 type ConvertGroupDMToChannel200JSONResponse struct {
-	Channel *Channel `json:"channel,omitempty"`
+	Channel Channel `json:"channel"`
 }
 
 func (response ConvertGroupDMToChannel200JSONResponse) VisitConvertGroupDMToChannelResponse(w http.ResponseWriter) error {
@@ -4955,12 +4971,12 @@ type UploadFileResponseObject interface {
 }
 
 type UploadFile200JSONResponse struct {
-	File *struct {
-		ContentType *string `json:"content_type,omitempty"`
-		Filename    *string `json:"filename,omitempty"`
-		Id          *string `json:"id,omitempty"`
-		Size        *int    `json:"size,omitempty"`
-	} `json:"file,omitempty"`
+	File struct {
+		ContentType string `json:"content_type"`
+		Filename    string `json:"filename"`
+		Id          string `json:"id"`
+		Size        int    `json:"size"`
+	} `json:"file"`
 }
 
 func (response UploadFile200JSONResponse) VisitUploadFileResponse(w http.ResponseWriter) error {
@@ -5193,7 +5209,7 @@ type ListChannelMembersResponseObject interface {
 }
 
 type ListChannelMembers200JSONResponse struct {
-	Members *[]ChannelMember `json:"members,omitempty"`
+	Members []ChannelMember `json:"members"`
 }
 
 func (response ListChannelMembers200JSONResponse) VisitListChannelMembersResponse(w http.ResponseWriter) error {
@@ -5276,7 +5292,7 @@ type ScheduleMessageResponseObject interface {
 }
 
 type ScheduleMessage200JSONResponse struct {
-	ScheduledMessage *ScheduledMessage `json:"scheduled_message,omitempty"`
+	ScheduledMessage ScheduledMessage `json:"scheduled_message"`
 }
 
 func (response ScheduleMessage200JSONResponse) VisitScheduleMessageResponse(w http.ResponseWriter) error {
@@ -5323,7 +5339,7 @@ type SendMessageResponseObject interface {
 }
 
 type SendMessage200JSONResponse struct {
-	Message *MessageWithUser `json:"message,omitempty"`
+	Message MessageWithUser `json:"message"`
 }
 
 func (response SendMessage200JSONResponse) VisitSendMessageResponse(w http.ResponseWriter) error {
@@ -5378,7 +5394,7 @@ type GetChannelNotificationsResponseObject interface {
 }
 
 type GetChannelNotifications200JSONResponse struct {
-	Preferences *NotificationPreferences `json:"preferences,omitempty"`
+	Preferences NotificationPreferences `json:"preferences"`
 }
 
 func (response GetChannelNotifications200JSONResponse) VisitGetChannelNotificationsResponse(w http.ResponseWriter) error {
@@ -5416,7 +5432,7 @@ type UpdateChannelNotificationsResponseObject interface {
 }
 
 type UpdateChannelNotifications200JSONResponse struct {
-	Preferences *NotificationPreferences `json:"preferences,omitempty"`
+	Preferences NotificationPreferences `json:"preferences"`
 }
 
 func (response UpdateChannelNotifications200JSONResponse) VisitUpdateChannelNotificationsResponse(w http.ResponseWriter) error {
@@ -5463,9 +5479,9 @@ type ListPinnedMessagesResponseObject interface {
 }
 
 type ListPinnedMessages200JSONResponse struct {
-	HasMore    *bool              `json:"has_more,omitempty"`
-	Messages   *[]MessageWithUser `json:"messages,omitempty"`
-	NextCursor *string            `json:"next_cursor,omitempty"`
+	HasMore    bool              `json:"has_more"`
+	Messages   []MessageWithUser `json:"messages"`
+	NextCursor *string           `json:"next_cursor,omitempty"`
 }
 
 func (response ListPinnedMessages200JSONResponse) VisitListPinnedMessagesResponse(w http.ResponseWriter) error {
@@ -5582,7 +5598,7 @@ type UpdateChannelResponseObject interface {
 }
 
 type UpdateChannel200JSONResponse struct {
-	Channel *Channel `json:"channel,omitempty"`
+	Channel Channel `json:"channel"`
 }
 
 func (response UpdateChannel200JSONResponse) VisitUpdateChannelResponse(w http.ResponseWriter) error {
@@ -5852,7 +5868,7 @@ type AcceptInviteResponseObject interface {
 }
 
 type AcceptInvite200JSONResponse struct {
-	Workspace *Workspace `json:"workspace,omitempty"`
+	Workspace Workspace `json:"workspace"`
 }
 
 func (response AcceptInvite200JSONResponse) VisitAcceptInviteResponse(w http.ResponseWriter) error {
@@ -5898,7 +5914,7 @@ type GetMessageResponseObject interface {
 }
 
 type GetMessage200JSONResponse struct {
-	Message *MessageWithUser `json:"message,omitempty"`
+	Message MessageWithUser `json:"message"`
 }
 
 func (response GetMessage200JSONResponse) VisitGetMessageResponse(w http.ResponseWriter) error {
@@ -6067,7 +6083,7 @@ type PinMessageResponseObject interface {
 }
 
 type PinMessage200JSONResponse struct {
-	Message *MessageWithUser `json:"message,omitempty"`
+	Message MessageWithUser `json:"message"`
 }
 
 func (response PinMessage200JSONResponse) VisitPinMessageResponse(w http.ResponseWriter) error {
@@ -6123,7 +6139,7 @@ type AddReactionResponseObject interface {
 }
 
 type AddReaction200JSONResponse struct {
-	Reaction *Reaction `json:"reaction,omitempty"`
+	Reaction Reaction `json:"reaction"`
 }
 
 func (response AddReaction200JSONResponse) VisitAddReactionResponse(w http.ResponseWriter) error {
@@ -6369,7 +6385,7 @@ type UnpinMessageResponseObject interface {
 }
 
 type UnpinMessage200JSONResponse struct {
-	Message *MessageWithUser `json:"message,omitempty"`
+	Message MessageWithUser `json:"message"`
 }
 
 func (response UnpinMessage200JSONResponse) VisitUnpinMessageResponse(w http.ResponseWriter) error {
@@ -6453,7 +6469,7 @@ type UpdateMessageResponseObject interface {
 }
 
 type UpdateMessage200JSONResponse struct {
-	Message *MessageWithUser `json:"message,omitempty"`
+	Message MessageWithUser `json:"message"`
 }
 
 func (response UpdateMessage200JSONResponse) VisitUpdateMessageResponse(w http.ResponseWriter) error {
@@ -6508,7 +6524,7 @@ type GetScheduledMessageResponseObject interface {
 }
 
 type GetScheduledMessage200JSONResponse struct {
-	ScheduledMessage *ScheduledMessage `json:"scheduled_message,omitempty"`
+	ScheduledMessage ScheduledMessage `json:"scheduled_message"`
 }
 
 func (response GetScheduledMessage200JSONResponse) VisitGetScheduledMessageResponse(w http.ResponseWriter) error {
@@ -6598,7 +6614,7 @@ type SendScheduledMessageNowResponseObject interface {
 }
 
 type SendScheduledMessageNow200JSONResponse struct {
-	Message *MessageWithUser `json:"message,omitempty"`
+	Message MessageWithUser `json:"message"`
 }
 
 func (response SendScheduledMessageNow200JSONResponse) VisitSendScheduledMessageNowResponse(w http.ResponseWriter) error {
@@ -6663,7 +6679,7 @@ type UpdateScheduledMessageResponseObject interface {
 }
 
 type UpdateScheduledMessage200JSONResponse struct {
-	ScheduledMessage *ScheduledMessage `json:"scheduled_message,omitempty"`
+	ScheduledMessage ScheduledMessage `json:"scheduled_message"`
 }
 
 func (response UpdateScheduledMessage200JSONResponse) VisitUpdateScheduledMessageResponse(w http.ResponseWriter) error {
@@ -6803,7 +6819,7 @@ type UpdateProfileResponseObject interface {
 }
 
 type UpdateProfile200JSONResponse struct {
-	User *User `json:"user,omitempty"`
+	User User `json:"user"`
 }
 
 func (response UpdateProfile200JSONResponse) VisitUpdateProfileResponse(w http.ResponseWriter) error {
@@ -6840,7 +6856,7 @@ type GetUserResponseObject interface {
 }
 
 type GetUser200JSONResponse struct {
-	User *UserProfile `json:"user,omitempty"`
+	User UserProfile `json:"user"`
 }
 
 func (response GetUser200JSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
@@ -6877,7 +6893,7 @@ type CreateWorkspaceResponseObject interface {
 }
 
 type CreateWorkspace200JSONResponse struct {
-	Workspace *Workspace `json:"workspace,omitempty"`
+	Workspace Workspace `json:"workspace"`
 }
 
 func (response CreateWorkspace200JSONResponse) VisitCreateWorkspaceResponse(w http.ResponseWriter) error {
@@ -6976,7 +6992,7 @@ type GetWorkspaceResponseObject interface {
 }
 
 type GetWorkspace200JSONResponse struct {
-	Workspace *Workspace `json:"workspace,omitempty"`
+	Workspace Workspace `json:"workspace"`
 }
 
 func (response GetWorkspace200JSONResponse) VisitGetWorkspaceResponse(w http.ResponseWriter) error {
@@ -7014,7 +7030,7 @@ type BanUserResponseObject interface {
 }
 
 type BanUser200JSONResponse struct {
-	Ban *Ban `json:"ban,omitempty"`
+	Ban Ban `json:"ban"`
 }
 
 func (response BanUser200JSONResponse) VisitBanUserResponse(w http.ResponseWriter) error {
@@ -7079,9 +7095,9 @@ type ListBansResponseObject interface {
 }
 
 type ListBans200JSONResponse struct {
-	Bans       *[]BanWithUser `json:"bans,omitempty"`
-	HasMore    *bool          `json:"has_more,omitempty"`
-	NextCursor *string        `json:"next_cursor,omitempty"`
+	Bans       []BanWithUser `json:"bans"`
+	HasMore    bool          `json:"has_more"`
+	NextCursor *string       `json:"next_cursor,omitempty"`
 }
 
 func (response ListBans200JSONResponse) VisitListBansResponse(w http.ResponseWriter) error {
@@ -7217,7 +7233,7 @@ type ListBlocksResponseObject interface {
 }
 
 type ListBlocks200JSONResponse struct {
-	Blocks *[]BlockWithUser `json:"blocks,omitempty"`
+	Blocks []BlockWithUser `json:"blocks"`
 }
 
 func (response ListBlocks200JSONResponse) VisitListBlocksResponse(w http.ResponseWriter) error {
@@ -7291,7 +7307,7 @@ type CreateChannelResponseObject interface {
 }
 
 type CreateChannel200JSONResponse struct {
-	Channel *Channel `json:"channel,omitempty"`
+	Channel Channel `json:"channel"`
 }
 
 func (response CreateChannel200JSONResponse) VisitCreateChannelResponse(w http.ResponseWriter) error {
@@ -7338,7 +7354,7 @@ type CreateDMResponseObject interface {
 }
 
 type CreateDM200JSONResponse struct {
-	Channel *Channel `json:"channel,omitempty"`
+	Channel Channel `json:"channel"`
 }
 
 func (response CreateDM200JSONResponse) VisitCreateDMResponse(w http.ResponseWriter) error {
@@ -7375,7 +7391,7 @@ type ListChannelsResponseObject interface {
 }
 
 type ListChannels200JSONResponse struct {
-	Channels *[]ChannelWithMembership `json:"channels,omitempty"`
+	Channels []ChannelWithMembership `json:"channels"`
 }
 
 func (response ListChannels200JSONResponse) VisitListChannelsResponse(w http.ResponseWriter) error {
@@ -7594,7 +7610,7 @@ type CreateWorkspaceInviteResponseObject interface {
 }
 
 type CreateWorkspaceInvite200JSONResponse struct {
-	Invite *Invite `json:"invite,omitempty"`
+	Invite Invite `json:"invite"`
 }
 
 func (response CreateWorkspaceInvite200JSONResponse) VisitCreateWorkspaceInviteResponse(w http.ResponseWriter) error {
@@ -7675,7 +7691,7 @@ type ListWorkspaceMembersResponseObject interface {
 }
 
 type ListWorkspaceMembers200JSONResponse struct {
-	Members *[]WorkspaceMemberWithUser `json:"members,omitempty"`
+	Members []WorkspaceMemberWithUser `json:"members"`
 }
 
 func (response ListWorkspaceMembers200JSONResponse) VisitListWorkspaceMembersResponse(w http.ResponseWriter) error {
@@ -7857,9 +7873,9 @@ type ListModerationLogResponseObject interface {
 }
 
 type ListModerationLog200JSONResponse struct {
-	Entries    *[]ModerationLogEntryWithActor `json:"entries,omitempty"`
-	HasMore    *bool                          `json:"has_more,omitempty"`
-	NextCursor *string                        `json:"next_cursor,omitempty"`
+	Entries    []ModerationLogEntryWithActor `json:"entries"`
+	HasMore    bool                          `json:"has_more"`
+	NextCursor *string                       `json:"next_cursor,omitempty"`
 }
 
 func (response ListModerationLog200JSONResponse) VisitListModerationLogResponse(w http.ResponseWriter) error {
@@ -7896,8 +7912,8 @@ type ListScheduledMessagesResponseObject interface {
 }
 
 type ListScheduledMessages200JSONResponse struct {
-	Count             *int                `json:"count,omitempty"`
-	ScheduledMessages *[]ScheduledMessage `json:"scheduled_messages,omitempty"`
+	Count             int                `json:"count"`
+	ScheduledMessages []ScheduledMessage `json:"scheduled_messages"`
 }
 
 func (response ListScheduledMessages200JSONResponse) VisitListScheduledMessagesResponse(w http.ResponseWriter) error {
@@ -7980,7 +7996,7 @@ type UpdateWorkspaceResponseObject interface {
 }
 
 type UpdateWorkspace200JSONResponse struct {
-	Workspace *Workspace `json:"workspace,omitempty"`
+	Workspace Workspace `json:"workspace"`
 }
 
 func (response UpdateWorkspace200JSONResponse) VisitUpdateWorkspaceResponse(w http.ResponseWriter) error {

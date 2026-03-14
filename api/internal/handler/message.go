@@ -301,7 +301,7 @@ func (h *Handler) SendMessage(ctx context.Context, request openapi.SendMessageRe
 	}
 
 	return openapi.SendMessage200JSONResponse{
-		Message: &apiMsg,
+		Message: apiMsg,
 	}, nil
 }
 
@@ -476,7 +476,7 @@ func (h *Handler) UpdateMessage(ctx context.Context, request openapi.UpdateMessa
 	}
 
 	return openapi.UpdateMessage200JSONResponse{
-		Message: &apiMsg,
+		Message: apiMsg,
 	}, nil
 }
 
@@ -643,7 +643,7 @@ func (h *Handler) AddReaction(ctx context.Context, request openapi.AddReactionRe
 
 	apiReaction := reactionToAPI(reaction)
 	return openapi.AddReaction200JSONResponse{
-		Reaction: &apiReaction,
+		Reaction: apiReaction,
 	}, nil
 }
 
@@ -1405,7 +1405,7 @@ func (h *Handler) GetMessage(ctx context.Context, request openapi.GetMessageRequ
 
 	apiMsg := messageWithUserToAPI(msgWithUser)
 	return openapi.GetMessage200JSONResponse{
-		Message: &apiMsg,
+		Message: apiMsg,
 	}, nil
 }
 
@@ -1589,7 +1589,7 @@ func (h *Handler) PinMessage(ctx context.Context, request openapi.PinMessageRequ
 		}
 	}
 
-	return openapi.PinMessage200JSONResponse{Message: &apiMsg}, nil
+	return openapi.PinMessage200JSONResponse{Message: apiMsg}, nil
 }
 
 // UnpinMessage unpins a message
@@ -1669,7 +1669,7 @@ func (h *Handler) UnpinMessage(ctx context.Context, request openapi.UnpinMessage
 		}
 	}
 
-	return openapi.UnpinMessage200JSONResponse{Message: &apiMsg}, nil
+	return openapi.UnpinMessage200JSONResponse{Message: apiMsg}, nil
 }
 
 // ListPinnedMessages lists pinned messages in a channel
@@ -1721,8 +1721,8 @@ func (h *Handler) ListPinnedMessages(ctx context.Context, request openapi.ListPi
 	}
 
 	return openapi.ListPinnedMessages200JSONResponse{
-		Messages:   &apiMessages,
-		HasMore:    &hasMore,
+		Messages:   apiMessages,
+		HasMore:    hasMore,
 		NextCursor: &nextCursor,
 	}, nil
 }

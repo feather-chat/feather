@@ -107,18 +107,17 @@ func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequ
 		return nil, err
 	}
 
-	sizeInt := int(size)
 	return openapi.UploadFile200JSONResponse{
-		File: &struct {
-			ContentType *string `json:"content_type,omitempty"`
-			Filename    *string `json:"filename,omitempty"`
-			Id          *string `json:"id,omitempty"`
-			Size        *int    `json:"size,omitempty"`
+		File: struct {
+			ContentType string `json:"content_type"`
+			Filename    string `json:"filename"`
+			Id          string `json:"id"`
+			Size        int    `json:"size"`
 		}{
-			Id:          &attachment.ID,
-			Filename:    &attachment.Filename,
-			Size:        &sizeInt,
-			ContentType: &attachment.ContentType,
+			Id:          attachment.ID,
+			Filename:    attachment.Filename,
+			Size:        int(size),
+			ContentType: attachment.ContentType,
 		},
 	}, nil
 }

@@ -54,7 +54,7 @@ func (h *Handler) CreateWorkspace(ctx context.Context, request openapi.CreateWor
 
 	apiWs := workspaceToAPI(ws)
 	return openapi.CreateWorkspace200JSONResponse{
-		Workspace: &apiWs,
+		Workspace: apiWs,
 	}, nil
 }
 
@@ -81,7 +81,7 @@ func (h *Handler) GetWorkspace(ctx context.Context, request openapi.GetWorkspace
 
 	apiWs := workspaceToAPI(ws)
 	return openapi.GetWorkspace200JSONResponse{
-		Workspace: &apiWs,
+		Workspace: apiWs,
 	}, nil
 }
 
@@ -171,7 +171,7 @@ func (h *Handler) UpdateWorkspace(ctx context.Context, request openapi.UpdateWor
 	}
 
 	return openapi.UpdateWorkspace200JSONResponse{
-		Workspace: &apiWs,
+		Workspace: apiWs,
 	}, nil
 }
 
@@ -199,7 +199,7 @@ func (h *Handler) ListWorkspaceMembers(ctx context.Context, request openapi.List
 	}
 
 	return openapi.ListWorkspaceMembers200JSONResponse{
-		Members: &apiMembers,
+		Members: apiMembers,
 	}, nil
 }
 
@@ -479,7 +479,7 @@ func (h *Handler) CreateWorkspaceInvite(ctx context.Context, request openapi.Cre
 
 	apiInvite := inviteToAPI(invite)
 	return openapi.CreateWorkspaceInvite200JSONResponse{
-		Invite: &apiInvite,
+		Invite: apiInvite,
 	}, nil
 }
 
@@ -551,7 +551,7 @@ func (h *Handler) AcceptInvite(ctx context.Context, request openapi.AcceptInvite
 
 	apiWs := workspaceToAPI(ws)
 	return openapi.AcceptInvite200JSONResponse{
-		Workspace: &apiWs,
+		Workspace: apiWs,
 	}, nil
 }
 

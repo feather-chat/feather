@@ -46,7 +46,7 @@ func (h *Handler) GetUser(ctx context.Context, request openapi.GetUserRequestObj
 		profile.GravatarUrl = &g
 	}
 	return openapi.GetUser200JSONResponse{
-		User: &profile,
+		User: profile,
 	}, nil
 }
 
@@ -85,13 +85,8 @@ func (h *Handler) UpdateProfile(ctx context.Context, request openapi.UpdateProfi
 	}
 
 	return openapi.UpdateProfile200JSONResponse{
-		User: ptr(userToAPI(u)),
+		User: userToAPI(u),
 	}, nil
-}
-
-// ptr returns a pointer to the given value
-func ptr[T any](v T) *T {
-	return &v
 }
 
 // Allowed avatar content types

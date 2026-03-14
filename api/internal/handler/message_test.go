@@ -53,9 +53,6 @@ func TestSendMessage_Success(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected 200 response, got %T", resp)
 	}
-	if r.Message == nil {
-		t.Fatal("expected message in response")
-	}
 	if r.Message.Content != "Hello, world!" {
 		t.Errorf("content = %q, want %q", r.Message.Content, "Hello, world!")
 	}
@@ -462,9 +459,6 @@ func TestAddReaction_Success(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected 200 response, got %T", resp)
 	}
-	if r.Reaction == nil {
-		t.Fatal("expected reaction in response")
-	}
 	if r.Reaction.Emoji != "👍" {
 		t.Errorf("emoji = %q, want %q", r.Reaction.Emoji, "👍")
 	}
@@ -520,9 +514,6 @@ func TestGetMessage_Success(t *testing.T) {
 	r, ok := resp.(openapi.GetMessage200JSONResponse)
 	if !ok {
 		t.Fatalf("expected 200 response, got %T", resp)
-	}
-	if r.Message == nil {
-		t.Fatal("expected message in response")
 	}
 	if r.Message.Content != "Hello" {
 		t.Errorf("content = %q, want %q", r.Message.Content, "Hello")

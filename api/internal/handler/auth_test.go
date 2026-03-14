@@ -98,7 +98,7 @@ func TestForgotPassword(t *testing.T) {
 			if !ok {
 				t.Fatalf("expected 200 response, got %T", resp)
 			}
-			if okResp.Success == nil || !*okResp.Success {
+			if !okResp.Success {
 				t.Error("expected success=true")
 			}
 		})

@@ -26,9 +26,6 @@ func TestCreateWorkspace_Success(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected 200 response, got %T", resp)
 	}
-	if r.Workspace == nil {
-		t.Fatal("expected workspace in response")
-	}
 	if r.Workspace.Name != "My Workspace" {
 		t.Errorf("name = %q, want %q", r.Workspace.Name, "My Workspace")
 	}
@@ -156,8 +153,8 @@ func TestListWorkspaceMembers_Success(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected 200 response, got %T", resp)
 	}
-	if r.Members == nil || len(*r.Members) < 2 {
-		t.Fatalf("expected at least 2 members, got %d", len(*r.Members))
+	if len(r.Members) < 2 {
+		t.Fatalf("expected at least 2 members, got %d", len(r.Members))
 	}
 }
 
@@ -427,9 +424,6 @@ func TestCreateWorkspaceInvite_Success(t *testing.T) {
 	r, ok := resp.(openapi.CreateWorkspaceInvite200JSONResponse)
 	if !ok {
 		t.Fatalf("expected 200 response, got %T", resp)
-	}
-	if r.Invite == nil {
-		t.Fatal("expected invite in response")
 	}
 	if r.Invite.Code == "" {
 		t.Error("expected invite code to be set")
