@@ -264,7 +264,11 @@ func (h *Handler) UpdateChannel(ctx context.Context, request openapi.UpdateChann
 
 	// Broadcast SSE channel.updated event
 	if h.hub != nil {
-		h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.NewChannelUpdatedEvent(apiCh))
+		if ch.Type == channel.TypePrivate {
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.NewChannelUpdatedEvent(apiCh))
+		} else {
+			h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.NewChannelUpdatedEvent(apiCh))
+		}
 	}
 
 	// Create system messages for name/type changes

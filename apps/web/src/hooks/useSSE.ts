@@ -378,6 +378,8 @@ export function useSSE(workspaceId: string | undefined) {
     });
 
     // Handle channel events
+    // Private channels use BroadcastToChannel (only sent to members), so this
+    // handler only receives events for channels the user should see.
     connection.on('channel.created', (event) => {
       const channel = event.data;
       queryClient.setQueryData(
@@ -388,7 +390,10 @@ export function useSSE(workspaceId: string | undefined) {
           if (old.channels.some((c) => c.id === channel.id)) return old;
           return {
             ...old,
-            channels: [...old.channels, { ...channel, unread_count: 0, notification_count: 0 }],
+            channels: [
+              ...old.channels,
+              { ...channel, unread_count: 0, notification_count: 0, is_starred: false },
+            ],
           };
         },
       );
