@@ -71,7 +71,12 @@ func (h *Handler) CreateChannel(ctx context.Context, request openapi.CreateChann
 	// Update SSE hub cache with creator as first member and broadcast
 	if h.hub != nil {
 		h.hub.AddChannelMember(ch.ID, userID)
-		h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.NewChannelCreatedEvent(apiCh))
+		if ch.Type == channel.TypePrivate {
+			// Private channels: only notify channel members (the creator at this point)
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.NewChannelCreatedEvent(apiCh))
+		} else {
+			h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.NewChannelCreatedEvent(apiCh))
+		}
 	}
 
 	return openapi.CreateChannel200JSONResponse{
@@ -322,7 +327,12 @@ func (h *Handler) ArchiveChannel(ctx context.Context, request openapi.ArchiveCha
 	if h.hub != nil {
 		// Re-fetch to get the updated archived state
 		if archived, err := h.channelRepo.GetByID(ctx, string(request.Id)); err == nil {
-			h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.NewChannelArchivedEvent(channelToAPI(archived)))
+			if ch.Type == channel.TypePrivate {
+				// Private channels: only notify channel members
+				h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.NewChannelArchivedEvent(channelToAPI(archived)))
+			} else {
+				h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.NewChannelArchivedEvent(channelToAPI(archived)))
+			}
 		}
 	}
 
