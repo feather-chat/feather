@@ -10,8 +10,8 @@ import (
 type PresenceStatus string
 
 const (
-	Online  PresenceStatus = "online"
-	Offline PresenceStatus = "offline"
+	PresenceOnline  PresenceStatus = "online"
+	PresenceOffline PresenceStatus = "offline"
 )
 
 // PresenceData is the data payload for presence.changed events.
@@ -78,21 +78,9 @@ type ChannelMemberData struct {
 	UserID    string `json:"user_id"`
 }
 
-// MemberBannedData is the data payload for member.banned events.
-// Broadcast to ALL workspace members via BroadcastToWorkspace — keep minimal.
-type MemberBannedData struct {
-	UserID      string `json:"user_id"`
-	WorkspaceID string `json:"workspace_id"`
-}
-
-// MemberUnbannedData is the data payload for member.unbanned events.
-type MemberUnbannedData struct {
-	UserID      string `json:"user_id"`
-	WorkspaceID string `json:"workspace_id"`
-}
-
-// MemberLeftData is the data payload for member.left events.
-type MemberLeftData struct {
+// WorkspaceMemberData is the shared data payload for member.banned, member.unbanned,
+// and member.left events. All carry just the user and workspace IDs.
+type WorkspaceMemberData struct {
 	UserID      string `json:"user_id"`
 	WorkspaceID string `json:"workspace_id"`
 }
@@ -228,15 +216,15 @@ func NewMessageUnpinnedEvent(data openapi.MessageWithUser) Event {
 	return Event{Type: EventMessageUnpinned, Data: data}
 }
 
-func NewMemberBannedEvent(data MemberBannedData) Event {
+func NewMemberBannedEvent(data WorkspaceMemberData) Event {
 	return Event{Type: EventMemberBanned, Data: data}
 }
 
-func NewMemberUnbannedEvent(data MemberUnbannedData) Event {
+func NewMemberUnbannedEvent(data WorkspaceMemberData) Event {
 	return Event{Type: EventMemberUnbanned, Data: data}
 }
 
-func NewMemberLeftEvent(data MemberLeftData) Event {
+func NewMemberLeftEvent(data WorkspaceMemberData) Event {
 	return Event{Type: EventMemberLeft, Data: data}
 }
 

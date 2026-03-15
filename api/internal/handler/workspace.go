@@ -302,7 +302,7 @@ func (h *Handler) LeaveWorkspace(ctx context.Context, request openapi.LeaveWorks
 			}))
 		}
 
-		h.hub.BroadcastToWorkspace(workspaceID, sse.NewMemberLeftEvent(sse.MemberLeftData{
+		h.hub.BroadcastToWorkspace(workspaceID, sse.NewMemberLeftEvent(sse.WorkspaceMemberData{
 			UserID:      userID,
 			WorkspaceID: workspaceID,
 		}))

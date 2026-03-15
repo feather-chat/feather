@@ -111,7 +111,7 @@ func (m *Manager) SetOnline(workspaceID, userID string) {
 	m.persistPresence(context.Background(), workspaceID, userID, StatusOnline, now)
 
 	if prevStatus != StatusOnline {
-		m.broadcastPresenceChange(workspaceID, userID, StatusOnline)
+		m.broadcastPresenceChange(workspaceID, userID, sse.PresenceOnline)
 	}
 }
 
@@ -138,7 +138,7 @@ func (m *Manager) SetOffline(workspaceID, userID string) {
 	}
 
 	m.persistPresence(context.Background(), workspaceID, userID, StatusOffline, now)
-	m.broadcastPresenceChange(workspaceID, userID, StatusOffline)
+	m.broadcastPresenceChange(workspaceID, userID, sse.PresenceOffline)
 }
 
 func (m *Manager) SetStatus(workspaceID, userID, status string) {
@@ -171,7 +171,7 @@ func (m *Manager) SetStatus(workspaceID, userID, status string) {
 	m.persistPresence(context.Background(), workspaceID, userID, status, now)
 
 	if prevStatus != status {
-		m.broadcastPresenceChange(workspaceID, userID, status)
+		m.broadcastPresenceChange(workspaceID, userID, sse.PresenceStatus(status))
 	}
 }
 
@@ -220,7 +220,7 @@ func (m *Manager) checkPresence(ctx context.Context) {
 				if now.Sub(p.LastSeenAt) > OfflineTimeout {
 					p.Status = StatusOffline
 					m.persistPresence(ctx, workspaceID, userID, StatusOffline, now)
-					m.broadcastPresenceChange(workspaceID, userID, StatusOffline)
+					m.broadcastPresenceChange(workspaceID, userID, sse.PresenceOffline)
 				}
 			}
 		}
@@ -240,13 +240,13 @@ func (m *Manager) persistPresence(ctx context.Context, workspaceID, userID, stat
 	`, id, userID, workspaceID, status, lastSeen.Format(time.RFC3339))
 }
 
-func (m *Manager) broadcastPresenceChange(workspaceID, userID, status string) {
+func (m *Manager) broadcastPresenceChange(workspaceID, userID string, status sse.PresenceStatus) {
 	if m.hub == nil {
 		return
 	}
 
 	m.hub.BroadcastToWorkspace(workspaceID, sse.NewPresenceChangedEvent(sse.PresenceData{
 		UserID: userID,
-		Status: sse.PresenceStatus(status),
+		Status: status,
 	}))
 }

@@ -88,7 +88,7 @@ func (h *Hub) Run(ctx context.Context) {
 				// User just came online - broadcast to workspace
 				h.BroadcastToWorkspace(client.WorkspaceID, NewPresenceChangedEvent(PresenceData{
 					UserID: client.UserID,
-					Status: Online,
+					Status: PresenceOnline,
 				}))
 			}
 		case client := <-h.unregister:
@@ -97,7 +97,7 @@ func (h *Hub) Run(ctx context.Context) {
 				// User just went offline - broadcast to workspace
 				h.BroadcastToWorkspace(client.WorkspaceID, NewPresenceChangedEvent(PresenceData{
 					UserID: client.UserID,
-					Status: Offline,
+					Status: PresenceOffline,
 				}))
 			}
 		}

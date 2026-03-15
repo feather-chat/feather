@@ -83,7 +83,7 @@ func (h *Handler) BanUser(ctx context.Context, request openapi.BanUserRequestObj
 
 	// Broadcast SSE event
 	if h.hub != nil {
-		h.hub.BroadcastToWorkspace(string(request.Wid), sse.NewMemberBannedEvent(sse.MemberBannedData{
+		h.hub.BroadcastToWorkspace(string(request.Wid), sse.NewMemberBannedEvent(sse.WorkspaceMemberData{
 			UserID:      targetUserID,
 			WorkspaceID: string(request.Wid),
 		}))
@@ -141,7 +141,7 @@ func (h *Handler) UnbanUser(ctx context.Context, request openapi.UnbanUserReques
 
 	// Broadcast SSE event
 	if h.hub != nil {
-		h.hub.BroadcastToWorkspace(string(request.Wid), sse.NewMemberUnbannedEvent(sse.MemberUnbannedData{
+		h.hub.BroadcastToWorkspace(string(request.Wid), sse.NewMemberUnbannedEvent(sse.WorkspaceMemberData{
 			UserID:      request.Body.UserId,
 			WorkspaceID: string(request.Wid),
 		}))

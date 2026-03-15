@@ -34,16 +34,16 @@ func TestTypedConstructors(t *testing.T) {
 		{"channel.read", NewChannelReadEvent(ChannelReadEventData{ChannelID: "c1", LastReadMessageID: "m1"}), EventChannelRead},
 		{"typing.start", NewTypingStartEvent(TypingEventData{UserID: "u1", ChannelID: "c1"}), EventTypingStart},
 		{"typing.stop", NewTypingStopEvent(TypingEventData{UserID: "u1", ChannelID: "c1"}), EventTypingStop},
-		{"presence.changed", NewPresenceChangedEvent(PresenceData{UserID: "u1", Status: Online}), EventPresenceChanged},
+		{"presence.changed", NewPresenceChangedEvent(PresenceData{UserID: "u1", Status: PresenceOnline}), EventPresenceChanged},
 		{"presence.initial", NewPresenceInitialEvent(PresenceInitialData{OnlineUserIDs: []string{"u1"}}), EventPresenceInitial},
 		{"notification", NewNotificationEvent(NotificationData{Type: "mention", ChannelID: "c1", MessageID: "m1"}), EventNotification},
 		{"emoji.created", NewEmojiCreatedEvent(openapi.CustomEmoji{Id: "e1"}), EventEmojiCreated},
 		{"emoji.deleted", NewEmojiDeletedEvent(EmojiDeletedData{ID: "e1", Name: "wave"}), EventEmojiDeleted},
 		{"message.pinned", NewMessagePinnedEvent(openapi.MessageWithUser{Id: "m1"}), EventMessagePinned},
 		{"message.unpinned", NewMessageUnpinnedEvent(openapi.MessageWithUser{Id: "m1"}), EventMessageUnpinned},
-		{"member.banned", NewMemberBannedEvent(MemberBannedData{UserID: "u1", WorkspaceID: "w1"}), EventMemberBanned},
-		{"member.unbanned", NewMemberUnbannedEvent(MemberUnbannedData{UserID: "u1", WorkspaceID: "w1"}), EventMemberUnbanned},
-		{"member.left", NewMemberLeftEvent(MemberLeftData{UserID: "u1", WorkspaceID: "w1"}), EventMemberLeft},
+		{"member.banned", NewMemberBannedEvent(WorkspaceMemberData{UserID: "u1", WorkspaceID: "w1"}), EventMemberBanned},
+		{"member.unbanned", NewMemberUnbannedEvent(WorkspaceMemberData{UserID: "u1", WorkspaceID: "w1"}), EventMemberUnbanned},
+		{"member.left", NewMemberLeftEvent(WorkspaceMemberData{UserID: "u1", WorkspaceID: "w1"}), EventMemberLeft},
 		{"member.role_changed", NewMemberRoleChangedEvent(MemberRoleChangedData{UserID: "u1", OldRole: "member", NewRole: "admin"}), EventMemberRoleChanged},
 		{"workspace.updated", NewWorkspaceUpdatedEvent(openapi.Workspace{Id: "w1"}), EventWorkspaceUpdated},
 		{"scheduled_message.created", NewScheduledMessageCreatedEvent(openapi.ScheduledMessage{Id: "s1"}), EventScheduledMessageCreated},
@@ -91,7 +91,7 @@ func TestNoRawEventConstruction(t *testing.T) {
 			return err
 		}
 		if info.IsDir() {
-			if info.Name() == "node_modules" || info.Name() == ".git" {
+			if info.Name() == "node_modules" || info.Name() == ".git" || info.Name() == "vendor" {
 				return filepath.SkipDir
 			}
 			return nil
@@ -102,7 +102,8 @@ func TestNoRawEventConstruction(t *testing.T) {
 		// Allow raw construction within the sse package itself
 		absPath, err := filepath.Abs(path)
 		if err != nil {
-			t.Fatalf("filepath.Abs(%q): %v", path, err)
+			t.Errorf("filepath.Abs(%q): %v", path, err)
+			return nil
 		}
 		if strings.Contains(absPath, filepath.Join("internal", "sse")) {
 			return nil
@@ -162,9 +163,10 @@ func TestSSEDataTypeConformance(t *testing.T) {
 		{"MessageDeletedData", MessageDeletedData{}, "SSEEventMessageDeleted", true},
 		{"ReactionRemovedData", ReactionRemovedData{}, "SSEEventReactionRemoved", true},
 		{"ChannelMemberData/Added", ChannelMemberData{}, "SSEEventChannelMemberAdded", true},
-		{"MemberBannedData", MemberBannedData{}, "SSEEventMemberBanned", true},
-		{"MemberUnbannedData", MemberUnbannedData{}, "SSEEventMemberUnbanned", true},
-		{"MemberLeftData", MemberLeftData{}, "SSEEventMemberLeft", true},
+		{"ChannelMemberData/Removed", ChannelMemberData{}, "SSEEventChannelMemberRemoved", true},
+		{"WorkspaceMemberData/Banned", WorkspaceMemberData{}, "SSEEventMemberBanned", true},
+		{"WorkspaceMemberData/Unbanned", WorkspaceMemberData{}, "SSEEventMemberUnbanned", true},
+		{"WorkspaceMemberData/Left", WorkspaceMemberData{}, "SSEEventMemberLeft", true},
 		{"MemberRoleChangedData", MemberRoleChangedData{}, "SSEEventMemberRoleChanged", true},
 		{"EmojiDeletedData", EmojiDeletedData{}, "SSEEventEmojiDeleted", true},
 		{"ScheduledMessageDeletedData", ScheduledMessageDeletedData{}, "SSEEventScheduledMessageDeleted", true},
