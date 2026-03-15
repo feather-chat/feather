@@ -23,7 +23,9 @@ func TestTypedConstructors(t *testing.T) {
 		{"message.deleted", NewMessageDeletedEvent(MessageDeletedData{ID: "m1"}), EventMessageDeleted},
 		{"reaction.added", NewReactionAddedEvent(openapi.Reaction{Id: "r1"}), EventReactionAdded},
 		{"reaction.removed", NewReactionRemovedEvent(ReactionRemovedData{MessageID: "m1", UserID: "u1", Emoji: "\U0001f44d"}), EventReactionRemoved},
+		{"channel.created", NewChannelCreatedEvent(openapi.Channel{Id: "c1"}), EventChannelCreated},
 		{"channel.updated", NewChannelUpdatedEvent(openapi.Channel{Id: "c1"}), EventChannelUpdated},
+		{"channel.archived", NewChannelArchivedEvent(openapi.Channel{Id: "c1"}), EventChannelArchived},
 		{"channel.member_added", NewChannelMemberAddedEvent(ChannelMemberData{ChannelID: "c1", UserID: "u1"}), EventMemberAdded},
 		{"channel.member_removed", NewChannelMemberRemovedEvent(ChannelMemberData{ChannelID: "c1", UserID: "u1"}), EventMemberRemoved},
 		{"channel.read", NewChannelReadEvent(ChannelReadEventData{ChannelID: "c1", LastReadMessageID: "m1"}), EventChannelRead},
@@ -64,21 +66,41 @@ func TestTypedConstructors(t *testing.T) {
 	}
 }
 
+func TestNewChannelCreatedSignal(t *testing.T) {
+	e := NewChannelCreatedSignal()
+	if e.Type != EventChannelCreated {
+		t.Errorf("Type = %q, want %q", e.Type, EventChannelCreated)
+	}
+	// Data is intentionally nil for signal events
+	if e.Data != nil {
+		t.Error("signal event should have nil Data")
+	}
+}
+
 // TestNoRawEventConstruction scans Go source files outside the sse package for
 // raw sse.Event{} struct literals. All event construction should use typed
 // constructors (e.g., sse.NewMessageNewEvent) to maintain compile-time safety.
 func TestNoRawEventConstruction(t *testing.T) {
-	apiRoot := filepath.Join("..", "..", "..")
+	apiRoot := filepath.Join("..", "..")
 
 	err := filepath.Walk(apiRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() || !strings.HasSuffix(path, ".go") {
+		if info.IsDir() {
+			if info.Name() == "node_modules" || info.Name() == ".git" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
 		// Allow raw construction within the sse package itself
-		absPath, _ := filepath.Abs(path)
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			t.Fatalf("filepath.Abs(%q): %v", path, err)
+		}
 		if strings.Contains(absPath, filepath.Join("internal", "sse")) {
 			return nil
 		}

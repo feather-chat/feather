@@ -68,13 +68,13 @@ func (w *Worker) ProcessDue(ctx context.Context) error {
 				if markErr := w.repo.MarkFailed(ctx, msg.ID, err.Error()); markErr != nil {
 					slog.Error("failed to mark message as failed", "component", "scheduled", "id", msg.ID, "error", markErr)
 				}
-				w.sender.NotifyScheduledMessageFailed(ctx, &msg, err.Error())
+				w.sender.NotifyScheduledMessageFailed(ctx, &msg, permErr.Error())
 			} else if msg.RetryCount+1 >= MaxRetries {
 				// Exhausted retries
 				if markErr := w.repo.MarkFailed(ctx, msg.ID, err.Error()); markErr != nil {
 					slog.Error("failed to mark message as failed", "component", "scheduled", "id", msg.ID, "error", markErr)
 				}
-				w.sender.NotifyScheduledMessageFailed(ctx, &msg, err.Error())
+				w.sender.NotifyScheduledMessageFailed(ctx, &msg, "Failed to send message. Please try again later.")
 			} else {
 				// Transient failure — retry later
 				if retryErr := w.repo.IncrementRetry(ctx, msg.ID, err.Error()); retryErr != nil {

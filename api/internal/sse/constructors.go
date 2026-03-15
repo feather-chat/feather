@@ -1,8 +1,6 @@
 package sse
 
 import (
-	"time"
-
 	"github.com/enzyme/api/internal/openapi"
 )
 
@@ -81,16 +79,10 @@ type ChannelMemberData struct {
 }
 
 // MemberBannedData is the data payload for member.banned events.
-// Note: This is broadcast to ALL workspace members via BroadcastToWorkspace.
-// Do not populate sensitive moderation details (reason, banned_by) without
-// considering that all workspace members will receive them.
+// Broadcast to ALL workspace members via BroadcastToWorkspace — keep minimal.
 type MemberBannedData struct {
-	UserID        string     `json:"user_id"`
-	WorkspaceID   string     `json:"workspace_id"`
-	BannedBy      *string    `json:"banned_by,omitempty"`
-	Reason        *string    `json:"reason,omitempty"`
-	ExpiresAt     *time.Time `json:"expires_at,omitempty"`
-	WorkspaceName *string    `json:"workspace_name,omitempty"`
+	UserID      string `json:"user_id"`
+	WorkspaceID string `json:"workspace_id"`
 }
 
 // MemberUnbannedData is the data payload for member.unbanned events.

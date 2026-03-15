@@ -2120,11 +2120,6 @@ export interface components {
             data: {
                 user_id: string;
                 workspace_id: string;
-                banned_by?: string;
-                reason?: string;
-                /** Format: date-time */
-                expires_at?: string;
-                workspace_name?: string;
             };
         };
         SSEEventMemberUnbanned: {

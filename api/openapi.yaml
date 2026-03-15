@@ -3901,15 +3901,6 @@ components:
               type: string
             workspace_id:
               type: string
-            banned_by:
-              type: string
-            reason:
-              type: string
-            expires_at:
-              type: string
-              format: date-time
-            workspace_name:
-              type: string
 
     SSEEventMemberUnbanned:
       type: object
