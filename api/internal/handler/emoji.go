@@ -254,8 +254,8 @@ func (h *Handler) DeleteCustomEmoji(ctx context.Context, request openapi.DeleteC
 
 	// Broadcast SSE event
 	if h.hub != nil {
-		h.hub.BroadcastToWorkspace(e.WorkspaceID, sse.NewEmojiDeletedEvent(sse.EmojiDeletedData{
-			ID:   e.ID,
+		h.hub.BroadcastToWorkspace(e.WorkspaceID, sse.NewEmojiDeletedEvent(openapi.EmojiDeletedData{
+			Id:   e.ID,
 			Name: e.Name,
 		}))
 	}

@@ -407,9 +407,9 @@ func (h *Handler) AddChannelMember(ctx context.Context, request openapi.AddChann
 			h.hub.AddChannelMember(string(request.Id), request.Body.UserId)
 
 			// Broadcast member added event
-			h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.NewChannelMemberAddedEvent(sse.ChannelMemberData{
-				ChannelID: string(request.Id),
-				UserID:    request.Body.UserId,
+			h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.NewChannelMemberAddedEvent(openapi.ChannelMemberData{
+				ChannelId: string(request.Id),
+				UserId:    request.Body.UserId,
 			}))
 
 			// Broadcast channel updated if type changed (dm -> group_dm)
@@ -575,9 +575,9 @@ func (h *Handler) LeaveChannel(ctx context.Context, request openapi.LeaveChannel
 		h.hub.RemoveChannelMember(string(request.Id), userID)
 
 		// Broadcast member removed
-		h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.NewChannelMemberRemovedEvent(sse.ChannelMemberData{
-			ChannelID: string(request.Id),
-			UserID:    userID,
+		h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.NewChannelMemberRemovedEvent(openapi.ChannelMemberData{
+			ChannelId: string(request.Id),
+			UserId:    userID,
 		}))
 
 		// For group DMs, broadcast channel updated (type/hash may have changed)
@@ -821,9 +821,9 @@ func (h *Handler) MarkChannelRead(ctx context.Context, request openapi.MarkChann
 
 	// Broadcast to user's other clients
 	if h.hub != nil {
-		h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.NewChannelReadEvent(sse.ChannelReadEventData{
-			ChannelID:         string(request.Id),
-			LastReadMessageID: messageID,
+		h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.NewChannelReadEvent(openapi.ChannelReadEventData{
+			ChannelId:         string(request.Id),
+			LastReadMessageId: messageID,
 		}))
 	}
 
@@ -867,9 +867,9 @@ func (h *Handler) MarkAllChannelsRead(ctx context.Context, request openapi.MarkA
 
 		// Broadcast to user's other clients
 		if h.hub != nil {
-			h.hub.BroadcastToUser(string(request.Wid), userID, sse.NewChannelReadEvent(sse.ChannelReadEventData{
-				ChannelID:         channelID,
-				LastReadMessageID: messageID,
+			h.hub.BroadcastToUser(string(request.Wid), userID, sse.NewChannelReadEvent(openapi.ChannelReadEventData{
+				ChannelId:         channelID,
+				LastReadMessageId: messageID,
 			}))
 		}
 	}

@@ -288,7 +288,7 @@ func (h *Handler) DeleteScheduledMessage(ctx context.Context, request openapi.De
 	// Broadcast deletion
 	if h.hub != nil {
 		if ch, err := h.channelRepo.GetByID(ctx, msg.ChannelID); err == nil {
-			h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.NewScheduledMessageDeletedEvent(sse.ScheduledMessageDeletedData{ID: msg.ID}))
+			h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.NewScheduledMessageDeletedEvent(openapi.ScheduledMessageDeletedData{Id: msg.ID}))
 		}
 	}
 
@@ -480,10 +480,10 @@ func (h *Handler) executeScheduledSend(ctx context.Context, smsg *scheduled.Sche
 
 	// Broadcast scheduled_message.sent event to the user
 	if h.hub != nil {
-		h.hub.BroadcastToUser(ch.WorkspaceID, smsg.UserID, sse.NewScheduledMessageSentEvent(sse.ScheduledMessageSentData{
-			ID:        smsg.ID,
-			ChannelID: smsg.ChannelID,
-			MessageID: msg.ID,
+		h.hub.BroadcastToUser(ch.WorkspaceID, smsg.UserID, sse.NewScheduledMessageSentEvent(openapi.ScheduledMessageSentData{
+			Id:        smsg.ID,
+			ChannelId: smsg.ChannelID,
+			MessageId: msg.ID,
 		}))
 	}
 
@@ -505,9 +505,9 @@ func (h *Handler) NotifyScheduledMessageFailed(ctx context.Context, smsg *schedu
 	if err != nil {
 		return
 	}
-	h.hub.BroadcastToUser(ch.WorkspaceID, smsg.UserID, sse.NewScheduledMessageFailedEvent(sse.ScheduledMessageFailedData{
-		ID:        smsg.ID,
-		ChannelID: smsg.ChannelID,
+	h.hub.BroadcastToUser(ch.WorkspaceID, smsg.UserID, sse.NewScheduledMessageFailedEvent(openapi.ScheduledMessageFailedData{
+		Id:        smsg.ID,
+		ChannelId: smsg.ChannelID,
 		Error:     reason,
 	}))
 }

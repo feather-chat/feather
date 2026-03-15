@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/enzyme/api/internal/openapi"
 	"github.com/enzyme/api/internal/sse"
 )
 
@@ -97,14 +98,14 @@ func (s *Service) Notify(ctx context.Context, channel *ChannelInfo, msg *Message
 
 		// Build notification event
 		preview := truncatePreview(msg.Content, 100)
-		sseEvent := sse.NewNotificationEvent(sse.NotificationData{
-			Type:           notifType,
-			ChannelID:      channel.ID,
-			MessageID:      msg.ID,
+		sseEvent := sse.NewNotificationEvent(openapi.NotificationData{
+			Type:           openapi.NotificationDataType(notifType),
+			ChannelId:      channel.ID,
+			MessageId:      msg.ID,
 			ChannelName:    &channel.Name,
 			SenderName:     &msg.SenderName,
 			Preview:        &preview,
-			ThreadParentID: msg.ThreadParentID,
+			ThreadParentId: msg.ThreadParentID,
 		})
 
 		if isOnline {

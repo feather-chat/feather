@@ -381,6 +381,9 @@ export function useSSE(workspaceId: string | undefined) {
     connection.on('channel.created', () => {
       queryClient.invalidateQueries({ queryKey: ['channels', workspaceId] });
     });
+    connection.on('channels.invalidate', () => {
+      queryClient.invalidateQueries({ queryKey: ['channels', workspaceId] });
+    });
 
     connection.on('channel.updated', (event) => {
       const channel = event.data;

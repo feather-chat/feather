@@ -296,15 +296,15 @@ func (h *Handler) LeaveWorkspace(ctx context.Context, request openapi.LeaveWorks
 	if h.hub != nil {
 		for _, channelID := range removedChannelIDs {
 			h.hub.RemoveChannelMember(channelID, userID)
-			h.hub.BroadcastToWorkspace(workspaceID, sse.NewChannelMemberRemovedEvent(sse.ChannelMemberData{
-				ChannelID: channelID,
-				UserID:    userID,
+			h.hub.BroadcastToWorkspace(workspaceID, sse.NewChannelMemberRemovedEvent(openapi.ChannelMemberData{
+				ChannelId: channelID,
+				UserId:    userID,
 			}))
 		}
 
-		h.hub.BroadcastToWorkspace(workspaceID, sse.NewMemberLeftEvent(sse.WorkspaceMemberData{
-			UserID:      userID,
-			WorkspaceID: workspaceID,
+		h.hub.BroadcastToWorkspace(workspaceID, sse.NewMemberLeftEvent(openapi.WorkspaceMemberData{
+			UserId:      userID,
+			WorkspaceId: workspaceID,
 		}))
 
 		h.hub.DisconnectUserClients(workspaceID, userID)
@@ -395,8 +395,8 @@ func (h *Handler) UpdateWorkspaceMemberRole(ctx context.Context, request openapi
 
 	// SSE broadcast: role changed
 	if h.hub != nil {
-		h.hub.BroadcastToWorkspace(workspaceID, sse.NewMemberRoleChangedEvent(sse.MemberRoleChangedData{
-			UserID:  targetUserID,
+		h.hub.BroadcastToWorkspace(workspaceID, sse.NewMemberRoleChangedEvent(openapi.MemberRoleChangedData{
+			UserId:  targetUserID,
 			OldRole: targetMembership.Role,
 			NewRole: newRole,
 		}))
@@ -524,9 +524,9 @@ func (h *Handler) AcceptInvite(ctx context.Context, request openapi.AcceptInvite
 		_, addErr := h.channelRepo.AddMember(ctx, userID, defaultChannel.ID, &memberRole)
 		if addErr == nil && h.hub != nil {
 			h.hub.AddChannelMember(defaultChannel.ID, userID)
-			h.hub.BroadcastToWorkspace(ws.ID, sse.NewChannelMemberAddedEvent(sse.ChannelMemberData{
-				ChannelID: defaultChannel.ID,
-				UserID:    userID,
+			h.hub.BroadcastToWorkspace(ws.ID, sse.NewChannelMemberAddedEvent(openapi.ChannelMemberData{
+				ChannelId: defaultChannel.ID,
+				UserId:    userID,
 			}))
 		}
 	}
@@ -572,7 +572,7 @@ func (h *Handler) autoCreateDMs(ctx context.Context, workspaceID, joiningUserID 
 
 	// Single broadcast so all connected clients refetch their channel list
 	if created > 0 && h.hub != nil {
-		h.hub.BroadcastToWorkspace(workspaceID, sse.NewChannelCreatedSignal())
+		h.hub.BroadcastToWorkspace(workspaceID, sse.NewChannelsInvalidateEvent())
 	}
 }
 

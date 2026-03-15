@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/enzyme/api/internal/openapi"
 	"github.com/oklog/ulid/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -86,18 +87,18 @@ func (h *Hub) Run(ctx context.Context) {
 			isFirstConnection := h.addClient(client)
 			if isFirstConnection {
 				// User just came online - broadcast to workspace
-				h.BroadcastToWorkspace(client.WorkspaceID, NewPresenceChangedEvent(PresenceData{
-					UserID: client.UserID,
-					Status: PresenceOnline,
+				h.BroadcastToWorkspace(client.WorkspaceID, NewPresenceChangedEvent(openapi.PresenceData{
+					UserId: client.UserID,
+					Status: openapi.Online,
 				}))
 			}
 		case client := <-h.unregister:
 			isLastConnection := h.removeClient(client)
 			if isLastConnection {
 				// User just went offline - broadcast to workspace
-				h.BroadcastToWorkspace(client.WorkspaceID, NewPresenceChangedEvent(PresenceData{
-					UserID: client.UserID,
-					Status: PresenceOffline,
+				h.BroadcastToWorkspace(client.WorkspaceID, NewPresenceChangedEvent(openapi.PresenceData{
+					UserId: client.UserID,
+					Status: openapi.Offline,
 				}))
 			}
 		}

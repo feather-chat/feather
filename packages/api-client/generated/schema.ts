@@ -1843,8 +1843,8 @@ export interface components {
             last_read_message_id: string;
         };
         /** @enum {string} */
-        SSEEventType: "connected" | "heartbeat" | "message.new" | "message.updated" | "message.deleted" | "reaction.added" | "reaction.removed" | "channel.created" | "channel.updated" | "channel.archived" | "channel.member_added" | "channel.member_removed" | "channel.read" | "typing.start" | "typing.stop" | "presence.changed" | "presence.initial" | "notification" | "emoji.created" | "emoji.deleted" | "message.pinned" | "message.unpinned" | "member.banned" | "member.unbanned" | "member.left" | "member.role_changed" | "workspace.updated" | "scheduled_message.created" | "scheduled_message.updated" | "scheduled_message.deleted" | "scheduled_message.sent" | "scheduled_message.failed";
-        SSEEvent: components["schemas"]["SSEEventConnected"] | components["schemas"]["SSEEventHeartbeat"] | components["schemas"]["SSEEventMessageNew"] | components["schemas"]["SSEEventMessageUpdated"] | components["schemas"]["SSEEventMessageDeleted"] | components["schemas"]["SSEEventReactionAdded"] | components["schemas"]["SSEEventReactionRemoved"] | components["schemas"]["SSEEventChannelCreated"] | components["schemas"]["SSEEventChannelUpdated"] | components["schemas"]["SSEEventChannelArchived"] | components["schemas"]["SSEEventChannelMemberAdded"] | components["schemas"]["SSEEventChannelMemberRemoved"] | components["schemas"]["SSEEventChannelRead"] | components["schemas"]["SSEEventTypingStart"] | components["schemas"]["SSEEventTypingStop"] | components["schemas"]["SSEEventPresenceChanged"] | components["schemas"]["SSEEventPresenceInitial"] | components["schemas"]["SSEEventNotification"] | components["schemas"]["SSEEventEmojiCreated"] | components["schemas"]["SSEEventEmojiDeleted"] | components["schemas"]["SSEEventScheduledMessageCreated"] | components["schemas"]["SSEEventScheduledMessageUpdated"] | components["schemas"]["SSEEventScheduledMessageDeleted"] | components["schemas"]["SSEEventScheduledMessageSent"] | components["schemas"]["SSEEventMessagePinned"] | components["schemas"]["SSEEventMessageUnpinned"] | components["schemas"]["SSEEventMemberBanned"] | components["schemas"]["SSEEventMemberUnbanned"] | components["schemas"]["SSEEventMemberLeft"] | components["schemas"]["SSEEventMemberRoleChanged"] | components["schemas"]["SSEEventWorkspaceUpdated"] | components["schemas"]["SSEEventScheduledMessageFailed"];
+        SSEEventType: "connected" | "heartbeat" | "message.new" | "message.updated" | "message.deleted" | "reaction.added" | "reaction.removed" | "channel.created" | "channel.updated" | "channel.archived" | "channel.member_added" | "channel.member_removed" | "channel.read" | "typing.start" | "typing.stop" | "presence.changed" | "presence.initial" | "notification" | "emoji.created" | "emoji.deleted" | "message.pinned" | "message.unpinned" | "member.banned" | "member.unbanned" | "member.left" | "member.role_changed" | "workspace.updated" | "channels.invalidate" | "scheduled_message.created" | "scheduled_message.updated" | "scheduled_message.deleted" | "scheduled_message.sent" | "scheduled_message.failed";
+        SSEEvent: components["schemas"]["SSEEventConnected"] | components["schemas"]["SSEEventHeartbeat"] | components["schemas"]["SSEEventMessageNew"] | components["schemas"]["SSEEventMessageUpdated"] | components["schemas"]["SSEEventMessageDeleted"] | components["schemas"]["SSEEventReactionAdded"] | components["schemas"]["SSEEventReactionRemoved"] | components["schemas"]["SSEEventChannelCreated"] | components["schemas"]["SSEEventChannelUpdated"] | components["schemas"]["SSEEventChannelArchived"] | components["schemas"]["SSEEventChannelMemberAdded"] | components["schemas"]["SSEEventChannelMemberRemoved"] | components["schemas"]["SSEEventChannelRead"] | components["schemas"]["SSEEventTypingStart"] | components["schemas"]["SSEEventTypingStop"] | components["schemas"]["SSEEventPresenceChanged"] | components["schemas"]["SSEEventPresenceInitial"] | components["schemas"]["SSEEventNotification"] | components["schemas"]["SSEEventEmojiCreated"] | components["schemas"]["SSEEventEmojiDeleted"] | components["schemas"]["SSEEventScheduledMessageCreated"] | components["schemas"]["SSEEventScheduledMessageUpdated"] | components["schemas"]["SSEEventScheduledMessageDeleted"] | components["schemas"]["SSEEventScheduledMessageSent"] | components["schemas"]["SSEEventMessagePinned"] | components["schemas"]["SSEEventMessageUnpinned"] | components["schemas"]["SSEEventMemberBanned"] | components["schemas"]["SSEEventMemberUnbanned"] | components["schemas"]["SSEEventMemberLeft"] | components["schemas"]["SSEEventMemberRoleChanged"] | components["schemas"]["SSEEventWorkspaceUpdated"] | components["schemas"]["SSEEventScheduledMessageFailed"] | components["schemas"]["SSEEventChannelsInvalidate"];
         SSEEventConnected: {
             id?: string;
             /**
@@ -1852,9 +1852,7 @@ export interface components {
              * @enum {string}
              */
             type: "connected";
-            data: {
-                client_id: string;
-            };
+            data: components["schemas"]["ConnectedData"];
         };
         SSEEventHeartbeat: {
             id?: string;
@@ -1863,10 +1861,7 @@ export interface components {
              * @enum {string}
              */
             type: "heartbeat";
-            data: {
-                /** Format: int64 */
-                timestamp: number;
-            };
+            data: components["schemas"]["HeartbeatData"];
         };
         SSEEventMessageNew: {
             id?: string;
@@ -1893,10 +1888,7 @@ export interface components {
              * @enum {string}
              */
             type: "message.deleted";
-            data: {
-                id: string;
-                thread_parent_id?: string;
-            };
+            data: components["schemas"]["MessageDeletedData"];
         };
         SSEEventReactionAdded: {
             id?: string;
@@ -1914,11 +1906,7 @@ export interface components {
              * @enum {string}
              */
             type: "reaction.removed";
-            data: {
-                message_id: string;
-                user_id: string;
-                emoji: string;
-            };
+            data: components["schemas"]["ReactionRemovedData"];
         };
         SSEEventChannelCreated: {
             id?: string;
@@ -1954,10 +1942,7 @@ export interface components {
              * @enum {string}
              */
             type: "channel.member_added";
-            data: {
-                channel_id: string;
-                user_id: string;
-            };
+            data: components["schemas"]["ChannelMemberData"];
         };
         SSEEventChannelMemberRemoved: {
             id?: string;
@@ -1966,10 +1951,7 @@ export interface components {
              * @enum {string}
              */
             type: "channel.member_removed";
-            data: {
-                channel_id: string;
-                user_id: string;
-            };
+            data: components["schemas"]["ChannelMemberData"];
         };
         SSEEventChannelRead: {
             id?: string;
@@ -2045,10 +2027,7 @@ export interface components {
              * @enum {string}
              */
             type: "emoji.deleted";
-            data: {
-                id: string;
-                name: string;
-            };
+            data: components["schemas"]["EmojiDeletedData"];
         };
         SSEEventScheduledMessageCreated: {
             id?: string;
@@ -2075,9 +2054,7 @@ export interface components {
              * @enum {string}
              */
             type: "scheduled_message.deleted";
-            data: {
-                id: string;
-            };
+            data: components["schemas"]["ScheduledMessageDeletedData"];
         };
         SSEEventScheduledMessageSent: {
             id?: string;
@@ -2086,11 +2063,7 @@ export interface components {
              * @enum {string}
              */
             type: "scheduled_message.sent";
-            data: {
-                id: string;
-                channel_id: string;
-                message_id: string;
-            };
+            data: components["schemas"]["ScheduledMessageSentData"];
         };
         SSEEventMessagePinned: {
             id?: string;
@@ -2117,10 +2090,7 @@ export interface components {
              * @enum {string}
              */
             type: "member.banned";
-            data: {
-                user_id: string;
-                workspace_id: string;
-            };
+            data: components["schemas"]["WorkspaceMemberData"];
         };
         SSEEventMemberUnbanned: {
             id?: string;
@@ -2129,10 +2099,7 @@ export interface components {
              * @enum {string}
              */
             type: "member.unbanned";
-            data: {
-                user_id: string;
-                workspace_id: string;
-            };
+            data: components["schemas"]["WorkspaceMemberData"];
         };
         SSEEventMemberLeft: {
             id?: string;
@@ -2141,10 +2108,7 @@ export interface components {
              * @enum {string}
              */
             type: "member.left";
-            data: {
-                user_id: string;
-                workspace_id: string;
-            };
+            data: components["schemas"]["WorkspaceMemberData"];
         };
         SSEEventMemberRoleChanged: {
             id?: string;
@@ -2153,11 +2117,7 @@ export interface components {
              * @enum {string}
              */
             type: "member.role_changed";
-            data: {
-                user_id: string;
-                old_role: string;
-                new_role: string;
-            };
+            data: components["schemas"]["MemberRoleChangedData"];
         };
         SSEEventWorkspaceUpdated: {
             id?: string;
@@ -2175,11 +2135,61 @@ export interface components {
              * @enum {string}
              */
             type: "scheduled_message.failed";
-            data: {
-                id: string;
-                channel_id: string;
-                error: string;
-            };
+            data: components["schemas"]["ScheduledMessageFailedData"];
+        };
+        SSEEventChannelsInvalidate: {
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "channels.invalidate";
+        };
+        ConnectedData: {
+            client_id: string;
+        };
+        HeartbeatData: {
+            /** Format: int64 */
+            timestamp: number;
+        };
+        MessageDeletedData: {
+            id: string;
+            thread_parent_id?: string;
+        };
+        ReactionRemovedData: {
+            message_id: string;
+            user_id: string;
+            emoji: string;
+        };
+        ChannelMemberData: {
+            channel_id: string;
+            user_id: string;
+        };
+        WorkspaceMemberData: {
+            user_id: string;
+            workspace_id: string;
+        };
+        MemberRoleChangedData: {
+            user_id: string;
+            old_role: string;
+            new_role: string;
+        };
+        EmojiDeletedData: {
+            id: string;
+            name: string;
+        };
+        ScheduledMessageDeletedData: {
+            id: string;
+        };
+        ScheduledMessageSentData: {
+            id: string;
+            channel_id: string;
+            message_id: string;
+        };
+        ScheduledMessageFailedData: {
+            id: string;
+            channel_id: string;
+            error: string;
         };
         NotificationData: {
             /** @enum {string} */

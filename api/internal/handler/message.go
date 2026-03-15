@@ -524,9 +524,9 @@ func (h *Handler) DeleteMessage(ctx context.Context, request openapi.DeleteMessa
 
 	// Broadcast delete via SSE
 	if h.hub != nil {
-		h.hub.BroadcastToChannel(ch.WorkspaceID, msg.ChannelID, sse.NewMessageDeletedEvent(sse.MessageDeletedData{
-			ID:             string(request.Id),
-			ThreadParentID: msg.ThreadParentID,
+		h.hub.BroadcastToChannel(ch.WorkspaceID, msg.ChannelID, sse.NewMessageDeletedEvent(openapi.MessageDeletedData{
+			Id:             string(request.Id),
+			ThreadParentId: msg.ThreadParentID,
 		}))
 	}
 
@@ -651,9 +651,9 @@ func (h *Handler) RemoveReaction(ctx context.Context, request openapi.RemoveReac
 
 	// Broadcast removal via SSE
 	if h.hub != nil && ch != nil {
-		h.hub.BroadcastToChannel(ch.WorkspaceID, msg.ChannelID, sse.NewReactionRemovedEvent(sse.ReactionRemovedData{
-			MessageID: string(request.Id),
-			UserID:    userID,
+		h.hub.BroadcastToChannel(ch.WorkspaceID, msg.ChannelID, sse.NewReactionRemovedEvent(openapi.ReactionRemovedData{
+			MessageId: string(request.Id),
+			UserId:    userID,
 			Emoji:     request.Body.Emoji,
 		}))
 	}
@@ -1435,9 +1435,9 @@ func (h *Handler) MarkMessageUnread(ctx context.Context, request openapi.MarkMes
 
 	// Broadcast to user's other clients
 	if h.hub != nil {
-		h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.NewChannelReadEvent(sse.ChannelReadEventData{
-			ChannelID:         msg.ChannelID,
-			LastReadMessageID: prevMessageID,
+		h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.NewChannelReadEvent(openapi.ChannelReadEventData{
+			ChannelId:         msg.ChannelID,
+			LastReadMessageId: prevMessageID,
 		}))
 	}
 

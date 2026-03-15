@@ -4,13 +4,10 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"reflect"
-	"sort"
 	"strings"
 	"testing"
 
 	"github.com/enzyme/api/internal/openapi"
-	"go.yaml.in/yaml/v3"
 )
 
 func TestTypedConstructors(t *testing.T) {
@@ -19,38 +16,38 @@ func TestTypedConstructors(t *testing.T) {
 		event    Event
 		wantType string
 	}{
-		{"connected", NewConnectedEvent(ConnectedData{ClientID: "c1"}), EventConnected},
-		{"heartbeat", NewHeartbeatEvent(HeartbeatData{Timestamp: 1}), EventHeartbeat},
+		{"connected", NewConnectedEvent(openapi.ConnectedData{ClientId: "c1"}), EventConnected},
+		{"heartbeat", NewHeartbeatEvent(openapi.HeartbeatData{Timestamp: 1}), EventHeartbeat},
 		{"message.new", NewMessageNewEvent(openapi.MessageWithUser{Id: "m1"}), EventMessageNew},
 		{"message.updated", NewMessageUpdatedEvent(openapi.MessageWithUser{Id: "m1"}), EventMessageUpdated},
-		{"message.deleted", NewMessageDeletedEvent(MessageDeletedData{ID: "m1"}), EventMessageDeleted},
+		{"message.deleted", NewMessageDeletedEvent(openapi.MessageDeletedData{Id: "m1"}), EventMessageDeleted},
 		{"reaction.added", NewReactionAddedEvent(openapi.Reaction{Id: "r1"}), EventReactionAdded},
-		{"reaction.removed", NewReactionRemovedEvent(ReactionRemovedData{MessageID: "m1", UserID: "u1", Emoji: "\U0001f44d"}), EventReactionRemoved},
+		{"reaction.removed", NewReactionRemovedEvent(openapi.ReactionRemovedData{MessageId: "m1", UserId: "u1", Emoji: "\U0001f44d"}), EventReactionRemoved},
 		{"channel.created", NewChannelCreatedEvent(openapi.Channel{Id: "c1"}), EventChannelCreated},
 		{"channel.updated", NewChannelUpdatedEvent(openapi.Channel{Id: "c1"}), EventChannelUpdated},
 		{"channel.archived", NewChannelArchivedEvent(openapi.Channel{Id: "c1"}), EventChannelArchived},
-		{"channel.member_added", NewChannelMemberAddedEvent(ChannelMemberData{ChannelID: "c1", UserID: "u1"}), EventMemberAdded},
-		{"channel.member_removed", NewChannelMemberRemovedEvent(ChannelMemberData{ChannelID: "c1", UserID: "u1"}), EventMemberRemoved},
-		{"channel.read", NewChannelReadEvent(ChannelReadEventData{ChannelID: "c1", LastReadMessageID: "m1"}), EventChannelRead},
-		{"typing.start", NewTypingStartEvent(TypingEventData{UserID: "u1", ChannelID: "c1"}), EventTypingStart},
-		{"typing.stop", NewTypingStopEvent(TypingEventData{UserID: "u1", ChannelID: "c1"}), EventTypingStop},
-		{"presence.changed", NewPresenceChangedEvent(PresenceData{UserID: "u1", Status: PresenceOnline}), EventPresenceChanged},
-		{"presence.initial", NewPresenceInitialEvent(PresenceInitialData{OnlineUserIDs: []string{"u1"}}), EventPresenceInitial},
-		{"notification", NewNotificationEvent(NotificationData{Type: "mention", ChannelID: "c1", MessageID: "m1"}), EventNotification},
+		{"channel.member_added", NewChannelMemberAddedEvent(openapi.ChannelMemberData{ChannelId: "c1", UserId: "u1"}), EventMemberAdded},
+		{"channel.member_removed", NewChannelMemberRemovedEvent(openapi.ChannelMemberData{ChannelId: "c1", UserId: "u1"}), EventMemberRemoved},
+		{"channel.read", NewChannelReadEvent(openapi.ChannelReadEventData{ChannelId: "c1", LastReadMessageId: "m1"}), EventChannelRead},
+		{"typing.start", NewTypingStartEvent(openapi.TypingEventData{UserId: "u1", ChannelId: "c1"}), EventTypingStart},
+		{"typing.stop", NewTypingStopEvent(openapi.TypingEventData{UserId: "u1", ChannelId: "c1"}), EventTypingStop},
+		{"presence.changed", NewPresenceChangedEvent(openapi.PresenceData{UserId: "u1", Status: openapi.Online}), EventPresenceChanged},
+		{"presence.initial", NewPresenceInitialEvent(openapi.PresenceInitialData{OnlineUserIds: []string{"u1"}}), EventPresenceInitial},
+		{"notification", NewNotificationEvent(openapi.NotificationData{Type: openapi.NotificationDataTypeMention, ChannelId: "c1", MessageId: "m1"}), EventNotification},
 		{"emoji.created", NewEmojiCreatedEvent(openapi.CustomEmoji{Id: "e1"}), EventEmojiCreated},
-		{"emoji.deleted", NewEmojiDeletedEvent(EmojiDeletedData{ID: "e1", Name: "wave"}), EventEmojiDeleted},
+		{"emoji.deleted", NewEmojiDeletedEvent(openapi.EmojiDeletedData{Id: "e1", Name: "wave"}), EventEmojiDeleted},
 		{"message.pinned", NewMessagePinnedEvent(openapi.MessageWithUser{Id: "m1"}), EventMessagePinned},
 		{"message.unpinned", NewMessageUnpinnedEvent(openapi.MessageWithUser{Id: "m1"}), EventMessageUnpinned},
-		{"member.banned", NewMemberBannedEvent(WorkspaceMemberData{UserID: "u1", WorkspaceID: "w1"}), EventMemberBanned},
-		{"member.unbanned", NewMemberUnbannedEvent(WorkspaceMemberData{UserID: "u1", WorkspaceID: "w1"}), EventMemberUnbanned},
-		{"member.left", NewMemberLeftEvent(WorkspaceMemberData{UserID: "u1", WorkspaceID: "w1"}), EventMemberLeft},
-		{"member.role_changed", NewMemberRoleChangedEvent(MemberRoleChangedData{UserID: "u1", OldRole: "member", NewRole: "admin"}), EventMemberRoleChanged},
+		{"member.banned", NewMemberBannedEvent(openapi.WorkspaceMemberData{UserId: "u1", WorkspaceId: "w1"}), EventMemberBanned},
+		{"member.unbanned", NewMemberUnbannedEvent(openapi.WorkspaceMemberData{UserId: "u1", WorkspaceId: "w1"}), EventMemberUnbanned},
+		{"member.left", NewMemberLeftEvent(openapi.WorkspaceMemberData{UserId: "u1", WorkspaceId: "w1"}), EventMemberLeft},
+		{"member.role_changed", NewMemberRoleChangedEvent(openapi.MemberRoleChangedData{UserId: "u1", OldRole: "member", NewRole: "admin"}), EventMemberRoleChanged},
 		{"workspace.updated", NewWorkspaceUpdatedEvent(openapi.Workspace{Id: "w1"}), EventWorkspaceUpdated},
 		{"scheduled_message.created", NewScheduledMessageCreatedEvent(openapi.ScheduledMessage{Id: "s1"}), EventScheduledMessageCreated},
 		{"scheduled_message.updated", NewScheduledMessageUpdatedEvent(openapi.ScheduledMessage{Id: "s1"}), EventScheduledMessageUpdated},
-		{"scheduled_message.deleted", NewScheduledMessageDeletedEvent(ScheduledMessageDeletedData{ID: "s1"}), EventScheduledMessageDeleted},
-		{"scheduled_message.sent", NewScheduledMessageSentEvent(ScheduledMessageSentData{ID: "s1", ChannelID: "c1", MessageID: "m1"}), EventScheduledMessageSent},
-		{"scheduled_message.failed", NewScheduledMessageFailedEvent(ScheduledMessageFailedData{ID: "s1", ChannelID: "c1", Error: "timeout"}), EventScheduledMessageFailed},
+		{"scheduled_message.deleted", NewScheduledMessageDeletedEvent(openapi.ScheduledMessageDeletedData{Id: "s1"}), EventScheduledMessageDeleted},
+		{"scheduled_message.sent", NewScheduledMessageSentEvent(openapi.ScheduledMessageSentData{Id: "s1", ChannelId: "c1", MessageId: "m1"}), EventScheduledMessageSent},
+		{"scheduled_message.failed", NewScheduledMessageFailedEvent(openapi.ScheduledMessageFailedData{Id: "s1", ChannelId: "c1", Error: "timeout"}), EventScheduledMessageFailed},
 	}
 
 	for _, tt := range tests {
@@ -69,10 +66,10 @@ func TestTypedConstructors(t *testing.T) {
 	}
 }
 
-func TestNewChannelCreatedSignal(t *testing.T) {
-	e := NewChannelCreatedSignal()
-	if e.Type != EventChannelCreated {
-		t.Errorf("Type = %q, want %q", e.Type, EventChannelCreated)
+func TestNewChannelsInvalidateEvent(t *testing.T) {
+	e := NewChannelsInvalidateEvent()
+	if e.Type != EventChannelsInvalidate {
+		t.Errorf("Type = %q, want %q", e.Type, EventChannelsInvalidate)
 	}
 	// Data is intentionally nil for signal events
 	if e.Data != nil {
@@ -126,158 +123,4 @@ func TestNoRawEventConstruction(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to walk source tree: %v", err)
 	}
-}
-
-// TestSSEDataTypeConformance verifies that hand-written Go SSE data structs
-// have the same JSON field names as their corresponding OpenAPI schemas.
-// This catches drift between Go types and the spec at test time.
-func TestSSEDataTypeConformance(t *testing.T) {
-	specPath := filepath.Join("..", "..", "openapi.yaml")
-	data, err := os.ReadFile(specPath)
-	if err != nil {
-		t.Fatalf("failed to read openapi.yaml: %v", err)
-	}
-
-	var spec map[string]interface{}
-	if err := yaml.Unmarshal(data, &spec); err != nil {
-		t.Fatalf("failed to parse openapi.yaml: %v", err)
-	}
-
-	schemas := yamlNav(spec, "components", "schemas")
-	if schemas == nil {
-		t.Fatal("components.schemas not found in spec")
-	}
-
-	// Each entry maps a Go struct to the OpenAPI schema that defines its fields.
-	// "schemaName" is the top-level schema under components.schemas.
-	// "inline" means the data fields are defined inline under .properties.data.properties;
-	// otherwise the data property is a $ref to a named component whose .properties we check.
-	tests := []struct {
-		name       string
-		goStruct   interface{}
-		schemaName string
-		inline     bool // true = fields are inline under .properties.data
-	}{
-		{"ConnectedData", ConnectedData{}, "SSEEventConnected", true},
-		{"HeartbeatData", HeartbeatData{}, "SSEEventHeartbeat", true},
-		{"MessageDeletedData", MessageDeletedData{}, "SSEEventMessageDeleted", true},
-		{"ReactionRemovedData", ReactionRemovedData{}, "SSEEventReactionRemoved", true},
-		{"ChannelMemberData/Added", ChannelMemberData{}, "SSEEventChannelMemberAdded", true},
-		{"ChannelMemberData/Removed", ChannelMemberData{}, "SSEEventChannelMemberRemoved", true},
-		{"WorkspaceMemberData/Banned", WorkspaceMemberData{}, "SSEEventMemberBanned", true},
-		{"WorkspaceMemberData/Unbanned", WorkspaceMemberData{}, "SSEEventMemberUnbanned", true},
-		{"WorkspaceMemberData/Left", WorkspaceMemberData{}, "SSEEventMemberLeft", true},
-		{"MemberRoleChangedData", MemberRoleChangedData{}, "SSEEventMemberRoleChanged", true},
-		{"EmojiDeletedData", EmojiDeletedData{}, "SSEEventEmojiDeleted", true},
-		{"ScheduledMessageDeletedData", ScheduledMessageDeletedData{}, "SSEEventScheduledMessageDeleted", true},
-		{"ScheduledMessageSentData", ScheduledMessageSentData{}, "SSEEventScheduledMessageSent", true},
-		{"ScheduledMessageFailedData", ScheduledMessageFailedData{}, "SSEEventScheduledMessageFailed", true},
-		{"PresenceData", PresenceData{}, "PresenceData", false},
-		{"PresenceInitialData", PresenceInitialData{}, "PresenceInitialData", false},
-		{"TypingEventData", TypingEventData{}, "TypingEventData", false},
-		{"ChannelReadEventData", ChannelReadEventData{}, "ChannelReadEventData", false},
-		{"NotificationData", NotificationData{}, "NotificationData", false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			goFields := jsonFieldNames(tt.goStruct)
-
-			var specFields []string
-			if tt.inline {
-				// Inline: schema.properties.data.properties
-				dataNode := yamlNav(schemas, tt.schemaName, "properties", "data")
-				if dataNode == nil {
-					t.Fatalf("schema %s.properties.data not found", tt.schemaName)
-				}
-				// Resolve $ref if present
-				dataNode = resolveRef(schemas, dataNode)
-				props := yamlNav(dataNode, "properties")
-				if props == nil {
-					t.Fatalf("schema %s.properties.data.properties not found", tt.schemaName)
-				}
-				specFields = mapKeys(props)
-			} else {
-				// Named component: schema.properties
-				schemaNode := yamlNav(schemas, tt.schemaName)
-				if schemaNode == nil {
-					t.Fatalf("schema %s not found", tt.schemaName)
-				}
-				schemaNode = resolveRef(schemas, schemaNode)
-				props := yamlNav(schemaNode, "properties")
-				if props == nil {
-					t.Fatalf("schema %s.properties not found", tt.schemaName)
-				}
-				specFields = mapKeys(props)
-			}
-
-			sort.Strings(goFields)
-			sort.Strings(specFields)
-
-			if !reflect.DeepEqual(goFields, specFields) {
-				t.Errorf("field mismatch\n  Go struct: %v\n  OpenAPI:   %v", goFields, specFields)
-			}
-		})
-	}
-}
-
-// jsonFieldNames extracts JSON tag names from a struct, stripping ",omitempty".
-func jsonFieldNames(v interface{}) []string {
-	t := reflect.TypeOf(v)
-	var names []string
-	for i := 0; i < t.NumField(); i++ {
-		tag := t.Field(i).Tag.Get("json")
-		if tag == "" || tag == "-" {
-			continue
-		}
-		name, _, _ := strings.Cut(tag, ",")
-		names = append(names, name)
-	}
-	return names
-}
-
-// yamlNav navigates nested map[string]interface{} by key path.
-func yamlNav(m interface{}, keys ...string) map[string]interface{} {
-	cur, ok := m.(map[string]interface{})
-	if !ok {
-		return nil
-	}
-	for _, k := range keys {
-		val, exists := cur[k]
-		if !exists {
-			return nil
-		}
-		cur, ok = val.(map[string]interface{})
-		if !ok {
-			return nil
-		}
-	}
-	return cur
-}
-
-// resolveRef follows a $ref if present (local refs only: #/components/schemas/X).
-func resolveRef(schemas map[string]interface{}, node map[string]interface{}) map[string]interface{} {
-	ref, ok := node["$ref"].(string)
-	if !ok {
-		return node
-	}
-	const prefix = "#/components/schemas/"
-	if !strings.HasPrefix(ref, prefix) {
-		return node
-	}
-	name := strings.TrimPrefix(ref, prefix)
-	resolved := yamlNav(schemas, name)
-	if resolved == nil {
-		return node
-	}
-	return resolved
-}
-
-// mapKeys returns the keys of a map[string]interface{}.
-func mapKeys(m map[string]interface{}) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	return keys
 }

@@ -6,6 +6,7 @@ package openapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -56,6 +57,16 @@ const (
 	MessageTypeUser   MessageType = "user"
 )
 
+// Defines values for NotificationDataType.
+const (
+	NotificationDataTypeChannel     NotificationDataType = "channel"
+	NotificationDataTypeDm          NotificationDataType = "dm"
+	NotificationDataTypeEveryone    NotificationDataType = "everyone"
+	NotificationDataTypeHere        NotificationDataType = "here"
+	NotificationDataTypeMention     NotificationDataType = "mention"
+	NotificationDataTypeThreadReply NotificationDataType = "thread_reply"
+)
+
 // Defines values for NotifyLevel.
 const (
 	NotifyLevelAll      NotifyLevel = "all"
@@ -70,6 +81,214 @@ const (
 	Members  PermissionLevel = "members"
 )
 
+// Defines values for PresenceStatus.
+const (
+	Offline PresenceStatus = "offline"
+	Online  PresenceStatus = "online"
+)
+
+// Defines values for SSEEventChannelArchivedType.
+const (
+	SSEEventChannelArchivedTypeChannelArchived SSEEventChannelArchivedType = "channel.archived"
+)
+
+// Defines values for SSEEventChannelCreatedType.
+const (
+	ChannelCreated SSEEventChannelCreatedType = "channel.created"
+)
+
+// Defines values for SSEEventChannelMemberAddedType.
+const (
+	ChannelMemberAdded SSEEventChannelMemberAddedType = "channel.member_added"
+)
+
+// Defines values for SSEEventChannelMemberRemovedType.
+const (
+	ChannelMemberRemoved SSEEventChannelMemberRemovedType = "channel.member_removed"
+)
+
+// Defines values for SSEEventChannelReadType.
+const (
+	ChannelRead SSEEventChannelReadType = "channel.read"
+)
+
+// Defines values for SSEEventChannelUpdatedType.
+const (
+	ChannelUpdated SSEEventChannelUpdatedType = "channel.updated"
+)
+
+// Defines values for SSEEventChannelsInvalidateType.
+const (
+	ChannelsInvalidate SSEEventChannelsInvalidateType = "channels.invalidate"
+)
+
+// Defines values for SSEEventConnectedType.
+const (
+	Connected SSEEventConnectedType = "connected"
+)
+
+// Defines values for SSEEventEmojiCreatedType.
+const (
+	EmojiCreated SSEEventEmojiCreatedType = "emoji.created"
+)
+
+// Defines values for SSEEventEmojiDeletedType.
+const (
+	EmojiDeleted SSEEventEmojiDeletedType = "emoji.deleted"
+)
+
+// Defines values for SSEEventHeartbeatType.
+const (
+	Heartbeat SSEEventHeartbeatType = "heartbeat"
+)
+
+// Defines values for SSEEventMemberBannedType.
+const (
+	MemberBanned SSEEventMemberBannedType = "member.banned"
+)
+
+// Defines values for SSEEventMemberLeftType.
+const (
+	MemberLeft SSEEventMemberLeftType = "member.left"
+)
+
+// Defines values for SSEEventMemberRoleChangedType.
+const (
+	MemberRoleChanged SSEEventMemberRoleChangedType = "member.role_changed"
+)
+
+// Defines values for SSEEventMemberUnbannedType.
+const (
+	MemberUnbanned SSEEventMemberUnbannedType = "member.unbanned"
+)
+
+// Defines values for SSEEventMessageDeletedType.
+const (
+	MessageDeleted SSEEventMessageDeletedType = "message.deleted"
+)
+
+// Defines values for SSEEventMessageNewType.
+const (
+	MessageNew SSEEventMessageNewType = "message.new"
+)
+
+// Defines values for SSEEventMessagePinnedType.
+const (
+	SSEEventMessagePinnedTypeMessagePinned SSEEventMessagePinnedType = "message.pinned"
+)
+
+// Defines values for SSEEventMessageUnpinnedType.
+const (
+	MessageUnpinned SSEEventMessageUnpinnedType = "message.unpinned"
+)
+
+// Defines values for SSEEventMessageUpdatedType.
+const (
+	MessageUpdated SSEEventMessageUpdatedType = "message.updated"
+)
+
+// Defines values for SSEEventNotificationType.
+const (
+	Notification SSEEventNotificationType = "notification"
+)
+
+// Defines values for SSEEventPresenceChangedType.
+const (
+	PresenceChanged SSEEventPresenceChangedType = "presence.changed"
+)
+
+// Defines values for SSEEventPresenceInitialType.
+const (
+	PresenceInitial SSEEventPresenceInitialType = "presence.initial"
+)
+
+// Defines values for SSEEventReactionAddedType.
+const (
+	ReactionAdded SSEEventReactionAddedType = "reaction.added"
+)
+
+// Defines values for SSEEventReactionRemovedType.
+const (
+	ReactionRemoved SSEEventReactionRemovedType = "reaction.removed"
+)
+
+// Defines values for SSEEventScheduledMessageCreatedType.
+const (
+	ScheduledMessageCreated SSEEventScheduledMessageCreatedType = "scheduled_message.created"
+)
+
+// Defines values for SSEEventScheduledMessageDeletedType.
+const (
+	ScheduledMessageDeleted SSEEventScheduledMessageDeletedType = "scheduled_message.deleted"
+)
+
+// Defines values for SSEEventScheduledMessageFailedType.
+const (
+	ScheduledMessageFailed SSEEventScheduledMessageFailedType = "scheduled_message.failed"
+)
+
+// Defines values for SSEEventScheduledMessageSentType.
+const (
+	ScheduledMessageSent SSEEventScheduledMessageSentType = "scheduled_message.sent"
+)
+
+// Defines values for SSEEventScheduledMessageUpdatedType.
+const (
+	ScheduledMessageUpdated SSEEventScheduledMessageUpdatedType = "scheduled_message.updated"
+)
+
+// Defines values for SSEEventType.
+const (
+	SSEEventTypeChannelArchived         SSEEventType = "channel.archived"
+	SSEEventTypeChannelCreated          SSEEventType = "channel.created"
+	SSEEventTypeChannelMemberAdded      SSEEventType = "channel.member_added"
+	SSEEventTypeChannelMemberRemoved    SSEEventType = "channel.member_removed"
+	SSEEventTypeChannelRead             SSEEventType = "channel.read"
+	SSEEventTypeChannelUpdated          SSEEventType = "channel.updated"
+	SSEEventTypeChannelsInvalidate      SSEEventType = "channels.invalidate"
+	SSEEventTypeConnected               SSEEventType = "connected"
+	SSEEventTypeEmojiCreated            SSEEventType = "emoji.created"
+	SSEEventTypeEmojiDeleted            SSEEventType = "emoji.deleted"
+	SSEEventTypeHeartbeat               SSEEventType = "heartbeat"
+	SSEEventTypeMemberBanned            SSEEventType = "member.banned"
+	SSEEventTypeMemberLeft              SSEEventType = "member.left"
+	SSEEventTypeMemberRoleChanged       SSEEventType = "member.role_changed"
+	SSEEventTypeMemberUnbanned          SSEEventType = "member.unbanned"
+	SSEEventTypeMessageDeleted          SSEEventType = "message.deleted"
+	SSEEventTypeMessageNew              SSEEventType = "message.new"
+	SSEEventTypeMessagePinned           SSEEventType = "message.pinned"
+	SSEEventTypeMessageUnpinned         SSEEventType = "message.unpinned"
+	SSEEventTypeMessageUpdated          SSEEventType = "message.updated"
+	SSEEventTypeNotification            SSEEventType = "notification"
+	SSEEventTypePresenceChanged         SSEEventType = "presence.changed"
+	SSEEventTypePresenceInitial         SSEEventType = "presence.initial"
+	SSEEventTypeReactionAdded           SSEEventType = "reaction.added"
+	SSEEventTypeReactionRemoved         SSEEventType = "reaction.removed"
+	SSEEventTypeScheduledMessageCreated SSEEventType = "scheduled_message.created"
+	SSEEventTypeScheduledMessageDeleted SSEEventType = "scheduled_message.deleted"
+	SSEEventTypeScheduledMessageFailed  SSEEventType = "scheduled_message.failed"
+	SSEEventTypeScheduledMessageSent    SSEEventType = "scheduled_message.sent"
+	SSEEventTypeScheduledMessageUpdated SSEEventType = "scheduled_message.updated"
+	SSEEventTypeTypingStart             SSEEventType = "typing.start"
+	SSEEventTypeTypingStop              SSEEventType = "typing.stop"
+	SSEEventTypeWorkspaceUpdated        SSEEventType = "workspace.updated"
+)
+
+// Defines values for SSEEventTypingStartType.
+const (
+	TypingStart SSEEventTypingStartType = "typing.start"
+)
+
+// Defines values for SSEEventTypingStopType.
+const (
+	TypingStop SSEEventTypingStopType = "typing.stop"
+)
+
+// Defines values for SSEEventWorkspaceUpdatedType.
+const (
+	WorkspaceUpdated SSEEventWorkspaceUpdatedType = "workspace.updated"
+)
+
 // Defines values for ScheduledMessageStatus.
 const (
 	Failed  ScheduledMessageStatus = "failed"
@@ -79,15 +298,15 @@ const (
 
 // Defines values for SystemEventType.
 const (
-	ChannelDescriptionUpdated SystemEventType = "channel_description_updated"
-	ChannelRenamed            SystemEventType = "channel_renamed"
-	ChannelVisibilityChanged  SystemEventType = "channel_visibility_changed"
-	MessagePinned             SystemEventType = "message_pinned"
-	MessageUnpinned           SystemEventType = "message_unpinned"
-	UserAdded                 SystemEventType = "user_added"
-	UserConvertedChannel      SystemEventType = "user_converted_channel"
-	UserJoined                SystemEventType = "user_joined"
-	UserLeft                  SystemEventType = "user_left"
+	SystemEventTypeChannelDescriptionUpdated SystemEventType = "channel_description_updated"
+	SystemEventTypeChannelRenamed            SystemEventType = "channel_renamed"
+	SystemEventTypeChannelVisibilityChanged  SystemEventType = "channel_visibility_changed"
+	SystemEventTypeMessagePinned             SystemEventType = "message_pinned"
+	SystemEventTypeMessageUnpinned           SystemEventType = "message_unpinned"
+	SystemEventTypeUserAdded                 SystemEventType = "user_added"
+	SystemEventTypeUserConvertedChannel      SystemEventType = "user_converted_channel"
+	SystemEventTypeUserJoined                SystemEventType = "user_joined"
+	SystemEventTypeUserLeft                  SystemEventType = "user_left"
 )
 
 // Defines values for ThreadSubscriptionStatus.
@@ -107,8 +326,8 @@ const (
 
 // Defines values for ConvertGroupDMToChannelJSONBodyType.
 const (
-	ConvertGroupDMToChannelJSONBodyTypePrivate ConvertGroupDMToChannelJSONBodyType = "private"
-	ConvertGroupDMToChannelJSONBodyTypePublic  ConvertGroupDMToChannelJSONBodyType = "public"
+	Private ConvertGroupDMToChannelJSONBodyType = "private"
+	Public  ConvertGroupDMToChannelJSONBodyType = "public"
 )
 
 // ApiError defines model for ApiError.
@@ -220,6 +439,18 @@ type ChannelMember struct {
 	UserId      string              `json:"user_id"`
 }
 
+// ChannelMemberData defines model for ChannelMemberData.
+type ChannelMemberData struct {
+	ChannelId string `json:"channel_id"`
+	UserId    string `json:"user_id"`
+}
+
+// ChannelReadEventData defines model for ChannelReadEventData.
+type ChannelReadEventData struct {
+	ChannelId         string `json:"channel_id"`
+	LastReadMessageId string `json:"last_read_message_id"`
+}
+
 // ChannelRole defines model for ChannelRole.
 type ChannelRole string
 
@@ -249,6 +480,11 @@ type ChannelWithMembership struct {
 	UnreadCount       int         `json:"unread_count"`
 	UpdatedAt         time.Time   `json:"updated_at"`
 	WorkspaceId       string      `json:"workspace_id"`
+}
+
+// ConnectedData defines model for ConnectedData.
+type ConnectedData struct {
+	ClientId string `json:"client_id"`
 }
 
 // CreateChannelInput defines model for CreateChannelInput.
@@ -281,6 +517,17 @@ type CustomEmoji struct {
 	SizeBytes   int64     `json:"size_bytes"`
 	Url         string    `json:"url"`
 	WorkspaceId string    `json:"workspace_id"`
+}
+
+// EmojiDeletedData defines model for EmojiDeletedData.
+type EmojiDeletedData struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// HeartbeatData defines model for HeartbeatData.
+type HeartbeatData struct {
+	Timestamp int64 `json:"timestamp"`
 }
 
 // Invite defines model for Invite.
@@ -347,6 +594,13 @@ type MeResponse struct {
 	Workspaces *[]WorkspaceSummary `json:"workspaces,omitempty"`
 }
 
+// MemberRoleChangedData defines model for MemberRoleChangedData.
+type MemberRoleChangedData struct {
+	NewRole string `json:"new_role"`
+	OldRole string `json:"old_role"`
+	UserId  string `json:"user_id"`
+}
+
 // Message defines model for Message.
 type Message struct {
 	AlsoSendToChannel *bool            `json:"also_send_to_channel,omitempty"`
@@ -365,6 +619,12 @@ type Message struct {
 	Type              *MessageType     `json:"type,omitempty"`
 	UpdatedAt         time.Time        `json:"updated_at"`
 	UserId            *string          `json:"user_id,omitempty"`
+}
+
+// MessageDeletedData defines model for MessageDeletedData.
+type MessageDeletedData struct {
+	Id             string  `json:"id"`
+	ThreadParentId *string `json:"thread_parent_id,omitempty"`
 }
 
 // MessageListResult defines model for MessageListResult.
@@ -420,6 +680,20 @@ type ModerationLogEntryWithActor struct {
 	WorkspaceId       string                  `json:"workspace_id"`
 }
 
+// NotificationData defines model for NotificationData.
+type NotificationData struct {
+	ChannelId      string               `json:"channel_id"`
+	ChannelName    *string              `json:"channel_name,omitempty"`
+	MessageId      string               `json:"message_id"`
+	Preview        *string              `json:"preview,omitempty"`
+	SenderName     *string              `json:"sender_name,omitempty"`
+	ThreadParentId *string              `json:"thread_parent_id,omitempty"`
+	Type           NotificationDataType `json:"type"`
+}
+
+// NotificationDataType defines model for NotificationData.Type.
+type NotificationDataType string
+
 // NotificationPreferences defines model for NotificationPreferences.
 type NotificationPreferences struct {
 	EmailEnabled bool        `json:"email_enabled"`
@@ -432,6 +706,21 @@ type NotifyLevel string
 // PermissionLevel Controls which workspace roles can perform an action
 type PermissionLevel string
 
+// PresenceData defines model for PresenceData.
+type PresenceData struct {
+	Status PresenceStatus `json:"status"`
+	UserId string         `json:"user_id"`
+}
+
+// PresenceInitialData defines model for PresenceInitialData.
+type PresenceInitialData struct {
+	// OnlineUserIds List of user IDs currently online in this workspace
+	OnlineUserIds []string `json:"online_user_ids"`
+}
+
+// PresenceStatus defines model for PresenceStatus.
+type PresenceStatus string
+
 // Reaction defines model for Reaction.
 type Reaction struct {
 	CreatedAt time.Time `json:"created_at"`
@@ -439,6 +728,20 @@ type Reaction struct {
 	Id        string    `json:"id"`
 	MessageId string    `json:"message_id"`
 	UserId    string    `json:"user_id"`
+}
+
+// ReactionRemovedData defines model for ReactionRemovedData.
+type ReactionRemovedData struct {
+	Emoji     string `json:"emoji"`
+	MessageId string `json:"message_id"`
+	UserId    string `json:"user_id"`
+}
+
+// ReactionSummary defines model for ReactionSummary.
+type ReactionSummary struct {
+	Count   int      `json:"count"`
+	Emoji   string   `json:"emoji"`
+	UserIds []string `json:"user_ids"`
 }
 
 // RegisterInput defines model for RegisterInput.
@@ -453,6 +756,343 @@ type ReorderWorkspacesInput struct {
 	// WorkspaceIds Ordered list of workspace IDs representing the new order
 	WorkspaceIds []string `json:"workspace_ids"`
 }
+
+// SSEEvent defines model for SSEEvent.
+type SSEEvent struct {
+	union json.RawMessage
+}
+
+// SSEEventChannelArchived defines model for SSEEventChannelArchived.
+type SSEEventChannelArchived struct {
+	Data Channel                     `json:"data"`
+	Id   *string                     `json:"id,omitempty"`
+	Type SSEEventChannelArchivedType `json:"type"`
+}
+
+// SSEEventChannelArchivedType defines model for SSEEventChannelArchived.Type.
+type SSEEventChannelArchivedType string
+
+// SSEEventChannelCreated defines model for SSEEventChannelCreated.
+type SSEEventChannelCreated struct {
+	Data Channel                    `json:"data"`
+	Id   *string                    `json:"id,omitempty"`
+	Type SSEEventChannelCreatedType `json:"type"`
+}
+
+// SSEEventChannelCreatedType defines model for SSEEventChannelCreated.Type.
+type SSEEventChannelCreatedType string
+
+// SSEEventChannelMemberAdded defines model for SSEEventChannelMemberAdded.
+type SSEEventChannelMemberAdded struct {
+	Data ChannelMemberData              `json:"data"`
+	Id   *string                        `json:"id,omitempty"`
+	Type SSEEventChannelMemberAddedType `json:"type"`
+}
+
+// SSEEventChannelMemberAddedType defines model for SSEEventChannelMemberAdded.Type.
+type SSEEventChannelMemberAddedType string
+
+// SSEEventChannelMemberRemoved defines model for SSEEventChannelMemberRemoved.
+type SSEEventChannelMemberRemoved struct {
+	Data ChannelMemberData                `json:"data"`
+	Id   *string                          `json:"id,omitempty"`
+	Type SSEEventChannelMemberRemovedType `json:"type"`
+}
+
+// SSEEventChannelMemberRemovedType defines model for SSEEventChannelMemberRemoved.Type.
+type SSEEventChannelMemberRemovedType string
+
+// SSEEventChannelRead defines model for SSEEventChannelRead.
+type SSEEventChannelRead struct {
+	Data ChannelReadEventData    `json:"data"`
+	Id   *string                 `json:"id,omitempty"`
+	Type SSEEventChannelReadType `json:"type"`
+}
+
+// SSEEventChannelReadType defines model for SSEEventChannelRead.Type.
+type SSEEventChannelReadType string
+
+// SSEEventChannelUpdated defines model for SSEEventChannelUpdated.
+type SSEEventChannelUpdated struct {
+	Data Channel                    `json:"data"`
+	Id   *string                    `json:"id,omitempty"`
+	Type SSEEventChannelUpdatedType `json:"type"`
+}
+
+// SSEEventChannelUpdatedType defines model for SSEEventChannelUpdated.Type.
+type SSEEventChannelUpdatedType string
+
+// SSEEventChannelsInvalidate defines model for SSEEventChannelsInvalidate.
+type SSEEventChannelsInvalidate struct {
+	Id   *string                        `json:"id,omitempty"`
+	Type SSEEventChannelsInvalidateType `json:"type"`
+}
+
+// SSEEventChannelsInvalidateType defines model for SSEEventChannelsInvalidate.Type.
+type SSEEventChannelsInvalidateType string
+
+// SSEEventConnected defines model for SSEEventConnected.
+type SSEEventConnected struct {
+	Data ConnectedData         `json:"data"`
+	Id   *string               `json:"id,omitempty"`
+	Type SSEEventConnectedType `json:"type"`
+}
+
+// SSEEventConnectedType defines model for SSEEventConnected.Type.
+type SSEEventConnectedType string
+
+// SSEEventEmojiCreated defines model for SSEEventEmojiCreated.
+type SSEEventEmojiCreated struct {
+	Data CustomEmoji              `json:"data"`
+	Id   *string                  `json:"id,omitempty"`
+	Type SSEEventEmojiCreatedType `json:"type"`
+}
+
+// SSEEventEmojiCreatedType defines model for SSEEventEmojiCreated.Type.
+type SSEEventEmojiCreatedType string
+
+// SSEEventEmojiDeleted defines model for SSEEventEmojiDeleted.
+type SSEEventEmojiDeleted struct {
+	Data EmojiDeletedData         `json:"data"`
+	Id   *string                  `json:"id,omitempty"`
+	Type SSEEventEmojiDeletedType `json:"type"`
+}
+
+// SSEEventEmojiDeletedType defines model for SSEEventEmojiDeleted.Type.
+type SSEEventEmojiDeletedType string
+
+// SSEEventHeartbeat defines model for SSEEventHeartbeat.
+type SSEEventHeartbeat struct {
+	Data HeartbeatData         `json:"data"`
+	Id   *string               `json:"id,omitempty"`
+	Type SSEEventHeartbeatType `json:"type"`
+}
+
+// SSEEventHeartbeatType defines model for SSEEventHeartbeat.Type.
+type SSEEventHeartbeatType string
+
+// SSEEventMemberBanned defines model for SSEEventMemberBanned.
+type SSEEventMemberBanned struct {
+	Data WorkspaceMemberData      `json:"data"`
+	Id   *string                  `json:"id,omitempty"`
+	Type SSEEventMemberBannedType `json:"type"`
+}
+
+// SSEEventMemberBannedType defines model for SSEEventMemberBanned.Type.
+type SSEEventMemberBannedType string
+
+// SSEEventMemberLeft defines model for SSEEventMemberLeft.
+type SSEEventMemberLeft struct {
+	Data WorkspaceMemberData    `json:"data"`
+	Id   *string                `json:"id,omitempty"`
+	Type SSEEventMemberLeftType `json:"type"`
+}
+
+// SSEEventMemberLeftType defines model for SSEEventMemberLeft.Type.
+type SSEEventMemberLeftType string
+
+// SSEEventMemberRoleChanged defines model for SSEEventMemberRoleChanged.
+type SSEEventMemberRoleChanged struct {
+	Data MemberRoleChangedData         `json:"data"`
+	Id   *string                       `json:"id,omitempty"`
+	Type SSEEventMemberRoleChangedType `json:"type"`
+}
+
+// SSEEventMemberRoleChangedType defines model for SSEEventMemberRoleChanged.Type.
+type SSEEventMemberRoleChangedType string
+
+// SSEEventMemberUnbanned defines model for SSEEventMemberUnbanned.
+type SSEEventMemberUnbanned struct {
+	Data WorkspaceMemberData        `json:"data"`
+	Id   *string                    `json:"id,omitempty"`
+	Type SSEEventMemberUnbannedType `json:"type"`
+}
+
+// SSEEventMemberUnbannedType defines model for SSEEventMemberUnbanned.Type.
+type SSEEventMemberUnbannedType string
+
+// SSEEventMessageDeleted defines model for SSEEventMessageDeleted.
+type SSEEventMessageDeleted struct {
+	Data MessageDeletedData         `json:"data"`
+	Id   *string                    `json:"id,omitempty"`
+	Type SSEEventMessageDeletedType `json:"type"`
+}
+
+// SSEEventMessageDeletedType defines model for SSEEventMessageDeleted.Type.
+type SSEEventMessageDeletedType string
+
+// SSEEventMessageNew defines model for SSEEventMessageNew.
+type SSEEventMessageNew struct {
+	Data MessageWithUser        `json:"data"`
+	Id   *string                `json:"id,omitempty"`
+	Type SSEEventMessageNewType `json:"type"`
+}
+
+// SSEEventMessageNewType defines model for SSEEventMessageNew.Type.
+type SSEEventMessageNewType string
+
+// SSEEventMessagePinned defines model for SSEEventMessagePinned.
+type SSEEventMessagePinned struct {
+	Data MessageWithUser           `json:"data"`
+	Id   *string                   `json:"id,omitempty"`
+	Type SSEEventMessagePinnedType `json:"type"`
+}
+
+// SSEEventMessagePinnedType defines model for SSEEventMessagePinned.Type.
+type SSEEventMessagePinnedType string
+
+// SSEEventMessageUnpinned defines model for SSEEventMessageUnpinned.
+type SSEEventMessageUnpinned struct {
+	Data MessageWithUser             `json:"data"`
+	Id   *string                     `json:"id,omitempty"`
+	Type SSEEventMessageUnpinnedType `json:"type"`
+}
+
+// SSEEventMessageUnpinnedType defines model for SSEEventMessageUnpinned.Type.
+type SSEEventMessageUnpinnedType string
+
+// SSEEventMessageUpdated defines model for SSEEventMessageUpdated.
+type SSEEventMessageUpdated struct {
+	Data MessageWithUser            `json:"data"`
+	Id   *string                    `json:"id,omitempty"`
+	Type SSEEventMessageUpdatedType `json:"type"`
+}
+
+// SSEEventMessageUpdatedType defines model for SSEEventMessageUpdated.Type.
+type SSEEventMessageUpdatedType string
+
+// SSEEventNotification defines model for SSEEventNotification.
+type SSEEventNotification struct {
+	Data NotificationData         `json:"data"`
+	Id   *string                  `json:"id,omitempty"`
+	Type SSEEventNotificationType `json:"type"`
+}
+
+// SSEEventNotificationType defines model for SSEEventNotification.Type.
+type SSEEventNotificationType string
+
+// SSEEventPresenceChanged defines model for SSEEventPresenceChanged.
+type SSEEventPresenceChanged struct {
+	Data PresenceData                `json:"data"`
+	Id   *string                     `json:"id,omitempty"`
+	Type SSEEventPresenceChangedType `json:"type"`
+}
+
+// SSEEventPresenceChangedType defines model for SSEEventPresenceChanged.Type.
+type SSEEventPresenceChangedType string
+
+// SSEEventPresenceInitial defines model for SSEEventPresenceInitial.
+type SSEEventPresenceInitial struct {
+	Data PresenceInitialData         `json:"data"`
+	Id   *string                     `json:"id,omitempty"`
+	Type SSEEventPresenceInitialType `json:"type"`
+}
+
+// SSEEventPresenceInitialType defines model for SSEEventPresenceInitial.Type.
+type SSEEventPresenceInitialType string
+
+// SSEEventReactionAdded defines model for SSEEventReactionAdded.
+type SSEEventReactionAdded struct {
+	Data Reaction                  `json:"data"`
+	Id   *string                   `json:"id,omitempty"`
+	Type SSEEventReactionAddedType `json:"type"`
+}
+
+// SSEEventReactionAddedType defines model for SSEEventReactionAdded.Type.
+type SSEEventReactionAddedType string
+
+// SSEEventReactionRemoved defines model for SSEEventReactionRemoved.
+type SSEEventReactionRemoved struct {
+	Data ReactionRemovedData         `json:"data"`
+	Id   *string                     `json:"id,omitempty"`
+	Type SSEEventReactionRemovedType `json:"type"`
+}
+
+// SSEEventReactionRemovedType defines model for SSEEventReactionRemoved.Type.
+type SSEEventReactionRemovedType string
+
+// SSEEventScheduledMessageCreated defines model for SSEEventScheduledMessageCreated.
+type SSEEventScheduledMessageCreated struct {
+	Data ScheduledMessage                    `json:"data"`
+	Id   *string                             `json:"id,omitempty"`
+	Type SSEEventScheduledMessageCreatedType `json:"type"`
+}
+
+// SSEEventScheduledMessageCreatedType defines model for SSEEventScheduledMessageCreated.Type.
+type SSEEventScheduledMessageCreatedType string
+
+// SSEEventScheduledMessageDeleted defines model for SSEEventScheduledMessageDeleted.
+type SSEEventScheduledMessageDeleted struct {
+	Data ScheduledMessageDeletedData         `json:"data"`
+	Id   *string                             `json:"id,omitempty"`
+	Type SSEEventScheduledMessageDeletedType `json:"type"`
+}
+
+// SSEEventScheduledMessageDeletedType defines model for SSEEventScheduledMessageDeleted.Type.
+type SSEEventScheduledMessageDeletedType string
+
+// SSEEventScheduledMessageFailed defines model for SSEEventScheduledMessageFailed.
+type SSEEventScheduledMessageFailed struct {
+	Data ScheduledMessageFailedData         `json:"data"`
+	Id   *string                            `json:"id,omitempty"`
+	Type SSEEventScheduledMessageFailedType `json:"type"`
+}
+
+// SSEEventScheduledMessageFailedType defines model for SSEEventScheduledMessageFailed.Type.
+type SSEEventScheduledMessageFailedType string
+
+// SSEEventScheduledMessageSent defines model for SSEEventScheduledMessageSent.
+type SSEEventScheduledMessageSent struct {
+	Data ScheduledMessageSentData         `json:"data"`
+	Id   *string                          `json:"id,omitempty"`
+	Type SSEEventScheduledMessageSentType `json:"type"`
+}
+
+// SSEEventScheduledMessageSentType defines model for SSEEventScheduledMessageSent.Type.
+type SSEEventScheduledMessageSentType string
+
+// SSEEventScheduledMessageUpdated defines model for SSEEventScheduledMessageUpdated.
+type SSEEventScheduledMessageUpdated struct {
+	Data ScheduledMessage                    `json:"data"`
+	Id   *string                             `json:"id,omitempty"`
+	Type SSEEventScheduledMessageUpdatedType `json:"type"`
+}
+
+// SSEEventScheduledMessageUpdatedType defines model for SSEEventScheduledMessageUpdated.Type.
+type SSEEventScheduledMessageUpdatedType string
+
+// SSEEventType defines model for SSEEventType.
+type SSEEventType string
+
+// SSEEventTypingStart defines model for SSEEventTypingStart.
+type SSEEventTypingStart struct {
+	Data TypingEventData         `json:"data"`
+	Id   *string                 `json:"id,omitempty"`
+	Type SSEEventTypingStartType `json:"type"`
+}
+
+// SSEEventTypingStartType defines model for SSEEventTypingStart.Type.
+type SSEEventTypingStartType string
+
+// SSEEventTypingStop defines model for SSEEventTypingStop.
+type SSEEventTypingStop struct {
+	Data TypingEventData        `json:"data"`
+	Id   *string                `json:"id,omitempty"`
+	Type SSEEventTypingStopType `json:"type"`
+}
+
+// SSEEventTypingStopType defines model for SSEEventTypingStop.Type.
+type SSEEventTypingStopType string
+
+// SSEEventWorkspaceUpdated defines model for SSEEventWorkspaceUpdated.
+type SSEEventWorkspaceUpdated struct {
+	Data Workspace                    `json:"data"`
+	Id   *string                      `json:"id,omitempty"`
+	Type SSEEventWorkspaceUpdatedType `json:"type"`
+}
+
+// SSEEventWorkspaceUpdatedType defines model for SSEEventWorkspaceUpdated.Type.
+type SSEEventWorkspaceUpdatedType string
 
 // ScheduleMessageInput defines model for ScheduleMessageInput.
 type ScheduleMessageInput struct {
@@ -483,6 +1123,25 @@ type ScheduledMessage struct {
 
 // ScheduledMessageStatus defines model for ScheduledMessage.Status.
 type ScheduledMessageStatus string
+
+// ScheduledMessageDeletedData defines model for ScheduledMessageDeletedData.
+type ScheduledMessageDeletedData struct {
+	Id string `json:"id"`
+}
+
+// ScheduledMessageFailedData defines model for ScheduledMessageFailedData.
+type ScheduledMessageFailedData struct {
+	ChannelId string `json:"channel_id"`
+	Error     string `json:"error"`
+	Id        string `json:"id"`
+}
+
+// ScheduledMessageSentData defines model for ScheduledMessageSentData.
+type ScheduledMessageSentData struct {
+	ChannelId string `json:"channel_id"`
+	Id        string `json:"id"`
+	MessageId string `json:"message_id"`
+}
 
 // SearchMessage defines model for SearchMessage.
 type SearchMessage struct {
@@ -641,6 +1300,13 @@ type ThreadParticipant struct {
 // ThreadSubscriptionStatus defines model for ThreadSubscriptionStatus.
 type ThreadSubscriptionStatus string
 
+// TypingEventData defines model for TypingEventData.
+type TypingEventData struct {
+	ChannelId       string  `json:"channel_id"`
+	UserDisplayName *string `json:"user_display_name,omitempty"`
+	UserId          string  `json:"user_id"`
+}
+
 // UnreadMessage defines model for UnreadMessage.
 type UnreadMessage struct {
 	AlsoSendToChannel  *bool                `json:"also_send_to_channel,omitempty"`
@@ -757,6 +1423,12 @@ type Workspace struct {
 // WorkspaceIconUploadResponse defines model for WorkspaceIconUploadResponse.
 type WorkspaceIconUploadResponse struct {
 	IconUrl string `json:"icon_url"`
+}
+
+// WorkspaceMemberData defines model for WorkspaceMemberData.
+type WorkspaceMemberData struct {
+	UserId      string `json:"user_id"`
+	WorkspaceId string `json:"workspace_id"`
 }
 
 // WorkspaceMemberWithUser defines model for WorkspaceMemberWithUser.
@@ -1142,6 +1814,1025 @@ type ListAllUnreadsJSONRequestBody ListAllUnreadsJSONBody
 
 // UpdateWorkspaceJSONRequestBody defines body for UpdateWorkspace for application/json ContentType.
 type UpdateWorkspaceJSONRequestBody = UpdateWorkspaceInput
+
+// AsSSEEventConnected returns the union data inside the SSEEvent as a SSEEventConnected
+func (t SSEEvent) AsSSEEventConnected() (SSEEventConnected, error) {
+	var body SSEEventConnected
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventConnected overwrites any union data inside the SSEEvent as the provided SSEEventConnected
+func (t *SSEEvent) FromSSEEventConnected(v SSEEventConnected) error {
+	v.Type = "connected"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventConnected performs a merge with any union data inside the SSEEvent, using the provided SSEEventConnected
+func (t *SSEEvent) MergeSSEEventConnected(v SSEEventConnected) error {
+	v.Type = "connected"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventHeartbeat returns the union data inside the SSEEvent as a SSEEventHeartbeat
+func (t SSEEvent) AsSSEEventHeartbeat() (SSEEventHeartbeat, error) {
+	var body SSEEventHeartbeat
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventHeartbeat overwrites any union data inside the SSEEvent as the provided SSEEventHeartbeat
+func (t *SSEEvent) FromSSEEventHeartbeat(v SSEEventHeartbeat) error {
+	v.Type = "heartbeat"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventHeartbeat performs a merge with any union data inside the SSEEvent, using the provided SSEEventHeartbeat
+func (t *SSEEvent) MergeSSEEventHeartbeat(v SSEEventHeartbeat) error {
+	v.Type = "heartbeat"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventMessageNew returns the union data inside the SSEEvent as a SSEEventMessageNew
+func (t SSEEvent) AsSSEEventMessageNew() (SSEEventMessageNew, error) {
+	var body SSEEventMessageNew
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventMessageNew overwrites any union data inside the SSEEvent as the provided SSEEventMessageNew
+func (t *SSEEvent) FromSSEEventMessageNew(v SSEEventMessageNew) error {
+	v.Type = "message.new"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventMessageNew performs a merge with any union data inside the SSEEvent, using the provided SSEEventMessageNew
+func (t *SSEEvent) MergeSSEEventMessageNew(v SSEEventMessageNew) error {
+	v.Type = "message.new"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventMessageUpdated returns the union data inside the SSEEvent as a SSEEventMessageUpdated
+func (t SSEEvent) AsSSEEventMessageUpdated() (SSEEventMessageUpdated, error) {
+	var body SSEEventMessageUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventMessageUpdated overwrites any union data inside the SSEEvent as the provided SSEEventMessageUpdated
+func (t *SSEEvent) FromSSEEventMessageUpdated(v SSEEventMessageUpdated) error {
+	v.Type = "message.updated"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventMessageUpdated performs a merge with any union data inside the SSEEvent, using the provided SSEEventMessageUpdated
+func (t *SSEEvent) MergeSSEEventMessageUpdated(v SSEEventMessageUpdated) error {
+	v.Type = "message.updated"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventMessageDeleted returns the union data inside the SSEEvent as a SSEEventMessageDeleted
+func (t SSEEvent) AsSSEEventMessageDeleted() (SSEEventMessageDeleted, error) {
+	var body SSEEventMessageDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventMessageDeleted overwrites any union data inside the SSEEvent as the provided SSEEventMessageDeleted
+func (t *SSEEvent) FromSSEEventMessageDeleted(v SSEEventMessageDeleted) error {
+	v.Type = "message.deleted"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventMessageDeleted performs a merge with any union data inside the SSEEvent, using the provided SSEEventMessageDeleted
+func (t *SSEEvent) MergeSSEEventMessageDeleted(v SSEEventMessageDeleted) error {
+	v.Type = "message.deleted"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventReactionAdded returns the union data inside the SSEEvent as a SSEEventReactionAdded
+func (t SSEEvent) AsSSEEventReactionAdded() (SSEEventReactionAdded, error) {
+	var body SSEEventReactionAdded
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventReactionAdded overwrites any union data inside the SSEEvent as the provided SSEEventReactionAdded
+func (t *SSEEvent) FromSSEEventReactionAdded(v SSEEventReactionAdded) error {
+	v.Type = "reaction.added"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventReactionAdded performs a merge with any union data inside the SSEEvent, using the provided SSEEventReactionAdded
+func (t *SSEEvent) MergeSSEEventReactionAdded(v SSEEventReactionAdded) error {
+	v.Type = "reaction.added"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventReactionRemoved returns the union data inside the SSEEvent as a SSEEventReactionRemoved
+func (t SSEEvent) AsSSEEventReactionRemoved() (SSEEventReactionRemoved, error) {
+	var body SSEEventReactionRemoved
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventReactionRemoved overwrites any union data inside the SSEEvent as the provided SSEEventReactionRemoved
+func (t *SSEEvent) FromSSEEventReactionRemoved(v SSEEventReactionRemoved) error {
+	v.Type = "reaction.removed"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventReactionRemoved performs a merge with any union data inside the SSEEvent, using the provided SSEEventReactionRemoved
+func (t *SSEEvent) MergeSSEEventReactionRemoved(v SSEEventReactionRemoved) error {
+	v.Type = "reaction.removed"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventChannelCreated returns the union data inside the SSEEvent as a SSEEventChannelCreated
+func (t SSEEvent) AsSSEEventChannelCreated() (SSEEventChannelCreated, error) {
+	var body SSEEventChannelCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventChannelCreated overwrites any union data inside the SSEEvent as the provided SSEEventChannelCreated
+func (t *SSEEvent) FromSSEEventChannelCreated(v SSEEventChannelCreated) error {
+	v.Type = "channel.created"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventChannelCreated performs a merge with any union data inside the SSEEvent, using the provided SSEEventChannelCreated
+func (t *SSEEvent) MergeSSEEventChannelCreated(v SSEEventChannelCreated) error {
+	v.Type = "channel.created"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventChannelUpdated returns the union data inside the SSEEvent as a SSEEventChannelUpdated
+func (t SSEEvent) AsSSEEventChannelUpdated() (SSEEventChannelUpdated, error) {
+	var body SSEEventChannelUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventChannelUpdated overwrites any union data inside the SSEEvent as the provided SSEEventChannelUpdated
+func (t *SSEEvent) FromSSEEventChannelUpdated(v SSEEventChannelUpdated) error {
+	v.Type = "channel.updated"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventChannelUpdated performs a merge with any union data inside the SSEEvent, using the provided SSEEventChannelUpdated
+func (t *SSEEvent) MergeSSEEventChannelUpdated(v SSEEventChannelUpdated) error {
+	v.Type = "channel.updated"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventChannelArchived returns the union data inside the SSEEvent as a SSEEventChannelArchived
+func (t SSEEvent) AsSSEEventChannelArchived() (SSEEventChannelArchived, error) {
+	var body SSEEventChannelArchived
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventChannelArchived overwrites any union data inside the SSEEvent as the provided SSEEventChannelArchived
+func (t *SSEEvent) FromSSEEventChannelArchived(v SSEEventChannelArchived) error {
+	v.Type = "channel.archived"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventChannelArchived performs a merge with any union data inside the SSEEvent, using the provided SSEEventChannelArchived
+func (t *SSEEvent) MergeSSEEventChannelArchived(v SSEEventChannelArchived) error {
+	v.Type = "channel.archived"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventChannelMemberAdded returns the union data inside the SSEEvent as a SSEEventChannelMemberAdded
+func (t SSEEvent) AsSSEEventChannelMemberAdded() (SSEEventChannelMemberAdded, error) {
+	var body SSEEventChannelMemberAdded
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventChannelMemberAdded overwrites any union data inside the SSEEvent as the provided SSEEventChannelMemberAdded
+func (t *SSEEvent) FromSSEEventChannelMemberAdded(v SSEEventChannelMemberAdded) error {
+	v.Type = "channel.member_added"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventChannelMemberAdded performs a merge with any union data inside the SSEEvent, using the provided SSEEventChannelMemberAdded
+func (t *SSEEvent) MergeSSEEventChannelMemberAdded(v SSEEventChannelMemberAdded) error {
+	v.Type = "channel.member_added"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventChannelMemberRemoved returns the union data inside the SSEEvent as a SSEEventChannelMemberRemoved
+func (t SSEEvent) AsSSEEventChannelMemberRemoved() (SSEEventChannelMemberRemoved, error) {
+	var body SSEEventChannelMemberRemoved
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventChannelMemberRemoved overwrites any union data inside the SSEEvent as the provided SSEEventChannelMemberRemoved
+func (t *SSEEvent) FromSSEEventChannelMemberRemoved(v SSEEventChannelMemberRemoved) error {
+	v.Type = "channel.member_removed"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventChannelMemberRemoved performs a merge with any union data inside the SSEEvent, using the provided SSEEventChannelMemberRemoved
+func (t *SSEEvent) MergeSSEEventChannelMemberRemoved(v SSEEventChannelMemberRemoved) error {
+	v.Type = "channel.member_removed"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventChannelRead returns the union data inside the SSEEvent as a SSEEventChannelRead
+func (t SSEEvent) AsSSEEventChannelRead() (SSEEventChannelRead, error) {
+	var body SSEEventChannelRead
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventChannelRead overwrites any union data inside the SSEEvent as the provided SSEEventChannelRead
+func (t *SSEEvent) FromSSEEventChannelRead(v SSEEventChannelRead) error {
+	v.Type = "channel.read"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventChannelRead performs a merge with any union data inside the SSEEvent, using the provided SSEEventChannelRead
+func (t *SSEEvent) MergeSSEEventChannelRead(v SSEEventChannelRead) error {
+	v.Type = "channel.read"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventTypingStart returns the union data inside the SSEEvent as a SSEEventTypingStart
+func (t SSEEvent) AsSSEEventTypingStart() (SSEEventTypingStart, error) {
+	var body SSEEventTypingStart
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventTypingStart overwrites any union data inside the SSEEvent as the provided SSEEventTypingStart
+func (t *SSEEvent) FromSSEEventTypingStart(v SSEEventTypingStart) error {
+	v.Type = "typing.start"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventTypingStart performs a merge with any union data inside the SSEEvent, using the provided SSEEventTypingStart
+func (t *SSEEvent) MergeSSEEventTypingStart(v SSEEventTypingStart) error {
+	v.Type = "typing.start"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventTypingStop returns the union data inside the SSEEvent as a SSEEventTypingStop
+func (t SSEEvent) AsSSEEventTypingStop() (SSEEventTypingStop, error) {
+	var body SSEEventTypingStop
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventTypingStop overwrites any union data inside the SSEEvent as the provided SSEEventTypingStop
+func (t *SSEEvent) FromSSEEventTypingStop(v SSEEventTypingStop) error {
+	v.Type = "typing.stop"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventTypingStop performs a merge with any union data inside the SSEEvent, using the provided SSEEventTypingStop
+func (t *SSEEvent) MergeSSEEventTypingStop(v SSEEventTypingStop) error {
+	v.Type = "typing.stop"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventPresenceChanged returns the union data inside the SSEEvent as a SSEEventPresenceChanged
+func (t SSEEvent) AsSSEEventPresenceChanged() (SSEEventPresenceChanged, error) {
+	var body SSEEventPresenceChanged
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventPresenceChanged overwrites any union data inside the SSEEvent as the provided SSEEventPresenceChanged
+func (t *SSEEvent) FromSSEEventPresenceChanged(v SSEEventPresenceChanged) error {
+	v.Type = "presence.changed"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventPresenceChanged performs a merge with any union data inside the SSEEvent, using the provided SSEEventPresenceChanged
+func (t *SSEEvent) MergeSSEEventPresenceChanged(v SSEEventPresenceChanged) error {
+	v.Type = "presence.changed"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventPresenceInitial returns the union data inside the SSEEvent as a SSEEventPresenceInitial
+func (t SSEEvent) AsSSEEventPresenceInitial() (SSEEventPresenceInitial, error) {
+	var body SSEEventPresenceInitial
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventPresenceInitial overwrites any union data inside the SSEEvent as the provided SSEEventPresenceInitial
+func (t *SSEEvent) FromSSEEventPresenceInitial(v SSEEventPresenceInitial) error {
+	v.Type = "presence.initial"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventPresenceInitial performs a merge with any union data inside the SSEEvent, using the provided SSEEventPresenceInitial
+func (t *SSEEvent) MergeSSEEventPresenceInitial(v SSEEventPresenceInitial) error {
+	v.Type = "presence.initial"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventNotification returns the union data inside the SSEEvent as a SSEEventNotification
+func (t SSEEvent) AsSSEEventNotification() (SSEEventNotification, error) {
+	var body SSEEventNotification
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventNotification overwrites any union data inside the SSEEvent as the provided SSEEventNotification
+func (t *SSEEvent) FromSSEEventNotification(v SSEEventNotification) error {
+	v.Type = "notification"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventNotification performs a merge with any union data inside the SSEEvent, using the provided SSEEventNotification
+func (t *SSEEvent) MergeSSEEventNotification(v SSEEventNotification) error {
+	v.Type = "notification"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventEmojiCreated returns the union data inside the SSEEvent as a SSEEventEmojiCreated
+func (t SSEEvent) AsSSEEventEmojiCreated() (SSEEventEmojiCreated, error) {
+	var body SSEEventEmojiCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventEmojiCreated overwrites any union data inside the SSEEvent as the provided SSEEventEmojiCreated
+func (t *SSEEvent) FromSSEEventEmojiCreated(v SSEEventEmojiCreated) error {
+	v.Type = "emoji.created"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventEmojiCreated performs a merge with any union data inside the SSEEvent, using the provided SSEEventEmojiCreated
+func (t *SSEEvent) MergeSSEEventEmojiCreated(v SSEEventEmojiCreated) error {
+	v.Type = "emoji.created"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventEmojiDeleted returns the union data inside the SSEEvent as a SSEEventEmojiDeleted
+func (t SSEEvent) AsSSEEventEmojiDeleted() (SSEEventEmojiDeleted, error) {
+	var body SSEEventEmojiDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventEmojiDeleted overwrites any union data inside the SSEEvent as the provided SSEEventEmojiDeleted
+func (t *SSEEvent) FromSSEEventEmojiDeleted(v SSEEventEmojiDeleted) error {
+	v.Type = "emoji.deleted"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventEmojiDeleted performs a merge with any union data inside the SSEEvent, using the provided SSEEventEmojiDeleted
+func (t *SSEEvent) MergeSSEEventEmojiDeleted(v SSEEventEmojiDeleted) error {
+	v.Type = "emoji.deleted"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventScheduledMessageCreated returns the union data inside the SSEEvent as a SSEEventScheduledMessageCreated
+func (t SSEEvent) AsSSEEventScheduledMessageCreated() (SSEEventScheduledMessageCreated, error) {
+	var body SSEEventScheduledMessageCreated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventScheduledMessageCreated overwrites any union data inside the SSEEvent as the provided SSEEventScheduledMessageCreated
+func (t *SSEEvent) FromSSEEventScheduledMessageCreated(v SSEEventScheduledMessageCreated) error {
+	v.Type = "scheduled_message.created"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventScheduledMessageCreated performs a merge with any union data inside the SSEEvent, using the provided SSEEventScheduledMessageCreated
+func (t *SSEEvent) MergeSSEEventScheduledMessageCreated(v SSEEventScheduledMessageCreated) error {
+	v.Type = "scheduled_message.created"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventScheduledMessageUpdated returns the union data inside the SSEEvent as a SSEEventScheduledMessageUpdated
+func (t SSEEvent) AsSSEEventScheduledMessageUpdated() (SSEEventScheduledMessageUpdated, error) {
+	var body SSEEventScheduledMessageUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventScheduledMessageUpdated overwrites any union data inside the SSEEvent as the provided SSEEventScheduledMessageUpdated
+func (t *SSEEvent) FromSSEEventScheduledMessageUpdated(v SSEEventScheduledMessageUpdated) error {
+	v.Type = "scheduled_message.updated"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventScheduledMessageUpdated performs a merge with any union data inside the SSEEvent, using the provided SSEEventScheduledMessageUpdated
+func (t *SSEEvent) MergeSSEEventScheduledMessageUpdated(v SSEEventScheduledMessageUpdated) error {
+	v.Type = "scheduled_message.updated"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventScheduledMessageDeleted returns the union data inside the SSEEvent as a SSEEventScheduledMessageDeleted
+func (t SSEEvent) AsSSEEventScheduledMessageDeleted() (SSEEventScheduledMessageDeleted, error) {
+	var body SSEEventScheduledMessageDeleted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventScheduledMessageDeleted overwrites any union data inside the SSEEvent as the provided SSEEventScheduledMessageDeleted
+func (t *SSEEvent) FromSSEEventScheduledMessageDeleted(v SSEEventScheduledMessageDeleted) error {
+	v.Type = "scheduled_message.deleted"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventScheduledMessageDeleted performs a merge with any union data inside the SSEEvent, using the provided SSEEventScheduledMessageDeleted
+func (t *SSEEvent) MergeSSEEventScheduledMessageDeleted(v SSEEventScheduledMessageDeleted) error {
+	v.Type = "scheduled_message.deleted"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventScheduledMessageSent returns the union data inside the SSEEvent as a SSEEventScheduledMessageSent
+func (t SSEEvent) AsSSEEventScheduledMessageSent() (SSEEventScheduledMessageSent, error) {
+	var body SSEEventScheduledMessageSent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventScheduledMessageSent overwrites any union data inside the SSEEvent as the provided SSEEventScheduledMessageSent
+func (t *SSEEvent) FromSSEEventScheduledMessageSent(v SSEEventScheduledMessageSent) error {
+	v.Type = "scheduled_message.sent"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventScheduledMessageSent performs a merge with any union data inside the SSEEvent, using the provided SSEEventScheduledMessageSent
+func (t *SSEEvent) MergeSSEEventScheduledMessageSent(v SSEEventScheduledMessageSent) error {
+	v.Type = "scheduled_message.sent"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventMessagePinned returns the union data inside the SSEEvent as a SSEEventMessagePinned
+func (t SSEEvent) AsSSEEventMessagePinned() (SSEEventMessagePinned, error) {
+	var body SSEEventMessagePinned
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventMessagePinned overwrites any union data inside the SSEEvent as the provided SSEEventMessagePinned
+func (t *SSEEvent) FromSSEEventMessagePinned(v SSEEventMessagePinned) error {
+	v.Type = "message.pinned"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventMessagePinned performs a merge with any union data inside the SSEEvent, using the provided SSEEventMessagePinned
+func (t *SSEEvent) MergeSSEEventMessagePinned(v SSEEventMessagePinned) error {
+	v.Type = "message.pinned"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventMessageUnpinned returns the union data inside the SSEEvent as a SSEEventMessageUnpinned
+func (t SSEEvent) AsSSEEventMessageUnpinned() (SSEEventMessageUnpinned, error) {
+	var body SSEEventMessageUnpinned
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventMessageUnpinned overwrites any union data inside the SSEEvent as the provided SSEEventMessageUnpinned
+func (t *SSEEvent) FromSSEEventMessageUnpinned(v SSEEventMessageUnpinned) error {
+	v.Type = "message.unpinned"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventMessageUnpinned performs a merge with any union data inside the SSEEvent, using the provided SSEEventMessageUnpinned
+func (t *SSEEvent) MergeSSEEventMessageUnpinned(v SSEEventMessageUnpinned) error {
+	v.Type = "message.unpinned"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventMemberBanned returns the union data inside the SSEEvent as a SSEEventMemberBanned
+func (t SSEEvent) AsSSEEventMemberBanned() (SSEEventMemberBanned, error) {
+	var body SSEEventMemberBanned
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventMemberBanned overwrites any union data inside the SSEEvent as the provided SSEEventMemberBanned
+func (t *SSEEvent) FromSSEEventMemberBanned(v SSEEventMemberBanned) error {
+	v.Type = "member.banned"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventMemberBanned performs a merge with any union data inside the SSEEvent, using the provided SSEEventMemberBanned
+func (t *SSEEvent) MergeSSEEventMemberBanned(v SSEEventMemberBanned) error {
+	v.Type = "member.banned"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventMemberUnbanned returns the union data inside the SSEEvent as a SSEEventMemberUnbanned
+func (t SSEEvent) AsSSEEventMemberUnbanned() (SSEEventMemberUnbanned, error) {
+	var body SSEEventMemberUnbanned
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventMemberUnbanned overwrites any union data inside the SSEEvent as the provided SSEEventMemberUnbanned
+func (t *SSEEvent) FromSSEEventMemberUnbanned(v SSEEventMemberUnbanned) error {
+	v.Type = "member.unbanned"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventMemberUnbanned performs a merge with any union data inside the SSEEvent, using the provided SSEEventMemberUnbanned
+func (t *SSEEvent) MergeSSEEventMemberUnbanned(v SSEEventMemberUnbanned) error {
+	v.Type = "member.unbanned"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventMemberLeft returns the union data inside the SSEEvent as a SSEEventMemberLeft
+func (t SSEEvent) AsSSEEventMemberLeft() (SSEEventMemberLeft, error) {
+	var body SSEEventMemberLeft
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventMemberLeft overwrites any union data inside the SSEEvent as the provided SSEEventMemberLeft
+func (t *SSEEvent) FromSSEEventMemberLeft(v SSEEventMemberLeft) error {
+	v.Type = "member.left"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventMemberLeft performs a merge with any union data inside the SSEEvent, using the provided SSEEventMemberLeft
+func (t *SSEEvent) MergeSSEEventMemberLeft(v SSEEventMemberLeft) error {
+	v.Type = "member.left"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventMemberRoleChanged returns the union data inside the SSEEvent as a SSEEventMemberRoleChanged
+func (t SSEEvent) AsSSEEventMemberRoleChanged() (SSEEventMemberRoleChanged, error) {
+	var body SSEEventMemberRoleChanged
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventMemberRoleChanged overwrites any union data inside the SSEEvent as the provided SSEEventMemberRoleChanged
+func (t *SSEEvent) FromSSEEventMemberRoleChanged(v SSEEventMemberRoleChanged) error {
+	v.Type = "member.role_changed"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventMemberRoleChanged performs a merge with any union data inside the SSEEvent, using the provided SSEEventMemberRoleChanged
+func (t *SSEEvent) MergeSSEEventMemberRoleChanged(v SSEEventMemberRoleChanged) error {
+	v.Type = "member.role_changed"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventWorkspaceUpdated returns the union data inside the SSEEvent as a SSEEventWorkspaceUpdated
+func (t SSEEvent) AsSSEEventWorkspaceUpdated() (SSEEventWorkspaceUpdated, error) {
+	var body SSEEventWorkspaceUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventWorkspaceUpdated overwrites any union data inside the SSEEvent as the provided SSEEventWorkspaceUpdated
+func (t *SSEEvent) FromSSEEventWorkspaceUpdated(v SSEEventWorkspaceUpdated) error {
+	v.Type = "workspace.updated"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventWorkspaceUpdated performs a merge with any union data inside the SSEEvent, using the provided SSEEventWorkspaceUpdated
+func (t *SSEEvent) MergeSSEEventWorkspaceUpdated(v SSEEventWorkspaceUpdated) error {
+	v.Type = "workspace.updated"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventScheduledMessageFailed returns the union data inside the SSEEvent as a SSEEventScheduledMessageFailed
+func (t SSEEvent) AsSSEEventScheduledMessageFailed() (SSEEventScheduledMessageFailed, error) {
+	var body SSEEventScheduledMessageFailed
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventScheduledMessageFailed overwrites any union data inside the SSEEvent as the provided SSEEventScheduledMessageFailed
+func (t *SSEEvent) FromSSEEventScheduledMessageFailed(v SSEEventScheduledMessageFailed) error {
+	v.Type = "scheduled_message.failed"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventScheduledMessageFailed performs a merge with any union data inside the SSEEvent, using the provided SSEEventScheduledMessageFailed
+func (t *SSEEvent) MergeSSEEventScheduledMessageFailed(v SSEEventScheduledMessageFailed) error {
+	v.Type = "scheduled_message.failed"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventChannelsInvalidate returns the union data inside the SSEEvent as a SSEEventChannelsInvalidate
+func (t SSEEvent) AsSSEEventChannelsInvalidate() (SSEEventChannelsInvalidate, error) {
+	var body SSEEventChannelsInvalidate
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventChannelsInvalidate overwrites any union data inside the SSEEvent as the provided SSEEventChannelsInvalidate
+func (t *SSEEvent) FromSSEEventChannelsInvalidate(v SSEEventChannelsInvalidate) error {
+	v.Type = "channels.invalidate"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventChannelsInvalidate performs a merge with any union data inside the SSEEvent, using the provided SSEEventChannelsInvalidate
+func (t *SSEEvent) MergeSSEEventChannelsInvalidate(v SSEEventChannelsInvalidate) error {
+	v.Type = "channels.invalidate"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t SSEEvent) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t SSEEvent) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "channel.archived":
+		return t.AsSSEEventChannelArchived()
+	case "channel.created":
+		return t.AsSSEEventChannelCreated()
+	case "channel.member_added":
+		return t.AsSSEEventChannelMemberAdded()
+	case "channel.member_removed":
+		return t.AsSSEEventChannelMemberRemoved()
+	case "channel.read":
+		return t.AsSSEEventChannelRead()
+	case "channel.updated":
+		return t.AsSSEEventChannelUpdated()
+	case "channels.invalidate":
+		return t.AsSSEEventChannelsInvalidate()
+	case "connected":
+		return t.AsSSEEventConnected()
+	case "emoji.created":
+		return t.AsSSEEventEmojiCreated()
+	case "emoji.deleted":
+		return t.AsSSEEventEmojiDeleted()
+	case "heartbeat":
+		return t.AsSSEEventHeartbeat()
+	case "member.banned":
+		return t.AsSSEEventMemberBanned()
+	case "member.left":
+		return t.AsSSEEventMemberLeft()
+	case "member.role_changed":
+		return t.AsSSEEventMemberRoleChanged()
+	case "member.unbanned":
+		return t.AsSSEEventMemberUnbanned()
+	case "message.deleted":
+		return t.AsSSEEventMessageDeleted()
+	case "message.new":
+		return t.AsSSEEventMessageNew()
+	case "message.pinned":
+		return t.AsSSEEventMessagePinned()
+	case "message.unpinned":
+		return t.AsSSEEventMessageUnpinned()
+	case "message.updated":
+		return t.AsSSEEventMessageUpdated()
+	case "notification":
+		return t.AsSSEEventNotification()
+	case "presence.changed":
+		return t.AsSSEEventPresenceChanged()
+	case "presence.initial":
+		return t.AsSSEEventPresenceInitial()
+	case "reaction.added":
+		return t.AsSSEEventReactionAdded()
+	case "reaction.removed":
+		return t.AsSSEEventReactionRemoved()
+	case "scheduled_message.created":
+		return t.AsSSEEventScheduledMessageCreated()
+	case "scheduled_message.deleted":
+		return t.AsSSEEventScheduledMessageDeleted()
+	case "scheduled_message.failed":
+		return t.AsSSEEventScheduledMessageFailed()
+	case "scheduled_message.sent":
+		return t.AsSSEEventScheduledMessageSent()
+	case "scheduled_message.updated":
+		return t.AsSSEEventScheduledMessageUpdated()
+	case "typing.start":
+		return t.AsSSEEventTypingStart()
+	case "typing.stop":
+		return t.AsSSEEventTypingStop()
+	case "workspace.updated":
+		return t.AsSSEEventWorkspaceUpdated()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t SSEEvent) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *SSEEvent) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {

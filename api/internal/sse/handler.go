@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/enzyme/api/internal/auth"
+	"github.com/enzyme/api/internal/openapi"
 	"github.com/enzyme/api/internal/workspace"
 	"github.com/go-chi/chi/v5"
 	"github.com/oklog/ulid/v2"
@@ -73,12 +74,12 @@ func (h *Handler) Events(w http.ResponseWriter, r *http.Request) {
 	defer h.hub.Unregister(client)
 
 	// Send connected event
-	h.writeEvent(w, flusher, NewConnectedEvent(ConnectedData{ClientID: client.ID}))
+	h.writeEvent(w, flusher, NewConnectedEvent(openapi.ConnectedData{ClientId: client.ID}))
 
 	// Send initial presence - list of currently online users
 	onlineUserIDs := h.hub.GetConnectedUserIDs(workspaceID)
-	h.writeEvent(w, flusher, NewPresenceInitialEvent(PresenceInitialData{
-		OnlineUserIDs: onlineUserIDs,
+	h.writeEvent(w, flusher, NewPresenceInitialEvent(openapi.PresenceInitialData{
+		OnlineUserIds: onlineUserIDs,
 	}))
 
 	// Handle reconnection - replay missed events
@@ -105,7 +106,7 @@ func (h *Handler) Events(w http.ResponseWriter, r *http.Request) {
 		case event := <-client.Send:
 			h.writeEvent(w, flusher, event)
 		case <-heartbeat.C:
-			h.writeEvent(w, flusher, NewHeartbeatEvent(HeartbeatData{Timestamp: time.Now().Unix()}))
+			h.writeEvent(w, flusher, NewHeartbeatEvent(openapi.HeartbeatData{Timestamp: time.Now().Unix()}))
 		}
 	}
 }
@@ -140,9 +141,9 @@ func (h *Handler) StartTyping(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.hub.BroadcastToChannel(workspaceID, input.ChannelID, NewTypingStartEvent(TypingEventData{
-		UserID:    userID,
-		ChannelID: input.ChannelID,
+	h.hub.BroadcastToChannel(workspaceID, input.ChannelID, NewTypingStartEvent(openapi.TypingEventData{
+		UserId:    userID,
+		ChannelId: input.ChannelID,
 	}))
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
@@ -160,9 +161,9 @@ func (h *Handler) StopTyping(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.hub.BroadcastToChannel(workspaceID, input.ChannelID, NewTypingStopEvent(TypingEventData{
-		UserID:    userID,
-		ChannelID: input.ChannelID,
+	h.hub.BroadcastToChannel(workspaceID, input.ChannelID, NewTypingStopEvent(openapi.TypingEventData{
+		UserId:    userID,
+		ChannelId: input.ChannelID,
 	}))
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{

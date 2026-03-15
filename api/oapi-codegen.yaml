@@ -6,6 +6,6 @@ generate:
   strict-server: true
   embedded-spec: false
 output-options:
-  skip-prune: false
+  skip-prune: true
   exclude-tags:
     - sse

@@ -3433,6 +3433,7 @@ components:
         - member.left
         - member.role_changed
         - workspace.updated
+        - channels.invalidate
         - scheduled_message.created
         - scheduled_message.updated
         - scheduled_message.deleted
@@ -3473,6 +3474,7 @@ components:
         - $ref: '#/components/schemas/SSEEventMemberRoleChanged'
         - $ref: '#/components/schemas/SSEEventWorkspaceUpdated'
         - $ref: '#/components/schemas/SSEEventScheduledMessageFailed'
+        - $ref: '#/components/schemas/SSEEventChannelsInvalidate'
       discriminator:
         propertyName: type
         mapping:
@@ -3508,6 +3510,7 @@ components:
           member.role_changed: '#/components/schemas/SSEEventMemberRoleChanged'
           workspace.updated: '#/components/schemas/SSEEventWorkspaceUpdated'
           scheduled_message.failed: '#/components/schemas/SSEEventScheduledMessageFailed'
+          channels.invalidate: '#/components/schemas/SSEEventChannelsInvalidate'
 
     SSEEventConnected:
       type: object
@@ -3519,11 +3522,7 @@ components:
           type: string
           enum: [connected]
         data:
-          type: object
-          required: [client_id]
-          properties:
-            client_id:
-              type: string
+          $ref: '#/components/schemas/ConnectedData'
 
     SSEEventHeartbeat:
       type: object
@@ -3535,12 +3534,7 @@ components:
           type: string
           enum: [heartbeat]
         data:
-          type: object
-          required: [timestamp]
-          properties:
-            timestamp:
-              type: integer
-              format: int64
+          $ref: '#/components/schemas/HeartbeatData'
 
     SSEEventMessageNew:
       type: object
@@ -3576,13 +3570,7 @@ components:
           type: string
           enum: [message.deleted]
         data:
-          type: object
-          required: [id]
-          properties:
-            id:
-              type: string
-            thread_parent_id:
-              type: string
+          $ref: '#/components/schemas/MessageDeletedData'
 
     SSEEventReactionAdded:
       type: object
@@ -3606,15 +3594,7 @@ components:
           type: string
           enum: [reaction.removed]
         data:
-          type: object
-          required: [message_id, user_id, emoji]
-          properties:
-            message_id:
-              type: string
-            user_id:
-              type: string
-            emoji:
-              type: string
+          $ref: '#/components/schemas/ReactionRemovedData'
 
     SSEEventChannelCreated:
       type: object
@@ -3662,13 +3642,7 @@ components:
           type: string
           enum: [channel.member_added]
         data:
-          type: object
-          required: [channel_id, user_id]
-          properties:
-            channel_id:
-              type: string
-            user_id:
-              type: string
+          $ref: '#/components/schemas/ChannelMemberData'
 
     SSEEventChannelMemberRemoved:
       type: object
@@ -3680,13 +3654,7 @@ components:
           type: string
           enum: [channel.member_removed]
         data:
-          type: object
-          required: [channel_id, user_id]
-          properties:
-            channel_id:
-              type: string
-            user_id:
-              type: string
+          $ref: '#/components/schemas/ChannelMemberData'
 
     SSEEventChannelRead:
       type: object
@@ -3792,13 +3760,7 @@ components:
           type: string
           enum: [emoji.deleted]
         data:
-          type: object
-          required: [id, name]
-          properties:
-            id:
-              type: string
-            name:
-              type: string
+          $ref: '#/components/schemas/EmojiDeletedData'
 
     SSEEventScheduledMessageCreated:
       type: object
@@ -3834,11 +3796,7 @@ components:
           type: string
           enum: [scheduled_message.deleted]
         data:
-          type: object
-          required: [id]
-          properties:
-            id:
-              type: string
+          $ref: '#/components/schemas/ScheduledMessageDeletedData'
 
     SSEEventScheduledMessageSent:
       type: object
@@ -3850,15 +3808,7 @@ components:
           type: string
           enum: [scheduled_message.sent]
         data:
-          type: object
-          required: [id, channel_id, message_id]
-          properties:
-            id:
-              type: string
-            channel_id:
-              type: string
-            message_id:
-              type: string
+          $ref: '#/components/schemas/ScheduledMessageSentData'
 
     SSEEventMessagePinned:
       type: object
@@ -3894,13 +3844,7 @@ components:
           type: string
           enum: [member.banned]
         data:
-          type: object
-          required: [user_id, workspace_id]
-          properties:
-            user_id:
-              type: string
-            workspace_id:
-              type: string
+          $ref: '#/components/schemas/WorkspaceMemberData'
 
     SSEEventMemberUnbanned:
       type: object
@@ -3912,13 +3856,7 @@ components:
           type: string
           enum: [member.unbanned]
         data:
-          type: object
-          required: [user_id, workspace_id]
-          properties:
-            user_id:
-              type: string
-            workspace_id:
-              type: string
+          $ref: '#/components/schemas/WorkspaceMemberData'
 
     SSEEventMemberLeft:
       type: object
@@ -3930,13 +3868,7 @@ components:
           type: string
           enum: [member.left]
         data:
-          type: object
-          required: [user_id, workspace_id]
-          properties:
-            user_id:
-              type: string
-            workspace_id:
-              type: string
+          $ref: '#/components/schemas/WorkspaceMemberData'
 
     SSEEventMemberRoleChanged:
       type: object
@@ -3948,15 +3880,7 @@ components:
           type: string
           enum: [member.role_changed]
         data:
-          type: object
-          required: [user_id, old_role, new_role]
-          properties:
-            user_id:
-              type: string
-            old_role:
-              type: string
-            new_role:
-              type: string
+          $ref: '#/components/schemas/MemberRoleChangedData'
 
     SSEEventWorkspaceUpdated:
       type: object
@@ -3980,15 +3904,119 @@ components:
           type: string
           enum: [scheduled_message.failed]
         data:
-          type: object
-          required: [id, channel_id, error]
-          properties:
-            id:
-              type: string
-            channel_id:
-              type: string
-            error:
-              type: string
+          $ref: '#/components/schemas/ScheduledMessageFailedData'
+
+    SSEEventChannelsInvalidate:
+      type: object
+      required: [type]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [channels.invalidate]
+
+    ConnectedData:
+      type: object
+      required: [client_id]
+      properties:
+        client_id:
+          type: string
+
+    HeartbeatData:
+      type: object
+      required: [timestamp]
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+
+    MessageDeletedData:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        thread_parent_id:
+          type: string
+
+    ReactionRemovedData:
+      type: object
+      required: [message_id, user_id, emoji]
+      properties:
+        message_id:
+          type: string
+        user_id:
+          type: string
+        emoji:
+          type: string
+
+    ChannelMemberData:
+      type: object
+      required: [channel_id, user_id]
+      properties:
+        channel_id:
+          type: string
+        user_id:
+          type: string
+
+    WorkspaceMemberData:
+      type: object
+      required: [user_id, workspace_id]
+      properties:
+        user_id:
+          type: string
+        workspace_id:
+          type: string
+
+    MemberRoleChangedData:
+      type: object
+      required: [user_id, old_role, new_role]
+      properties:
+        user_id:
+          type: string
+        old_role:
+          type: string
+        new_role:
+          type: string
+
+    EmojiDeletedData:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+    ScheduledMessageDeletedData:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+
+    ScheduledMessageSentData:
+      type: object
+      required: [id, channel_id, message_id]
+      properties:
+        id:
+          type: string
+        channel_id:
+          type: string
+        message_id:
+          type: string
+
+    ScheduledMessageFailedData:
+      type: object
+      required: [id, channel_id, error]
+      properties:
+        id:
+          type: string
+        channel_id:
+          type: string
+        error:
+          type: string
 
     NotificationData:
       type: object
