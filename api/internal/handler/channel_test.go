@@ -30,9 +30,6 @@ func TestCreateChannel_Success(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected 200 response, got %T", resp)
 	}
-	if r.Channel == nil {
-		t.Fatal("expected channel in response")
-	}
 	if r.Channel.Name != "new-channel" {
 		t.Errorf("name = %q, want %q", r.Channel.Name, "new-channel")
 	}

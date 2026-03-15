@@ -145,7 +145,7 @@ func (h *Handler) ScheduleMessage(ctx context.Context, request openapi.ScheduleM
 	}
 
 	return openapi.ScheduleMessage200JSONResponse{
-		ScheduledMessage: &apiMsg,
+		ScheduledMessage: apiMsg,
 	}, nil
 }
 
@@ -166,10 +166,9 @@ func (h *Handler) ListScheduledMessages(ctx context.Context, request openapi.Lis
 		apiMessages[i] = scheduledMessageWithChannelToAPI(&m)
 	}
 
-	count := len(apiMessages)
 	return openapi.ListScheduledMessages200JSONResponse{
-		ScheduledMessages: &apiMessages,
-		Count:             &count,
+		ScheduledMessages: apiMessages,
+		Count:             len(apiMessages),
 	}, nil
 }
 
@@ -194,7 +193,7 @@ func (h *Handler) GetScheduledMessage(ctx context.Context, request openapi.GetSc
 
 	apiMsg := scheduledMessageToAPI(msg)
 	return openapi.GetScheduledMessage200JSONResponse{
-		ScheduledMessage: &apiMsg,
+		ScheduledMessage: apiMsg,
 	}, nil
 }
 
@@ -261,7 +260,7 @@ func (h *Handler) UpdateScheduledMessage(ctx context.Context, request openapi.Up
 	}
 
 	return openapi.UpdateScheduledMessage200JSONResponse{
-		ScheduledMessage: &apiMsg,
+		ScheduledMessage: apiMsg,
 	}, nil
 }
 
@@ -349,7 +348,7 @@ func (h *Handler) SendScheduledMessageNow(ctx context.Context, request openapi.S
 	}
 
 	return openapi.SendScheduledMessageNow200JSONResponse{
-		Message: apiMsg,
+		Message: *apiMsg,
 	}, nil
 }
 

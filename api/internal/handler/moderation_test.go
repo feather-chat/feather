@@ -190,11 +190,11 @@ func TestListBlocks_Success(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected 200, got %T", resp)
 	}
-	if r.Blocks == nil || len(*r.Blocks) != 1 {
+	if len(r.Blocks) != 1 {
 		t.Fatalf("expected 1 block, got %v", r.Blocks)
 	}
-	if (*r.Blocks)[0].WorkspaceId != ws.ID {
-		t.Errorf("WorkspaceId = %q, want %q", (*r.Blocks)[0].WorkspaceId, ws.ID)
+	if r.Blocks[0].WorkspaceId != ws.ID {
+		t.Errorf("WorkspaceId = %q, want %q", r.Blocks[0].WorkspaceId, ws.ID)
 	}
 }
 
@@ -347,13 +347,12 @@ func TestListMessages_BanHideFiltersMessages(t *testing.T) {
 	testutil.CreateTestMessage(t, db, ch.ID, banned.ID, "Banned user message")
 
 	// Create a ban with hide_messages=true
-	hideMessages := true
 	adminCtx := ctxWithUser(t, h, owner.ID)
 	_, err := h.BanUser(adminCtx, openapi.BanUserRequestObject{
 		Wid: ws.ID,
 		Body: &openapi.BanUserJSONRequestBody{
 			UserId:       banned.ID,
-			HideMessages: &hideMessages,
+			HideMessages: true,
 		},
 	})
 	if err != nil {

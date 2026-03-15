@@ -54,9 +54,7 @@ func (h *Handler) BanUser(ctx context.Context, request openapi.BanUserRequestObj
 		BannedBy:    &userID,
 		Reason:      request.Body.Reason,
 	}
-	if request.Body.HideMessages != nil && *request.Body.HideMessages {
-		ban.HideMessages = true
-	}
+	ban.HideMessages = request.Body.HideMessages
 	if request.Body.DurationHours != nil && *request.Body.DurationHours > 0 {
 		expiresAt := time.Now().UTC().Add(time.Duration(*request.Body.DurationHours) * time.Hour)
 		ban.ExpiresAt = &expiresAt
@@ -113,7 +111,7 @@ func (h *Handler) BanUser(ctx context.Context, request openapi.BanUserRequestObj
 		CreatedAt:    ban.CreatedAt,
 	}
 
-	return openapi.BanUser200JSONResponse{Ban: &apiBan}, nil
+	return openapi.BanUser200JSONResponse{Ban: apiBan}, nil
 }
 
 // UnbanUser removes a ban from a user
@@ -213,8 +211,8 @@ func (h *Handler) ListBans(ctx context.Context, request openapi.ListBansRequestO
 	}
 
 	return openapi.ListBans200JSONResponse{
-		Bans:       &apiBans,
-		HasMore:    &hasMore,
+		Bans:       apiBans,
+		HasMore:    hasMore,
 		NextCursor: &nextCursor,
 	}, nil
 }
@@ -324,7 +322,7 @@ func (h *Handler) ListBlocks(ctx context.Context, request openapi.ListBlocksRequ
 	}
 
 	return openapi.ListBlocks200JSONResponse{
-		Blocks: &apiBlocks,
+		Blocks: apiBlocks,
 	}, nil
 }
 
@@ -385,8 +383,8 @@ func (h *Handler) ListModerationLog(ctx context.Context, request openapi.ListMod
 	}
 
 	return openapi.ListModerationLog200JSONResponse{
-		Entries:    &apiEntries,
-		HasMore:    &hasMore,
+		Entries:    apiEntries,
+		HasMore:    hasMore,
 		NextCursor: &nextCursor,
 	}, nil
 }

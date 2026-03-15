@@ -1,8 +1,9 @@
-import type { SignedUrl } from '@enzyme/api-client';
-import { post } from '@enzyme/api-client';
+import { apiClient, throwIfError } from '@enzyme/api-client';
 
 export const filesApi = {
-  signUrl: (fileId: string) => post<SignedUrl>(`/files/${fileId}/sign-url`),
+  signUrl: (fileId: string) =>
+    throwIfError(apiClient.POST('/files/{id}/sign-url', { params: { path: { id: fileId } } })),
+
   signUrls: (fileIds: string[]) =>
-    post<{ urls: SignedUrl[] }>('/files/sign-urls', { file_ids: fileIds }),
+    throwIfError(apiClient.POST('/files/sign-urls', { body: { file_ids: fileIds } })),
 };

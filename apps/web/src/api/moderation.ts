@@ -1,55 +1,79 @@
-import {
-  post,
-  get,
-  type MessageWithUser,
-  type BanWithUser,
-  type BlockWithUser,
-  type ModerationLogEntryWithActor,
-} from '@enzyme/api-client';
+import { apiClient, throwIfError } from '@enzyme/api-client';
 
 export const moderationApi = {
   // Pinning
   pinMessage: (messageId: string) =>
-    post<{ message: MessageWithUser }>(`/messages/${messageId}/pin`),
+    throwIfError(apiClient.POST('/messages/{id}/pin', { params: { path: { id: messageId } } })),
 
   unpinMessage: (messageId: string) =>
-    post<{ message: MessageWithUser }>(`/messages/${messageId}/unpin`),
+    throwIfError(apiClient.POST('/messages/{id}/unpin', { params: { path: { id: messageId } } })),
 
   listPinnedMessages: (channelId: string, input?: { cursor?: string; limit?: number }) =>
-    post<{ messages: MessageWithUser[]; has_more: boolean; next_cursor?: string }>(
-      `/channels/${channelId}/pins/list`,
-      input || {},
+    throwIfError(
+      apiClient.POST('/channels/{id}/pins/list', {
+        params: { path: { id: channelId } },
+        body: input || {},
+      }),
     ),
 
   // Banning
   banUser: (
     workspaceId: string,
-    input: { user_id: string; reason?: string; duration_hours?: number; hide_messages?: boolean },
-  ) => post<{ ban: BanWithUser }>(`/workspaces/${workspaceId}/bans/create`, input),
+    input: { user_id: string; reason?: string; duration_hours?: number; hide_messages: boolean },
+  ) =>
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/bans/create', {
+        params: { path: { wid: workspaceId } },
+        body: input,
+      }),
+    ),
 
   unbanUser: (workspaceId: string, userId: string) =>
-    post<{ success: boolean }>(`/workspaces/${workspaceId}/bans/remove`, { user_id: userId }),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/bans/remove', {
+        params: { path: { wid: workspaceId } },
+        body: { user_id: userId },
+      }),
+    ),
 
   listBans: (workspaceId: string, input?: { cursor?: string; limit?: number }) =>
-    post<{ bans: BanWithUser[]; has_more: boolean; next_cursor?: string }>(
-      `/workspaces/${workspaceId}/bans/list`,
-      input || {},
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/bans/list', {
+        params: { path: { wid: workspaceId } },
+        body: input || {},
+      }),
     ),
 
   // Blocking (workspace-scoped)
   blockUser: (workspaceId: string, userId: string) =>
-    post<{ success: boolean }>(`/workspaces/${workspaceId}/blocks/create`, { user_id: userId }),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/blocks/create', {
+        params: { path: { wid: workspaceId } },
+        body: { user_id: userId },
+      }),
+    ),
 
   unblockUser: (workspaceId: string, userId: string) =>
-    post<{ success: boolean }>(`/workspaces/${workspaceId}/blocks/remove`, { user_id: userId }),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/blocks/remove', {
+        params: { path: { wid: workspaceId } },
+        body: { user_id: userId },
+      }),
+    ),
 
   listBlocks: (workspaceId: string) =>
-    get<{ blocks: BlockWithUser[] }>(`/workspaces/${workspaceId}/blocks/list`),
+    throwIfError(
+      apiClient.GET('/workspaces/{wid}/blocks/list', {
+        params: { path: { wid: workspaceId } },
+      }),
+    ),
 
   // Moderation log
   listModerationLog: (workspaceId: string, input?: { cursor?: string; limit?: number }) =>
-    post<{ entries: ModerationLogEntryWithActor[]; has_more: boolean; next_cursor?: string }>(
-      `/workspaces/${workspaceId}/moderation-log/list`,
-      input || {},
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/moderation-log/list', {
+        params: { path: { wid: workspaceId } },
+        body: input || {},
+      }),
     ),
 };

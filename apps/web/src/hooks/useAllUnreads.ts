@@ -1,5 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { post, type UnreadMessagesResult } from '@enzyme/api-client';
+import { apiClient, throwIfError } from '@enzyme/api-client';
+import type { UnreadMessagesResult } from '@enzyme/api-client';
 
 interface UseAllUnreadsOptions {
   workspaceId: string;
@@ -10,10 +11,15 @@ export function useAllUnreads({ workspaceId, enabled = true }: UseAllUnreadsOpti
   return useInfiniteQuery<UnreadMessagesResult>({
     queryKey: ['unreads', workspaceId],
     queryFn: async ({ pageParam }) => {
-      return post<UnreadMessagesResult>(`/workspaces/${workspaceId}/unreads`, {
-        limit: 50,
-        cursor: pageParam as string | undefined,
-      });
+      return throwIfError(
+        apiClient.POST('/workspaces/{wid}/unreads', {
+          params: { path: { wid: workspaceId } },
+          body: {
+            limit: 50,
+            cursor: pageParam as string | undefined,
+          },
+        }),
+      );
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next_cursor,

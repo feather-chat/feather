@@ -40,4 +40,18 @@ export default defineConfig([
       'no-restricted-imports': 'off',
     },
   },
+  {
+    files: ['src/api/**/*.ts'],
+    ignores: ['src/api/**/*.test.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'TSAsExpression',
+          message:
+            'Type assertions are not allowed in API wrapper files. Return types should flow from the openapi-fetch generated schema.',
+        },
+      ],
+    },
+  },
 ]);

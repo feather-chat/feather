@@ -193,11 +193,9 @@ func (h *Handler) ForgotPassword(ctx context.Context, request openapi.ForgotPass
 		}()
 	}
 
-	success := true
-	msg := "If the email exists, a reset link will be sent"
 	return openapi.ForgotPassword200JSONResponse{
-		Success: &success,
-		Message: &msg,
+		Success: true,
+		Message: "If the email exists, a reset link will be sent",
 	}, nil
 }
 

@@ -1,82 +1,105 @@
-import {
-  get,
-  post,
-  del,
-  uploadFile,
-  type Workspace,
-  type WorkspaceMemberWithUser,
-  type WorkspaceNotificationSummary,
-  type Invite,
-  type WorkspaceRole,
-  type WorkspaceSettings,
+import { apiClient, throwIfError, multipartRequest } from '@enzyme/api-client';
+import type {
+  CreateWorkspaceInput,
+  UpdateWorkspaceInput,
+  CreateInviteInput,
+  WorkspaceRole,
 } from '@enzyme/api-client';
 
-export interface CreateWorkspaceInput {
-  name: string;
-}
-
-export interface UpdateWorkspaceInput {
-  name?: string;
-  settings?: Partial<WorkspaceSettings>;
-}
-
-export interface CreateInviteInput {
-  invited_email?: string;
-  role: WorkspaceRole;
-  max_uses?: number;
-  expires_in_hours?: number;
-}
+export type { CreateWorkspaceInput, UpdateWorkspaceInput, CreateInviteInput };
 
 export const workspacesApi = {
   create: (input: CreateWorkspaceInput) =>
-    post<{ workspace: Workspace }>('/workspaces/create', input),
+    throwIfError(apiClient.POST('/workspaces/create', { body: input })),
 
-  get: (workspaceId: string) => get<{ workspace: Workspace }>(`/workspaces/${workspaceId}`),
+  get: (workspaceId: string) =>
+    throwIfError(
+      apiClient.GET('/workspaces/{wid}', { params: { path: { wid: workspaceId } } }),
+    ),
 
   update: (workspaceId: string, input: UpdateWorkspaceInput) =>
-    post<{ workspace: Workspace }>(`/workspaces/${workspaceId}/update`, input),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/update', {
+        params: { path: { wid: workspaceId } },
+        body: input,
+      }),
+    ),
 
   listMembers: (workspaceId: string) =>
-    post<{ members: WorkspaceMemberWithUser[] }>(`/workspaces/${workspaceId}/members/list`),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/members/list', {
+        params: { path: { wid: workspaceId } },
+      }),
+    ),
 
   removeMember: (workspaceId: string, userId: string) =>
-    post<{ success: boolean }>(`/workspaces/${workspaceId}/members/remove`, { user_id: userId }),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/members/remove', {
+        params: { path: { wid: workspaceId } },
+        body: { user_id: userId },
+      }),
+    ),
 
   updateMemberRole: (workspaceId: string, userId: string, role: WorkspaceRole) =>
-    post<{ success: boolean }>(`/workspaces/${workspaceId}/members/update-role`, {
-      user_id: userId,
-      role,
-    }),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/members/update-role', {
+        params: { path: { wid: workspaceId } },
+        body: { user_id: userId, role },
+      }),
+    ),
 
   createInvite: (workspaceId: string, input: CreateInviteInput) =>
-    post<{ invite: Invite }>(`/workspaces/${workspaceId}/invites/create`, input),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/invites/create', {
+        params: { path: { wid: workspaceId } },
+        body: input,
+      }),
+    ),
 
-  acceptInvite: (code: string) => post<{ workspace: Workspace }>(`/invites/${code}/accept`),
+  acceptInvite: (code: string) =>
+    throwIfError(apiClient.POST('/invites/{code}/accept', { params: { path: { code } } })),
 
-  // Typing endpoints
   startTyping: (workspaceId: string, channelId: string) =>
-    post<{ success: boolean }>(`/workspaces/${workspaceId}/typing/start`, {
-      channel_id: channelId,
-    }),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/typing/start', {
+        params: { path: { wid: workspaceId } },
+        body: { channel_id: channelId },
+      }),
+    ),
 
   stopTyping: (workspaceId: string, channelId: string) =>
-    post<{ success: boolean }>(`/workspaces/${workspaceId}/typing/stop`, { channel_id: channelId }),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/typing/stop', {
+        params: { path: { wid: workspaceId } },
+        body: { channel_id: channelId },
+      }),
+    ),
 
-  // Icon endpoints
-  uploadIcon: (workspaceId: string, file: File) =>
-    uploadFile(`/workspaces/${workspaceId}/icon`, file) as Promise<{ icon_url: string }>,
+  uploadIcon: (workspaceId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return throwIfError(
+      apiClient.POST('/workspaces/{wid}/icon', {
+        params: { path: { wid: workspaceId } },
+        ...multipartRequest(formData),
+      }),
+    );
+  },
 
-  deleteIcon: (workspaceId: string) => del<{ success: boolean }>(`/workspaces/${workspaceId}/icon`),
+  deleteIcon: (workspaceId: string) =>
+    throwIfError(
+      apiClient.DELETE('/workspaces/{wid}/icon', { params: { path: { wid: workspaceId } } }),
+    ),
 
-  // Reorder workspaces
   reorder: (workspaceIds: string[]) =>
-    post<{ success: boolean }>('/workspaces/reorder', { workspace_ids: workspaceIds }),
+    throwIfError(
+      apiClient.POST('/workspaces/reorder', { body: { workspace_ids: workspaceIds } }),
+    ),
 
-  // Leave workspace
   leave: (workspaceId: string) =>
-    post<{ success: boolean }>(`/workspaces/${workspaceId}/leave`),
+    throwIfError(
+      apiClient.POST('/workspaces/{wid}/leave', { params: { path: { wid: workspaceId } } }),
+    ),
 
-  // Notification summaries across all workspaces
-  getNotifications: () =>
-    get<{ workspaces: WorkspaceNotificationSummary[] }>('/workspaces/notifications'),
+  getNotifications: () => throwIfError(apiClient.GET('/workspaces/notifications')),
 };

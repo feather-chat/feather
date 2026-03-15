@@ -73,7 +73,7 @@ func (h *Handler) CreateChannel(ctx context.Context, request openapi.CreateChann
 
 	apiCh := channelToAPI(ch)
 	return openapi.CreateChannel200JSONResponse{
-		Channel: &apiCh,
+		Channel: apiCh,
 	}, nil
 }
 
@@ -101,7 +101,7 @@ func (h *Handler) ListChannels(ctx context.Context, request openapi.ListChannels
 	}
 
 	return openapi.ListChannels200JSONResponse{
-		Channels: &apiChannels,
+		Channels: apiChannels,
 	}, nil
 }
 
@@ -165,7 +165,7 @@ func (h *Handler) CreateDM(ctx context.Context, request openapi.CreateDMRequestO
 
 	apiCh := channelToAPI(ch)
 	return openapi.CreateDM200JSONResponse{
-		Channel: &apiCh,
+		Channel: apiCh,
 	}, nil
 }
 
@@ -279,7 +279,7 @@ func (h *Handler) UpdateChannel(ctx context.Context, request openapi.UpdateChann
 	}
 
 	return openapi.UpdateChannel200JSONResponse{
-		Channel: &apiCh,
+		Channel: apiCh,
 	}, nil
 }
 
@@ -493,7 +493,7 @@ func (h *Handler) ListChannelMembers(ctx context.Context, request openapi.ListCh
 	}
 
 	return openapi.ListChannelMembers200JSONResponse{
-		Members: &apiMembers,
+		Members: apiMembers,
 	}, nil
 }
 
@@ -757,7 +757,7 @@ func (h *Handler) ConvertGroupDMToChannel(ctx context.Context, request openapi.C
 
 	apiCh := channelToAPI(converted)
 	return openapi.ConvertGroupDMToChannel200JSONResponse{
-		Channel: &apiCh,
+		Channel: apiCh,
 	}, nil
 }
 
@@ -922,7 +922,7 @@ func (h *Handler) GetChannelNotifications(ctx context.Context, request openapi.G
 
 	apiPrefs := notificationPreferencesToAPI(pref)
 	return openapi.GetChannelNotifications200JSONResponse{
-		Preferences: &apiPrefs,
+		Preferences: apiPrefs,
 	}, nil
 }
 
@@ -963,7 +963,7 @@ func (h *Handler) UpdateChannelNotifications(ctx context.Context, request openap
 
 	apiPrefs := notificationPreferencesToAPI(pref)
 	return openapi.UpdateChannelNotifications200JSONResponse{
-		Preferences: &apiPrefs,
+		Preferences: apiPrefs,
 	}, nil
 }
 
