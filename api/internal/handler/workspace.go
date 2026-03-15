@@ -572,9 +572,7 @@ func (h *Handler) autoCreateDMs(ctx context.Context, workspaceID, joiningUserID 
 
 	// Single broadcast so all connected clients refetch their channel list
 	if created > 0 && h.hub != nil {
-		h.hub.BroadcastToWorkspace(workspaceID, sse.Event{
-			Type: sse.EventChannelCreated,
-		})
+		h.hub.BroadcastToWorkspace(workspaceID, sse.NewChannelCreatedSignal())
 	}
 }
 

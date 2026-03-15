@@ -2,6 +2,9 @@ package sse
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/enzyme/api/internal/openapi"
@@ -58,5 +61,43 @@ func TestTypedConstructors(t *testing.T) {
 				t.Errorf("Data failed to marshal: %v", err)
 			}
 		})
+	}
+}
+
+// TestNoRawEventConstruction scans Go source files outside the sse package for
+// raw sse.Event{} struct literals. All event construction should use typed
+// constructors (e.g., sse.NewMessageNewEvent) to maintain compile-time safety.
+func TestNoRawEventConstruction(t *testing.T) {
+	apiRoot := filepath.Join("..", "..", "..")
+
+	err := filepath.Walk(apiRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() || !strings.HasSuffix(path, ".go") {
+			return nil
+		}
+		// Allow raw construction within the sse package itself
+		absPath, _ := filepath.Abs(path)
+		if strings.Contains(absPath, filepath.Join("internal", "sse")) {
+			return nil
+		}
+		// Skip generated and test files
+		if strings.HasSuffix(path, ".gen.go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		if strings.Contains(string(data), "sse.Event{") {
+			t.Errorf("%s: raw sse.Event{} construction found; use a typed constructor (e.g., sse.NewMessageNewEvent) instead", path)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("failed to walk source tree: %v", err)
 	}
 }

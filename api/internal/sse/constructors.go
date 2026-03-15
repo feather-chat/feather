@@ -169,8 +169,23 @@ func NewReactionRemovedEvent(data ReactionRemovedData) Event {
 	return Event{Type: EventReactionRemoved, Data: data}
 }
 
+func NewChannelCreatedEvent(data openapi.Channel) Event {
+	return Event{Type: EventChannelCreated, Data: data}
+}
+
+// NewChannelCreatedSignal sends a channel.created event without payload data.
+// Used when multiple channels are created in a batch (e.g., auto-DMs on workspace join)
+// and the frontend should refetch its channel list.
+func NewChannelCreatedSignal() Event {
+	return Event{Type: EventChannelCreated}
+}
+
 func NewChannelUpdatedEvent(data openapi.Channel) Event {
 	return Event{Type: EventChannelUpdated, Data: data}
+}
+
+func NewChannelArchivedEvent(data openapi.Channel) Event {
+	return Event{Type: EventChannelArchived, Data: data}
 }
 
 func NewChannelMemberAddedEvent(data ChannelMemberData) Event {
