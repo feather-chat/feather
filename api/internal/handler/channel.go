@@ -812,8 +812,8 @@ func (h *Handler) MarkChannelRead(ctx context.Context, request openapi.MarkChann
 	// Broadcast to user's other clients
 	if h.hub != nil {
 		h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.NewChannelReadEvent(sse.ChannelReadEventData{
-			ChannelId:         string(request.Id),
-			LastReadMessageId: messageID,
+			ChannelID:         string(request.Id),
+			LastReadMessageID: messageID,
 		}))
 	}
 
@@ -858,8 +858,8 @@ func (h *Handler) MarkAllChannelsRead(ctx context.Context, request openapi.MarkA
 		// Broadcast to user's other clients
 		if h.hub != nil {
 			h.hub.BroadcastToUser(string(request.Wid), userID, sse.NewChannelReadEvent(sse.ChannelReadEventData{
-				ChannelId:         channelID,
-				LastReadMessageId: messageID,
+				ChannelID:         channelID,
+				LastReadMessageID: messageID,
 			}))
 		}
 	}

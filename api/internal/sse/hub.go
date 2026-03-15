@@ -87,7 +87,7 @@ func (h *Hub) Run(ctx context.Context) {
 			if isFirstConnection {
 				// User just came online - broadcast to workspace
 				h.BroadcastToWorkspace(client.WorkspaceID, NewPresenceChangedEvent(PresenceData{
-					UserId: client.UserID,
+					UserID: client.UserID,
 					Status: Online,
 				}))
 			}
@@ -96,7 +96,7 @@ func (h *Hub) Run(ctx context.Context) {
 			if isLastConnection {
 				// User just went offline - broadcast to workspace
 				h.BroadcastToWorkspace(client.WorkspaceID, NewPresenceChangedEvent(PresenceData{
-					UserId: client.UserID,
+					UserID: client.UserID,
 					Status: Offline,
 				}))
 			}

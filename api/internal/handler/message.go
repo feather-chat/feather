@@ -1436,8 +1436,8 @@ func (h *Handler) MarkMessageUnread(ctx context.Context, request openapi.MarkMes
 	// Broadcast to user's other clients
 	if h.hub != nil {
 		h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.NewChannelReadEvent(sse.ChannelReadEventData{
-			ChannelId:         msg.ChannelID,
-			LastReadMessageId: prevMessageID,
+			ChannelID:         msg.ChannelID,
+			LastReadMessageID: prevMessageID,
 		}))
 	}
 

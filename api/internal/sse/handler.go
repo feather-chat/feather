@@ -78,7 +78,7 @@ func (h *Handler) Events(w http.ResponseWriter, r *http.Request) {
 	// Send initial presence - list of currently online users
 	onlineUserIDs := h.hub.GetConnectedUserIDs(workspaceID)
 	h.writeEvent(w, flusher, NewPresenceInitialEvent(PresenceInitialData{
-		OnlineUserIds: onlineUserIDs,
+		OnlineUserIDs: onlineUserIDs,
 	}))
 
 	// Handle reconnection - replay missed events
@@ -141,8 +141,8 @@ func (h *Handler) StartTyping(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.hub.BroadcastToChannel(workspaceID, input.ChannelID, NewTypingStartEvent(TypingEventData{
-		UserId:    userID,
-		ChannelId: input.ChannelID,
+		UserID:    userID,
+		ChannelID: input.ChannelID,
 	}))
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
@@ -161,8 +161,8 @@ func (h *Handler) StopTyping(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.hub.BroadcastToChannel(workspaceID, input.ChannelID, NewTypingStopEvent(TypingEventData{
-		UserId:    userID,
-		ChannelId: input.ChannelID,
+		UserID:    userID,
+		ChannelID: input.ChannelID,
 	}))
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{

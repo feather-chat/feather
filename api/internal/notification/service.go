@@ -98,13 +98,13 @@ func (s *Service) Notify(ctx context.Context, channel *ChannelInfo, msg *Message
 		// Build notification event
 		preview := truncatePreview(msg.Content, 100)
 		sseEvent := sse.NewNotificationEvent(sse.NotificationData{
-			Type:           sse.NotificationDataType(notifType),
-			ChannelId:      channel.ID,
-			MessageId:      msg.ID,
+			Type:           notifType,
+			ChannelID:      channel.ID,
+			MessageID:      msg.ID,
 			ChannelName:    &channel.Name,
 			SenderName:     &msg.SenderName,
 			Preview:        &preview,
-			ThreadParentId: msg.ThreadParentID,
+			ThreadParentID: msg.ThreadParentID,
 		})
 
 		if isOnline {

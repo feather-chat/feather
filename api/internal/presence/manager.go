@@ -246,7 +246,7 @@ func (m *Manager) broadcastPresenceChange(workspaceID, userID, status string) {
 	}
 
 	m.hub.BroadcastToWorkspace(workspaceID, sse.NewPresenceChangedEvent(sse.PresenceData{
-		UserId: userID,
+		UserID: userID,
 		Status: sse.PresenceStatus(status),
 	}))
 }

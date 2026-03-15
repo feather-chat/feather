@@ -19,39 +19,36 @@ const (
 // PresenceData is the data payload for presence.changed events.
 type PresenceData struct {
 	Status PresenceStatus `json:"status"`
-	UserId string         `json:"user_id"`
+	UserID string         `json:"user_id"`
 }
 
 // PresenceInitialData is the data payload for presence.initial events.
 type PresenceInitialData struct {
-	OnlineUserIds []string `json:"online_user_ids"`
+	OnlineUserIDs []string `json:"online_user_ids"`
 }
 
 // TypingEventData is the data payload for typing.start and typing.stop events.
 type TypingEventData struct {
-	ChannelId       string  `json:"channel_id"`
+	ChannelID       string  `json:"channel_id"`
 	UserDisplayName *string `json:"user_display_name,omitempty"`
-	UserId          string  `json:"user_id"`
+	UserID          string  `json:"user_id"`
 }
 
 // ChannelReadEventData is the data payload for channel.read events.
 type ChannelReadEventData struct {
-	ChannelId         string `json:"channel_id"`
-	LastReadMessageId string `json:"last_read_message_id"`
+	ChannelID         string `json:"channel_id"`
+	LastReadMessageID string `json:"last_read_message_id"`
 }
-
-// NotificationDataType defines the type of notification.
-type NotificationDataType string
 
 // NotificationData is the data payload for notification events.
 type NotificationData struct {
-	ChannelId      string               `json:"channel_id"`
-	ChannelName    *string              `json:"channel_name,omitempty"`
-	MessageId      string               `json:"message_id"`
-	Preview        *string              `json:"preview,omitempty"`
-	SenderName     *string              `json:"sender_name,omitempty"`
-	ThreadParentId *string              `json:"thread_parent_id,omitempty"`
-	Type           NotificationDataType `json:"type"`
+	ChannelID      string  `json:"channel_id"`
+	ChannelName    *string `json:"channel_name,omitempty"`
+	MessageID      string  `json:"message_id"`
+	Preview        *string `json:"preview,omitempty"`
+	SenderName     *string `json:"sender_name,omitempty"`
+	ThreadParentID *string `json:"thread_parent_id,omitempty"`
+	Type           string  `json:"type"`
 }
 
 // ConnectedData is the data payload for connected events.
@@ -84,6 +81,9 @@ type ChannelMemberData struct {
 }
 
 // MemberBannedData is the data payload for member.banned events.
+// Note: This is broadcast to ALL workspace members via BroadcastToWorkspace.
+// Do not populate sensitive moderation details (reason, banned_by) without
+// considering that all workspace members will receive them.
 type MemberBannedData struct {
 	UserID        string     `json:"user_id"`
 	WorkspaceID   string     `json:"workspace_id"`
