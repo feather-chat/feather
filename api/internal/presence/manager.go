@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/enzyme/api/internal/openapi"
 	"github.com/enzyme/api/internal/sse"
 	"github.com/oklog/ulid/v2"
 )
@@ -111,7 +112,7 @@ func (m *Manager) SetOnline(workspaceID, userID string) {
 	m.persistPresence(context.Background(), workspaceID, userID, StatusOnline, now)
 
 	if prevStatus != StatusOnline {
-		m.broadcastPresenceChange(workspaceID, userID, StatusOnline)
+		m.broadcastPresenceChange(workspaceID, userID, openapi.Online)
 	}
 }
 
@@ -138,7 +139,7 @@ func (m *Manager) SetOffline(workspaceID, userID string) {
 	}
 
 	m.persistPresence(context.Background(), workspaceID, userID, StatusOffline, now)
-	m.broadcastPresenceChange(workspaceID, userID, StatusOffline)
+	m.broadcastPresenceChange(workspaceID, userID, openapi.Offline)
 }
 
 func (m *Manager) SetStatus(workspaceID, userID, status string) {
@@ -171,7 +172,7 @@ func (m *Manager) SetStatus(workspaceID, userID, status string) {
 	m.persistPresence(context.Background(), workspaceID, userID, status, now)
 
 	if prevStatus != status {
-		m.broadcastPresenceChange(workspaceID, userID, status)
+		m.broadcastPresenceChange(workspaceID, userID, openapi.PresenceStatus(status))
 	}
 }
 
@@ -220,7 +221,7 @@ func (m *Manager) checkPresence(ctx context.Context) {
 				if now.Sub(p.LastSeenAt) > OfflineTimeout {
 					p.Status = StatusOffline
 					m.persistPresence(ctx, workspaceID, userID, StatusOffline, now)
-					m.broadcastPresenceChange(workspaceID, userID, StatusOffline)
+					m.broadcastPresenceChange(workspaceID, userID, openapi.Offline)
 				}
 			}
 		}
@@ -240,16 +241,13 @@ func (m *Manager) persistPresence(ctx context.Context, workspaceID, userID, stat
 	`, id, userID, workspaceID, status, lastSeen.Format(time.RFC3339))
 }
 
-func (m *Manager) broadcastPresenceChange(workspaceID, userID, status string) {
+func (m *Manager) broadcastPresenceChange(workspaceID, userID string, status openapi.PresenceStatus) {
 	if m.hub == nil {
 		return
 	}
 
-	m.hub.BroadcastToWorkspace(workspaceID, sse.Event{
-		Type: sse.EventPresenceChanged,
-		Data: map[string]string{
-			"user_id": userID,
-			"status":  status,
-		},
-	})
+	m.hub.BroadcastToWorkspace(workspaceID, sse.NewPresenceChangedEvent(openapi.PresenceData{
+		UserId: userID,
+		Status: status,
+	}))
 }

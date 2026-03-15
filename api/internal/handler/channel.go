@@ -66,12 +66,19 @@ func (h *Handler) CreateChannel(ctx context.Context, request openapi.CreateChann
 		return nil, err
 	}
 
-	// Update SSE hub cache with creator as first member
+	apiCh := channelToAPI(ch)
+
+	// Update SSE hub cache with creator as first member and broadcast
 	if h.hub != nil {
 		h.hub.AddChannelMember(ch.ID, userID)
+		if ch.Type == channel.TypePrivate {
+			// Private channels: only notify channel members (the creator at this point)
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.NewChannelCreatedEvent(apiCh))
+		} else {
+			h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.NewChannelCreatedEvent(apiCh))
+		}
 	}
 
-	apiCh := channelToAPI(ch)
 	return openapi.CreateChannel200JSONResponse{
 		Channel: apiCh,
 	}, nil
@@ -257,10 +264,11 @@ func (h *Handler) UpdateChannel(ctx context.Context, request openapi.UpdateChann
 
 	// Broadcast SSE channel.updated event
 	if h.hub != nil {
-		h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.Event{
-			Type: sse.EventChannelUpdated,
-			Data: apiCh,
-		})
+		if ch.Type == channel.TypePrivate {
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.NewChannelUpdatedEvent(apiCh))
+		} else {
+			h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.NewChannelUpdatedEvent(apiCh))
+		}
 	}
 
 	// Create system messages for name/type changes
@@ -317,6 +325,19 @@ func (h *Handler) ArchiveChannel(ctx context.Context, request openapi.ArchiveCha
 
 	if err := h.channelRepo.Archive(ctx, string(request.Id)); err != nil {
 		return nil, err
+	}
+
+	// Broadcast archived event so clients remove the channel from their lists
+	if h.hub != nil {
+		// Re-fetch to get the updated archived state
+		if archived, err := h.channelRepo.GetByID(ctx, string(request.Id)); err == nil {
+			if ch.Type == channel.TypePrivate {
+				// Private channels: only notify channel members
+				h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.NewChannelArchivedEvent(channelToAPI(archived)))
+			} else {
+				h.hub.BroadcastToWorkspace(ch.WorkspaceID, sse.NewChannelArchivedEvent(channelToAPI(archived)))
+			}
+		}
 	}
 
 	// Audit log: channel archived
@@ -400,21 +421,15 @@ func (h *Handler) AddChannelMember(ctx context.Context, request openapi.AddChann
 			h.hub.AddChannelMember(string(request.Id), request.Body.UserId)
 
 			// Broadcast member added event
-			h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.Event{
-				Type: sse.EventMemberAdded,
-				Data: map[string]string{
-					"channel_id": string(request.Id),
-					"user_id":    request.Body.UserId,
-				},
-			})
+			h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.NewChannelMemberAddedEvent(openapi.ChannelMemberData{
+				ChannelId: string(request.Id),
+				UserId:    request.Body.UserId,
+			}))
 
 			// Broadcast channel updated if type changed (dm -> group_dm)
 			if updatedCh.Type != ch.Type {
 				apiCh := channelToAPI(updatedCh)
-				h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.Event{
-					Type: sse.EventChannelUpdated,
-					Data: apiCh,
-				})
+				h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.NewChannelUpdatedEvent(apiCh))
 			}
 		}
 
@@ -574,23 +589,17 @@ func (h *Handler) LeaveChannel(ctx context.Context, request openapi.LeaveChannel
 		h.hub.RemoveChannelMember(string(request.Id), userID)
 
 		// Broadcast member removed
-		h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.Event{
-			Type: sse.EventMemberRemoved,
-			Data: map[string]string{
-				"channel_id": string(request.Id),
-				"user_id":    userID,
-			},
-		})
+		h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.NewChannelMemberRemovedEvent(openapi.ChannelMemberData{
+			ChannelId: string(request.Id),
+			UserId:    userID,
+		}))
 
 		// For group DMs, broadcast channel updated (type/hash may have changed)
 		if ch.Type == channel.TypeGroupDM {
 			updatedCh, err := h.channelRepo.GetByID(ctx, string(request.Id))
 			if err == nil {
 				apiCh := channelToAPI(updatedCh)
-				h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.Event{
-					Type: sse.EventChannelUpdated,
-					Data: apiCh,
-				})
+				h.hub.BroadcastToChannel(ch.WorkspaceID, string(request.Id), sse.NewChannelUpdatedEvent(apiCh))
 			}
 		}
 	}
@@ -746,10 +755,7 @@ func (h *Handler) ConvertGroupDMToChannel(ctx context.Context, request openapi.C
 	// Broadcast channel updated via SSE
 	if h.hub != nil {
 		apiCh := channelToAPI(converted)
-		h.hub.BroadcastToChannel(ch.WorkspaceID, converted.ID, sse.Event{
-			Type: sse.EventChannelUpdated,
-			Data: apiCh,
-		})
+		h.hub.BroadcastToChannel(ch.WorkspaceID, converted.ID, sse.NewChannelUpdatedEvent(apiCh))
 	}
 
 	// Create system message for the conversion
@@ -786,10 +792,7 @@ func (h *Handler) createConvertSystemMessage(ctx context.Context, ch *channel.Ch
 		msgWithUser, _ := h.messageRepo.GetByIDWithUser(ctx, msg.ID)
 		if msgWithUser != nil {
 			apiMsg := messageWithUserToAPI(msgWithUser)
-			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.Event{
-				Type: sse.EventMessageNew,
-				Data: apiMsg,
-			})
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.NewMessageNewEvent(apiMsg))
 		}
 	}
 }
@@ -832,13 +835,10 @@ func (h *Handler) MarkChannelRead(ctx context.Context, request openapi.MarkChann
 
 	// Broadcast to user's other clients
 	if h.hub != nil {
-		h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.Event{
-			Type: sse.EventChannelRead,
-			Data: map[string]string{
-				"channel_id":           string(request.Id),
-				"last_read_message_id": messageID,
-			},
-		})
+		h.hub.BroadcastToUser(ch.WorkspaceID, userID, sse.NewChannelReadEvent(openapi.ChannelReadEventData{
+			ChannelId:         string(request.Id),
+			LastReadMessageId: messageID,
+		}))
 	}
 
 	return openapi.MarkChannelRead200JSONResponse{
@@ -881,13 +881,10 @@ func (h *Handler) MarkAllChannelsRead(ctx context.Context, request openapi.MarkA
 
 		// Broadcast to user's other clients
 		if h.hub != nil {
-			h.hub.BroadcastToUser(string(request.Wid), userID, sse.Event{
-				Type: sse.EventChannelRead,
-				Data: map[string]string{
-					"channel_id":           channelID,
-					"last_read_message_id": messageID,
-				},
-			})
+			h.hub.BroadcastToUser(string(request.Wid), userID, sse.NewChannelReadEvent(openapi.ChannelReadEventData{
+				ChannelId:         channelID,
+				LastReadMessageId: messageID,
+			}))
 		}
 	}
 
@@ -1062,10 +1059,7 @@ func (h *Handler) createChannelSystemMessage(ctx context.Context, ch *channel.Ch
 		msgWithUser, _ := h.messageRepo.GetByIDWithUser(ctx, msg.ID)
 		if msgWithUser != nil {
 			apiMsg := messageWithUserToAPI(msgWithUser)
-			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.Event{
-				Type: sse.EventMessageNew,
-				Data: apiMsg,
-			})
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.NewMessageNewEvent(apiMsg))
 		}
 	}
 }
@@ -1158,10 +1152,7 @@ func (h *Handler) createAddedSystemMessage(ctx context.Context, ch *channel.Chan
 		msgWithUser, _ := h.messageRepo.GetByIDWithUser(ctx, msg.ID)
 		if msgWithUser != nil {
 			apiMsg := messageWithUserToAPI(msgWithUser)
-			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.Event{
-				Type: sse.EventMessageNew,
-				Data: apiMsg,
-			})
+			h.hub.BroadcastToChannel(ch.WorkspaceID, ch.ID, sse.NewMessageNewEvent(apiMsg))
 		}
 	}
 }

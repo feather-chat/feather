@@ -378,7 +378,27 @@ export function useSSE(workspaceId: string | undefined) {
     });
 
     // Handle channel events
-    connection.on('channel.created', () => {
+    // Private channels use BroadcastToChannel (only sent to members), so this
+    // handler only receives events for channels the user should see.
+    connection.on('channel.created', (event) => {
+      const channel = event.data;
+      queryClient.setQueryData(
+        ['channels', workspaceId],
+        (old: { channels: ChannelWithMembership[] } | undefined) => {
+          if (!old) return old;
+          // Avoid duplicates
+          if (old.channels.some((c) => c.id === channel.id)) return old;
+          return {
+            ...old,
+            channels: [
+              ...old.channels,
+              { ...channel, unread_count: 0, notification_count: 0, is_starred: false },
+            ],
+          };
+        },
+      );
+    });
+    connection.on('channels.invalidate', () => {
       queryClient.invalidateQueries({ queryKey: ['channels', workspaceId] });
     });
 
@@ -404,8 +424,18 @@ export function useSSE(workspaceId: string | undefined) {
       );
     });
 
-    connection.on('channel.archived', () => {
-      queryClient.invalidateQueries({ queryKey: ['channels', workspaceId] });
+    connection.on('channel.archived', (event) => {
+      const channel = event.data;
+      queryClient.setQueryData(
+        ['channels', workspaceId],
+        (old: { channels: ChannelWithMembership[] } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            channels: old.channels.filter((c) => c.id !== channel.id),
+          };
+        },
+      );
     });
 
     connection.on('channel.member_added', (event) => {
@@ -444,7 +474,7 @@ export function useSSE(workspaceId: string | undefined) {
 
     // Handle custom emoji events
     connection.on('emoji.created', (event) => {
-      const emoji = event.data as CustomEmoji;
+      const emoji = event.data;
       queryClient.setQueryData(
         ['custom-emojis', workspaceId],
         (old: { emojis: CustomEmoji[] } | undefined) => {
@@ -460,7 +490,7 @@ export function useSSE(workspaceId: string | undefined) {
     });
 
     connection.on('emoji.deleted', (event) => {
-      const { id } = event.data as { id: string; name: string };
+      const { id } = event.data;
       queryClient.setQueryData(
         ['custom-emojis', workspaceId],
         (old: { emojis: CustomEmoji[] } | undefined) => {
@@ -488,9 +518,7 @@ export function useSSE(workspaceId: string | undefined) {
     connection.on('scheduled_message.sent', (event) => {
       queryClient.invalidateQueries({ queryKey: ['scheduled-messages', workspaceId] });
       // Also invalidate the relevant channel messages
-      if (event.data?.channel_id) {
-        queryClient.invalidateQueries({ queryKey: ['messages', event.data.channel_id] });
-      }
+      queryClient.invalidateQueries({ queryKey: ['messages', event.data.channel_id] });
     });
     connection.on('scheduled_message.failed', () => {
       queryClient.invalidateQueries({ queryKey: ['scheduled-messages', workspaceId] });
@@ -606,7 +634,7 @@ export function useSSE(workspaceId: string | undefined) {
 
     // Handle initial presence (sent on connection with list of online users)
     connection.on('presence.initial', (event) => {
-      const onlineUserIds = event.data.online_user_ids as string[];
+      const onlineUserIds = event.data.online_user_ids;
       for (const userId of onlineUserIds) {
         setUserPresence(userId, 'online');
       }
@@ -614,7 +642,7 @@ export function useSSE(workspaceId: string | undefined) {
 
     // Handle notification events
     connection.on('notification', (event) => {
-      const notification = event.data as NotificationData;
+      const notification = event.data;
 
       // Increment notification_count for the channel
       if (notification.channel_id && notification.type !== 'thread_reply') {
