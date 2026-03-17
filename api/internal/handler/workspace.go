@@ -296,7 +296,7 @@ func (h *Handler) LeaveWorkspace(ctx context.Context, request openapi.LeaveWorks
 	if h.hub != nil {
 		for _, channelID := range removedChannelIDs {
 			h.hub.RemoveChannelMember(channelID, userID)
-			h.hub.BroadcastToWorkspace(workspaceID, sse.NewChannelMemberRemovedEvent(openapi.ChannelMemberData{
+			h.hub.BroadcastToChannel(workspaceID, channelID, sse.NewChannelMemberRemovedEvent(openapi.ChannelMemberData{
 				ChannelId: channelID,
 				UserId:    userID,
 			}))
