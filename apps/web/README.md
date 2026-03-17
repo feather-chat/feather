@@ -199,29 +199,47 @@ import { Button, Input, Modal, Menu, MenuItem } from '../components/ui';
 
 ## API Integration
 
-API calls use the shared client from `@enzyme/api-client`:
+API calls use `openapi-fetch` via the shared client from `@enzyme/api-client`:
 
 ```typescript
-import { get, post, ApiError } from '@enzyme/api-client';
+import { apiClient, throwIfError, ApiError } from '@enzyme/api-client';
 import type { User, Message } from '@enzyme/api-client';
+
+// Type-safe API calls — paths, methods, and payloads checked at compile time
+const channel = await throwIfError(
+  apiClient.POST('/api/channels/{id}/update', {
+    params: { path: { id } },
+    body: { name: 'new-name' },
+  }),
+);
 ```
 
-- `Authorization: Bearer` header for authentication
-- Automatic error handling with `ApiError` class
-- Type-safe responses generated from OpenAPI spec
+- `Authorization: Bearer` header attached automatically via middleware
+- `throwIfError` unwraps responses and throws `ApiError` on failure
+- Paths and request/response types are generated from the OpenAPI spec
 
 ### SSE Events Handled
 
-| Event               | Action                                      |
-| ------------------- | ------------------------------------------- |
-| `message.new`       | Prepend to messages cache                   |
-| `message.updated`   | Update message in cache                     |
-| `message.deleted`   | Remove from cache                           |
-| `reaction.added`    | Add reaction to message                     |
-| `reaction.removed`  | Remove reaction from message                |
-| `channel.*`         | Invalidate channel list                     |
-| `typing.start/stop` | Update typing state in `lib/presenceStore`  |
-| `presence.changed`  | Update user presence in `lib/presenceStore` |
+| Event                     | Action                                        |
+| ------------------------- | --------------------------------------------- |
+| `message.new`             | Prepend to messages cache                     |
+| `message.updated`         | Update message in cache                       |
+| `message.deleted`         | Remove from cache                             |
+| `message.pinned/unpinned` | Update pin state in cache                     |
+| `reaction.added`          | Add reaction to message                       |
+| `reaction.removed`        | Remove reaction from message                  |
+| `channel.created`         | Optimistically insert into channel list cache |
+| `channel.updated`         | Invalidate channel list                       |
+| `channel.archived`        | Optimistically remove from channel list cache |
+| `channels.invalidate`     | Invalidate channel list (batch operations)    |
+| `channel.member_*`        | Invalidate channel members                    |
+| `typing.start/stop`       | Update typing state in `lib/presenceStore`    |
+| `presence.changed`        | Update user presence in `lib/presenceStore`   |
+| `notification`            | Show desktop notification                     |
+| `emoji.*`                 | Invalidate custom emoji cache                 |
+| `member.*`                | Invalidate workspace members                  |
+| `workspace.updated`       | Invalidate workspace data                     |
+| `scheduled_message.*`     | Invalidate scheduled messages cache           |
 
 ## Environment
 
