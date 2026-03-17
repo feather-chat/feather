@@ -157,11 +157,18 @@ Connect to `/api/workspaces/{id}/events` with `Authorization: Bearer <token>` he
 Event types:
 - `connected`, `heartbeat`
 - `message.new`, `message.updated`, `message.deleted`
+- `message.pinned`, `message.unpinned`
 - `reaction.added`, `reaction.removed`
 - `channel.created`, `channel.updated`, `channel.archived`
 - `channel.member_added`, `channel.member_removed`
+- `channel.read`, `channels.invalidate`
 - `typing.start`, `typing.stop`
-- `presence.changed`
+- `presence.changed`, `presence.initial`
+- `notification`
+- `emoji.created`, `emoji.deleted`
+- `member.banned`, `member.unbanned`, `member.left`, `member.role_changed`
+- `workspace.updated`
+- `scheduled_message.created`, `scheduled_message.updated`, `scheduled_message.deleted`, `scheduled_message.sent`, `scheduled_message.failed`
 
 ## Project Structure
 
