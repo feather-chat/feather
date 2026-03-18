@@ -283,49 +283,6 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
     const attachmentSizeClass = isThreadVariant ? 'w-12 h-12' : 'w-20 h-20';
     const attachmentIconClass = isThreadVariant ? 'w-5 h-5' : 'w-8 h-8';
 
-    const editorForm = (
-      <form onSubmit={handleFormSubmit}>
-        <LazyRichTextEditor
-          ref={editorRef}
-          placeholder={placeholder}
-          onSubmit={handleSubmit}
-          onTyping={isThreadVariant ? undefined : onTyping}
-          onBlur={isThreadVariant ? undefined : onStopTyping}
-          onUpArrow={handleUpArrow}
-          workspaceMembers={workspaceMembers}
-          workspaceChannels={workspaceChannels}
-          customEmojis={customEmojis}
-          onAddEmoji={filesEnabled ? () => setAddEmojiOpen(true) : undefined}
-          showToolbar
-          disabled={activeMutation.isPending}
-          isPending={activeMutation.isPending || isUploading}
-          onAttachmentClick={filesEnabled ? handleFilesSelected : undefined}
-          onScheduleClick={() => setScheduleModalOpen(true)}
-          onSchedule={handleSchedule}
-          belowEditor={
-            isThreadVariant ? (
-              <label className="flex cursor-pointer items-center gap-2 px-4 py-1.5 select-none">
-                <input
-                  type="checkbox"
-                  checked={alsoSendToChannel}
-                  onChange={(e) => setAlsoSendToChannel(e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-                />
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  Also send to{' '}
-                  {channelType === 'dm' || channelType === 'group_dm'
-                    ? 'direct message'
-                    : channelName
-                      ? `#${channelName}`
-                      : 'channel'}
-                </span>
-              </label>
-            ) : undefined
-          }
-        />
-      </form>
-    );
-
     return (
       <div className="bg-white px-4 pb-4 dark:bg-gray-900">
         {/* Typing indicator - only show for channel variant */}
@@ -353,7 +310,7 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
         )}
 
         {/* Pending attachments preview */}
-        {pendingAttachments.length > 0 && (
+        {filesEnabled && pendingAttachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {pendingAttachments.map((attachment) => (
               <div
@@ -414,41 +371,79 @@ export const MessageComposer = forwardRef<MessageComposerRef, MessageComposerPro
           </div>
         )}
 
-        {filesEnabled ? (
-          <DropZone
-            onDropEnter={() => setIsDragging(true)}
-            onDropExit={() => setIsDragging(false)}
-            onDrop={async (e) => {
-              setIsDragging(false);
-              const files = await Promise.all(
-                e.items.filter((i) => i.kind === 'file').map((i) => i.getFile()),
-              );
-              handleFilesSelected(files.filter((f): f is File => f !== null));
-            }}
-            className={cn(
-              'relative rounded-lg transition-colors',
-              isDragging && 'bg-blue-100 ring-2 ring-blue-500 dark:bg-blue-900',
-            )}
-          >
-            {/* Drop overlay */}
-            {isDragging && (
-              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900">
-                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  Drop files to upload
-                </span>
-              </div>
-            )}
-            {editorForm}
-          </DropZone>
-        ) : (
-          editorForm
+        <DropZone
+          onDropEnter={() => filesEnabled && setIsDragging(true)}
+          onDropExit={() => setIsDragging(false)}
+          onDrop={async (e) => {
+            setIsDragging(false);
+            if (!filesEnabled) return;
+            const files = await Promise.all(
+              e.items.filter((i) => i.kind === 'file').map((i) => i.getFile()),
+            );
+            handleFilesSelected(files.filter((f): f is File => f !== null));
+          }}
+          className={cn(
+            'relative rounded-lg transition-colors',
+            isDragging && 'bg-blue-100 ring-2 ring-blue-500 dark:bg-blue-900',
+          )}
+        >
+          {/* Drop overlay */}
+          {isDragging && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900">
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                Drop files to upload
+              </span>
+            </div>
+          )}
+          <form onSubmit={handleFormSubmit}>
+            <LazyRichTextEditor
+              ref={editorRef}
+              placeholder={placeholder}
+              onSubmit={handleSubmit}
+              onTyping={isThreadVariant ? undefined : onTyping}
+              onBlur={isThreadVariant ? undefined : onStopTyping}
+              onUpArrow={handleUpArrow}
+              workspaceMembers={workspaceMembers}
+              workspaceChannels={workspaceChannels}
+              customEmojis={customEmojis}
+              onAddEmoji={filesEnabled ? () => setAddEmojiOpen(true) : undefined}
+              showToolbar
+              disabled={activeMutation.isPending}
+              isPending={activeMutation.isPending || isUploading}
+              onAttachmentClick={filesEnabled ? handleFilesSelected : undefined}
+              onScheduleClick={() => setScheduleModalOpen(true)}
+              onSchedule={handleSchedule}
+              belowEditor={
+                isThreadVariant ? (
+                  <label className="flex cursor-pointer items-center gap-2 px-4 py-1.5 select-none">
+                    <input
+                      type="checkbox"
+                      checked={alsoSendToChannel}
+                      onChange={(e) => setAlsoSendToChannel(e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                    />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Also send to{' '}
+                      {channelType === 'dm' || channelType === 'group_dm'
+                        ? 'direct message'
+                        : channelName
+                          ? `#${channelName}`
+                          : 'channel'}
+                    </span>
+                  </label>
+                ) : undefined
+              }
+            />
+          </form>
+        </DropZone>
+        {filesEnabled && (
+          <AddEmojiModal
+            isOpen={addEmojiOpen}
+            onClose={() => setAddEmojiOpen(false)}
+            workspaceId={workspaceId}
+            customEmojis={customEmojis ?? []}
+          />
         )}
-        <AddEmojiModal
-          isOpen={addEmojiOpen}
-          onClose={() => setAddEmojiOpen(false)}
-          workspaceId={workspaceId}
-          customEmojis={customEmojis ?? []}
-        />
         <ScheduleMessageModal
           isOpen={scheduleModalOpen}
           onClose={() => setScheduleModalOpen(false)}

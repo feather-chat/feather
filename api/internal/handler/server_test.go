@@ -36,7 +36,7 @@ func TestGetServerInfo(t *testing.T) {
 }
 
 func TestGetServerInfo_EmailEnabled(t *testing.T) {
-	h := &Handler{emailService: email.NewTestService(true, "")}
+	h := &Handler{emailService: email.NewTestService(true, ""), filesEnabled: true}
 
 	resp, err := h.GetServerInfo(context.Background(), openapi.GetServerInfoRequestObject{})
 	if err != nil {

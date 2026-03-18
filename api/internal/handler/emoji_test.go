@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"testing"
 
 	"github.com/enzyme/api/internal/openapi"
@@ -23,6 +24,22 @@ func TestUploadCustomEmoji_FilesDisabled(t *testing.T) {
 	}
 	if _, ok := resp.(openapi.UploadCustomEmoji403JSONResponse); !ok {
 		t.Fatalf("expected 403 response, got %T", resp)
+	}
+}
+
+func TestUploadCustomEmoji_FilesDisabled_Unauthenticated(t *testing.T) {
+	h, _ := testHandler(t)
+	h.filesEnabled = false
+
+	ctx := context.Background()
+	resp, err := h.UploadCustomEmoji(ctx, openapi.UploadCustomEmojiRequestObject{
+		Wid: "some-workspace-id",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.UploadCustomEmoji401JSONResponse); !ok {
+		t.Fatalf("expected 401 response (auth before files check), got %T", resp)
 	}
 }
 

@@ -57,6 +57,8 @@ type AuthConfig struct {
 }
 
 type FilesConfig struct {
+	// Enabled controls message file attachments and custom emoji uploads.
+	// Avatar and workspace icon uploads are not affected by this setting.
 	Enabled       bool   `koanf:"enabled"`
 	StoragePath   string `koanf:"storage_path"`
 	MaxUploadSize int64  `koanf:"max_upload_size"`

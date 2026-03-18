@@ -224,7 +224,9 @@ export function CustomEmojiManager({ workspaceId }: CustomEmojiManagerProps) {
           </div>
         ) : (
           <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            No custom emojis yet. Upload one above to get started.
+            {!filesEnabled
+              ? 'File uploads are disabled on this server. Custom emoji upload is unavailable.'
+              : 'No custom emojis yet. Upload one above to get started.'}
           </p>
         )}
       </div>

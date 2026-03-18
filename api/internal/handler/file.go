@@ -22,13 +22,13 @@ import (
 
 // UploadFile uploads a file to a channel
 func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequestObject) (openapi.UploadFileResponseObject, error) {
-	if !h.filesEnabled {
-		return openapi.UploadFile403JSONResponse{ForbiddenJSONResponse: filesDisabledResponse()}, nil
-	}
-
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return openapi.UploadFile401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
+	}
+
+	if !h.filesEnabled {
+		return openapi.UploadFile403JSONResponse{ForbiddenJSONResponse: filesDisabledResponse()}, nil
 	}
 
 	// Check channel exists and user has access
