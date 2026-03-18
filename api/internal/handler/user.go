@@ -136,6 +136,12 @@ func (h *Handler) UploadAvatar(ctx context.Context, request openapi.UploadAvatar
 		}, nil
 	}
 
+	if h.storage == nil {
+		return openapi.UploadAvatar403JSONResponse{
+			ForbiddenJSONResponse: openapi.ForbiddenJSONResponse(newErrorResponse(ErrCodeFilesDisabled, "File uploads are disabled")),
+		}, nil
+	}
+
 	// Read with size limit
 	data, err := io.ReadAll(io.LimitReader(part, maxAvatarSize+1))
 	if err != nil {
@@ -196,7 +202,7 @@ func (h *Handler) DeleteAvatar(ctx context.Context, request openapi.DeleteAvatar
 	}
 
 	// Delete avatar file if it's a local avatar
-	if u.AvatarURL != nil && strings.HasPrefix(*u.AvatarURL, "/api/avatars/") {
+	if h.storage != nil && u.AvatarURL != nil && strings.HasPrefix(*u.AvatarURL, "/api/avatars/") {
 		filename := strings.TrimPrefix(*u.AvatarURL, "/api/avatars/")
 		_ = h.storage.Delete(ctx, "avatars/"+filename)
 	}
@@ -222,5 +228,9 @@ func (h *Handler) ServeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	// Sanitize filename to prevent directory traversal
 	filename = sanitizePathSegment(filename)
+	if h.storage == nil {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
 	h.storage.Serve(w, r, "avatars/"+filename)
 }

@@ -71,8 +71,8 @@ func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequ
 	ext := filepath.Ext(filename)
 	storageKey := ch.WorkspaceID + "/" + string(request.Id) + "/" + fileID + ext
 
-	// Read content with size limit
-	lr := io.LimitReader(part, h.maxUploadSize)
+	// Read content with size limit (read one extra byte to detect oversized files)
+	lr := io.LimitReader(part, h.maxUploadSize+1)
 	contentType := part.Header.Get("Content-Type")
 	if contentType == "" {
 		contentType = "application/octet-stream"
@@ -84,6 +84,12 @@ func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequ
 		return nil, err
 	}
 	size := cr.n
+
+	// Check if file exceeded the max upload size
+	if size > h.maxUploadSize {
+		_ = h.storage.Delete(ctx, storageKey)
+		return openapi.UploadFile400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "File too large")}, nil
+	}
 
 	// Create attachment record
 	attachment := &file.Attachment{
@@ -161,6 +167,10 @@ func (h *Handler) DownloadFile(ctx context.Context, request openapi.DownloadFile
 		}
 	}
 
+	if h.storage == nil {
+		return openapi.DownloadFile404JSONResponse{NotFoundJSONResponse: notFoundResponse("File not found")}, nil
+	}
+
 	// Open file from storage
 	rc, err := h.storage.Get(ctx, attachment.StoragePath)
 	if err != nil {
@@ -205,7 +215,9 @@ func (h *Handler) DeleteFile(ctx context.Context, request openapi.DeleteFileRequ
 	}
 
 	// Delete file from storage
-	_ = h.storage.Delete(ctx, attachment.StoragePath)
+	if h.storage != nil {
+		_ = h.storage.Delete(ctx, attachment.StoragePath)
+	}
 
 	// Delete from database
 	if err := h.fileRepo.Delete(ctx, request.Id); err != nil {
@@ -236,11 +248,18 @@ func (h *Handler) DeleteFile(ctx context.Context, request openapi.DeleteFileRequ
 const signedURLTTL = time.Hour
 
 // SignFileUrl generates a signed download URL for a single file.
-// Authorization is enforced at download time, not at signing time.
 func (h *Handler) SignFileUrl(ctx context.Context, request openapi.SignFileUrlRequestObject) (openapi.SignFileUrlResponseObject, error) {
 	userID := h.getUserID(ctx)
 	if userID == "" {
 		return openapi.SignFileUrl401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
+	}
+
+	// Verify the user has access to the file's channel
+	if err := h.checkFileAccess(ctx, request.Id, userID); err != nil {
+		if errors.Is(err, file.ErrAttachmentNotFound) {
+			return openapi.SignFileUrl404JSONResponse{NotFoundJSONResponse: notFoundResponse("File not found")}, nil
+		}
+		return openapi.SignFileUrl403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
 	url, expiresAt, err := h.signFileURL(ctx, request.Id, userID)
@@ -268,6 +287,10 @@ func (h *Handler) SignFileUrls(ctx context.Context, request openapi.SignFileUrls
 
 	urls := make([]openapi.SignedUrl, 0, len(request.Body.FileIds))
 	for _, fileID := range request.Body.FileIds {
+		// Skip files the user doesn't have access to
+		if err := h.checkFileAccess(ctx, fileID, userID); err != nil {
+			continue
+		}
 		url, expiresAt, err := h.signFileURL(ctx, fileID, userID)
 		if err != nil {
 			return nil, err
@@ -282,13 +305,47 @@ func (h *Handler) SignFileUrls(ctx context.Context, request openapi.SignFileUrls
 	return openapi.SignFileUrls200JSONResponse{Urls: urls}, nil
 }
 
+// checkFileAccess verifies the user has access to the file's channel.
+// Returns nil if access is granted, or an error (including file.ErrAttachmentNotFound).
+func (h *Handler) checkFileAccess(ctx context.Context, fileID, userID string) error {
+	attachment, err := h.fileRepo.GetByID(ctx, fileID)
+	if err != nil {
+		return err
+	}
+
+	ch, err := h.channelRepo.GetByID(ctx, attachment.ChannelID)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.channelRepo.GetMembership(ctx, userID, attachment.ChannelID)
+	if err != nil {
+		if errors.Is(err, channel.ErrNotChannelMember) {
+			if ch.Type != channel.TypePublic {
+				return fmt.Errorf("not a member of this channel")
+			}
+			// Verify workspace membership for public channels
+			_, err = h.workspaceRepo.GetMembership(ctx, userID, ch.WorkspaceID)
+			if err != nil {
+				return fmt.Errorf("not a member of this workspace")
+			}
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
 // signFileURL returns a signed URL for the given file. For S3 storage it
 // looks up the storage key and returns an S3 pre-signed URL directly. For
 // local storage it falls back to the HMAC-signed server URL.
 func (h *Handler) signFileURL(ctx context.Context, fileID, userID string) (string, time.Time, error) {
-	// Try S3 pre-signed URL first
-	attachment, err := h.fileRepo.GetByID(ctx, fileID)
-	if err == nil {
+	// Try S3 pre-signed URL if storage supports it
+	if h.storage != nil {
+		attachment, err := h.fileRepo.GetByID(ctx, fileID)
+		if err != nil {
+			return "", time.Time{}, fmt.Errorf("looking up file: %w", err)
+		}
 		s3URL, err := h.storage.SignedURL(ctx, attachment.StoragePath, signedURLTTL)
 		if err != nil {
 			return "", time.Time{}, err

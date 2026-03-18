@@ -1723,6 +1723,8 @@ paths:
                 $ref: '#/components/schemas/SignedUrl'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -2183,10 +2185,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AvatarUploadResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     delete:
       tags: [users]
       summary: Remove avatar

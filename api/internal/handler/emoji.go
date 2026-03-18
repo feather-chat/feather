@@ -236,11 +236,13 @@ func (h *Handler) DeleteCustomEmoji(ctx context.Context, request openapi.DeleteC
 	}
 
 	// Delete file from storage
-	ext := ".png"
-	if e.ContentType == "image/gif" {
-		ext = ".gif"
+	if h.storage != nil {
+		ext := ".png"
+		if e.ContentType == "image/gif" {
+			ext = ".gif"
+		}
+		_ = h.storage.Delete(ctx, "emojis/"+e.WorkspaceID+"/"+e.ID+ext)
 	}
-	_ = h.storage.Delete(ctx, "emojis/"+e.WorkspaceID+"/"+e.ID+ext)
 
 	// Delete from database
 	if err := h.emojiRepo.Delete(ctx, request.Id); err != nil {
@@ -273,6 +275,10 @@ func (h *Handler) ServeEmoji(w http.ResponseWriter, r *http.Request) {
 	workspaceID = sanitizePathSegment(workspaceID)
 	filename = sanitizePathSegment(filename)
 
+	if h.storage == nil {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
 	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	h.storage.Serve(w, r, "emojis/"+workspaceID+"/"+filename)
 }

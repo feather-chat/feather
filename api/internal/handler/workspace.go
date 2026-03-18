@@ -703,6 +703,12 @@ func (h *Handler) UploadWorkspaceIcon(ctx context.Context, request openapi.Uploa
 		}, nil
 	}
 
+	if h.storage == nil {
+		return openapi.UploadWorkspaceIcon403JSONResponse{
+			ForbiddenJSONResponse: openapi.ForbiddenJSONResponse(newErrorResponse(ErrCodeFilesDisabled, "File uploads are disabled")),
+		}, nil
+	}
+
 	// Read with size limit
 	data, err := io.ReadAll(io.LimitReader(part, maxIconSize+1))
 	if err != nil {
@@ -772,7 +778,7 @@ func (h *Handler) DeleteWorkspaceIcon(ctx context.Context, request openapi.Delet
 	}
 
 	// Delete icon file if it's a local icon
-	if ws.IconURL != nil && strings.HasPrefix(*ws.IconURL, "/api/workspace-icons/") {
+	if h.storage != nil && ws.IconURL != nil && strings.HasPrefix(*ws.IconURL, "/api/workspace-icons/") {
 		oldPath := strings.TrimPrefix(*ws.IconURL, "/api/workspace-icons/")
 		_ = h.storage.Delete(ctx, "workspace-icons/"+oldPath)
 	}
@@ -800,6 +806,10 @@ func (h *Handler) ServeWorkspaceIcon(w http.ResponseWriter, r *http.Request) {
 	// Sanitize to prevent directory traversal
 	workspaceID = sanitizePathSegment(workspaceID)
 	filename = sanitizePathSegment(filename)
+	if h.storage == nil {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
 	h.storage.Serve(w, r, "workspace-icons/"+workspaceID+"/"+filename)
 }
 
