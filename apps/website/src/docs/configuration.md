@@ -30,7 +30,8 @@ All settings can be set via environment variables with the `ENZYME_` prefix. Nes
 ENZYME_SERVER_PORT=9090
 ENZYME_DATABASE_PATH=/var/lib/enzyme/enzyme.db
 ENZYME_EMAIL_ENABLED=true
-ENZYME_FILES_SIGNING_SECRET=your-secret-here
+ENZYME_STORAGE_TYPE=s3
+ENZYME_STORAGE_S3_BUCKET=my-enzyme-bucket
 ```
 
 ## CLI Flags
@@ -92,14 +93,39 @@ Enzyme uses SQLite in WAL mode. No external database server is needed. See [Scal
 | `auth.session_duration` | `ENZYME_AUTH_SESSION_DURATION` | `--auth.session_duration` | `720h`  | How long bearer tokens remain valid. Uses Go duration format (e.g., `720h` = 30 days, `24h`, `168h`). |
 | `auth.bcrypt_cost`      | `ENZYME_AUTH_BCRYPT_COST`      |                           | `12`    | bcrypt hashing cost for passwords. Higher is more secure but slower. Range: 4-31.                     |
 
-## File Storage
+## Storage
 
-| Key                     | Env Var                        | CLI Flag                  | Default          | Description                                                                                                                                                                                                         |
-| ----------------------- | ------------------------------ | ------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `files.enabled`         | `ENZYME_FILES_ENABLED`         | `--files.enabled`         | `true`           | Enable file uploads (attachments and custom emoji). When `false`, upload endpoints return 403 and upload UI is hidden. Existing files remain downloadable. Avatar and workspace icon uploads are not affected.      |
-| `files.storage_path`    | `ENZYME_FILES_STORAGE_PATH`    | `--files.storage_path`    | `./data/uploads` | Directory for uploaded files.                                                                                                                                                                                       |
-| `files.max_upload_size` | `ENZYME_FILES_MAX_UPLOAD_SIZE` | `--files.max_upload_size` | `10485760`       | Maximum upload file size in bytes. Default is 10 MB.                                                                                                                                                                |
-| `files.signing_secret`  | `ENZYME_FILES_SIGNING_SECRET`  |                           |                  | HMAC secret for signing file download URLs. If empty, a random secret is auto-generated and saved to `.signing_secret` in the database directory for persistence across restarts. You can also set this explicitly. |
+Storage controls where uploaded files (attachments, avatars, workspace icons, custom emoji) are stored. Three backends are available:
+
+- **`local`** (default) — Files stored on the local filesystem.
+- **`s3`** — Files stored in any S3-compatible object store (AWS S3, MinIO, DigitalOcean Spaces, Backblaze B2, etc.).
+- **`off`** — File uploads disabled. Upload endpoints return 403 and upload UI is hidden.
+
+| Key                       | Env Var                          | CLI Flag                    | Default    | Description                                                         |
+| ------------------------- | -------------------------------- | --------------------------- | ---------- | ------------------------------------------------------------------- |
+| `storage.type`            | `ENZYME_STORAGE_TYPE`            | `--storage.type`            | `local`    | Storage backend: `off`, `local`, or `s3`.                           |
+| `storage.max_upload_size` | `ENZYME_STORAGE_MAX_UPLOAD_SIZE` | `--storage.max_upload_size` | `10485760` | Maximum upload file size in bytes. Default is 10 MB. Minimum: 1 KB. |
+
+### Local Storage
+
+| Key                            | Env Var                               | CLI Flag               | Default          | Description                                                                                                                                                                                                         |
+| ------------------------------ | ------------------------------------- | ---------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `storage.local.path`           | `ENZYME_STORAGE_LOCAL_PATH`           | `--storage.local.path` | `./data/uploads` | Directory for uploaded files.                                                                                                                                                                                       |
+| `storage.local.signing_secret` | `ENZYME_STORAGE_LOCAL_SIGNING_SECRET` |                        |                  | HMAC secret for signing file download URLs. If empty, a random secret is auto-generated and saved to `.signing_secret` in the database directory for persistence across restarts. You can also set this explicitly. |
+
+### S3 Storage
+
+| Key                     | Env Var                        | Default | Description                                                                      |
+| ----------------------- | ------------------------------ | ------- | -------------------------------------------------------------------------------- |
+| `storage.s3.endpoint`   | `ENZYME_STORAGE_S3_ENDPOINT`   |         | S3 endpoint (e.g., `s3.amazonaws.com`, `nyc3.digitaloceanspaces.com`). Required. |
+| `storage.s3.bucket`     | `ENZYME_STORAGE_S3_BUCKET`     |         | S3 bucket name. Required. The bucket must already exist.                         |
+| `storage.s3.access_key` | `ENZYME_STORAGE_S3_ACCESS_KEY` |         | S3 access key. Required.                                                         |
+| `storage.s3.secret_key` | `ENZYME_STORAGE_S3_SECRET_KEY` |         | S3 secret key. Required.                                                         |
+| `storage.s3.region`     | `ENZYME_STORAGE_S3_REGION`     |         | S3 region (e.g., `us-east-1`).                                                   |
+| `storage.s3.path_style` | `ENZYME_STORAGE_S3_PATH_STYLE` | `false` | Use path-style addressing. Set `true` for MinIO.                                 |
+| `storage.s3.use_ssl`    | `ENZYME_STORAGE_S3_USE_SSL`    | `true`  | Use HTTPS for S3 connections. Set `false` for local MinIO without TLS.           |
+
+With S3 storage, file downloads use S3 pre-signed URLs — the browser downloads directly from S3 rather than proxying through the Enzyme server. No public-read ACLs are required on the bucket.
 
 ## Email
 
@@ -207,10 +233,20 @@ auth:
   session_duration: '720h'
   bcrypt_cost: 12
 
-files:
-  storage_path: '/var/lib/enzyme/uploads'
+storage:
+  type: 'local'
   max_upload_size: 26214400 # 25 MB
-  signing_secret: 'your-random-secret-here'
+  local:
+    path: '/var/lib/enzyme/uploads'
+    signing_secret: 'your-random-secret-here'
+  # To use S3 instead:
+  # type: 's3'
+  # s3:
+  #   endpoint: 's3.amazonaws.com'
+  #   bucket: 'enzyme-uploads'
+  #   access_key: 'AKIA...'
+  #   secret_key: '...'
+  #   region: 'us-east-1'
 
 email:
   enabled: true

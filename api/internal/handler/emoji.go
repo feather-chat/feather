@@ -1,13 +1,12 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -55,7 +54,7 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 		return openapi.UploadCustomEmoji401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
-	if !h.filesEnabled {
+	if h.storage == nil {
 		return openapi.UploadCustomEmoji403JSONResponse{ForbiddenJSONResponse: filesDisabledResponse()}, nil
 	}
 
@@ -147,13 +146,7 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 		SizeBytes:   int64(len(fileData)),
 	}
 
-	// Build storage path
-	storagePath := filepath.Join(h.storagePath, "emojis", workspaceID)
-	if err := os.MkdirAll(storagePath, 0755); err != nil {
-		return nil, err
-	}
-
-	// We need the ID before writing to disk, so create DB record first
+	// We need the ID before writing to storage, so create DB record first
 	if err := h.emojiRepo.Create(ctx, e); err != nil {
 		if errors.Is(err, emoji.ErrEmojiNameTaken) {
 			return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeConflict, "Emoji name already taken")}, nil
@@ -161,16 +154,15 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 		return nil, err
 	}
 
-	// Write file to disk
-	filePath := filepath.Join(storagePath, e.ID+ext)
-	if err := os.WriteFile(filePath, fileData, 0644); err != nil {
-		// Clean up DB record on file write failure
+	// Write file to storage
+	storageKey := "emojis/" + workspaceID + "/" + e.ID + ext
+	if err := h.storage.Put(ctx, storageKey, bytes.NewReader(fileData), int64(len(fileData)), contentType); err != nil {
+		// Clean up DB record on storage write failure
 		_ = h.emojiRepo.Delete(ctx, e.ID)
 		return nil, err
 	}
 
-	// Update storage path in the struct (not stored in DB response but used internally)
-	e.StoragePath = filePath
+	e.StoragePath = storageKey
 
 	apiEmoji := toOpenAPIEmoji(e)
 
@@ -243,13 +235,12 @@ func (h *Handler) DeleteCustomEmoji(ctx context.Context, request openapi.DeleteC
 		return openapi.DeleteCustomEmoji403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
-	// Delete file from disk
+	// Delete file from storage
 	ext := ".png"
 	if e.ContentType == "image/gif" {
 		ext = ".gif"
 	}
-	filePath := filepath.Join(h.storagePath, "emojis", e.WorkspaceID, e.ID+ext)
-	_ = os.Remove(filePath)
+	_ = h.storage.Delete(ctx, "emojis/"+e.WorkspaceID+"/"+e.ID+ext)
 
 	// Delete from database
 	if err := h.emojiRepo.Delete(ctx, request.Id); err != nil {
@@ -279,16 +270,9 @@ func (h *Handler) ServeEmoji(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Sanitize to prevent directory traversal
-	workspaceID = filepath.Base(workspaceID)
-	filename = filepath.Base(filename)
-	emojiPath := filepath.Join(h.storagePath, "emojis", workspaceID, filename)
-
-	// Check if file exists
-	if _, err := os.Stat(emojiPath); os.IsNotExist(err) {
-		http.Error(w, "Not found", http.StatusNotFound)
-		return
-	}
+	workspaceID = sanitizePathSegment(workspaceID)
+	filename = sanitizePathSegment(filename)
 
 	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	http.ServeFile(w, r, emojiPath)
+	h.storage.Serve(w, r, "emojis/"+workspaceID+"/"+filename)
 }

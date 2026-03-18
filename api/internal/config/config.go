@@ -7,7 +7,7 @@ type Config struct {
 	Server    ServerConfig    `koanf:"server"`
 	Database  DatabaseConfig  `koanf:"database"`
 	Auth      AuthConfig      `koanf:"auth"`
-	Files     FilesConfig     `koanf:"files"`
+	Storage   StorageConfig   `koanf:"storage"`
 	Email     EmailConfig     `koanf:"email"`
 	RateLimit RateLimitConfig `koanf:"rate_limit"`
 	SSE       SSEConfig       `koanf:"sse"`
@@ -56,13 +56,26 @@ type AuthConfig struct {
 	BcryptCost      int           `koanf:"bcrypt_cost"`
 }
 
-type FilesConfig struct {
-	// Enabled controls message file attachments and custom emoji uploads.
-	// Avatar and workspace icon uploads are not affected by this setting.
-	Enabled       bool   `koanf:"enabled"`
-	StoragePath   string `koanf:"storage_path"`
-	MaxUploadSize int64  `koanf:"max_upload_size"`
+type StorageConfig struct {
+	Type          string      `koanf:"type"` // "off", "local", or "s3"
+	MaxUploadSize int64       `koanf:"max_upload_size"`
+	Local         LocalConfig `koanf:"local"`
+	S3            S3Config    `koanf:"s3"`
+}
+
+type LocalConfig struct {
+	Path          string `koanf:"path"`
 	SigningSecret string `koanf:"signing_secret"`
+}
+
+type S3Config struct {
+	Endpoint  string `koanf:"endpoint"`
+	Bucket    string `koanf:"bucket"`
+	AccessKey string `koanf:"access_key"`
+	SecretKey string `koanf:"secret_key"`
+	Region    string `koanf:"region"`
+	PathStyle bool   `koanf:"path_style"`
+	UseSSL    bool   `koanf:"use_ssl"`
 }
 
 type EmailConfig struct {
@@ -141,10 +154,15 @@ func Defaults() *Config {
 			SessionDuration: 720 * time.Hour, // 30 days
 			BcryptCost:      12,
 		},
-		Files: FilesConfig{
-			Enabled:       true,
-			StoragePath:   "./data/uploads",
+		Storage: StorageConfig{
+			Type:          "local",
 			MaxUploadSize: 10 * 1024 * 1024, // 10MB
+			Local: LocalConfig{
+				Path: "./data/uploads",
+			},
+			S3: S3Config{
+				UseSSL: true,
+			},
 		},
 		Email: EmailConfig{
 			Enabled: false,

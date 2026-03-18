@@ -6,11 +6,12 @@ import (
 
 	"github.com/enzyme/api/internal/email"
 	"github.com/enzyme/api/internal/openapi"
+	"github.com/enzyme/api/internal/storage"
 	"github.com/enzyme/api/internal/version"
 )
 
 func TestGetServerInfo(t *testing.T) {
-	h := &Handler{emailService: email.NewTestService(false, ""), filesEnabled: true}
+	h := &Handler{emailService: email.NewTestService(false, ""), storage: storage.NewLocal(t.TempDir())}
 
 	resp, err := h.GetServerInfo(context.Background(), openapi.GetServerInfoRequestObject{})
 	if err != nil {
@@ -36,7 +37,7 @@ func TestGetServerInfo(t *testing.T) {
 }
 
 func TestGetServerInfo_EmailEnabled(t *testing.T) {
-	h := &Handler{emailService: email.NewTestService(true, ""), filesEnabled: true}
+	h := &Handler{emailService: email.NewTestService(true, ""), storage: storage.NewLocal(t.TempDir())}
 
 	resp, err := h.GetServerInfo(context.Background(), openapi.GetServerInfoRequestObject{})
 	if err != nil {
@@ -50,7 +51,7 @@ func TestGetServerInfo_EmailEnabled(t *testing.T) {
 }
 
 func TestGetServerInfo_FilesDisabled(t *testing.T) {
-	h := &Handler{emailService: email.NewTestService(false, ""), filesEnabled: false}
+	h := &Handler{emailService: email.NewTestService(false, "")} // storage is nil
 
 	resp, err := h.GetServerInfo(context.Background(), openapi.GetServerInfoRequestObject{})
 	if err != nil {

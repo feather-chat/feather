@@ -10,7 +10,7 @@ import (
 
 func TestUploadCustomEmoji_FilesDisabled(t *testing.T) {
 	h, db := testHandler(t)
-	h.filesEnabled = false
+	h.storage = nil
 
 	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
 	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
@@ -29,7 +29,7 @@ func TestUploadCustomEmoji_FilesDisabled(t *testing.T) {
 
 func TestUploadCustomEmoji_FilesDisabled_Unauthenticated(t *testing.T) {
 	h, _ := testHandler(t)
-	h.filesEnabled = false
+	h.storage = nil
 
 	ctx := context.Background()
 	resp, err := h.UploadCustomEmoji(ctx, openapi.UploadCustomEmojiRequestObject{

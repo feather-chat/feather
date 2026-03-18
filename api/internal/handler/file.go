@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -27,7 +26,7 @@ func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequ
 		return openapi.UploadFile401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
-	if !h.filesEnabled {
+	if h.storage == nil {
 		return openapi.UploadFile403JSONResponse{ForbiddenJSONResponse: filesDisabledResponse()}, nil
 	}
 
@@ -67,47 +66,37 @@ func (h *Handler) UploadFile(ctx context.Context, request openapi.UploadFileRequ
 		return openapi.UploadFile400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "Invalid filename")}, nil
 	}
 
-	// Generate storage path
+	// Generate storage key
 	fileID := ulid.Make().String()
 	ext := filepath.Ext(filename)
-	storageName := fileID + ext
-	storagePath := filepath.Join(h.storagePath, ch.WorkspaceID, string(request.Id), storageName)
+	storageKey := ch.WorkspaceID + "/" + string(request.Id) + "/" + fileID + ext
 
-	// Ensure directory exists
-	if err := os.MkdirAll(filepath.Dir(storagePath), 0755); err != nil {
-		return nil, err
+	// Read content with size limit
+	lr := io.LimitReader(part, h.maxUploadSize)
+	contentType := part.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
 	}
 
-	// Create file
-	dst, err := os.Create(storagePath)
-	if err != nil {
+	// Count bytes as we read
+	cr := &countReader{r: lr}
+	if err := h.storage.Put(ctx, storageKey, cr, -1, contentType); err != nil {
 		return nil, err
 	}
-	defer dst.Close()
-
-	// Copy file content with size limit
-	size, err := io.Copy(dst, io.LimitReader(part, h.maxUploadSize))
-	if err != nil {
-		_ = os.Remove(storagePath)
-		return nil, err
-	}
+	size := cr.n
 
 	// Create attachment record
 	attachment := &file.Attachment{
 		ChannelID:   string(request.Id),
 		UserID:      &userID,
 		Filename:    filename,
-		ContentType: part.Header.Get("Content-Type"),
+		ContentType: contentType,
 		SizeBytes:   size,
-		StoragePath: storagePath,
-	}
-
-	if attachment.ContentType == "" {
-		attachment.ContentType = "application/octet-stream"
+		StoragePath: storageKey,
 	}
 
 	if err := h.fileRepo.Create(ctx, attachment); err != nil {
-		_ = os.Remove(storagePath)
+		_ = h.storage.Delete(ctx, storageKey)
 		return nil, err
 	}
 
@@ -172,14 +161,14 @@ func (h *Handler) DownloadFile(ctx context.Context, request openapi.DownloadFile
 		}
 	}
 
-	// Open file
-	f, err := os.Open(attachment.StoragePath)
+	// Open file from storage
+	rc, err := h.storage.Get(ctx, attachment.StoragePath)
 	if err != nil {
-		return openapi.DownloadFile404JSONResponse{NotFoundJSONResponse: notFoundResponse("File not found on disk")}, nil
+		return openapi.DownloadFile404JSONResponse{NotFoundJSONResponse: notFoundResponse("File not found")}, nil
 	}
 
 	return openapi.DownloadFile200ApplicationoctetStreamResponse{
-		Body:          f,
+		Body:          rc,
 		ContentLength: attachment.SizeBytes,
 	}, nil
 }
@@ -215,8 +204,8 @@ func (h *Handler) DeleteFile(ctx context.Context, request openapi.DeleteFileRequ
 		return openapi.DeleteFile403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
-	// Delete file from disk
-	_ = os.Remove(attachment.StoragePath)
+	// Delete file from storage
+	_ = h.storage.Delete(ctx, attachment.StoragePath)
 
 	// Delete from database
 	if err := h.fileRepo.Delete(ctx, request.Id); err != nil {
@@ -254,8 +243,7 @@ func (h *Handler) SignFileUrl(ctx context.Context, request openapi.SignFileUrlRe
 		return openapi.SignFileUrl401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
-	baseURL := fmt.Sprintf("%s/api/files/%s/download", h.publicURL, request.Id)
-	url, expiresAt, err := h.signer.SignedURL(baseURL, request.Id, userID, signedURLTTL)
+	url, expiresAt, err := h.signFileURL(ctx, request.Id, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -280,8 +268,7 @@ func (h *Handler) SignFileUrls(ctx context.Context, request openapi.SignFileUrls
 
 	urls := make([]openapi.SignedUrl, 0, len(request.Body.FileIds))
 	for _, fileID := range request.Body.FileIds {
-		baseURL := fmt.Sprintf("%s/api/files/%s/download", h.publicURL, fileID)
-		url, expiresAt, err := h.signer.SignedURL(baseURL, fileID, userID, signedURLTTL)
+		url, expiresAt, err := h.signFileURL(ctx, fileID, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -293,6 +280,54 @@ func (h *Handler) SignFileUrls(ctx context.Context, request openapi.SignFileUrls
 	}
 
 	return openapi.SignFileUrls200JSONResponse{Urls: urls}, nil
+}
+
+// signFileURL returns a signed URL for the given file. For S3 storage it
+// looks up the storage key and returns an S3 pre-signed URL directly. For
+// local storage it falls back to the HMAC-signed server URL.
+func (h *Handler) signFileURL(ctx context.Context, fileID, userID string) (string, time.Time, error) {
+	// Try S3 pre-signed URL first
+	attachment, err := h.fileRepo.GetByID(ctx, fileID)
+	if err == nil {
+		s3URL, err := h.storage.SignedURL(ctx, attachment.StoragePath, signedURLTTL)
+		if err != nil {
+			return "", time.Time{}, err
+		}
+		if s3URL != "" {
+			return s3URL, time.Now().Add(signedURLTTL), nil
+		}
+	}
+
+	// Fall back to HMAC-signed server URL (local storage)
+	baseURL := fmt.Sprintf("%s/api/files/%s/download", h.publicURL, fileID)
+	return h.signer.SignedURL(baseURL, fileID, userID, signedURLTTL)
+}
+
+// countReader wraps a reader and counts the bytes read through it.
+type countReader struct {
+	r io.Reader
+	n int64
+}
+
+func (cr *countReader) Read(p []byte) (int, error) {
+	n, err := cr.r.Read(p)
+	cr.n += int64(n)
+	return n, err
+}
+
+// sanitizePathSegment strips directory traversal from a single path segment.
+func sanitizePathSegment(s string) string {
+	// Remove slashes and path separators
+	s = strings.Map(func(r rune) rune {
+		if r == '/' || r == '\\' || r == '\x00' {
+			return -1
+		}
+		return r
+	}, s)
+	if s == "" || s == "." || s == ".." {
+		return "_"
+	}
+	return s
 }
 
 func sanitizeFilename(filename string) string {

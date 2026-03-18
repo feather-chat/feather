@@ -132,11 +132,22 @@ func (d *defaultsProviderStruct) Read() (map[string]interface{}, error) {
 			"session_duration": d.defaults.Auth.SessionDuration.String(),
 			"bcrypt_cost":      d.defaults.Auth.BcryptCost,
 		},
-		"files": map[string]interface{}{
-			"enabled":         d.defaults.Files.Enabled,
-			"storage_path":    d.defaults.Files.StoragePath,
-			"max_upload_size": d.defaults.Files.MaxUploadSize,
-			"signing_secret":  d.defaults.Files.SigningSecret,
+		"storage": map[string]interface{}{
+			"type":            d.defaults.Storage.Type,
+			"max_upload_size": d.defaults.Storage.MaxUploadSize,
+			"local": map[string]interface{}{
+				"path":           d.defaults.Storage.Local.Path,
+				"signing_secret": d.defaults.Storage.Local.SigningSecret,
+			},
+			"s3": map[string]interface{}{
+				"endpoint":   d.defaults.Storage.S3.Endpoint,
+				"bucket":     d.defaults.Storage.S3.Bucket,
+				"access_key": d.defaults.Storage.S3.AccessKey,
+				"secret_key": d.defaults.Storage.S3.SecretKey,
+				"region":     d.defaults.Storage.S3.Region,
+				"path_style": d.defaults.Storage.S3.PathStyle,
+				"use_ssl":    d.defaults.Storage.S3.UseSSL,
+			},
 		},
 		"email": map[string]interface{}{
 			"enabled":  d.defaults.Email.Enabled,
@@ -193,9 +204,9 @@ func SetupFlags() *pflag.FlagSet {
 	flags.String("server.public_url", "", "Public URL")
 	flags.String("database.path", "", "Database path")
 	flags.Duration("auth.session_duration", 0, "Session duration")
-	flags.Bool("files.enabled", true, "Enable file uploads")
-	flags.String("files.storage_path", "", "File storage path")
-	flags.Int64("files.max_upload_size", 0, "Max upload size in bytes")
+	flags.String("storage.type", "", "Storage type: off, local, or s3")
+	flags.String("storage.local.path", "", "Local storage path")
+	flags.Int64("storage.max_upload_size", 0, "Max upload size in bytes")
 	flags.Bool("email.enabled", false, "Enable email sending")
 	flags.StringSlice("server.allowed_origins", nil, "Allowed CORS origins")
 	flags.String("server.tls.mode", "", "TLS mode: off, auto, or manual")

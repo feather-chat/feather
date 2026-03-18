@@ -97,14 +97,35 @@ func Validate(cfg *Config) error {
 		errs = append(errs, fmt.Errorf("auth.bcrypt_cost must be between 10 and 31"))
 	}
 
-	// Files validation (only when enabled)
-	if cfg.Files.Enabled {
-		if cfg.Files.StoragePath == "" {
-			errs = append(errs, fmt.Errorf("files.storage_path is required"))
+	// Storage validation
+	switch cfg.Storage.Type {
+	case "off":
+		// no validation needed
+	case "local":
+		if cfg.Storage.Local.Path == "" {
+			errs = append(errs, fmt.Errorf("storage.local.path is required when storage type is local"))
 		}
-		if cfg.Files.MaxUploadSize < 1024 {
-			errs = append(errs, fmt.Errorf("files.max_upload_size must be at least 1KB"))
+		if cfg.Storage.MaxUploadSize < 1024 {
+			errs = append(errs, fmt.Errorf("storage.max_upload_size must be at least 1KB"))
 		}
+	case "s3":
+		if cfg.Storage.S3.Endpoint == "" {
+			errs = append(errs, fmt.Errorf("storage.s3.endpoint is required when storage type is s3"))
+		}
+		if cfg.Storage.S3.Bucket == "" {
+			errs = append(errs, fmt.Errorf("storage.s3.bucket is required when storage type is s3"))
+		}
+		if cfg.Storage.S3.AccessKey == "" {
+			errs = append(errs, fmt.Errorf("storage.s3.access_key is required when storage type is s3"))
+		}
+		if cfg.Storage.S3.SecretKey == "" {
+			errs = append(errs, fmt.Errorf("storage.s3.secret_key is required when storage type is s3"))
+		}
+		if cfg.Storage.MaxUploadSize < 1024 {
+			errs = append(errs, fmt.Errorf("storage.max_upload_size must be at least 1KB"))
+		}
+	default:
+		errs = append(errs, fmt.Errorf("storage.type must be one of: off, local, s3"))
 	}
 
 	// Email validation (only if enabled)

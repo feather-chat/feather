@@ -1,0 +1,101 @@
+package storage
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
+
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+)
+
+// S3 implements Storage using an S3-compatible object store.
+type S3 struct {
+	client *minio.Client
+	bucket string
+}
+
+// S3Options configures the S3 storage backend.
+type S3Options struct {
+	Endpoint  string
+	Bucket    string
+	AccessKey string
+	SecretKey string
+	Region    string
+	PathStyle bool
+	UseSSL    bool
+}
+
+// NewS3 creates a new S3 storage backend. Call CheckConnectivity after
+// creation to verify the bucket exists and credentials are valid.
+func NewS3(opts S3Options) (*S3, error) {
+	client, err := minio.New(opts.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(opts.AccessKey, opts.SecretKey, ""),
+		Secure: opts.UseSSL,
+		Region: opts.Region,
+		BucketLookup: func() minio.BucketLookupType {
+			if opts.PathStyle {
+				return minio.BucketLookupPath
+			}
+			return minio.BucketLookupAuto
+		}(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("creating S3 client: %w", err)
+	}
+	return &S3{client: client, bucket: opts.Bucket}, nil
+}
+
+// CheckConnectivity verifies the bucket exists and credentials work.
+func (s *S3) CheckConnectivity(ctx context.Context) error {
+	exists, err := s.client.BucketExists(ctx, s.bucket)
+	if err != nil {
+		return fmt.Errorf("checking S3 bucket: %w", err)
+	}
+	if !exists {
+		return fmt.Errorf("S3 bucket %q does not exist", s.bucket)
+	}
+	return nil
+}
+
+func (s *S3) Put(ctx context.Context, key string, r io.Reader, size int64, contentType string) error {
+	opts := minio.PutObjectOptions{ContentType: contentType}
+	_, err := s.client.PutObject(ctx, s.bucket, key, r, size, opts)
+	return err
+}
+
+func (s *S3) Get(ctx context.Context, key string) (io.ReadCloser, error) {
+	obj, err := s.client.GetObject(ctx, s.bucket, key, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, err
+	}
+	// Verify the object actually exists by reading stat
+	if _, err := obj.Stat(); err != nil {
+		_ = obj.Close()
+		return nil, err
+	}
+	return obj, nil
+}
+
+func (s *S3) Delete(ctx context.Context, key string) error {
+	return s.client.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{})
+}
+
+func (s *S3) Serve(w http.ResponseWriter, r *http.Request, key string) {
+	url, err := s.SignedURL(r.Context(), key, time.Hour)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, url, http.StatusFound)
+}
+
+func (s *S3) SignedURL(ctx context.Context, key string, ttl time.Duration) (string, error) {
+	u, err := s.client.PresignedGetObject(ctx, s.bucket, key, ttl, nil)
+	if err != nil {
+		return "", err
+	}
+	return u.String(), nil
+}

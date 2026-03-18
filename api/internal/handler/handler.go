@@ -17,6 +17,7 @@ import (
 	"github.com/enzyme/api/internal/scheduled"
 	"github.com/enzyme/api/internal/signing"
 	"github.com/enzyme/api/internal/sse"
+	"github.com/enzyme/api/internal/storage"
 	"github.com/enzyme/api/internal/thread"
 	"github.com/enzyme/api/internal/user"
 	"github.com/enzyme/api/internal/workspace"
@@ -44,9 +45,8 @@ type Handler struct {
 	moderationRepo      *moderation.Repository
 	hub                 *sse.Hub
 	signer              *signing.Signer
-	storagePath         string
+	storage             storage.Storage
 	maxUploadSize       int64
-	filesEnabled        bool
 	publicURL           string
 }
 
@@ -69,9 +69,8 @@ type Dependencies struct {
 	ModerationRepo      *moderation.Repository
 	Hub                 *sse.Hub
 	Signer              *signing.Signer
-	StoragePath         string
+	Storage             storage.Storage
 	MaxUploadSize       int64
-	FilesEnabled        bool
 	PublicURL           string
 }
 
@@ -95,9 +94,8 @@ func New(deps Dependencies) *Handler {
 		moderationRepo:      deps.ModerationRepo,
 		hub:                 deps.Hub,
 		signer:              deps.Signer,
-		storagePath:         deps.StoragePath,
+		storage:             deps.Storage,
 		maxUploadSize:       deps.MaxUploadSize,
-		filesEnabled:        deps.FilesEnabled,
 		publicURL:           deps.PublicURL,
 	}
 }

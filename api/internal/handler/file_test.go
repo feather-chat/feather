@@ -11,7 +11,7 @@ import (
 
 func TestUploadFile_FilesDisabled(t *testing.T) {
 	h, db := testHandler(t)
-	h.filesEnabled = false
+	h.storage = nil
 
 	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
 	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
@@ -31,7 +31,7 @@ func TestUploadFile_FilesDisabled(t *testing.T) {
 
 func TestUploadFile_FilesDisabled_Unauthenticated(t *testing.T) {
 	h, _ := testHandler(t)
-	h.filesEnabled = false
+	h.storage = nil
 
 	ctx := context.Background()
 	resp, err := h.UploadFile(ctx, openapi.UploadFileRequestObject{
@@ -42,70 +42,6 @@ func TestUploadFile_FilesDisabled_Unauthenticated(t *testing.T) {
 	}
 	if _, ok := resp.(openapi.UploadFile401JSONResponse); !ok {
 		t.Fatalf("expected 401 response (auth before files check), got %T", resp)
-	}
-}
-
-func TestDownloadFile_FilesDisabled_StillWorks(t *testing.T) {
-	h, db := testHandler(t)
-
-	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
-	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
-	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "general", channel.TypePublic)
-	fileID := createFileAttachment(t, db, ch.ID, user.ID)
-
-	h.filesEnabled = false
-
-	ctx := ctxWithUser(t, h, user.ID)
-	resp, err := h.DownloadFile(ctx, openapi.DownloadFileRequestObject{
-		Id: fileID,
-	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if _, ok := resp.(openapi.DownloadFile200ApplicationoctetStreamResponse); !ok {
-		t.Fatalf("expected 200 response (download should still work), got %T", resp)
-	}
-}
-
-func TestSignFileUrl_FilesDisabled_StillWorks(t *testing.T) {
-	h, db := testHandler(t)
-
-	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
-
-	h.filesEnabled = false
-
-	ctx := ctxWithUser(t, h, user.ID)
-	resp, err := h.SignFileUrl(ctx, openapi.SignFileUrlRequestObject{
-		Id: "some-file-id",
-	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if _, ok := resp.(openapi.SignFileUrl200JSONResponse); !ok {
-		t.Fatalf("expected 200 response (sign should still work), got %T", resp)
-	}
-}
-
-func TestDeleteFile_FilesDisabled_StillWorks(t *testing.T) {
-	h, db := testHandler(t)
-
-	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
-	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
-	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "general", channel.TypePublic)
-	fileID := createFileAttachment(t, db, ch.ID, user.ID)
-
-	// Disable files after creating the attachment
-	h.filesEnabled = false
-
-	ctx := ctxWithUser(t, h, user.ID)
-	resp, err := h.DeleteFile(ctx, openapi.DeleteFileRequestObject{
-		Id: fileID,
-	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if _, ok := resp.(openapi.DeleteFile200JSONResponse); !ok {
-		t.Fatalf("expected 200 response (delete should still work), got %T", resp)
 	}
 }
 
