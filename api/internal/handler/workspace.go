@@ -732,7 +732,9 @@ func (h *Handler) UploadWorkspaceIcon(ctx context.Context, request openapi.Uploa
 	// Delete old icon file if it exists and is a local icon
 	if ws.IconURL != nil && strings.HasPrefix(*ws.IconURL, "/api/workspace-icons/") {
 		oldPath := strings.TrimPrefix(*ws.IconURL, "/api/workspace-icons/")
-		_ = h.storage.Delete(ctx, "workspace-icons/"+oldPath)
+		if parts := strings.SplitN(oldPath, "/", 2); len(parts) == 2 {
+			_ = h.storage.Delete(ctx, "workspace-icons/"+sanitizePathSegment(parts[0])+"/"+sanitizePathSegment(parts[1]))
+		}
 	}
 
 	// Update workspace's icon URL
@@ -780,7 +782,9 @@ func (h *Handler) DeleteWorkspaceIcon(ctx context.Context, request openapi.Delet
 	// Delete icon file if it's a local icon
 	if h.storage != nil && ws.IconURL != nil && strings.HasPrefix(*ws.IconURL, "/api/workspace-icons/") {
 		oldPath := strings.TrimPrefix(*ws.IconURL, "/api/workspace-icons/")
-		_ = h.storage.Delete(ctx, "workspace-icons/"+oldPath)
+		if parts := strings.SplitN(oldPath, "/", 2); len(parts) == 2 {
+			_ = h.storage.Delete(ctx, "workspace-icons/"+sanitizePathSegment(parts[0])+"/"+sanitizePathSegment(parts[1]))
+		}
 	}
 
 	// Clear workspace's icon URL
@@ -810,6 +814,7 @@ func (h *Handler) ServeWorkspaceIcon(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	h.storage.Serve(w, r, "workspace-icons/"+workspaceID+"/"+filename)
 }
 

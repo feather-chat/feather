@@ -63,24 +63,25 @@ func (s *S3) CheckConnectivity(ctx context.Context) error {
 func (s *S3) Put(ctx context.Context, key string, r io.Reader, size int64, contentType string) error {
 	opts := minio.PutObjectOptions{ContentType: contentType}
 	_, err := s.client.PutObject(ctx, s.bucket, key, r, size, opts)
-	return err
+	if err != nil {
+		return fmt.Errorf("putting object %q: %w", key, err)
+	}
+	return nil
 }
 
 func (s *S3) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 	obj, err := s.client.GetObject(ctx, s.bucket, key, minio.GetObjectOptions{})
 	if err != nil {
-		return nil, err
-	}
-	// Verify the object actually exists by reading stat
-	if _, err := obj.Stat(); err != nil {
-		_ = obj.Close()
-		return nil, err
+		return nil, fmt.Errorf("getting object %q: %w", key, err)
 	}
 	return obj, nil
 }
 
 func (s *S3) Delete(ctx context.Context, key string) error {
-	return s.client.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{})
+	if err := s.client.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{}); err != nil {
+		return fmt.Errorf("deleting object %q: %w", key, err)
+	}
+	return nil
 }
 
 func (s *S3) Serve(w http.ResponseWriter, r *http.Request, key string) {

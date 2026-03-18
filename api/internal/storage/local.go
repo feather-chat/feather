@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -20,7 +21,20 @@ func NewLocal(basePath string) *Local {
 }
 
 func (l *Local) fullPath(key string) string {
-	return filepath.Join(l.basePath, filepath.FromSlash(key))
+	p := filepath.Join(l.basePath, filepath.FromSlash(key))
+	// Defense-in-depth: verify the resolved path stays within basePath.
+	absPath, err := filepath.Abs(p)
+	if err != nil {
+		return filepath.Join(l.basePath, "_invalid")
+	}
+	absBase, err := filepath.Abs(l.basePath)
+	if err != nil {
+		return filepath.Join(l.basePath, "_invalid")
+	}
+	if !strings.HasPrefix(absPath, absBase+string(filepath.Separator)) && absPath != absBase {
+		return filepath.Join(l.basePath, "_invalid")
+	}
+	return p
 }
 
 func (l *Local) Put(_ context.Context, key string, r io.Reader, _ int64, _ string) error {
@@ -53,12 +67,7 @@ func (l *Local) Delete(_ context.Context, key string) error {
 }
 
 func (l *Local) Serve(w http.ResponseWriter, r *http.Request, key string) {
-	p := l.fullPath(key)
-	if _, err := os.Stat(p); os.IsNotExist(err) {
-		http.Error(w, "Not found", http.StatusNotFound)
-		return
-	}
-	http.ServeFile(w, r, p)
+	http.ServeFile(w, r, l.fullPath(key))
 }
 
 func (l *Local) SignedURL(_ context.Context, _ string, _ time.Duration) (string, error) {

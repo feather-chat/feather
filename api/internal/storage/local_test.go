@@ -96,3 +96,32 @@ func TestLocal_SignedURL(t *testing.T) {
 		t.Fatalf("expected empty URL, got %q", url)
 	}
 }
+
+func TestLocal_PathTraversal(t *testing.T) {
+	dir := t.TempDir()
+	s := NewLocal(dir)
+	ctx := context.Background()
+
+	// Write a file at the base path for the attacker to try to reach
+	secretFile := filepath.Join(filepath.Dir(dir), "secret.txt")
+	if err := os.WriteFile(secretFile, []byte("secret"), 0644); err != nil {
+		t.Fatalf("writing secret file: %v", err)
+	}
+	defer os.Remove(secretFile)
+
+	// Attempt directory traversal — should resolve to _invalid path inside basePath
+	_, err := s.Get(ctx, "../secret.txt")
+	if err == nil {
+		t.Fatal("expected error when traversing outside basePath")
+	}
+
+	// Put with traversal key should not write outside basePath
+	if err := s.Put(ctx, "../escape.txt", bytes.NewReader([]byte("pwned")), 5, "text/plain"); err != nil {
+		// The write should either error or land inside basePath
+		return
+	}
+	// If no error, verify the file was NOT written outside basePath
+	if _, err := os.Stat(filepath.Join(filepath.Dir(dir), "escape.txt")); err == nil {
+		t.Fatal("Put wrote file outside basePath via path traversal")
+	}
+}

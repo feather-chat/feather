@@ -164,7 +164,7 @@ func (h *Handler) UploadAvatar(ctx context.Context, request openapi.UploadAvatar
 
 	// Delete old avatar file if it exists and is a local avatar
 	if u.AvatarURL != nil && strings.HasPrefix(*u.AvatarURL, "/api/avatars/") {
-		oldFilename := strings.TrimPrefix(*u.AvatarURL, "/api/avatars/")
+		oldFilename := sanitizePathSegment(strings.TrimPrefix(*u.AvatarURL, "/api/avatars/"))
 		_ = h.storage.Delete(ctx, "avatars/"+oldFilename)
 	}
 
@@ -203,7 +203,7 @@ func (h *Handler) DeleteAvatar(ctx context.Context, request openapi.DeleteAvatar
 
 	// Delete avatar file if it's a local avatar
 	if h.storage != nil && u.AvatarURL != nil && strings.HasPrefix(*u.AvatarURL, "/api/avatars/") {
-		filename := strings.TrimPrefix(*u.AvatarURL, "/api/avatars/")
+		filename := sanitizePathSegment(strings.TrimPrefix(*u.AvatarURL, "/api/avatars/"))
 		_ = h.storage.Delete(ctx, "avatars/"+filename)
 	}
 
@@ -232,5 +232,6 @@ func (h *Handler) ServeAvatar(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	h.storage.Serve(w, r, "avatars/"+filename)
 }

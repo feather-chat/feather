@@ -130,3 +130,73 @@ func TestDeleteFile_Unauthenticated(t *testing.T) {
 		t.Fatalf("expected 401 response, got %T", resp)
 	}
 }
+
+func TestDownloadFile_StorageDisabled(t *testing.T) {
+	h, db := testHandler(t)
+
+	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
+	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "general", channel.TypePublic)
+
+	fileID := createFileAttachment(t, db, ch.ID, user.ID)
+
+	// Disable storage after creating the file to simulate an existing file
+	// remaining accessible (via DB) but storage being turned off.
+	h.storage = nil
+
+	ctx := ctxWithUser(t, h, user.ID)
+	resp, err := h.DownloadFile(ctx, openapi.DownloadFileRequestObject{
+		Id: fileID,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.DownloadFile404JSONResponse); !ok {
+		t.Fatalf("expected 404 response when storage disabled, got %T", resp)
+	}
+}
+
+func TestSignFileUrl_StorageDisabled(t *testing.T) {
+	h, db := testHandler(t)
+
+	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
+	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "general", channel.TypePublic)
+
+	fileID := createFileAttachment(t, db, ch.ID, user.ID)
+	h.storage = nil
+
+	ctx := ctxWithUser(t, h, user.ID)
+	resp, err := h.SignFileUrl(ctx, openapi.SignFileUrlRequestObject{
+		Id: fileID,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// With storage disabled, signFileURL falls back to HMAC-signed server URL
+	if _, ok := resp.(openapi.SignFileUrl200JSONResponse); !ok {
+		t.Fatalf("expected 200 response with HMAC URL, got %T", resp)
+	}
+}
+
+func TestDeleteFile_StorageDisabled(t *testing.T) {
+	h, db := testHandler(t)
+
+	user := testutil.CreateTestUser(t, db, "user@test.com", "User")
+	ws := testutil.CreateTestWorkspace(t, db, user.ID, "WS")
+	ch := testutil.CreateTestChannel(t, db, ws.ID, user.ID, "general", channel.TypePublic)
+
+	fileID := createFileAttachment(t, db, ch.ID, user.ID)
+	h.storage = nil
+
+	ctx := ctxWithUser(t, h, user.ID)
+	resp, err := h.DeleteFile(ctx, openapi.DeleteFileRequestObject{
+		Id: fileID,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := resp.(openapi.DeleteFile200JSONResponse); !ok {
+		t.Fatalf("expected 200 response (DB record deleted even if storage off), got %T", resp)
+	}
+}

@@ -140,8 +140,7 @@ func New(cfg *config.Config) (*App, error) {
 	case "local":
 		store = storage.NewLocal(cfg.Storage.Local.Path)
 	case "s3":
-		var err error
-		store, err = storage.NewS3(storage.S3Options{
+		s3Store, err := storage.NewS3(storage.S3Options{
 			Endpoint:  cfg.Storage.S3.Endpoint,
 			Bucket:    cfg.Storage.S3.Bucket,
 			AccessKey: cfg.Storage.S3.AccessKey,
@@ -154,10 +153,11 @@ func New(cfg *config.Config) (*App, error) {
 			_ = db.Close()
 			return nil, fmt.Errorf("initializing S3 storage: %w", err)
 		}
-		if err := store.(*storage.S3).CheckConnectivity(context.Background()); err != nil {
+		if err := s3Store.CheckConnectivity(context.Background()); err != nil {
 			_ = db.Close()
 			return nil, fmt.Errorf("S3 connectivity check: %w", err)
 		}
+		store = s3Store
 	case "off":
 		// store remains nil — upload endpoints return 403
 	}

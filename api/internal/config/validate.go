@@ -105,9 +105,6 @@ func Validate(cfg *Config) error {
 		if cfg.Storage.Local.Path == "" {
 			errs = append(errs, fmt.Errorf("storage.local.path is required when storage type is local"))
 		}
-		if cfg.Storage.MaxUploadSize < 1024 {
-			errs = append(errs, fmt.Errorf("storage.max_upload_size must be at least 1KB"))
-		}
 	case "s3":
 		if cfg.Storage.S3.Endpoint == "" {
 			errs = append(errs, fmt.Errorf("storage.s3.endpoint is required when storage type is s3"))
@@ -121,11 +118,11 @@ func Validate(cfg *Config) error {
 		if cfg.Storage.S3.SecretKey == "" {
 			errs = append(errs, fmt.Errorf("storage.s3.secret_key is required when storage type is s3"))
 		}
-		if cfg.Storage.MaxUploadSize < 1024 {
-			errs = append(errs, fmt.Errorf("storage.max_upload_size must be at least 1KB"))
-		}
 	default:
 		errs = append(errs, fmt.Errorf("storage.type must be one of: off, local, s3"))
+	}
+	if cfg.Storage.Type != "off" && cfg.Storage.MaxUploadSize < 1024 {
+		errs = append(errs, fmt.Errorf("storage.max_upload_size must be at least 1KB"))
 	}
 
 	// Email validation (only if enabled)

@@ -42,6 +42,16 @@ func Load(configPath string, flags *pflag.FlagSet) (*Config, error) {
 		}
 	}
 
+	// Check for deprecated files.* config keys (renamed to storage.* in v0.2)
+	if k.Exists("files") {
+		return nil, fmt.Errorf("deprecated 'files.*' config keys detected; they have been renamed to 'storage.*':\n" +
+			"  files.enabled: false    → storage.type: \"off\"\n" +
+			"  files.storage_path      → storage.local.path\n" +
+			"  files.signing_secret    → storage.local.signing_secret\n" +
+			"  files.max_upload_size   → storage.max_upload_size\n" +
+			"Please update your config file and restart")
+	}
+
 	// 3. Load from environment variables (ENZYME_ prefix)
 	// Build reverse map from env var names to koanf keys using loaded defaults.
 	// This correctly handles keys with underscores (e.g. max_open_conns) that
