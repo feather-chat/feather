@@ -23,7 +23,7 @@ import {
   useDeleteWorkspaceIcon,
   useCreateInvite,
 } from '../../hooks/useWorkspaces';
-import { useAuth } from '../../hooks';
+import { useAuth, useServerInfo } from '../../hooks';
 import {
   Modal,
   Avatar,
@@ -84,6 +84,7 @@ export function WorkspaceSettingsModal({
   defaultTab = 'general',
 }: WorkspaceSettingsModalProps) {
   const { user, workspaces } = useAuth();
+  const { filesEnabled } = useServerInfo();
   const workspaceMembership = workspaces?.find((w) => w.id === workspaceId);
   const canManage = workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin';
 
@@ -388,7 +389,7 @@ export function WorkspaceSettingsModal({
                         )}
                       </div>
 
-                      {canManage && (
+                      {canManage && filesEnabled && (
                         <div className="flex flex-col gap-2">
                           <input
                             ref={fileInputRef}

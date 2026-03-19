@@ -232,6 +232,5 @@ func (h *Handler) ServeAvatar(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	h.storage.Serve(w, r, "avatars/"+filename)
 }

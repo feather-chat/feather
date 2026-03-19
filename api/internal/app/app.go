@@ -140,15 +140,7 @@ func New(cfg *config.Config) (*App, error) {
 	case "local":
 		store = storage.NewLocal(cfg.Storage.Local.Path)
 	case "s3":
-		s3Store, err := storage.NewS3(storage.S3Options{
-			Endpoint:  cfg.Storage.S3.Endpoint,
-			Bucket:    cfg.Storage.S3.Bucket,
-			AccessKey: cfg.Storage.S3.AccessKey,
-			SecretKey: cfg.Storage.S3.SecretKey,
-			Region:    cfg.Storage.S3.Region,
-			PathStyle: cfg.Storage.S3.PathStyle,
-			UseSSL:    cfg.Storage.S3.UseSSL,
-		})
+		s3Store, err := storage.NewS3(cfg.Storage.S3)
 		if err != nil {
 			_ = db.Close()
 			return nil, fmt.Errorf("initializing S3 storage: %w", err)

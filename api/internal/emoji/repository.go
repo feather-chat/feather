@@ -24,7 +24,9 @@ func NewRepository(db *sql.DB) *Repository {
 }
 
 func (r *Repository) Create(ctx context.Context, e *CustomEmoji) error {
-	e.ID = ulid.Make().String()
+	if e.ID == "" {
+		e.ID = ulid.Make().String()
+	}
 	e.CreatedAt = time.Now().UTC()
 
 	_, err := r.db.ExecContext(ctx, `

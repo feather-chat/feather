@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/enzyme/api/internal/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -17,26 +18,15 @@ type S3 struct {
 	bucket string
 }
 
-// S3Options configures the S3 storage backend.
-type S3Options struct {
-	Endpoint  string
-	Bucket    string
-	AccessKey string
-	SecretKey string
-	Region    string
-	PathStyle bool
-	UseSSL    bool
-}
-
 // NewS3 creates a new S3 storage backend. Call CheckConnectivity after
 // creation to verify the bucket exists and credentials are valid.
-func NewS3(opts S3Options) (*S3, error) {
-	client, err := minio.New(opts.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(opts.AccessKey, opts.SecretKey, ""),
-		Secure: opts.UseSSL,
-		Region: opts.Region,
+func NewS3(cfg config.S3Config) (*S3, error) {
+	client, err := minio.New(cfg.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Secure: cfg.UseSSL,
+		Region: cfg.Region,
 		BucketLookup: func() minio.BucketLookupType {
-			if opts.PathStyle {
+			if cfg.PathStyle {
 				return minio.BucketLookupPath
 			}
 			return minio.BucketLookupAuto
@@ -45,7 +35,7 @@ func NewS3(opts S3Options) (*S3, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating S3 client: %w", err)
 	}
-	return &S3{client: client, bucket: opts.Bucket}, nil
+	return &S3{client: client, bucket: cfg.Bucket}, nil
 }
 
 // CheckConnectivity verifies the bucket exists and credentials work.
@@ -74,6 +64,12 @@ func (s *S3) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting object %q: %w", key, err)
 	}
+	// Stat to surface 404s immediately — minio returns a non-nil object even
+	// for missing keys; the error only appears on Read/Stat.
+	if _, err := obj.Stat(); err != nil {
+		_ = obj.Close()
+		return nil, fmt.Errorf("getting object %q: %w", key, err)
+	}
 	return obj, nil
 }
 
@@ -90,13 +86,14 @@ func (s *S3) Serve(w http.ResponseWriter, r *http.Request, key string) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Cache-Control", "public, max-age=3600")
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
 func (s *S3) SignedURL(ctx context.Context, key string, ttl time.Duration) (string, error) {
 	u, err := s.client.PresignedGetObject(ctx, s.bucket, key, ttl, nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("presigning %q: %w", key, err)
 	}
 	return u.String(), nil
 }

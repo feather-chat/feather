@@ -15,6 +15,7 @@ import (
 	"github.com/enzyme/api/internal/sse"
 	"github.com/enzyme/api/internal/workspace"
 	"github.com/go-chi/chi/v5"
+	"github.com/oklog/ulid/v2"
 )
 
 var (
@@ -137,16 +138,20 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 		return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "File too large: maximum size is 256KB")}, nil
 	}
 
-	// Create emoji record first to get ID
+	// Pre-generate ID and storage key so StoragePath is persisted with the DB record
+	emojiID := ulid.Make().String()
+	storageKey := "emojis/" + workspaceID + "/" + emojiID + ext
+
 	e := &emoji.CustomEmoji{
+		ID:          emojiID,
 		WorkspaceID: workspaceID,
 		Name:        name,
 		CreatedBy:   userID,
 		ContentType: contentType,
 		SizeBytes:   int64(len(fileData)),
+		StoragePath: storageKey,
 	}
 
-	// We need the ID before writing to storage, so create DB record first
 	if err := h.emojiRepo.Create(ctx, e); err != nil {
 		if errors.Is(err, emoji.ErrEmojiNameTaken) {
 			return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeConflict, "Emoji name already taken")}, nil
@@ -155,14 +160,10 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 	}
 
 	// Write file to storage
-	storageKey := "emojis/" + workspaceID + "/" + e.ID + ext
 	if err := h.storage.Put(ctx, storageKey, bytes.NewReader(fileData), int64(len(fileData)), contentType); err != nil {
-		// Clean up DB record on storage write failure
 		_ = h.emojiRepo.Delete(ctx, e.ID)
 		return nil, err
 	}
-
-	e.StoragePath = storageKey
 
 	apiEmoji := toOpenAPIEmoji(e)
 
@@ -237,11 +238,16 @@ func (h *Handler) DeleteCustomEmoji(ctx context.Context, request openapi.DeleteC
 
 	// Delete file from storage
 	if h.storage != nil {
-		ext := ".png"
-		if e.ContentType == "image/gif" {
-			ext = ".gif"
+		if e.StoragePath != "" {
+			_ = h.storage.Delete(ctx, e.StoragePath)
+		} else {
+			// Fallback for emojis created before StoragePath was persisted
+			ext := ".png"
+			if e.ContentType == "image/gif" {
+				ext = ".gif"
+			}
+			_ = h.storage.Delete(ctx, "emojis/"+e.WorkspaceID+"/"+e.ID+ext)
 		}
-		_ = h.storage.Delete(ctx, "emojis/"+e.WorkspaceID+"/"+e.ID+ext)
 	}
 
 	// Delete from database
@@ -279,6 +285,5 @@ func (h *Handler) ServeEmoji(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	h.storage.Serve(w, r, "emojis/"+workspaceID+"/"+filename)
 }

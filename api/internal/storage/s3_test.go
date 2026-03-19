@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/enzyme/api/internal/config"
 )
 
 // TestS3_ImplementsStorage is a compile-time check that S3 satisfies the Storage interface.
@@ -21,7 +23,7 @@ func TestS3_Serve_Redirects(t *testing.T) {
 	// Strip the scheme for minio endpoint
 	endpoint := fakeS3.Listener.Addr().String()
 
-	s3, err := NewS3(S3Options{
+	s3, err := NewS3(config.S3Config{
 		Endpoint:  endpoint,
 		Bucket:    "test-bucket",
 		AccessKey: "minioadmin",
