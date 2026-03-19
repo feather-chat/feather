@@ -21,6 +21,7 @@ import (
 	"github.com/enzyme/api/internal/notification"
 	"github.com/enzyme/api/internal/signing"
 	"github.com/enzyme/api/internal/sse"
+	"github.com/enzyme/api/internal/storage"
 	"github.com/enzyme/api/internal/testutil"
 	"github.com/enzyme/api/internal/thread"
 	"github.com/enzyme/api/internal/user"
@@ -72,9 +73,8 @@ func testHandler(t *testing.T) (*Handler, *sql.DB) {
 		EmailService:        emailService,
 		Hub:                 hub,
 		Signer:              signing.NewSigner("test-signing-secret"),
-		StoragePath:         t.TempDir(),
+		Storage:             storage.NewLocal(t.TempDir()),
 		MaxUploadSize:       10 * 1024 * 1024,
-		FilesEnabled:        true,
 		PublicURL:           "http://localhost:8080",
 	})
 
@@ -212,9 +212,8 @@ func testHandlerWithLinkPreviews(t *testing.T, httpClient *http.Client) (*Handle
 		EmailService:        emailService,
 		Hub:                 hub,
 		Signer:              signing.NewSigner("test-signing-secret"),
-		StoragePath:         t.TempDir(),
+		Storage:             storage.NewLocal(t.TempDir()),
 		MaxUploadSize:       10 * 1024 * 1024,
-		FilesEnabled:        true,
 		PublicURL:           "http://localhost:8080",
 	})
 

@@ -1,12 +1,11 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/enzyme/api/internal/gravatar"
@@ -137,51 +136,43 @@ func (h *Handler) UploadAvatar(ctx context.Context, request openapi.UploadAvatar
 		}, nil
 	}
 
-	// Generate filename and storage path
-	fileID := ulid.Make().String()
-	filename := fileID + ext
-	avatarDir := filepath.Join(h.storagePath, "avatars")
-	storagePath := filepath.Join(avatarDir, filename)
-
-	// Ensure directory exists
-	if err := os.MkdirAll(avatarDir, 0755); err != nil {
-		return nil, err
+	if h.storage == nil {
+		return openapi.UploadAvatar403JSONResponse{
+			ForbiddenJSONResponse: openapi.ForbiddenJSONResponse(newErrorResponse(ErrCodeFilesDisabled, "File uploads are disabled")),
+		}, nil
 	}
 
-	// Create file
-	dst, err := os.Create(storagePath)
+	// Read with size limit
+	data, err := io.ReadAll(io.LimitReader(part, maxAvatarSize+1))
 	if err != nil {
 		return nil, err
 	}
-	defer dst.Close()
-
-	// Copy file content with size limit
-	size, err := io.Copy(dst, io.LimitReader(part, maxAvatarSize+1))
-	if err != nil {
-		_ = os.Remove(storagePath)
-		return nil, err
-	}
-
-	// Check if file exceeds max size
-	if size > maxAvatarSize {
-		_ = os.Remove(storagePath)
+	if int64(len(data)) > maxAvatarSize {
 		return openapi.UploadAvatar400JSONResponse{
 			BadRequestJSONResponse: openapi.BadRequestJSONResponse(newErrorResponse(ErrCodeValidationError, "File too large. Maximum size is 5MB")),
 		}, nil
 	}
 
+	// Generate storage key
+	fileID := ulid.Make().String()
+	filename := fileID + ext
+	storageKey := "avatars/" + filename
+
+	if err := h.storage.Put(ctx, storageKey, bytes.NewReader(data), int64(len(data)), contentType); err != nil {
+		return nil, err
+	}
+
 	// Delete old avatar file if it exists and is a local avatar
 	if u.AvatarURL != nil && strings.HasPrefix(*u.AvatarURL, "/api/avatars/") {
-		oldFilename := strings.TrimPrefix(*u.AvatarURL, "/api/avatars/")
-		oldPath := filepath.Join(avatarDir, oldFilename)
-		_ = os.Remove(oldPath) // Ignore errors - file may not exist
+		oldFilename := sanitizePathSegment(strings.TrimPrefix(*u.AvatarURL, "/api/avatars/"))
+		_ = h.storage.Delete(ctx, "avatars/"+oldFilename)
 	}
 
 	// Update user's avatar URL
 	avatarURL := "/api/avatars/" + filename
 	u.AvatarURL = &avatarURL
 	if err := h.userRepo.Update(ctx, u); err != nil {
-		_ = os.Remove(storagePath)
+		_ = h.storage.Delete(ctx, storageKey)
 		return nil, err
 	}
 
@@ -211,10 +202,9 @@ func (h *Handler) DeleteAvatar(ctx context.Context, request openapi.DeleteAvatar
 	}
 
 	// Delete avatar file if it's a local avatar
-	if u.AvatarURL != nil && strings.HasPrefix(*u.AvatarURL, "/api/avatars/") {
-		filename := strings.TrimPrefix(*u.AvatarURL, "/api/avatars/")
-		avatarPath := filepath.Join(h.storagePath, "avatars", filename)
-		_ = os.Remove(avatarPath) // Ignore errors - file may not exist
+	if h.storage != nil && u.AvatarURL != nil && strings.HasPrefix(*u.AvatarURL, "/api/avatars/") {
+		filename := sanitizePathSegment(strings.TrimPrefix(*u.AvatarURL, "/api/avatars/"))
+		_ = h.storage.Delete(ctx, "avatars/"+filename)
 	}
 
 	// Clear user's avatar URL
@@ -237,14 +227,10 @@ func (h *Handler) ServeAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Sanitize filename to prevent directory traversal
-	filename = filepath.Base(filename)
-	avatarPath := filepath.Join(h.storagePath, "avatars", filename)
-
-	// Check if file exists
-	if _, err := os.Stat(avatarPath); os.IsNotExist(err) {
+	filename = sanitizePathSegment(filename)
+	if h.storage == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-
-	http.ServeFile(w, r, avatarPath)
+	h.storage.Serve(w, r, "avatars/"+filename)
 }

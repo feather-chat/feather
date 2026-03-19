@@ -1,13 +1,12 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/enzyme/api/internal/sse"
 	"github.com/enzyme/api/internal/workspace"
 	"github.com/go-chi/chi/v5"
+	"github.com/oklog/ulid/v2"
 )
 
 var (
@@ -55,7 +55,7 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 		return openapi.UploadCustomEmoji401JSONResponse{UnauthorizedJSONResponse: unauthorizedResponse()}, nil
 	}
 
-	if !h.filesEnabled {
+	if h.storage == nil {
 		return openapi.UploadCustomEmoji403JSONResponse{ForbiddenJSONResponse: filesDisabledResponse()}, nil
 	}
 
@@ -138,22 +138,20 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 		return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeValidationError, "File too large: maximum size is 256KB")}, nil
 	}
 
-	// Create emoji record first to get ID
+	// Pre-generate ID and storage key so StoragePath is persisted with the DB record
+	emojiID := ulid.Make().String()
+	storageKey := "emojis/" + workspaceID + "/" + emojiID + ext
+
 	e := &emoji.CustomEmoji{
+		ID:          emojiID,
 		WorkspaceID: workspaceID,
 		Name:        name,
 		CreatedBy:   userID,
 		ContentType: contentType,
 		SizeBytes:   int64(len(fileData)),
+		StoragePath: storageKey,
 	}
 
-	// Build storage path
-	storagePath := filepath.Join(h.storagePath, "emojis", workspaceID)
-	if err := os.MkdirAll(storagePath, 0755); err != nil {
-		return nil, err
-	}
-
-	// We need the ID before writing to disk, so create DB record first
 	if err := h.emojiRepo.Create(ctx, e); err != nil {
 		if errors.Is(err, emoji.ErrEmojiNameTaken) {
 			return openapi.UploadCustomEmoji400JSONResponse{BadRequestJSONResponse: badRequestResponse(ErrCodeConflict, "Emoji name already taken")}, nil
@@ -161,16 +159,11 @@ func (h *Handler) UploadCustomEmoji(ctx context.Context, request openapi.UploadC
 		return nil, err
 	}
 
-	// Write file to disk
-	filePath := filepath.Join(storagePath, e.ID+ext)
-	if err := os.WriteFile(filePath, fileData, 0644); err != nil {
-		// Clean up DB record on file write failure
+	// Write file to storage
+	if err := h.storage.Put(ctx, storageKey, bytes.NewReader(fileData), int64(len(fileData)), contentType); err != nil {
 		_ = h.emojiRepo.Delete(ctx, e.ID)
 		return nil, err
 	}
-
-	// Update storage path in the struct (not stored in DB response but used internally)
-	e.StoragePath = filePath
 
 	apiEmoji := toOpenAPIEmoji(e)
 
@@ -243,13 +236,19 @@ func (h *Handler) DeleteCustomEmoji(ctx context.Context, request openapi.DeleteC
 		return openapi.DeleteCustomEmoji403JSONResponse{ForbiddenJSONResponse: forbiddenResponse("Permission denied")}, nil
 	}
 
-	// Delete file from disk
-	ext := ".png"
-	if e.ContentType == "image/gif" {
-		ext = ".gif"
+	// Delete file from storage
+	if h.storage != nil {
+		if e.StoragePath != "" {
+			_ = h.storage.Delete(ctx, e.StoragePath)
+		} else {
+			// Fallback for emojis created before StoragePath was persisted
+			ext := ".png"
+			if e.ContentType == "image/gif" {
+				ext = ".gif"
+			}
+			_ = h.storage.Delete(ctx, "emojis/"+e.WorkspaceID+"/"+e.ID+ext)
+		}
 	}
-	filePath := filepath.Join(h.storagePath, "emojis", e.WorkspaceID, e.ID+ext)
-	_ = os.Remove(filePath)
 
 	// Delete from database
 	if err := h.emojiRepo.Delete(ctx, request.Id); err != nil {
@@ -279,16 +278,12 @@ func (h *Handler) ServeEmoji(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Sanitize to prevent directory traversal
-	workspaceID = filepath.Base(workspaceID)
-	filename = filepath.Base(filename)
-	emojiPath := filepath.Join(h.storagePath, "emojis", workspaceID, filename)
+	workspaceID = sanitizePathSegment(workspaceID)
+	filename = sanitizePathSegment(filename)
 
-	// Check if file exists
-	if _, err := os.Stat(emojiPath); os.IsNotExist(err) {
+	if h.storage == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	http.ServeFile(w, r, emojiPath)
+	h.storage.Serve(w, r, "emojis/"+workspaceID+"/"+filename)
 }

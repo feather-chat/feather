@@ -7543,6 +7543,15 @@ func (response SignFileUrl401JSONResponse) VisitSignFileUrlResponse(w http.Respo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type SignFileUrl403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response SignFileUrl403JSONResponse) VisitSignFileUrlResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type SignFileUrl404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response SignFileUrl404JSONResponse) VisitSignFileUrlResponse(w http.ResponseWriter) error {
@@ -8499,6 +8508,15 @@ type UploadAvatar401JSONResponse struct{ UnauthorizedJSONResponse }
 func (response UploadAvatar401JSONResponse) VisitUploadAvatarResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UploadAvatar403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UploadAvatar403JSONResponse) VisitUploadAvatarResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }

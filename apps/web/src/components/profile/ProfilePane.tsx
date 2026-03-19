@@ -13,6 +13,7 @@ import {
   useUploadAvatar,
   useDeleteAvatar,
   useAuth,
+  useServerInfo,
 } from '../../hooks';
 import { useProfilePanel } from '../../hooks/usePanel';
 import { useBlocks, useBlockUser, useUnblockUser } from '../../hooks/useModeration';
@@ -298,6 +299,7 @@ function EditProfileForm({ userId, profile, onCancel, onSuccess }: EditProfileFo
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { filesEnabled } = useServerInfo();
 
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
@@ -397,51 +399,55 @@ function EditProfileForm({ userId, profile, onCancel, onSuccess }: EditProfileFo
       )}
 
       {/* Avatar upload */}
-      <div className="flex flex-col items-center gap-3">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/gif,image/webp"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+      {filesEnabled && (
+        <div className="flex flex-col items-center gap-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
 
-        <div className="flex flex-wrap justify-center gap-2">
-          {selectedFile ? (
-            <Button type="button" variant="secondary" size="sm" onPress={handleClearSelection}>
-              <XMarkIcon className="mr-1 h-4 w-4" />
-              Clear
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onPress={() => fileInputRef.current?.click()}
-            >
-              <PhotoIcon className="mr-1 h-4 w-4" />
-              Upload Photo
-            </Button>
-          )}
+          <div className="flex flex-wrap justify-center gap-2">
+            {selectedFile ? (
+              <Button type="button" variant="secondary" size="sm" onPress={handleClearSelection}>
+                <XMarkIcon className="mr-1 h-4 w-4" />
+                Clear
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onPress={() => fileInputRef.current?.click()}
+              >
+                <PhotoIcon className="mr-1 h-4 w-4" />
+                Upload Photo
+              </Button>
+            )}
 
-          {hasExistingAvatar && !selectedFile && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onPress={handleRemoveAvatar}
-              isLoading={deleteAvatar.isPending}
-            >
-              <TrashIcon className="mr-1 h-4 w-4" />
-              Remove
-            </Button>
+            {hasExistingAvatar && !selectedFile && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onPress={handleRemoveAvatar}
+                isLoading={deleteAvatar.isPending}
+              >
+                <TrashIcon className="mr-1 h-4 w-4" />
+                Remove
+              </Button>
+            )}
+          </div>
+
+          {selectedFile && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Selected: {selectedFile.name}
+            </p>
           )}
         </div>
-
-        {selectedFile && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">Selected: {selectedFile.name}</p>
-        )}
-      </div>
+      )}
 
       {/* Form fields */}
       <div className="space-y-4">

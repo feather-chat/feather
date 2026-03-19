@@ -62,8 +62,10 @@ You can customize these paths via [configuration](/docs/configuration/). For pro
 database:
   path: '/var/lib/enzyme/enzyme.db'
 
-files:
-  storage_path: '/var/lib/enzyme/uploads'
+storage:
+  type: 'local'
+  local:
+    path: '/var/lib/enzyme/uploads'
 ```
 
 ## Configuration
@@ -319,8 +321,8 @@ sudo ufw enable
 All persistent state is in the data directory (default: `./data/`):
 
 1. **SQLite database** — the single `.db` file (default: `./data/enzyme.db`)
-2. **Uploaded files** — the uploads directory (default: `./data/uploads/`)
-3. **Signing secret** — `./data/.signing_secret` (used to sign file download URLs)
+2. **Uploaded files** — the uploads directory (default: `./data/uploads/`) when using local storage, or your S3 bucket when using S3 storage
+3. **Signing secret** — `./data/.signing_secret` (used to sign file download URLs for local storage)
 
 To back up:
 

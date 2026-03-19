@@ -31,6 +31,7 @@ import (
 	"github.com/enzyme/api/internal/server"
 	"github.com/enzyme/api/internal/signing"
 	"github.com/enzyme/api/internal/sse"
+	"github.com/enzyme/api/internal/storage"
 	"github.com/enzyme/api/internal/telemetry"
 	"github.com/enzyme/api/internal/thread"
 	"github.com/enzyme/api/internal/user"
@@ -133,31 +134,51 @@ func New(cfg *config.Config) (*App, error) {
 	// Initialize session store
 	sessionStore := auth.NewSessionStore(db.DB, cfg.Auth.SessionDuration)
 
-	// Initialize file URL signer
-	if cfg.Files.SigningSecret == "" {
-		// Derive secret file path from database directory
+	// Initialize storage backend
+	var store storage.Storage
+	switch cfg.Storage.Type {
+	case "local":
+		store = storage.NewLocal(cfg.Storage.Local.Path)
+	case "s3":
+		s3Store, err := storage.NewS3(cfg.Storage.S3)
+		if err != nil {
+			_ = db.Close()
+			return nil, fmt.Errorf("initializing S3 storage: %w", err)
+		}
+		if err := s3Store.CheckConnectivity(context.Background()); err != nil {
+			_ = db.Close()
+			return nil, fmt.Errorf("S3 connectivity check: %w", err)
+		}
+		store = s3Store
+	case "off":
+		// store remains nil — upload endpoints return 403
+	}
+
+	// Initialize file URL signer (only needed for local storage)
+	if cfg.Storage.Type == "local" && cfg.Storage.Local.SigningSecret == "" {
 		secretPath := filepath.Join(filepath.Dir(cfg.Database.Path), ".signing_secret")
 		if data, err := os.ReadFile(secretPath); err == nil && len(data) > 0 {
-			cfg.Files.SigningSecret = strings.TrimSpace(string(data))
+			cfg.Storage.Local.SigningSecret = strings.TrimSpace(string(data))
 		} else {
 			b := make([]byte, 32)
 			if _, err := rand.Read(b); err != nil {
 				_ = db.Close()
 				return nil, err
 			}
-			cfg.Files.SigningSecret = hex.EncodeToString(b)
+			cfg.Storage.Local.SigningSecret = hex.EncodeToString(b)
 			if err := os.MkdirAll(filepath.Dir(secretPath), 0700); err != nil {
 				_ = db.Close()
 				return nil, fmt.Errorf("creating data directory: %w", err)
 			}
-			if err := os.WriteFile(secretPath, []byte(cfg.Files.SigningSecret+"\n"), 0600); err != nil {
+			if err := os.WriteFile(secretPath, []byte(cfg.Storage.Local.SigningSecret+"\n"), 0600); err != nil {
 				_ = db.Close()
 				return nil, fmt.Errorf("writing signing secret: %w", err)
 			}
 			slog.Info("generated signing secret", "path", secretPath)
 		}
 	}
-	signer := signing.NewSigner(cfg.Files.SigningSecret)
+	signingSecret := cfg.Storage.Local.SigningSecret
+	signer := signing.NewSigner(signingSecret)
 
 	// Normalize publicURL to avoid double slashes in constructed URLs
 	cfg.Server.PublicURL = strings.TrimRight(cfg.Server.PublicURL, "/")
@@ -184,9 +205,8 @@ func New(cfg *config.Config) (*App, error) {
 		ModerationRepo:      moderationRepo,
 		Hub:                 hub,
 		Signer:              signer,
-		StoragePath:         cfg.Files.StoragePath,
-		MaxUploadSize:       cfg.Files.MaxUploadSize,
-		FilesEnabled:        cfg.Files.Enabled,
+		Storage:             store,
+		MaxUploadSize:       cfg.Storage.MaxUploadSize,
 		PublicURL:           cfg.Server.PublicURL,
 	})
 
@@ -299,10 +319,19 @@ func (a *App) Start(ctx context.Context) error {
 
 	s.Start(ctx)
 
+	var storageInfo string
+	switch a.Config.Storage.Type {
+	case "local":
+		storageInfo = "local:" + a.Config.Storage.Local.Path
+	case "s3":
+		storageInfo = "s3:" + a.Config.Storage.S3.Endpoint + "/" + a.Config.Storage.S3.Bucket
+	default:
+		storageInfo = a.Config.Storage.Type
+	}
 	slog.Info("starting enzyme backend",
 		"addr", a.Server.Addr(),
 		"database", a.Config.Database.Path,
-		"file_storage", a.Config.Files.StoragePath,
+		"storage", storageInfo,
 		"tls", a.Server.TLSMode(),
 		"email", a.EmailService.IsEnabled(),
 	)
