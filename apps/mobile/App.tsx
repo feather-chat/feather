@@ -19,7 +19,11 @@ export default function App() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    bootstrap().then(() => setReady(true));
+    bootstrap()
+      .catch((err) => {
+        console.error('Bootstrap failed:', err);
+      })
+      .finally(() => setReady(true));
   }, []);
 
   if (!ready) {

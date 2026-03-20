@@ -17,10 +17,3 @@ export async function saveServerUrl(url: string): Promise<void> {
 export async function getServerUrl(): Promise<string | null> {
   return SecureStore.getItemAsync(SERVER_URL_KEY);
 }
-
-/**
- * Clear the saved server URL.
- */
-export async function clearServerUrl(): Promise<void> {
-  await SecureStore.deleteItemAsync(SERVER_URL_KEY);
-}

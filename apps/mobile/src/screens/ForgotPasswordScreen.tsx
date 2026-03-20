@@ -8,7 +8,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { authApi, ApiError } from '@enzyme/api-client';
+import { authApi } from '@enzyme/api-client';
+import { getErrorMessage } from '../lib/getErrorMessage';
 import type { AuthScreenProps } from '../navigation/types';
 
 export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPassword'>) {
@@ -28,11 +29,7 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
       await authApi.forgotPassword(email.trim());
       setSent(true);
     } catch (e) {
-      if (e instanceof ApiError) {
-        setError(e.message);
-      } else {
-        setError('An unexpected error occurred');
-      }
+      setError(getErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -90,7 +87,7 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
         {error && <Text className="mb-4 text-sm text-red-500">{error}</Text>}
 
         <Pressable
-          className="mb-4 rounded-lg bg-primary-600 px-4 py-3 active:bg-primary-700"
+          className={`mb-4 rounded-lg bg-primary-600 px-4 py-3 active:bg-primary-700 ${loading ? 'opacity-50' : ''}`}
           onPress={handleSubmit}
           disabled={loading}
         >

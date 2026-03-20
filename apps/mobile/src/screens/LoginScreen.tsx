@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useAuth } from '@enzyme/shared';
-import { ApiError } from '@enzyme/api-client';
+import { getErrorMessage } from '../lib/getErrorMessage';
 import type { AuthScreenProps } from '../navigation/types';
 
 export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
@@ -27,11 +27,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
     try {
       await login({ email: email.trim(), password });
     } catch (e) {
-      if (e instanceof ApiError) {
-        setError(e.message);
-      } else {
-        setError('An unexpected error occurred');
-      }
+      setError(getErrorMessage(e));
     }
   }
 
@@ -88,7 +84,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
         {error && <Text className="mb-4 text-sm text-red-500">{error}</Text>}
 
         <Pressable
-          className="mb-4 rounded-lg bg-primary-600 px-4 py-3 active:bg-primary-700"
+          className={`mb-4 rounded-lg bg-primary-600 px-4 py-3 active:bg-primary-700 ${isLoggingIn ? 'opacity-50' : ''}`}
           onPress={handleLogin}
           disabled={isLoggingIn}
         >

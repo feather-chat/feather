@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { serverApi } from '@enzyme/api-client';
+import { serverApi, setApiBase, getApiBase } from '@enzyme/api-client';
 import { saveServerUrl, getServerUrl } from '../lib/serverStorage';
 import type { AuthScreenProps } from '../navigation/types';
 
@@ -16,40 +16,59 @@ export function ServerUrlScreen({ navigation }: AuthScreenProps<'ServerUrl'>) {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [serverVersion, setServerVersion] = useState<string | null>(null);
 
-  // Pre-fill saved URL on mount
-  useState(() => {
+  // Pre-fill saved URL on mount and auto-navigate if already configured
+  useEffect(() => {
+    let cancelled = false;
     getServerUrl().then((saved) => {
+      if (cancelled) return;
       if (saved) {
         setUrl(saved);
         navigation.navigate('Login');
       }
     });
-  });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigation]);
 
   async function handleConnect() {
-    const trimmed = url.trim().replace(/\/+$/, '');
+    let trimmed = url.trim().replace(/\/+$/, '');
     if (!trimmed) {
       setError('Please enter a server URL');
       return;
     }
 
+    // Auto-prepend https:// if no scheme provided
+    if (!/^https?:\/\//i.test(trimmed)) {
+      trimmed = `https://${trimmed}`;
+      setUrl(trimmed);
+    }
+
+    // Reject http:// for non-localhost in production
+    if (/^http:\/\//i.test(trimmed) && !__DEV__) {
+      const hostMatch = trimmed.match(/^https?:\/\/([^/:]+)/i);
+      const host = hostMatch?.[1];
+      if (host !== 'localhost' && host !== '127.0.0.1') {
+        setError('HTTPS is required for non-local servers');
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
-    setServerVersion(null);
+
+    const apiUrl = `${trimmed}/api`;
+    const previousBase = getApiBase();
+    setApiBase(apiUrl);
 
     try {
-      // Temporarily set the API base to validate the URL
-      await saveServerUrl(`${trimmed}/api`);
-      const info = await serverApi.getServerInfo();
-      setServerVersion(info.version);
-
-      // Short delay to show version, then navigate
-      setTimeout(() => navigation.navigate('Login'), 500);
+      await serverApi.getServerInfo();
+      await saveServerUrl(apiUrl);
+      navigation.navigate('Login');
     } catch {
+      setApiBase(previousBase);
       setError('Could not connect to server. Check the URL and try again.');
-      setServerVersion(null);
     } finally {
       setLoading(false);
     }
@@ -87,14 +106,8 @@ export function ServerUrlScreen({ navigation }: AuthScreenProps<'ServerUrl'>) {
 
         {error && <Text className="mb-4 text-sm text-red-500">{error}</Text>}
 
-        {serverVersion && (
-          <Text className="mb-4 text-center text-sm text-green-600 dark:text-green-400">
-            Connected — v{serverVersion}
-          </Text>
-        )}
-
         <Pressable
-          className="rounded-lg bg-primary-600 px-4 py-3 active:bg-primary-700"
+          className={`rounded-lg bg-primary-600 px-4 py-3 active:bg-primary-700 ${loading ? 'opacity-50' : ''}`}
           onPress={handleConnect}
           disabled={loading}
         >

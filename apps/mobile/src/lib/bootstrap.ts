@@ -1,11 +1,12 @@
 import * as SecureStore from 'expo-secure-store';
 import { setAuthToken, setTokenStorage, setApiBase } from '@enzyme/api-client';
+import { getServerUrl } from './serverStorage';
 
 const TOKEN_KEY = 'enzyme_auth_token';
-const SERVER_URL_KEY = 'enzyme_server_url';
 
 // In-memory cache for sync access
 let cachedToken: string | null = null;
+let initialized = false;
 
 /**
  * Bootstrap the app on startup. Loads the saved server URL and auth token
@@ -13,8 +14,10 @@ let cachedToken: string | null = null;
  * in-memory accessors.
  */
 export async function bootstrap(): Promise<void> {
+  if (initialized) return;
+
   // 1. Restore server URL
-  const savedUrl = await SecureStore.getItemAsync(SERVER_URL_KEY);
+  const savedUrl = await getServerUrl();
   if (savedUrl) {
     setApiBase(savedUrl);
   }
@@ -30,11 +33,17 @@ export async function bootstrap(): Promise<void> {
     get: () => cachedToken,
     set: (token: string) => {
       cachedToken = token;
-      SecureStore.setItemAsync(TOKEN_KEY, token);
+      SecureStore.setItemAsync(TOKEN_KEY, token).catch((err) =>
+        console.warn('Failed to persist auth token:', err),
+      );
     },
     remove: () => {
       cachedToken = null;
-      SecureStore.deleteItemAsync(TOKEN_KEY);
+      SecureStore.deleteItemAsync(TOKEN_KEY).catch((err) =>
+        console.warn('Failed to remove auth token:', err),
+      );
     },
   });
+
+  initialized = true;
 }

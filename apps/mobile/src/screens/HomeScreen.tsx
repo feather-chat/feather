@@ -30,7 +30,7 @@ export function HomeScreen() {
       )}
 
       <Pressable
-        className="rounded-lg border border-red-300 px-4 py-3 active:bg-red-50 dark:border-red-700 dark:active:bg-red-900"
+        className={`rounded-lg border border-red-300 px-4 py-3 active:bg-red-50 dark:border-red-700 dark:active:bg-red-900 ${isLoggingOut ? 'opacity-50' : ''}`}
         onPress={() => logout()}
         disabled={isLoggingOut}
       >

@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAuth } from '@enzyme/shared';
-import { ApiError } from '@enzyme/api-client';
+import { getErrorMessage } from '../lib/getErrorMessage';
 import type { AuthScreenProps } from '../navigation/types';
 
 export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
@@ -28,11 +28,7 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
     try {
       await register({ email: email.trim(), password, display_name: displayName.trim() });
     } catch (e) {
-      if (e instanceof ApiError) {
-        setError(e.message);
-      } else {
-        setError('An unexpected error occurred');
-      }
+      setError(getErrorMessage(e));
     }
   }
 
@@ -103,7 +99,7 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
         {error && <Text className="mb-4 text-sm text-red-500">{error}</Text>}
 
         <Pressable
-          className="mb-4 rounded-lg bg-primary-600 px-4 py-3 active:bg-primary-700"
+          className={`mb-4 rounded-lg bg-primary-600 px-4 py-3 active:bg-primary-700 ${isRegistering ? 'opacity-50' : ''}`}
           onPress={handleRegister}
           disabled={isRegistering}
         >
