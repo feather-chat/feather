@@ -21,6 +21,6 @@
       },
       "package": "im.enzyme.mobile"
     },
-    "plugins": ["expo-secure-store"]
+    "plugins": ["expo-secure-store", "expo-image"]
   }
 }
