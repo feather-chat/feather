@@ -2110,20 +2110,6 @@ export const SKIN_TONE_EMOJIS: Set<string> = new Set(
   EMOJI_CATEGORIES.flatMap((cat) => cat.emojis.filter((e) => e.skinTones).map((e) => e.emoji)),
 );
 
-const SKIN_TONE_KEY = 'enzyme:skin-tone';
-
-export function getSavedSkinTone(): SkinTone {
-  return (localStorage.getItem(SKIN_TONE_KEY) || '') as SkinTone;
-}
-
-export function saveSkinTone(tone: SkinTone): void {
-  if (tone) {
-    localStorage.setItem(SKIN_TONE_KEY, tone);
-  } else {
-    localStorage.removeItem(SKIN_TONE_KEY);
-  }
-}
-
 /** Common emojis for the "Frequently used" section. */
 export const COMMON_EMOJIS = [
   '👍',
