@@ -10,7 +10,6 @@ export {
   useDeleteMessage,
   useAddReaction,
   useRemoveReaction,
-  updateMessageInCache,
   useMarkMessageUnread,
 } from './useMessages';
 export {
@@ -54,12 +53,7 @@ export {
   useWorkspaceNotifications,
   useReorderWorkspaces,
 } from './useWorkspaces';
-export {
-  useCustomEmojis,
-  useCustomEmojiMap,
-  useUploadCustomEmoji,
-  useDeleteCustomEmoji,
-} from './useCustomEmojis';
+export { useCustomEmojis, useCustomEmojiMap } from './useCustomEmojis';
 export {
   updateModerationMessageInCache,
   usePinnedMessages,

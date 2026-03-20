@@ -483,27 +483,6 @@ export function useRemoveReaction(channelId: string) {
   });
 }
 
-// Helper to update message cache from SSE events
-export function updateMessageInCache(
-  queryClient: ReturnType<typeof useQueryClient>,
-  channelId: string,
-  updater: (messages: MessageWithUser[]) => MessageWithUser[],
-) {
-  queryClient.setQueryData(
-    messageKeys.list(channelId),
-    (old: { pages: MessageListResult[]; pageParams: (string | undefined)[] } | undefined) => {
-      if (!old) return old;
-      return {
-        ...old,
-        pages: old.pages.map((page) => ({
-          ...page,
-          messages: updater(page.messages),
-        })),
-      };
-    },
-  );
-}
-
 export function useMarkMessageUnread(workspaceId: string) {
   const queryClient = useQueryClient();
 

@@ -9,6 +9,5 @@ export {
   useDeleteMessage,
   useAddReaction,
   useRemoveReaction,
-  updateMessageInCache,
   useMarkMessageUnread,
 } from '@enzyme/shared';

@@ -573,14 +573,11 @@ export function handleMemberBanned(
   }
 }
 
-/**
- * Returns true if the current user was unbanned (for platform-specific side effects).
- */
 export function handleMemberUnbanned(
   queryClient: QueryClient,
   workspaceId: string,
   data: EventDataOf<'member.unbanned'>,
-): boolean {
+) {
   queryClient.invalidateQueries({ queryKey: workspaceKeys.members(workspaceId) });
   queryClient.invalidateQueries({ queryKey: workspaceKeys.bans(workspaceId) });
 
@@ -588,9 +585,7 @@ export function handleMemberUnbanned(
   const authData = queryClient.getQueryData<{ user?: { id: string } }>(authKeys.me());
   if (authData?.user?.id === data.user_id) {
     queryClient.invalidateQueries({ queryKey: authKeys.me() });
-    return true; // Let platform add side effect (toast, etc.)
   }
-  return false;
 }
 
 export function handleMemberLeft(queryClient: QueryClient, workspaceId: string) {
