@@ -6,11 +6,9 @@ import {
   type CreateWorkspaceInput,
   type UpdateWorkspaceInput,
   type CreateInviteInput,
-} from '../api/workspaces';
-import type {
-  WorkspaceRole,
-  WorkspaceSummary,
-  WorkspaceNotificationSummary,
+  type WorkspaceRole,
+  type WorkspaceSummary,
+  type WorkspaceNotificationSummary,
 } from '@enzyme/api-client';
 import { toast } from '../components/ui';
 

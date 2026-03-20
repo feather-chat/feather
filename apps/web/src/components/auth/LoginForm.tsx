@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Input } from '../ui';
 import { useAuth, useServerInfo } from '../../hooks';
-import { ApiError } from '../../api';
+import { ApiError } from '@enzyme/api-client';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');

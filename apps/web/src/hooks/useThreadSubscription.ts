@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { messagesApi } from '../api/messages';
-import type { ThreadSubscriptionStatus } from '@enzyme/api-client';
+import { messagesApi, type ThreadSubscriptionStatus } from '@enzyme/api-client';
 
 /**
  * Hook to get the current user's subscription status for a thread

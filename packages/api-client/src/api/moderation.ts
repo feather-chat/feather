@@ -1,4 +1,4 @@
-import { apiClient, throwIfError } from '@enzyme/api-client';
+import { apiClient, throwIfError } from '../client';
 
 export const moderationApi = {
   // Pinning

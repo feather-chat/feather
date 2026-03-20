@@ -1,6 +1,5 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ThreadListResult } from '@enzyme/api-client';
-import { messagesApi } from '../api/messages';
+import { messagesApi, type ThreadListResult } from '@enzyme/api-client';
 
 interface UseUserThreadsOptions {
   workspaceId: string;

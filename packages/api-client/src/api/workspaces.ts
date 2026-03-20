@@ -1,12 +1,10 @@
-import { apiClient, throwIfError, multipartRequest } from '@enzyme/api-client';
+import { apiClient, throwIfError, multipartRequest } from '../client';
 import type {
   CreateWorkspaceInput,
   UpdateWorkspaceInput,
   CreateInviteInput,
   WorkspaceRole,
-} from '@enzyme/api-client';
-
-export type { CreateWorkspaceInput, UpdateWorkspaceInput, CreateInviteInput };
+} from '../types';
 
 export const workspacesApi = {
   create: (input: CreateWorkspaceInput) =>

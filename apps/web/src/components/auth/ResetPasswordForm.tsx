@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { Button, Input } from '../ui';
-import { authApi, ApiError } from '../../api';
+import { authApi, ApiError } from '@enzyme/api-client';
 
 export function ResetPasswordForm() {
   const [searchParams] = useSearchParams();

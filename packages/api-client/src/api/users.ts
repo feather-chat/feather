@@ -1,7 +1,5 @@
-import { apiClient, throwIfError, multipartRequest } from '@enzyme/api-client';
-import type { UpdateProfileInput } from '@enzyme/api-client';
-
-export type { UpdateProfileInput };
+import { apiClient, throwIfError, multipartRequest } from '../client';
+import type { UpdateProfileInput } from '../types';
 
 export const usersApi = {
   getUser: (userId: string) =>

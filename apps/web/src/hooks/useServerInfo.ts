@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { serverApi } from '../api';
+import { serverApi } from '@enzyme/api-client';
 
 export function useServerInfo() {
   const { data } = useQuery({

@@ -1,7 +1,5 @@
-import { apiClient, throwIfError } from '@enzyme/api-client';
-import type { LoginInput, RegisterInput } from '@enzyme/api-client';
-
-export type { LoginInput, RegisterInput };
+import { apiClient, throwIfError } from '../client';
+import type { LoginInput, RegisterInput } from '../types';
 
 export const authApi = {
   login: (input: LoginInput) =>

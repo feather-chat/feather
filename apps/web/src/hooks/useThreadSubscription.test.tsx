@@ -10,9 +10,10 @@ const mockMessagesApi = vi.hoisted(() => ({
   unsubscribeFromThread: vi.fn(),
 }));
 
-vi.mock('../api/messages', () => ({
-  messagesApi: mockMessagesApi,
-}));
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
+  return { ...original, messagesApi: mockMessagesApi };
+});
 
 import {
   useThreadSubscription,

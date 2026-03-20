@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { scheduledMessagesApi } from '../api/scheduledMessages';
+import {
+  scheduledMessagesApi,
+  type ScheduleMessageInput,
+  type UpdateScheduledMessageInput,
+} from '@enzyme/api-client';
 import { toast } from '../components/ui';
-import type { ScheduleMessageInput, UpdateScheduledMessageInput } from '@enzyme/api-client';
 
 export function useScheduledMessages(workspaceId: string) {
   return useQuery({

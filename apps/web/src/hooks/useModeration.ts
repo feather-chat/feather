@@ -5,8 +5,7 @@ import {
   useQueryClient,
   QueryClient,
 } from '@tanstack/react-query';
-import { moderationApi } from '../api/moderation';
-import type { Message, MessageListResult } from '@enzyme/api-client';
+import { moderationApi, type Message, type MessageListResult } from '@enzyme/api-client';
 
 type MessagePages = { pages: MessageListResult[]; pageParams: (string | undefined)[] };
 

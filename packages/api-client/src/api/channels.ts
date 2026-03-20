@@ -1,12 +1,10 @@
-import { apiClient, throwIfError } from '@enzyme/api-client';
+import { apiClient, throwIfError } from '../client';
 import type {
   ChannelRole,
   CreateChannelInput,
   UpdateChannelInput,
   NotificationPreferences,
-} from '@enzyme/api-client';
-
-export type { CreateChannelInput, UpdateChannelInput };
+} from '../types';
 
 export interface CreateDMInput {
   user_ids: string[];

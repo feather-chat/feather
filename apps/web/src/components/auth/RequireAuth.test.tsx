@@ -12,9 +12,10 @@ const mockAuthApi = vi.hoisted(() => ({
   resetPassword: vi.fn(),
 }));
 
-vi.mock('../../api/auth', () => ({
-  authApi: mockAuthApi,
-}));
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
+  return { ...original, authApi: mockAuthApi };
+});
 
 // Import after mocks are set up
 import { RequireAuth } from './RequireAuth';

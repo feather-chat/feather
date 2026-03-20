@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMessages } from './useMessages';
-import type { MessageListResult } from '@enzyme/api-client';
-import { messagesApi } from '../api/messages';
+import { messagesApi, type MessageListResult } from '@enzyme/api-client';
 
 const PAGE_SIZE = 50;
 

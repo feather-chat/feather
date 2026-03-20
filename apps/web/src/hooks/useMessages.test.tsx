@@ -17,9 +17,10 @@ const mockMessagesApi = vi.hoisted(() => ({
   markUnread: vi.fn(),
 }));
 
-vi.mock('../api/messages', () => ({
-  messagesApi: mockMessagesApi,
-}));
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
+  return { ...original, messagesApi: mockMessagesApi };
+});
 
 import {
   useMessages,

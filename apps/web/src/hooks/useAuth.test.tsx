@@ -14,15 +14,11 @@ const mockAuthApi = vi.hoisted(() => ({
   resetPassword: vi.fn(),
 }));
 
-vi.mock('../api/auth', () => ({
-  authApi: mockAuthApi,
-}));
-
-// Mock ApiError with correct 3-arg signature: (code, message, status)
 vi.mock('@enzyme/api-client', async (importOriginal) => {
   const original = await importOriginal<typeof import('@enzyme/api-client')>();
   return {
     ...original,
+    authApi: mockAuthApi,
     ApiError: class ApiError extends Error {
       code: string;
       status: number;
