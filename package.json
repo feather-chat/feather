@@ -18,9 +18,5 @@
     "prettier-plugin-tailwindcss": "^0.7.2"
   },
   "pnpm": {
-    "overrides": {
-      "react": "19.1.0",
-      "react-dom": "19.1.0"
-    }
   }
 }
