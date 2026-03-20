@@ -70,7 +70,7 @@ import {
   setEditingMessageId,
   clearEditingMessageId,
 } from '../../lib/editingMessageStore';
-import { messagesApi } from '../../api/messages';
+import { messagesApi } from '@enzyme/api-client';
 import { useMarkThreadRead } from '../../hooks/useThreads';
 import type {
   MessageWithUser,

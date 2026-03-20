@@ -5,8 +5,9 @@ import {
   type CreateDMInput,
   type UpdateChannelInput,
   type ConvertGroupDMInput,
-} from '../api/channels';
-import type { ChannelRole, ChannelWithMembership } from '@enzyme/api-client';
+  type ChannelRole,
+  type ChannelWithMembership,
+} from '@enzyme/api-client';
 
 export function useChannels(workspaceId: string | undefined) {
   return useQuery({

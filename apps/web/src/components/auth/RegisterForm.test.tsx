@@ -24,13 +24,10 @@ const MockApiError = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../api/auth', () => ({
-  authApi: mockAuthApi,
-}));
-
-vi.mock('../../api', () => ({
-  ApiError: MockApiError,
-}));
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
+  return { ...original, authApi: mockAuthApi, ApiError: MockApiError };
+});
 
 // Import after mocks are set up
 import { RegisterForm } from './RegisterForm';

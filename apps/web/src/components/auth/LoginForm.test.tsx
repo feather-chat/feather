@@ -22,16 +22,17 @@ const MockApiError = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../api/auth', () => ({
-  authApi: mockAuthApi,
-}));
-
-vi.mock('../../api', () => ({
-  ApiError: MockApiError,
-  serverApi: {
-    getServerInfo: vi.fn().mockResolvedValue({ version: '0.0.0', email_enabled: true }),
-  },
-}));
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
+  return {
+    ...original,
+    authApi: mockAuthApi,
+    ApiError: MockApiError,
+    serverApi: {
+      getServerInfo: vi.fn().mockResolvedValue({ version: '0.0.0', email_enabled: true }),
+    },
+  };
+});
 
 // Import after mocks are set up
 import { LoginForm } from './LoginForm';

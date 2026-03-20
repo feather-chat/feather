@@ -1,4 +1,4 @@
-import { apiClient, throwIfError, multipartRequest } from '@enzyme/api-client';
+import { apiClient, throwIfError, multipartRequest } from '../client';
 
 export const emojisApi = {
   list: (workspaceId: string) =>

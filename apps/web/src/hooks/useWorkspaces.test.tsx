@@ -19,9 +19,10 @@ const mockWorkspacesApi = vi.hoisted(() => ({
   stopTyping: vi.fn(),
 }));
 
-vi.mock('../api/workspaces', () => ({
-  workspacesApi: mockWorkspacesApi,
-}));
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
+  return { ...original, workspacesApi: mockWorkspacesApi };
+});
 
 import {
   useWorkspace,

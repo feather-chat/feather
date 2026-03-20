@@ -10,9 +10,10 @@ const mockChannelsApi = vi.hoisted(() => ({
   updateNotifications: vi.fn(),
 }));
 
-vi.mock('../api/channels', () => ({
-  channelsApi: mockChannelsApi,
-}));
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
+  return { ...original, channelsApi: mockChannelsApi };
+});
 
 import { useChannelNotifications, useUpdateChannelNotifications } from './useChannelNotifications';
 

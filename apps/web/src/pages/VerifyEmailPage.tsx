@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usePageTitle } from '../hooks';
-import { authApi, ApiError } from '../api';
+import { authApi, ApiError } from '@enzyme/api-client';
 
 function CenteredLayout({ children }: { children: React.ReactNode }) {
   return (

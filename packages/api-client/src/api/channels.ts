@@ -1,22 +1,12 @@
-import { apiClient, throwIfError } from '@enzyme/api-client';
+import { apiClient, throwIfError } from '../client';
 import type {
   ChannelRole,
   CreateChannelInput,
+  CreateDMInput,
+  ConvertGroupDMInput,
   UpdateChannelInput,
   NotificationPreferences,
-} from '@enzyme/api-client';
-
-export type { CreateChannelInput, UpdateChannelInput };
-
-export interface CreateDMInput {
-  user_ids: string[];
-}
-
-export interface ConvertGroupDMInput {
-  name: string;
-  description?: string;
-  type?: 'public' | 'private';
-}
+} from '../types';
 
 export const channelsApi = {
   create: (workspaceId: string, input: CreateChannelInput) =>

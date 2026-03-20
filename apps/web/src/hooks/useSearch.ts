@@ -1,5 +1,5 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { messagesApi } from '../api/messages';
+import { messagesApi } from '@enzyme/api-client';
 
 interface UseSearchOptions {
   workspaceId: string;

@@ -1,5 +1,5 @@
-import { apiClient, throwIfError } from '@enzyme/api-client';
-import type { ScheduleMessageInput, UpdateScheduledMessageInput } from '@enzyme/api-client';
+import { apiClient, throwIfError } from '../client';
+import type { ScheduleMessageInput, UpdateScheduledMessageInput } from '../types';
 
 export const scheduledMessagesApi = {
   schedule: (channelId: string, input: ScheduleMessageInput) =>

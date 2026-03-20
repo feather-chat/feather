@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { UnstyledButton } from '../ui';
-import { authApi } from '../../api';
+import { authApi } from '@enzyme/api-client';
 
 export function EmailVerificationBanner() {
   const [dismissed, setDismissed] = useState(

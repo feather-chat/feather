@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { channelsApi } from '../api/channels';
-import type { NotificationPreferences } from '@enzyme/api-client';
+import { channelsApi, type NotificationPreferences } from '@enzyme/api-client';
 
 /**
  * Hook to get the current user's notification preferences for a channel

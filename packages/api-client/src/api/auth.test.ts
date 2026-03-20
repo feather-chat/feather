@@ -5,13 +5,13 @@ const mockApiClient = vi.hoisted(() => ({
   POST: vi.fn(),
 }));
 
-vi.mock('@enzyme/api-client', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@enzyme/api-client')>();
+vi.mock('../client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../client')>();
   return { ...original, apiClient: mockApiClient };
 });
 
 import { authApi } from './auth';
-import { mockResponse } from '../test-utils/mocks/api-client';
+import { mockResponse } from './test-utils';
 
 describe('authApi', () => {
   beforeEach(() => {

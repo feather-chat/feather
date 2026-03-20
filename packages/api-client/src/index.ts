@@ -13,3 +13,6 @@ export {
   getApiBase,
   authHeaders,
 } from './client';
+
+// Re-export API wrappers
+export * from './api';

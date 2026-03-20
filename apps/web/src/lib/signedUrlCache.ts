@@ -1,4 +1,4 @@
-import { filesApi } from '../api/files';
+import { filesApi } from '@enzyme/api-client';
 
 interface CacheEntry {
   url: string;

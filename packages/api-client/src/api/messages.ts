@@ -1,11 +1,5 @@
-import { apiClient, throwIfError } from '@enzyme/api-client';
-import type {
-  SendMessageInput,
-  ListMessagesInput,
-  SearchMessagesInput,
-} from '@enzyme/api-client';
-
-export type { SendMessageInput, ListMessagesInput };
+import { apiClient, throwIfError } from '../client';
+import type { SendMessageInput, ListMessagesInput, SearchMessagesInput } from '../types';
 
 export const messagesApi = {
   get: (messageId: string) =>

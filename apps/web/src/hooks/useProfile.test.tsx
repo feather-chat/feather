@@ -12,9 +12,10 @@ const mockUsersApi = vi.hoisted(() => ({
   deleteAvatar: vi.fn(),
 }));
 
-vi.mock('../api/users', () => ({
-  usersApi: mockUsersApi,
-}));
+vi.mock('@enzyme/api-client', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@enzyme/api-client')>();
+  return { ...original, usersApi: mockUsersApi };
+});
 
 import { useUserProfile, useUpdateProfile, useUploadAvatar, useDeleteAvatar } from './useProfile';
 

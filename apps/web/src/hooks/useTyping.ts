@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { workspacesApi } from '../api/workspaces';
+import { workspacesApi } from '@enzyme/api-client';
 
 const TYPING_THROTTLE = 2000; // Don't re-send typing.start more than once per 2 seconds
 const TYPING_STOP_DELAY = 3000; // 3 seconds of no typing before auto-sending stop

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { usersApi, type UpdateProfileInput } from '../api/users';
+import { usersApi, type UpdateProfileInput } from '@enzyme/api-client';
 
 export function useUserProfile(userId: string | null) {
   return useQuery({

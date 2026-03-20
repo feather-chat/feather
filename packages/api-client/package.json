@@ -13,11 +13,14 @@
   },
   "scripts": {
     "generate": "openapi-typescript ../../api/openapi.yaml -o ./generated/schema.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "openapi-typescript": "^7.6.1",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0"

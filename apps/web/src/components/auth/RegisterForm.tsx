@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Input } from '../ui';
 import { useAuth, useCreateWorkspace, useAcceptInvite } from '../../hooks';
-import { ApiError } from '../../api';
+import { ApiError } from '@enzyme/api-client';
 
 export function RegisterForm() {
   const [email, setEmail] = useState('');
