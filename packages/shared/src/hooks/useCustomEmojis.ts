@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { emojisApi, type CustomEmoji } from '@enzyme/api-client';
 import { emojiKeys } from '../queryKeys';
@@ -24,25 +24,4 @@ export function useCustomEmojiMap(workspaceId: string | undefined) {
     }
     return map;
   }, [emojis]);
-}
-
-export function useUploadCustomEmoji(workspaceId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ file, name }: { file: File; name: string }) =>
-      emojisApi.upload(workspaceId, file, name),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: emojiKeys.list(workspaceId) });
-    },
-  });
-}
-
-export function useDeleteCustomEmoji(workspaceId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (emojiId: string) => emojisApi.delete(emojiId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: emojiKeys.list(workspaceId) });
-    },
-  });
 }

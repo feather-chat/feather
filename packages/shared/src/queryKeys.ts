@@ -55,7 +55,6 @@ export const emojiKeys = {
 };
 
 export const unreadKeys = {
-  all: ['unreads'] as const,
   list: (workspaceId: string) => ['unreads', workspaceId] as const,
 };
 
@@ -70,7 +69,6 @@ export const scheduledMessageKeys = {
 };
 
 export const searchKeys = {
-  all: ['search'] as const,
   query: (
     workspaceId: string,
     query: string,

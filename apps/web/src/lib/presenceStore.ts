@@ -4,4 +4,4 @@ export {
   setUserPresence,
   useTypingUsers,
   useUserPresence,
-} from '@enzyme/shared/stores/presenceStore';
+} from '@enzyme/shared';

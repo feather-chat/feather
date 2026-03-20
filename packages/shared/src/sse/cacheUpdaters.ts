@@ -39,28 +39,26 @@ export function handleNewMessage(
   workspaceId: string,
   data: EventDataOf<'message.new'>,
 ) {
-  const message = data;
-
   // Pre-warm signed URL cache for any attachments
-  if (message.attachments && message.attachments.length > 0) {
-    const ids = message.attachments.map((a) => a.id);
+  if (data.attachments && data.attachments.length > 0) {
+    const ids = data.attachments.map((a) => a.id);
     getUrls(ids).catch(() => {}); // fire-and-forget
   }
 
   // Thread replies go to thread cache, and optionally to channel if broadcast
-  if (message.thread_parent_id) {
+  if (data.thread_parent_id) {
     // Check if this message was already processed (e.g., by optimistic update from current user)
     const threadData = queryClient.getQueryData<MessagePages>(
-      threadKeys.detail(message.thread_parent_id),
+      threadKeys.detail(data.thread_parent_id),
     );
     const alreadyProcessed = threadData?.pages.some((page) =>
-      page.messages.some((m) => m.id === message.id),
+      page.messages.some((m) => m.id === data.id),
     );
 
     // Add to thread cache if not already there
     if (!alreadyProcessed) {
       queryClient.setQueryData(
-        threadKeys.detail(message.thread_parent_id),
+        threadKeys.detail(data.thread_parent_id),
         (old: MessagePages | undefined) => {
           if (!old) return old;
 
@@ -70,7 +68,7 @@ export function handleNewMessage(
           if (newPages[lastPageIndex]) {
             newPages[lastPageIndex] = {
               ...newPages[lastPageIndex],
-              messages: [...newPages[lastPageIndex].messages, message],
+              messages: [...newPages[lastPageIndex].messages, data],
             };
           }
           return { ...old, pages: newPages };
@@ -79,18 +77,18 @@ export function handleNewMessage(
     }
 
     // If also_send_to_channel, add to the channel message cache too
-    if (message.also_send_to_channel) {
+    if (data.also_send_to_channel) {
       queryClient.setQueryData(
-        messageKeys.list(message.channel_id),
+        messageKeys.list(data.channel_id),
         (old: MessagePages | undefined) => {
           if (!old) return old;
-          const exists = old.pages.some((page) => page.messages.some((m) => m.id === message.id));
+          const exists = old.pages.some((page) => page.messages.some((m) => m.id === data.id));
           if (exists) return old;
           const newPages = [...old.pages];
           if (newPages[0]) {
             newPages[0] = {
               ...newPages[0],
-              messages: [message, ...newPages[0].messages],
+              messages: [data, ...newPages[0].messages],
             };
           }
           return { ...old, pages: newPages };
@@ -99,77 +97,71 @@ export function handleNewMessage(
     }
 
     // Always update thread_participants, but only increment reply_count if we added the message
-    queryClient.setQueryData(
-      messageKeys.list(message.channel_id),
-      (old: MessagePages | undefined) => {
-        if (!old) return old;
+    queryClient.setQueryData(messageKeys.list(data.channel_id), (old: MessagePages | undefined) => {
+      if (!old) return old;
 
-        return {
-          ...old,
-          pages: old.pages.map((page) => ({
-            ...page,
-            messages: page.messages.map((m) => {
-              if (m.id !== message.thread_parent_id) return m;
+      return {
+        ...old,
+        pages: old.pages.map((page) => ({
+          ...page,
+          messages: page.messages.map((m) => {
+            if (m.id !== data.thread_parent_id) return m;
 
-              // Check if user should be added to thread_participants
-              const participants = m.thread_participants || [];
-              const shouldAddParticipant =
-                message.user_id && !participants.some((p) => p.user_id === message.user_id);
+            // Check if user should be added to thread_participants
+            const participants = m.thread_participants || [];
+            const shouldAddParticipant =
+              data.user_id && !participants.some((p) => p.user_id === data.user_id);
 
-              return {
-                ...m,
-                // Only increment reply_count if the message wasn't already processed
-                reply_count: alreadyProcessed ? m.reply_count : (m.reply_count || 0) + 1,
-                last_reply_at: message.created_at,
-                thread_participants: shouldAddParticipant
-                  ? [
-                      ...participants,
-                      {
-                        user_id: message.user_id!,
-                        display_name: message.user_display_name,
-                        avatar_url: message.user_avatar_url,
-                      },
-                    ]
-                  : participants,
-              };
-            }),
-          })),
-        };
-      },
-    );
+            return {
+              ...m,
+              // Only increment reply_count if the message wasn't already processed
+              reply_count: alreadyProcessed ? m.reply_count : (m.reply_count || 0) + 1,
+              last_reply_at: data.created_at,
+              thread_participants: shouldAddParticipant
+                ? [
+                    ...participants,
+                    {
+                      user_id: data.user_id!,
+                      display_name: data.user_display_name,
+                      avatar_url: data.user_avatar_url,
+                    },
+                  ]
+                : participants,
+            };
+          }),
+        })),
+      };
+    });
 
     // Invalidate threads list so unread count and thread order refresh
     queryClient.invalidateQueries({ queryKey: threadKeys.userThreads(workspaceId) });
   } else {
     // Regular channel message - add to channel messages
-    queryClient.setQueryData(
-      messageKeys.list(message.channel_id),
-      (old: MessagePages | undefined) => {
-        if (!old) return old;
+    queryClient.setQueryData(messageKeys.list(data.channel_id), (old: MessagePages | undefined) => {
+      if (!old) return old;
 
-        // Check if message already exists
-        const exists = old.pages.some((page) => page.messages.some((m) => m.id === message.id));
-        if (exists) return old;
+      // Check if message already exists
+      const exists = old.pages.some((page) => page.messages.some((m) => m.id === data.id));
+      if (exists) return old;
 
-        const newPages = [...old.pages];
-        if (newPages[0]) {
-          newPages[0] = {
-            ...newPages[0],
-            messages: [message, ...newPages[0].messages],
-          };
-        }
-        return { ...old, pages: newPages };
-      },
-    );
+      const newPages = [...old.pages];
+      if (newPages[0]) {
+        newPages[0] = {
+          ...newPages[0],
+          messages: [data, ...newPages[0].messages],
+        };
+      }
+      return { ...old, pages: newPages };
+    });
   }
 
   // Increment unread count for channels (for non-thread messages and broadcast thread replies from other users)
-  if (!message.thread_parent_id || message.also_send_to_channel) {
+  if (!data.thread_parent_id || data.also_send_to_channel) {
     const authData = queryClient.getQueryData<{ user?: { id: string } }>(authKeys.me());
     const currentUserId = authData?.user?.id;
 
     // Don't increment unread for our own messages
-    if (message.user_id !== currentUserId) {
+    if (data.user_id !== currentUserId) {
       queryClient.setQueryData(
         channelKeys.list(workspaceId),
         (old: { channels: ChannelWithMembership[] } | undefined) => {
@@ -177,7 +169,7 @@ export function handleNewMessage(
           return {
             ...old,
             channels: old.channels.map((c) =>
-              c.id === message.channel_id ? { ...c, unread_count: c.unread_count + 1 } : c,
+              c.id === data.channel_id ? { ...c, unread_count: c.unread_count + 1 } : c,
             ),
           };
         },
@@ -193,17 +185,15 @@ export function handleMessageUpdated(
   queryClient: QueryClient,
   data: EventDataOf<'message.updated'>,
 ) {
-  const message = data;
-
   queryClient.setQueriesData({ queryKey: messageKeys.all }, (old: MessagePages | undefined) => {
     if (!old) return old;
     let changed = false;
     const pages = old.pages.map((page) => {
-      if (!page.messages.some((m) => m.id === message.id)) return page;
+      if (!page.messages.some((m) => m.id === data.id)) return page;
       changed = true;
       return {
         ...page,
-        messages: page.messages.map((m) => (m.id === message.id ? { ...m, ...message } : m)),
+        messages: page.messages.map((m) => (m.id === data.id ? { ...m, ...data } : m)),
       };
     });
     return changed ? { ...old, pages } : old;
@@ -281,8 +271,6 @@ export function handleMessageDeleted(
 // --- Reaction Events ---
 
 export function handleReactionAdded(queryClient: QueryClient, data: EventDataOf<'reaction.added'>) {
-  const reaction = data;
-
   queryClient.setQueriesData({ queryKey: messageKeys.all }, (old: MessagePages | undefined) => {
     if (!old) return old;
     return {
@@ -290,19 +278,19 @@ export function handleReactionAdded(queryClient: QueryClient, data: EventDataOf<
       pages: old.pages.map((page) => ({
         ...page,
         messages: page.messages.map((m) => {
-          if (m.id !== reaction.message_id) return m;
+          if (m.id !== data.message_id) return m;
           const reactions = m.reactions || [];
           // Avoid duplicates (check by user + emoji, not just ID, to handle optimistic updates)
-          if (reactions.some((r) => r.user_id === reaction.user_id && r.emoji === reaction.emoji)) {
+          if (reactions.some((r) => r.user_id === data.user_id && r.emoji === data.emoji)) {
             // Replace temp reaction with real one
             return {
               ...m,
               reactions: reactions.map((r) =>
-                r.user_id === reaction.user_id && r.emoji === reaction.emoji ? reaction : r,
+                r.user_id === data.user_id && r.emoji === data.emoji ? data : r,
               ),
             };
           }
-          return { ...m, reactions: [...reactions, reaction] };
+          return { ...m, reactions: [...reactions, data] };
         }),
       })),
     };
@@ -341,18 +329,17 @@ export function handleChannelCreated(
   workspaceId: string,
   data: EventDataOf<'channel.created'>,
 ) {
-  const channel = data;
   queryClient.setQueryData(
     channelKeys.list(workspaceId),
     (old: { channels: ChannelWithMembership[] } | undefined) => {
       if (!old) return old;
       // Avoid duplicates
-      if (old.channels.some((c) => c.id === channel.id)) return old;
+      if (old.channels.some((c) => c.id === data.id)) return old;
       return {
         ...old,
         channels: [
           ...old.channels,
-          { ...channel, unread_count: 0, notification_count: 0, is_starred: false },
+          { ...data, unread_count: 0, notification_count: 0, is_starred: false },
         ],
       };
     },
@@ -368,7 +355,6 @@ export function handleChannelUpdated(
   workspaceId: string,
   data: EventDataOf<'channel.updated'>,
 ) {
-  const channel = data;
   queryClient.setQueryData(
     channelKeys.list(workspaceId),
     (old: { channels: ChannelWithMembership[] } | undefined) => {
@@ -376,10 +362,10 @@ export function handleChannelUpdated(
       return {
         ...old,
         channels: old.channels
-          .map((c) => (c.id === channel.id ? { ...c, ...channel } : c))
+          .map((c) => (c.id === data.id ? { ...c, ...data } : c))
           .filter((c) => {
             // Remove channels that became private if user is not a member
-            if (c.id === channel.id && c.type === 'private' && !c.channel_role) {
+            if (c.id === data.id && c.type === 'private' && !c.channel_role) {
               return false;
             }
             return true;
@@ -394,14 +380,13 @@ export function handleChannelArchived(
   workspaceId: string,
   data: EventDataOf<'channel.archived'>,
 ) {
-  const channel = data;
   queryClient.setQueryData(
     channelKeys.list(workspaceId),
     (old: { channels: ChannelWithMembership[] } | undefined) => {
       if (!old) return old;
       return {
         ...old,
-        channels: old.channels.filter((c) => c.id !== channel.id),
+        channels: old.channels.filter((c) => c.id !== data.id),
       };
     },
   );
@@ -459,15 +444,14 @@ export function handleEmojiCreated(
   workspaceId: string,
   data: EventDataOf<'emoji.created'>,
 ) {
-  const emoji = data;
   queryClient.setQueryData(
     emojiKeys.list(workspaceId),
     (old: { emojis: CustomEmoji[] } | undefined) => {
       if (!old) return old;
-      if (old.emojis.some((e) => e.id === emoji.id)) return old;
+      if (old.emojis.some((e) => e.id === data.id)) return old;
       return {
         ...old,
-        emojis: [...old.emojis, emoji].sort((a, b) => a.name.localeCompare(b.name)),
+        emojis: [...old.emojis, data].sort((a, b) => a.name.localeCompare(b.name)),
       };
     },
   );
@@ -512,19 +496,16 @@ export function handleScheduledMessageSent(
 // --- Pin Events ---
 
 export function handleMessagePinned(queryClient: QueryClient, data: EventDataOf<'message.pinned'>) {
-  const message = data;
   queryClient.setQueriesData({ queryKey: messageKeys.all }, (old: MessagePages | undefined) => {
     if (!old) return old;
     let changed = false;
     const pages = old.pages.map((page) => {
-      if (!page.messages.some((m) => m.id === message.id)) return page;
+      if (!page.messages.some((m) => m.id === data.id)) return page;
       changed = true;
       return {
         ...page,
         messages: page.messages.map((m) =>
-          m.id === message.id
-            ? { ...m, pinned_at: message.pinned_at, pinned_by: message.pinned_by }
-            : m,
+          m.id === data.id ? { ...m, pinned_at: data.pinned_at, pinned_by: data.pinned_by } : m,
         ),
       };
     });
@@ -537,17 +518,16 @@ export function handleMessageUnpinned(
   queryClient: QueryClient,
   data: EventDataOf<'message.unpinned'>,
 ) {
-  const message = data;
   queryClient.setQueriesData({ queryKey: messageKeys.all }, (old: MessagePages | undefined) => {
     if (!old) return old;
     let changed = false;
     const pages = old.pages.map((page) => {
-      if (!page.messages.some((m) => m.id === message.id)) return page;
+      if (!page.messages.some((m) => m.id === data.id)) return page;
       changed = true;
       return {
         ...page,
         messages: page.messages.map((m) =>
-          m.id === message.id ? { ...m, pinned_at: undefined, pinned_by: undefined } : m,
+          m.id === data.id ? { ...m, pinned_at: undefined, pinned_by: undefined } : m,
         ),
       };
     });
@@ -577,15 +557,17 @@ export function handleMemberUnbanned(
   queryClient: QueryClient,
   workspaceId: string,
   data: EventDataOf<'member.unbanned'>,
-) {
+): boolean {
   queryClient.invalidateQueries({ queryKey: workspaceKeys.members(workspaceId) });
   queryClient.invalidateQueries({ queryKey: workspaceKeys.bans(workspaceId) });
 
   // If the current user was unbanned, refresh auth state to clear the ban field
   const authData = queryClient.getQueryData<{ user?: { id: string } }>(authKeys.me());
-  if (authData?.user?.id === data.user_id) {
+  const isCurrentUser = authData?.user?.id === data.user_id;
+  if (isCurrentUser) {
     queryClient.invalidateQueries({ queryKey: authKeys.me() });
   }
+  return isCurrentUser;
 }
 
 export function handleMemberLeft(queryClient: QueryClient, workspaceId: string) {
@@ -637,11 +619,9 @@ export function handleNotification(
   queryClient: QueryClient,
   workspaceId: string,
   data: EventDataOf<'notification'>,
-) {
-  const notification = data;
-
+): EventDataOf<'notification'> {
   // Increment notification_count for the channel
-  if (notification.channel_id && notification.type !== 'thread_reply') {
+  if (data.channel_id && data.type !== 'thread_reply') {
     queryClient.setQueryData(
       channelKeys.list(workspaceId),
       (old: { channels: ChannelWithMembership[] } | undefined) => {
@@ -649,9 +629,7 @@ export function handleNotification(
         return {
           ...old,
           channels: old.channels.map((c) =>
-            c.id === notification.channel_id
-              ? { ...c, notification_count: c.notification_count + 1 }
-              : c,
+            c.id === data.channel_id ? { ...c, notification_count: c.notification_count + 1 } : c,
           ),
         };
       },
@@ -659,5 +637,5 @@ export function handleNotification(
     queryClient.invalidateQueries({ queryKey: workspaceKeys.notifications() });
   }
 
-  return notification;
+  return data;
 }

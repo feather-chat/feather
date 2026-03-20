@@ -12,6 +12,12 @@ import {
 } from '@enzyme/api-client';
 import { authKeys } from '../queryKeys';
 
+/**
+ * Shared auth hook. Consumers MUST call `setTokenStorage()` from
+ * `@enzyme/api-client` before mounting any component that uses this hook,
+ * otherwise `getAuthToken()` will always return `null` and the query
+ * will remain permanently disabled (silently unauthenticated).
+ */
 export function useAuth() {
   const queryClient = useQueryClient();
 

@@ -175,9 +175,8 @@ export function useSSE(workspaceId: string | undefined) {
     });
 
     connection.on('member.unbanned', (event) => {
-      handleMemberUnbanned(queryClient, workspaceId, event.data);
-      const authData = queryClient.getQueryData<{ user?: { id: string } }>(authKeys.me());
-      if (authData?.user?.id === event.data.user_id) {
+      const isCurrentUser = handleMemberUnbanned(queryClient, workspaceId, event.data);
+      if (isCurrentUser) {
         toast('You have been unbanned', 'success');
       }
     });

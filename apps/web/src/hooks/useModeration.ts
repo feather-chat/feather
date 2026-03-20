@@ -1,5 +1,4 @@
 export {
-  updateModerationMessageInCache,
   usePinnedMessages,
   usePinMessage,
   useUnpinMessage,

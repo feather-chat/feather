@@ -3,4 +3,4 @@ export {
   clearEditingMessageId,
   useEditingMessageId,
   useIsEditingMessage,
-} from '@enzyme/shared/stores/editingMessageStore';
+} from '@enzyme/shared';

@@ -61,7 +61,6 @@ describe('queryKeys', () => {
   });
 
   it('unreadKeys produces correct keys', () => {
-    expect(unreadKeys.all).toEqual(['unreads']);
     expect(unreadKeys.list('ws1')).toEqual(['unreads', 'ws1']);
   });
 
@@ -76,7 +75,6 @@ describe('queryKeys', () => {
   });
 
   it('searchKeys produces correct keys', () => {
-    expect(searchKeys.all).toEqual(['search']);
     expect(searchKeys.query('ws1', 'hello')).toEqual([
       'search',
       'ws1',

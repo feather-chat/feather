@@ -221,7 +221,7 @@ export function ChannelPage() {
     try {
       await joinChannel.mutateAsync(channelId);
       // Wait for the channels query to refetch so the UI updates
-      await queryClient.refetchQueries({ queryKey: channelKeys.list(workspaceId!) });
+      await queryClient.refetchQueries({ queryKey: channelKeys.list(workspaceId) });
       toast('Joined channel', 'success');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to join channel', 'error');
