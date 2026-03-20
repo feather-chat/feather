@@ -19,6 +19,7 @@ vi.mock('@enzyme/api-client', async (importOriginal) => {
 
 // Import after mocks are set up
 import { RequireAuth } from './RequireAuth';
+import { setAuthToken } from '@enzyme/api-client';
 
 function TestApp() {
   return (
@@ -39,8 +40,8 @@ function TestApp() {
 describe('RequireAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Set a token in localStorage so the auth query is enabled
-    localStorage.setItem('enzyme_auth_token', 'test-token');
+    // Set a token so the auth query is enabled
+    setAuthToken('test-token');
   });
 
   it('shows loading spinner while checking auth', async () => {

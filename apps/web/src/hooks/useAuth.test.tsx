@@ -30,11 +30,13 @@ vi.mock('@enzyme/api-client', async (importOriginal) => {
     },
     setAuthToken: vi.fn(),
     getAuthToken: vi.fn(),
+    setTokenStorage: vi.fn(),
   };
 });
 
 // Import after mocks
 import { useAuth } from './useAuth';
+import { getAuthToken } from '@enzyme/api-client';
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -51,8 +53,8 @@ function createWrapper() {
 describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Set a token in localStorage so the query is enabled
-    localStorage.setItem('enzyme_auth_token', 'test-token');
+    // Mock getAuthToken to return a token so the query is enabled
+    vi.mocked(getAuthToken).mockReturnValue('test-token');
   });
 
   it('returns loading state initially', () => {

@@ -30,10 +30,40 @@ export function getApiBase(): string {
   return apiBase;
 }
 
+export type TokenStorage = {
+  readonly get: () => string | null;
+  readonly set: (token: string) => void;
+  readonly remove: () => void;
+};
+
+let tokenStorage: TokenStorage | null = null;
 let authToken: string | null = null;
+
+/**
+ * Register a persistence backend for auth tokens. Must be called before
+ * any {@link setAuthToken} calls that need to survive across page loads.
+ * Immediately reads the stored token into memory via `storage.get()`.
+ *
+ * Can only be called once — throws if a storage backend is already registered.
+ * The storage interface is synchronous by design (localStorage, Electron safeStorage, etc.).
+ */
+export function setTokenStorage(storage: TokenStorage): void {
+  if (tokenStorage !== null) {
+    throw new Error('TokenStorage has already been configured');
+  }
+  tokenStorage = storage;
+  authToken = storage.get();
+}
 
 export function setAuthToken(token: string | null): void {
   authToken = token;
+  if (tokenStorage) {
+    if (token) {
+      tokenStorage.set(token);
+    } else {
+      tokenStorage.remove();
+    }
+  }
 }
 
 export function getAuthToken(): string | null {

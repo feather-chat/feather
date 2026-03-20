@@ -4,6 +4,8 @@ import {
   authApi,
   ApiError,
   setAuthToken,
+  getAuthToken,
+  setTokenStorage,
   type LoginInput,
   type RegisterInput,
   type User,
@@ -12,23 +14,12 @@ import {
 
 const TOKEN_KEY = 'enzyme_auth_token';
 
-function loadToken(): void {
-  const token = localStorage.getItem(TOKEN_KEY);
-  setAuthToken(token);
-}
-
-function saveToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
-  setAuthToken(token);
-}
-
-function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
-  setAuthToken(null);
-}
-
-// Load token from localStorage on module load
-loadToken();
+// Plug in localStorage-backed persistence at module load
+setTokenStorage({
+  get: () => localStorage.getItem(TOKEN_KEY),
+  set: (token) => localStorage.setItem(TOKEN_KEY, token),
+  remove: () => localStorage.removeItem(TOKEN_KEY),
+});
 
 export function useAuth() {
   const queryClient = useQueryClient();
@@ -42,7 +33,7 @@ export function useAuth() {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    enabled: !!localStorage.getItem(TOKEN_KEY),
+    enabled: !!getAuthToken(),
   });
 
   // 401 error means not authenticated, not an error state
@@ -51,14 +42,14 @@ export function useAuth() {
   // Clear token on 401 from /auth/me
   useEffect(() => {
     if (isAuthError) {
-      clearToken();
+      setAuthToken(null);
     }
   }, [isAuthError]);
 
   const loginMutation = useMutation({
     mutationFn: (input: LoginInput) => authApi.login(input),
     onSuccess: (data) => {
-      saveToken(data.token);
+      setAuthToken(data.token);
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     },
   });
@@ -66,7 +57,7 @@ export function useAuth() {
   const registerMutation = useMutation({
     mutationFn: (input: RegisterInput) => authApi.register(input),
     onSuccess: (data) => {
-      saveToken(data.token);
+      setAuthToken(data.token);
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     },
   });
@@ -74,7 +65,7 @@ export function useAuth() {
   const logoutMutation = useMutation({
     mutationFn: authApi.logout,
     onSuccess: () => {
-      clearToken();
+      setAuthToken(null);
       queryClient.clear();
     },
   });
@@ -82,7 +73,7 @@ export function useAuth() {
   return {
     user: data?.user as User | undefined,
     workspaces: data?.workspaces as WorkspaceSummary[] | undefined,
-    isLoading: !isFetched && !!localStorage.getItem(TOKEN_KEY),
+    isLoading: !isFetched && !!getAuthToken(),
     isAuthenticated: !!data?.user,
     error: isAuthError ? null : error,
     login: loginMutation.mutateAsync,
