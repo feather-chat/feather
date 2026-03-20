@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@enzyme/api-client": ["../../packages/api-client/src"],
+      "@enzyme/shared": ["../../packages/shared/src"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["App.tsx", "src", "nativewind-env.d.ts"],
+  "extends": "expo/tsconfig.base"
+}

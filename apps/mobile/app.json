@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Enzyme",
+    "slug": "enzyme",
+    "version": "0.1.0",
+    "scheme": "enzyme",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "im.enzyme.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      },
+      "package": "im.enzyme.mobile"
+    },
+    "plugins": ["expo-secure-store"]
+  }
+}
