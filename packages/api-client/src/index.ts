@@ -9,10 +9,12 @@ export {
   multipartRequest,
   setAuthToken,
   getAuthToken,
+  setTokenStorage,
   setApiBase,
   getApiBase,
   authHeaders,
 } from './client';
+export type { TokenStorage } from './client';
 
 // Re-export API wrappers
 export * from './api';
