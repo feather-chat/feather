@@ -1,11 +1,12 @@
 .PHONY: dev build test clean generate-types install format format-check seed
 
-# Development - runs API and web (add DESKTOP=1 for Electron)
+# Development - runs API and web (add DESKTOP=1 for Electron, MOBILE=1 for Expo)
 dev:
 	trap 'kill 0' EXIT; \
 	(cd api && make dev) & \
 	pnpm --filter @enzyme/web dev & \
 	if [ "$(DESKTOP)" = "1" ]; then pnpm --filter @enzyme/desktop dev & fi; \
+	if [ "$(MOBILE)" = "1" ]; then pnpm --filter @enzyme/mobile dev & fi; \
 	wait
 
 # Install all dependencies
