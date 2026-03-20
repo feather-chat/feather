@@ -10,6 +10,26 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
+    },
+    "./stores/*": {
+      "types": "./src/stores/*.ts",
+      "import": "./src/stores/*.ts"
+    },
+    "./cache/*": {
+      "types": "./src/cache/*.ts",
+      "import": "./src/cache/*.ts"
+    },
+    "./hooks": {
+      "types": "./src/hooks/index.ts",
+      "import": "./src/hooks/index.ts"
+    },
+    "./hooks/*": {
+      "types": "./src/hooks/*.ts",
+      "import": "./src/hooks/*.ts"
+    },
+    "./sse/*": {
+      "types": "./src/sse/*.ts",
+      "import": "./src/sse/*.ts"
     }
   },
   "scripts": {
@@ -20,7 +40,22 @@
   "dependencies": {
     "@enzyme/api-client": "workspace:*"
   },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-query": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@tanstack/react-query": "^5.90.20",
+    "@types/react": "^19.2.5",
+    "react": "^19.2.0",
     "typescript": "~5.9.3",
     "vitest": "^4.0.18"
   }
