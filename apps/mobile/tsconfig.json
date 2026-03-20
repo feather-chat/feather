@@ -19,6 +19,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["App.tsx", "src", "nativewind-env.d.ts"],
+  "include": ["index.ts", "App.tsx", "src", "nativewind-env.d.ts"],
   "extends": "expo/tsconfig.base"
 }
