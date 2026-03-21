@@ -19,6 +19,7 @@
     "@tanstack/react-query": "^5.90.20",
     "expo": "~54.0.33",
     "expo-clipboard": "^8.0.8",
+    "expo-haptics": "~15.0.8",
     "expo-image": "^3.0.11",
     "expo-linking": "^8.0.11",
     "expo-modules-core": "~3.0.29",

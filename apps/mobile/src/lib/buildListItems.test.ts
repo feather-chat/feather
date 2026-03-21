@@ -2,7 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { buildListItems } from './buildListItems';
 import type { MessageWithUser } from '@enzyme/api-client';
 
-function makeMessage(id: string, date: string): MessageWithUser {
+function makeMessage(
+  id: string,
+  date: string,
+  overrides?: Partial<MessageWithUser>,
+): MessageWithUser {
   return {
     id,
     channel_id: 'ch1',
@@ -15,6 +19,7 @@ function makeMessage(id: string, date: string): MessageWithUser {
     reactions: [],
     attachments: [],
     display_name: 'User',
+    ...overrides,
   } as MessageWithUser;
 }
 
@@ -35,7 +40,7 @@ describe('buildListItems', () => {
     const pages = [{ messages: [makeMessage('m1', '2026-03-20')] }];
     const items = buildListItems(pages);
     expect(items).toHaveLength(2);
-    expect(items[0]).toEqual({ type: 'message', data: pages[0].messages[0] });
+    expect(items[0]).toEqual({ type: 'message', data: pages[0].messages[0], isGrouped: false });
     expect(items[1]).toEqual({
       type: 'date',
       date: '2026-03-20T12:00:00Z',
@@ -104,5 +109,87 @@ describe('buildListItems', () => {
     const dateItems = items.filter((i) => i.type === 'date');
     // Two date-change separators + one trailing separator
     expect(dateItems).toHaveLength(3);
+  });
+
+  describe('message grouping', () => {
+    it('groups consecutive messages from same user within 5 minutes', () => {
+      const pages = [
+        {
+          messages: [
+            makeMessage('m1', '2026-03-20', { created_at: '2026-03-20T12:02:00Z' }),
+            makeMessage('m2', '2026-03-20', { created_at: '2026-03-20T12:00:00Z' }),
+          ],
+        },
+      ];
+      const items = buildListItems(pages);
+      const msgItems = items.filter((i) => i.type === 'message');
+      expect(msgItems[0].isGrouped).toBe(true);
+      expect(msgItems[1].isGrouped).toBe(false); // last message is never grouped
+    });
+
+    it('does not group messages from different users', () => {
+      const pages = [
+        {
+          messages: [
+            makeMessage('m1', '2026-03-20', {
+              user_id: 'u1',
+              created_at: '2026-03-20T12:01:00Z',
+            }),
+            makeMessage('m2', '2026-03-20', {
+              user_id: 'u2',
+              created_at: '2026-03-20T12:00:00Z',
+            }),
+          ],
+        },
+      ];
+      const items = buildListItems(pages);
+      const msgItems = items.filter((i) => i.type === 'message');
+      expect(msgItems[0].isGrouped).toBe(false);
+    });
+
+    it('does not group messages more than 5 minutes apart', () => {
+      const pages = [
+        {
+          messages: [
+            makeMessage('m1', '2026-03-20', { created_at: '2026-03-20T12:06:00Z' }),
+            makeMessage('m2', '2026-03-20', { created_at: '2026-03-20T12:00:00Z' }),
+          ],
+        },
+      ];
+      const items = buildListItems(pages);
+      const msgItems = items.filter((i) => i.type === 'message');
+      expect(msgItems[0].isGrouped).toBe(false);
+    });
+
+    it('does not group system messages', () => {
+      const pages = [
+        {
+          messages: [
+            makeMessage('m1', '2026-03-20', {
+              type: 'system',
+              created_at: '2026-03-20T12:01:00Z',
+            }),
+            makeMessage('m2', '2026-03-20', { created_at: '2026-03-20T12:00:00Z' }),
+          ],
+        },
+      ];
+      const items = buildListItems(pages);
+      const msgItems = items.filter((i) => i.type === 'message');
+      expect(msgItems[0].isGrouped).toBe(false);
+    });
+
+    it('does not group across date boundaries', () => {
+      const pages = [
+        {
+          messages: [
+            makeMessage('m1', '2026-03-20', { created_at: '2026-03-20T00:01:00Z' }),
+            makeMessage('m2', '2026-03-19', { created_at: '2026-03-19T23:59:00Z' }),
+          ],
+        },
+      ];
+      const items = buildListItems(pages);
+      const msgItems = items.filter((i) => i.type === 'message');
+      expect(msgItems[0].isGrouped).toBe(false);
+    });
   });
 });

@@ -1,4 +1,5 @@
 import { View, Text, Pressable } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { formatTime } from '@enzyme/shared';
 import type {
   MessageWithUser,
@@ -20,6 +21,7 @@ interface MessageBubbleProps {
   onLongPress?: (message: MessageWithUser) => void;
   onReactionPress?: (message: MessageWithUser) => void;
   currentUserId?: string;
+  isGrouped?: boolean;
 }
 
 export function MessageBubble({
@@ -32,6 +34,7 @@ export function MessageBubble({
   onLongPress,
   onReactionPress,
   currentUserId,
+  isGrouped = false,
 }: MessageBubbleProps) {
   // System messages
   if (message.type === 'system') {
@@ -47,48 +50,61 @@ export function MessageBubble({
   const isEdited = !!message.edited_at;
   const isDeleted = !!message.deleted_at;
 
+  const handleLongPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onLongPress?.(message);
+  };
+
   return (
     <Pressable
-      className="flex-row px-4 py-1.5 active:bg-neutral-50 dark:active:bg-neutral-800/50"
-      onLongPress={() => onLongPress?.(message)}
+      className={`flex-row px-4 active:bg-neutral-50 dark:active:bg-neutral-800/50 ${isGrouped ? 'py-0.5' : 'py-1.5'}`}
+      onLongPress={handleLongPress}
       delayLongPress={300}
     >
-      {/* Avatar */}
-      <Pressable onPress={() => message.user_id && onAvatarPress?.(message.user_id)}>
-        <Avatar
-          user={{
-            display_name: message.user_display_name ?? '',
-            avatar_url: message.user_avatar_url,
-            id: message.user_id,
-          }}
-          size="md"
-        />
-      </Pressable>
+      {/* Avatar or spacer */}
+      {isGrouped ? (
+        <View style={{ width: 36 }} />
+      ) : (
+        <Pressable onPress={() => message.user_id && onAvatarPress?.(message.user_id)}>
+          <Avatar
+            user={{
+              display_name: message.user_display_name ?? '',
+              avatar_url: message.user_avatar_url,
+              id: message.user_id,
+            }}
+            size="md"
+          />
+        </Pressable>
+      )}
 
       {/* Content */}
       <View className="ml-2.5 flex-1">
-        {/* Header: name + time */}
-        <View className="flex-row items-baseline">
-          <Pressable onPress={() => message.user_id && onAvatarPress?.(message.user_id)}>
-            <Text className="text-sm font-bold text-neutral-900 dark:text-white">
-              {message.user_display_name}
+        {/* Header: name + time (hidden when grouped) */}
+        {!isGrouped && (
+          <View className="flex-row items-baseline">
+            <Pressable onPress={() => message.user_id && onAvatarPress?.(message.user_id)}>
+              <Text className="text-sm font-bold text-neutral-900 dark:text-white">
+                {message.user_display_name}
+              </Text>
+            </Pressable>
+            <Text className="ml-2 text-xs text-neutral-500 dark:text-neutral-400">
+              {formatTime(message.created_at)}
             </Text>
-          </Pressable>
-          <Text className="ml-2 text-xs text-neutral-500 dark:text-neutral-400">
-            {formatTime(message.created_at)}
-          </Text>
-          {isEdited && (
-            <Text className="ml-1 text-xs text-neutral-400 dark:text-neutral-500">(edited)</Text>
-          )}
-        </View>
+            {isEdited && (
+              <Text className="ml-1 text-xs text-neutral-400 dark:text-neutral-500">(edited)</Text>
+            )}
+          </View>
+        )}
 
         {/* Body */}
         {isDeleted ? (
-          <Text className="mt-0.5 text-sm italic text-neutral-400 dark:text-neutral-500">
+          <Text
+            className={`text-sm italic text-neutral-400 dark:text-neutral-500 ${isGrouped ? '' : 'mt-0.5'}`}
+          >
             This message was deleted.
           </Text>
         ) : (
-          <View className="mt-0.5">
+          <View className={isGrouped ? '' : 'mt-0.5'}>
             <MrkdwnRenderer
               content={message.content}
               members={members}

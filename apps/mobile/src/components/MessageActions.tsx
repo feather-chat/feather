@@ -10,6 +10,7 @@ interface MessageActionsProps {
   reactionMessage: MessageWithUser | null;
   onDismiss: () => void;
   onReply: (messageId: string) => void;
+  onShowReactionPicker: (message: MessageWithUser) => void;
   channelId: string;
   currentUserId?: string;
 }
@@ -19,6 +20,7 @@ export function MessageActions({
   reactionMessage,
   onDismiss,
   onReply,
+  onShowReactionPicker,
   channelId,
   currentUserId,
 }: MessageActionsProps) {
@@ -36,11 +38,9 @@ export function MessageActions({
   }, [activeMessage, onDismiss, onReply]);
 
   const handleAddReaction = useCallback(() => {
-    // Close action sheet, open reaction picker for same message
     if (!message) return;
-    // We need to transition from action sheet to reaction picker
-    // This is handled by the parent by setting reactionMessage
-  }, [message]);
+    onShowReactionPicker(message);
+  }, [message, onShowReactionPicker]);
 
   const handleCopy = useCallback(async () => {
     if (!activeMessage) return;
@@ -67,7 +67,7 @@ export function MessageActions({
         },
       },
     ]);
-  }, [activeMessage, channelId, deleteMessage, onDismiss]);
+  }, [activeMessage, deleteMessage, onDismiss]);
 
   return (
     <>

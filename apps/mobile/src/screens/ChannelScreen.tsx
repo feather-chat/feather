@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useMessages,
   useMarkChannelAsRead,
@@ -19,6 +20,7 @@ import { buildListItems, type ListItem } from '../lib/buildListItems';
 export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>) {
   const { workspaceId, channelId } = route.params;
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useMessages(channelId);
   const markAsRead = useMarkChannelAsRead(workspaceId);
@@ -61,6 +63,7 @@ export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>)
           members={members}
           channels={channels}
           currentUserId={user?.id}
+          isGrouped={item.isGrouped}
           onAvatarPress={(userId) => navigation.navigate('Profile', { workspaceId, userId })}
           onThreadPress={(messageId) =>
             navigation.navigate('Thread', {
@@ -94,7 +97,7 @@ export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>)
     <KeyboardAvoidingView
       className="flex-1 bg-white dark:bg-neutral-900"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 44 : 0}
     >
       <FlatList
         data={listItems}
@@ -103,6 +106,8 @@ export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>)
         inverted
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
         ListFooterComponent={
           isFetchingNextPage ? <ActivityIndicator style={{ padding: 16 }} /> : null
         }
@@ -111,7 +116,11 @@ export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>)
 
       <TypingIndicator channelId={channelId} />
 
-      <MessageComposer channelId={channelId} workspaceId={workspaceId} />
+      <MessageComposer
+        channelId={channelId}
+        workspaceId={workspaceId}
+        bottomInset={insets.bottom}
+      />
 
       <MessageActions
         message={actionMessage}
@@ -119,6 +128,10 @@ export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>)
         onDismiss={() => {
           setActionMessage(null);
           setReactionMessage(null);
+        }}
+        onShowReactionPicker={(msg) => {
+          setActionMessage(null);
+          setReactionMessage(msg);
         }}
         onReply={(messageId) =>
           navigation.navigate('Thread', {

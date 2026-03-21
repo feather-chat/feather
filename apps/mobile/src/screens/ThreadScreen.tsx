@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   View,
   FlatList,
@@ -8,6 +8,7 @@ import {
   Switch,
   Text,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useMessage,
   useThreadMessages,
@@ -21,9 +22,12 @@ import { MessageBubble } from '../components/MessageBubble';
 import { MessageComposer } from '../components/MessageComposer';
 import { MessageActions } from '../components/MessageActions';
 
+const GROUP_THRESHOLD_MS = 5 * 60 * 1000;
+
 export function ThreadScreen({ route, navigation }: MainScreenProps<'Thread'>) {
   const { workspaceId, channelId, parentMessageId } = route.params;
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const { data: parentData } = useMessage(parentMessageId);
   const parentMessage = parentData?.message;
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -37,7 +41,10 @@ export function ThreadScreen({ route, navigation }: MainScreenProps<'Thread'>) {
   const [reactionMessage, setReactionMessage] = useState<MessageWithUser | null>(null);
   const [alsoSendToChannel, setAlsoSendToChannel] = useState(false);
 
-  const replies = data?.pages.flatMap((p) => p.messages) ?? [];
+  const replies = useMemo(
+    () => (data?.pages.flatMap((p) => p.messages) ?? []).slice().reverse(),
+    [data?.pages],
+  );
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -46,20 +53,33 @@ export function ThreadScreen({ route, navigation }: MainScreenProps<'Thread'>) {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const renderItem = useCallback(
-    ({ item }: { item: MessageWithUser }) => (
-      <MessageBubble
-        message={item}
-        workspaceId={workspaceId}
-        channelId={channelId}
-        members={members}
-        channels={channels}
-        currentUserId={user?.id}
-        onAvatarPress={(userId) => navigation.navigate('Profile', { workspaceId, userId })}
-        onLongPress={setActionMessage}
-        onReactionPress={setReactionMessage}
-      />
-    ),
-    [workspaceId, channelId, members, channels, user?.id, navigation],
+    ({ item, index }: { item: MessageWithUser; index: number }) => {
+      const next = replies[index + 1];
+      const isGrouped =
+        !!next &&
+        item.type !== 'system' &&
+        next.type !== 'system' &&
+        item.user_id === next.user_id &&
+        !next.deleted_at &&
+        Math.abs(new Date(item.created_at).getTime() - new Date(next.created_at).getTime()) <
+          GROUP_THRESHOLD_MS;
+
+      return (
+        <MessageBubble
+          message={item}
+          workspaceId={workspaceId}
+          channelId={channelId}
+          members={members}
+          channels={channels}
+          currentUserId={user?.id}
+          isGrouped={isGrouped}
+          onAvatarPress={(userId) => navigation.navigate('Profile', { workspaceId, userId })}
+          onLongPress={setActionMessage}
+          onReactionPress={setReactionMessage}
+        />
+      );
+    },
+    [workspaceId, channelId, members, channels, user?.id, navigation, replies],
   );
 
   if (isLoading) {
@@ -74,7 +94,7 @@ export function ThreadScreen({ route, navigation }: MainScreenProps<'Thread'>) {
     <KeyboardAvoidingView
       className="flex-1 bg-white dark:bg-neutral-900"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 44 : 0}
     >
       {/* Parent message */}
       {parentMessage && (
@@ -96,8 +116,11 @@ export function ThreadScreen({ route, navigation }: MainScreenProps<'Thread'>) {
         data={replies}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
+        inverted
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
         ListFooterComponent={
           isFetchingNextPage ? <ActivityIndicator style={{ padding: 16 }} /> : null
         }
@@ -119,6 +142,7 @@ export function ThreadScreen({ route, navigation }: MainScreenProps<'Thread'>) {
         workspaceId={workspaceId}
         threadParentId={parentMessageId}
         alsoSendToChannel={alsoSendToChannel}
+        bottomInset={insets.bottom}
       />
 
       <MessageActions
@@ -127,6 +151,10 @@ export function ThreadScreen({ route, navigation }: MainScreenProps<'Thread'>) {
         onDismiss={() => {
           setActionMessage(null);
           setReactionMessage(null);
+        }}
+        onShowReactionPicker={(msg) => {
+          setActionMessage(null);
+          setReactionMessage(msg);
         }}
         onReply={(messageId) =>
           navigation.navigate('Thread', {

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { parseMrkdwn, isEmojiOnly, resolveStandardShortcode, type MrkdwnSegment } from '@enzyme/shared';
+import {
+  parseMrkdwn,
+  isEmojiOnly,
+  resolveStandardShortcode,
+  type MrkdwnSegment,
+} from '@enzyme/shared';
 
 /**
  * Tests that the MrkdwnRenderer's segment handling covers all types

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { View, TextInput, Pressable, Text, ScrollView } from 'react-native';
 import {
   useSendMessage,
@@ -23,6 +23,7 @@ interface MessageComposerProps {
   workspaceId: string;
   threadParentId?: string;
   alsoSendToChannel?: boolean;
+  bottomInset?: number;
 }
 
 export function MessageComposer({
@@ -30,9 +31,11 @@ export function MessageComposer({
   workspaceId,
   threadParentId,
   alsoSendToChannel,
+  bottomInset = 0,
 }: MessageComposerProps) {
   const [text, setText] = useState('');
   const [selection, setSelection] = useState({ start: 0, end: 0 });
+  const [showFormatBar, setShowFormatBar] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const editingMessageId = useEditingMessageId();
@@ -44,10 +47,12 @@ export function MessageComposer({
 
   // Load editing message content
   const [editLoaded, setEditLoaded] = useState<string | null>(null);
-  if (editingMessageId && editingMessage?.message && editLoaded !== editingMessageId) {
-    setText(editingMessage.message.content);
-    setEditLoaded(editingMessageId);
-  }
+  useEffect(() => {
+    if (editingMessageId && editingMessage?.message && editLoaded !== editingMessageId) {
+      setText(editingMessage.message.content);
+      setEditLoaded(editingMessageId);
+    }
+  }, [editingMessageId, editingMessage?.message, editLoaded]);
 
   const handleSend = useCallback(() => {
     const trimmed = text.trim();
@@ -131,28 +136,40 @@ export function MessageComposer({
         </View>
       )}
 
-      {/* Formatting toolbar */}
       <View className="border-t border-neutral-200 dark:border-neutral-700">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 8 }}
-          className="border-b border-neutral-100 py-1 dark:border-neutral-800"
-        >
-          {FORMAT_ACTIONS.map((action) => (
-            <Pressable
-              key={action.label}
-              className="mx-0.5 rounded px-3 py-1 active:bg-neutral-200 dark:active:bg-neutral-700"
-              onPress={() => applyFormat(action)}
-            >
-              <Text className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                {action.label}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+        {/* Formatting toolbar (toggled) */}
+        {showFormatBar && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 8 }}
+            className="border-b border-neutral-100 py-1 dark:border-neutral-800"
+          >
+            {FORMAT_ACTIONS.map((action) => (
+              <Pressable
+                key={action.label}
+                className="mx-0.5 rounded px-3 py-1 active:bg-neutral-200 dark:active:bg-neutral-700"
+                onPress={() => applyFormat(action)}
+              >
+                <Text className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+                  {action.label}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
 
         <View className="flex-row items-end px-3 py-2">
+          <Pressable
+            className={`mr-1.5 h-9 items-center justify-center rounded-lg px-2 ${showFormatBar ? 'bg-neutral-200 dark:bg-neutral-700' : ''}`}
+            onPress={() => setShowFormatBar((v) => !v)}
+          >
+            <Text
+              className={`text-sm font-semibold ${showFormatBar ? 'text-blue-500' : 'text-neutral-400 dark:text-neutral-500'}`}
+            >
+              Aa
+            </Text>
+          </Pressable>
           <TextInput
             ref={inputRef}
             className="max-h-32 min-h-9 flex-1 rounded-xl bg-neutral-100 px-3 py-2 text-base text-neutral-900 dark:bg-neutral-800 dark:text-white"
@@ -179,6 +196,7 @@ export function MessageComposer({
           </Text>
         )}
       </View>
+      {bottomInset > 0 && <View style={{ height: bottomInset }} />}
     </View>
   );
 }
