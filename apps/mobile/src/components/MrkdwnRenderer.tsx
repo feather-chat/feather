@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { Text, View, ScrollView, Linking } from 'react-native';
 import {
   parseMrkdwn,
@@ -15,15 +16,15 @@ interface MrkdwnRendererProps {
   onChannelPress?: (channelId: string) => void;
 }
 
-export function MrkdwnRenderer({
+export const MrkdwnRenderer = memo(function MrkdwnRenderer({
   content,
   members,
   channels,
   onMentionPress,
   onChannelPress,
 }: MrkdwnRendererProps) {
-  const segments = parseMrkdwn(content);
-  const emojiOnly = isEmojiOnly(segments);
+  const segments = useMemo(() => parseMrkdwn(content), [content]);
+  const emojiOnly = useMemo(() => isEmojiOnly(segments), [segments]);
 
   return (
     <Text style={emojiOnly ? { fontSize: 32, lineHeight: 40 } : { fontSize: 16, lineHeight: 22 }}>
@@ -39,7 +40,7 @@ export function MrkdwnRenderer({
       ))}
     </Text>
   );
-}
+});
 
 interface SegmentProps {
   segment: MrkdwnSegment;
@@ -47,6 +48,12 @@ interface SegmentProps {
   channels?: ChannelWithMembership[];
   onMentionPress?: (userId: string) => void;
   onChannelPress?: (channelId: string) => void;
+}
+
+function openSafeURL(url: string) {
+  if (/^https?:\/\//i.test(url)) {
+    Linking.openURL(url);
+  }
 }
 
 function Segment({ segment, members, channels, onMentionPress, onChannelPress }: SegmentProps) {
@@ -77,7 +84,7 @@ function Segment({ segment, members, channels, onMentionPress, onChannelPress }:
       return (
         <Text
           className="text-blue-500 underline dark:text-blue-400"
-          onPress={() => Linking.openURL(segment.url)}
+          onPress={() => openSafeURL(segment.url)}
         >
           {segment.text}
         </Text>
@@ -124,13 +131,39 @@ function Segment({ segment, members, channels, onMentionPress, onChannelPress }:
     }
 
     case 'blockquote':
-      return <BlockquoteView segments={segment.segments} />;
+      return (
+        <BlockquoteView
+          segments={segment.segments}
+          members={members}
+          channels={channels}
+          onMentionPress={onMentionPress}
+          onChannelPress={onChannelPress}
+        />
+      );
 
     case 'bullet_list':
-      return <ListView items={segment.items} ordered={false} />;
+      return (
+        <ListView
+          items={segment.items}
+          ordered={false}
+          members={members}
+          channels={channels}
+          onMentionPress={onMentionPress}
+          onChannelPress={onChannelPress}
+        />
+      );
 
     case 'ordered_list':
-      return <ListView items={segment.items} ordered={true} />;
+      return (
+        <ListView
+          items={segment.items}
+          ordered={true}
+          members={members}
+          channels={channels}
+          onMentionPress={onMentionPress}
+          onChannelPress={onChannelPress}
+        />
+      );
 
     case 'line_break':
       return <Text>{'\n'}</Text>;
@@ -150,7 +183,21 @@ function CodeBlock({ content }: { content: string }) {
   );
 }
 
-function BlockquoteView({ segments }: { segments: MrkdwnSegment[] }) {
+interface NestedSegmentProps {
+  segments: MrkdwnSegment[];
+  members?: WorkspaceMemberWithUser[];
+  channels?: ChannelWithMembership[];
+  onMentionPress?: (userId: string) => void;
+  onChannelPress?: (channelId: string) => void;
+}
+
+function BlockquoteView({
+  segments,
+  members,
+  channels,
+  onMentionPress,
+  onChannelPress,
+}: NestedSegmentProps) {
   return (
     <View className="my-1 border-l-4 border-neutral-300 pl-3 dark:border-neutral-600">
       <Text
@@ -158,14 +205,37 @@ function BlockquoteView({ segments }: { segments: MrkdwnSegment[] }) {
         style={{ fontSize: 16, lineHeight: 22 }}
       >
         {segments.map((s, i) => (
-          <Segment key={i} segment={s} />
+          <Segment
+            key={i}
+            segment={s}
+            members={members}
+            channels={channels}
+            onMentionPress={onMentionPress}
+            onChannelPress={onChannelPress}
+          />
         ))}
       </Text>
     </View>
   );
 }
 
-function ListView({ items, ordered }: { items: MrkdwnSegment[][]; ordered: boolean }) {
+interface ListViewProps {
+  items: MrkdwnSegment[][];
+  ordered: boolean;
+  members?: WorkspaceMemberWithUser[];
+  channels?: ChannelWithMembership[];
+  onMentionPress?: (userId: string) => void;
+  onChannelPress?: (channelId: string) => void;
+}
+
+function ListView({
+  items,
+  ordered,
+  members,
+  channels,
+  onMentionPress,
+  onChannelPress,
+}: ListViewProps) {
   return (
     <View className="my-1">
       {items.map((item, index) => (
@@ -175,7 +245,14 @@ function ListView({ items, ordered }: { items: MrkdwnSegment[][]; ordered: boole
           </Text>
           <Text style={{ fontSize: 16, lineHeight: 22, flex: 1 }}>
             {item.map((s, i) => (
-              <Segment key={i} segment={s} />
+              <Segment
+                key={i}
+                segment={s}
+                members={members}
+                channels={channels}
+                onMentionPress={onMentionPress}
+                onChannelPress={onChannelPress}
+              />
             ))}
           </Text>
         </View>

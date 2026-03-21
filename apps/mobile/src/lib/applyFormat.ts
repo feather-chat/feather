@@ -24,17 +24,35 @@ export function applyFormat(
   return `${before}${action.prefix}${selected}${action.suffix}${after}`;
 }
 
+const TRIGGER_CHARS = new Set(['@', '#', ':']);
+
+/**
+ * Find the active trigger character by scanning backwards from cursor,
+ * matching the same word-boundary logic as buildSuggestions' detectTrigger.
+ */
+function findTriggerIndex(text: string, cursorPosition: number): number {
+  const before = text.slice(0, cursorPosition);
+
+  for (let i = before.length - 1; i >= 0; i--) {
+    const char = before[i];
+    if (char === ' ' || char === '\n') break;
+    if (TRIGGER_CHARS.has(char)) {
+      if (i === 0 || before[i - 1] === ' ' || before[i - 1] === '\n') {
+        return i;
+      }
+      break;
+    }
+  }
+
+  return -1;
+}
+
 export function insertMentionToken(
   text: string,
   cursorPosition: number,
   token: string,
 ): { newText: string; newPosition: number } | null {
-  const beforeCursor = text.slice(0, cursorPosition);
-  const triggerIndex = Math.max(
-    beforeCursor.lastIndexOf('@'),
-    beforeCursor.lastIndexOf('#'),
-    beforeCursor.lastIndexOf(':'),
-  );
+  const triggerIndex = findTriggerIndex(text, cursorPosition);
   if (triggerIndex === -1) return null;
 
   const before = text.slice(0, triggerIndex);
