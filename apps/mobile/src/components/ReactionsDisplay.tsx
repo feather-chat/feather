@@ -1,6 +1,7 @@
 import { Text, Pressable, ScrollView } from 'react-native';
 import { useAddReaction, useRemoveReaction } from '@enzyme/shared';
 import type { Reaction } from '@enzyme/api-client';
+import { groupReactions, type ReactionGroup } from '../lib/groupReactions';
 
 interface ReactionsDisplayProps {
   reactions: Reaction[];
@@ -8,35 +9,6 @@ interface ReactionsDisplayProps {
   channelId: string;
   currentUserId?: string;
   onAddReaction?: () => void;
-}
-
-interface ReactionGroup {
-  emoji: string;
-  count: number;
-  userIds: string[];
-  hasReacted: boolean;
-}
-
-function groupReactions(reactions: Reaction[], currentUserId?: string): ReactionGroup[] {
-  const groups = new Map<string, ReactionGroup>();
-
-  for (const r of reactions) {
-    const existing = groups.get(r.emoji);
-    if (existing) {
-      existing.count++;
-      existing.userIds.push(r.user_id);
-      if (r.user_id === currentUserId) existing.hasReacted = true;
-    } else {
-      groups.set(r.emoji, {
-        emoji: r.emoji,
-        count: 1,
-        userIds: [r.user_id],
-        hasReacted: r.user_id === currentUserId,
-      });
-    }
-  }
-
-  return Array.from(groups.values());
 }
 
 export function ReactionsDisplay({

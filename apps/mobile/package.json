@@ -8,8 +8,8 @@
     "build": "expo export",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "echo 'No tests configured yet'",
-    "test:run": "echo 'No tests configured yet'"
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@enzyme/api-client": "workspace:*",
@@ -38,6 +38,7 @@
     "eslint": "^9.39.1",
     "tailwindcss": "3.4.17",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.4"
+    "typescript-eslint": "^8.46.4",
+    "vitest": "^4.0.18"
   }
 }

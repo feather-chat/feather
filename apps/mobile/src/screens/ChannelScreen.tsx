@@ -14,10 +14,7 @@ import { DateSeparator } from '../components/DateSeparator';
 import { MessageComposer } from '../components/MessageComposer';
 import { MessageActions } from '../components/MessageActions';
 import { TypingIndicator } from '../components/TypingIndicator';
-
-type ListItem =
-  | { type: 'message'; data: MessageWithUser }
-  | { type: 'date'; date: string; id: string };
+import { buildListItems, type ListItem } from '../lib/buildListItems';
 
 export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>) {
   const { workspaceId, channelId } = route.params;
@@ -42,31 +39,7 @@ export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>)
   }, [latestMessageId, channelId]);
 
   // Build list items with date separators (inverted, so newest first)
-  const listItems = useMemo<ListItem[]>(() => {
-    if (!data?.pages) return [];
-
-    const messages = data.pages.flatMap((p) => p.messages);
-    const items: ListItem[] = [];
-
-    for (let i = 0; i < messages.length; i++) {
-      const msg = messages[i];
-      const msgDate = msg.created_at.split('T')[0];
-      const prevDate = messages[i + 1]?.created_at.split('T')[0];
-
-      items.push({ type: 'message', data: msg });
-
-      // Insert date separator when the date changes (going back in time since inverted)
-      if (prevDate && msgDate !== prevDate) {
-        items.push({ type: 'date', date: msg.created_at, id: `date-${msgDate}` });
-      }
-      // Also show date separator for the oldest message in the batch
-      if (i === messages.length - 1) {
-        items.push({ type: 'date', date: msg.created_at, id: `date-${msgDate}-last` });
-      }
-    }
-
-    return items;
-  }, [data?.pages]);
+  const listItems = useMemo<ListItem[]>(() => buildListItems(data?.pages), [data?.pages]);
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {

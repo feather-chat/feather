@@ -9,6 +9,11 @@ import {
   useMessage,
 } from '@enzyme/shared';
 import { MentionSuggestions } from './MentionSuggestions';
+import {
+  FORMAT_ACTIONS,
+  applyFormat as applyFormatHelper,
+  insertMentionToken,
+} from '../lib/applyFormat';
 
 const MAX_LENGTH = 40000;
 const WARN_THRESHOLD = 39000;
@@ -19,21 +24,6 @@ interface MessageComposerProps {
   threadParentId?: string;
   alsoSendToChannel?: boolean;
 }
-
-type FormatAction = {
-  label: string;
-  prefix: string;
-  suffix: string;
-};
-
-const FORMAT_ACTIONS: FormatAction[] = [
-  { label: 'B', prefix: '*', suffix: '*' },
-  { label: 'I', prefix: '_', suffix: '_' },
-  { label: 'S', prefix: '~', suffix: '~' },
-  { label: '<>', prefix: '`', suffix: '`' },
-  { label: '>', prefix: '> ', suffix: '' },
-  { label: '•', prefix: '• ', suffix: '' },
-];
 
 export function MessageComposer({
   channelId,
@@ -99,34 +89,18 @@ export function MessageComposer({
   }, []);
 
   const applyFormat = useCallback(
-    (action: FormatAction) => {
-      const { start, end } = selection;
-      const before = text.slice(0, start);
-      const selected = text.slice(start, end);
-      const after = text.slice(end);
-      const newText = `${before}${action.prefix}${selected}${action.suffix}${after}`;
-      setText(newText);
+    (action: (typeof FORMAT_ACTIONS)[number]) => {
+      setText(applyFormatHelper(text, selection, action));
     },
     [text, selection],
   );
 
   const handleMentionSelect = useCallback(
     (token: string) => {
-      // Find the trigger position
-      const beforeCursor = text.slice(0, selection.start);
-      const triggerIndex = Math.max(
-        beforeCursor.lastIndexOf('@'),
-        beforeCursor.lastIndexOf('#'),
-        beforeCursor.lastIndexOf(':'),
-      );
-      if (triggerIndex === -1) return;
-
-      const before = text.slice(0, triggerIndex);
-      const after = text.slice(selection.start);
-      const newText = `${before}${token} ${after}`;
-      setText(newText);
-      const newPos = before.length + token.length + 1;
-      setSelection({ start: newPos, end: newPos });
+      const result = insertMentionToken(text, selection.start, token);
+      if (!result) return;
+      setText(result.newText);
+      setSelection({ start: result.newPosition, end: result.newPosition });
     },
     [text, selection],
   );
