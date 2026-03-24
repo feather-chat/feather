@@ -202,9 +202,7 @@ push_notifications:
   enabled: true
 ```
 
-The relay (`push.enzyme.im`) holds the FCM/APNs credentials for the published mobile app and dispatches notifications on behalf of your server. It receives only metadata (sender name, channel name) — message content is fetched by the mobile app directly from your server.
-
-See [Push Notifications configuration](/docs/configuration/#push-notifications) for all options.
+The relay (`push.enzyme.im`) holds the FCM/APNs credentials for the published mobile app and dispatches notifications on behalf of your server. By default, it receives metadata and a short message preview. To omit message previews, set `include_preview: false`. See [Push Notifications configuration](/docs/configuration/#push-notifications) for all options.
 
 ## Running as a systemd Service
 

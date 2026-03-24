@@ -175,7 +175,7 @@ Push notifications deliver alerts to mobile devices when users are offline. Noti
 | `push_notifications.relay_url`       | `ENZYME_PUSH_NOTIFICATIONS_RELAY_URL`       | `--push_notifications.relay_url`       | `https://push.enzyme.im` | URL of the push relay service. Must use HTTPS (except for localhost).                   |
 | `push_notifications.include_preview` | `ENZYME_PUSH_NOTIFICATIONS_INCLUDE_PREVIEW` | `--push_notifications.include_preview` | `true`                   | Include a short message preview in the push notification body. Set `false` for privacy. |
 
-The default relay (`push.enzyme.im`) is operated by Enzyme and works out of the box. The relay sees only metadata (sender name, channel name) — message content is fetched by the mobile app directly from your server. See [Notifications](/docs/notifications/#push-notifications) for details on the delivery pipeline and privacy model.
+The default relay (`push.enzyme.im`) is operated by Enzyme and works out of the box. By default, the relay receives metadata (sender name, channel name) and a short message preview. Set `include_preview` to `false` to send only metadata — the mobile app will fetch message content directly from your server. See [Notifications](/docs/notifications/#push-notifications) for details on the delivery pipeline and privacy model.
 
 ## Telemetry (OpenTelemetry)
 

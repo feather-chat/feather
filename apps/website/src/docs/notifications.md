@@ -51,7 +51,7 @@ Push suppresses email: if a push notification is successfully dispatched to at l
 
 Push notifications deliver alerts to mobile devices when a user is offline. They are sent through a relay service (`push.enzyme.im`) that holds the FCM and APNs credentials for the published app.
 
-**Privacy:** The relay receives only metadata (sender name, channel name, notification type). Message content is not included by default. The mobile app fetches full message content directly from its own Enzyme server when the user taps the notification.
+**Privacy:** By default, the relay receives metadata (sender name, channel name) and a short message preview. Set `include_preview: false` in your [push configuration](/docs/configuration/#push-notifications) to omit the preview — the relay will then receive only metadata, and the mobile app will fetch message content directly from your server when the user taps the notification.
 
 Push notifications are enabled by the server administrator. See [Push Notifications configuration](/docs/configuration/#push-notifications) for setup. No client-side configuration is needed — the mobile app handles device token registration automatically.
 
