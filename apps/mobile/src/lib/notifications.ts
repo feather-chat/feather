@@ -5,23 +5,15 @@ import { Platform } from 'react-native';
 import { authApi, getAuthToken } from '@enzyme/api-client';
 
 const DEVICE_ID_KEY = 'enzyme_device_id';
+const TOKEN_ID_KEY = 'enzyme_registered_token_id';
 
 let registeredTokenId: string | null = null;
-
-function generateUUID(): string {
-  const bytes = new Uint8Array(16);
-  for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
-  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
-  bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 1
-  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-}
 
 async function getDeviceId(): Promise<string> {
   const existing = await SecureStore.getItemAsync(DEVICE_ID_KEY);
   if (existing) return existing;
 
-  const id = generateUUID();
+  const id = crypto.randomUUID();
   await SecureStore.setItemAsync(DEVICE_ID_KEY, id);
   return id;
 }
@@ -43,7 +35,8 @@ export async function getDevicePushToken(): Promise<string | null> {
 
   try {
     const token = await Notifications.getDevicePushTokenAsync();
-    return token.data as string;
+    if (typeof token.data !== 'string') return null;
+    return token.data;
   } catch {
     return null;
   }
@@ -54,11 +47,10 @@ export async function registerPushToken(): Promise<void> {
   try {
     if (!getAuthToken()) return;
 
-    const token = await getDevicePushToken();
+    const [token, deviceId] = await Promise.all([getDevicePushToken(), getDeviceId()]);
     if (!token) return;
 
     const platform = Platform.OS === 'ios' ? 'apns' : 'fcm';
-    const deviceId = await getDeviceId();
 
     const response = await authApi.registerDeviceToken({
       token,
@@ -66,6 +58,7 @@ export async function registerPushToken(): Promise<void> {
       device_id: deviceId,
     });
     registeredTokenId = response.id;
+    await SecureStore.setItemAsync(TOKEN_ID_KEY, response.id);
   } catch (err) {
     console.warn('Push token registration failed:', err);
   }
@@ -73,21 +66,15 @@ export async function registerPushToken(): Promise<void> {
 
 /** Unregister the current device token from the backend. Call on logout. */
 export async function unregisterPushToken(): Promise<void> {
-  if (!registeredTokenId) return;
+  const tokenId = registeredTokenId ?? (await SecureStore.getItemAsync(TOKEN_ID_KEY));
+  if (!tokenId) return;
 
   try {
-    await authApi.unregisterDeviceToken(registeredTokenId);
+    await authApi.unregisterDeviceToken(tokenId);
   } catch (err) {
     console.warn('Push token unregistration failed:', err);
   } finally {
     registeredTokenId = null;
+    await SecureStore.deleteItemAsync(TOKEN_ID_KEY);
   }
-}
-
-/** Set up the token refresh listener. Returns cleanup function. */
-export function onTokenRefresh(callback: () => void): () => void {
-  const subscription = Notifications.addPushTokenListener(() => {
-    callback();
-  });
-  return () => subscription.remove();
 }

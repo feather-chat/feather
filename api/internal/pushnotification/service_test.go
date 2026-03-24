@@ -42,12 +42,14 @@ func TestSendWithMockRelay(t *testing.T) {
 
 	svc := NewService(repo, relay.URL)
 	data := NotificationData{
-		Title:       "@alice in #general",
-		Body:        "Hello world",
-		ChannelID:   "ch-1",
-		MessageID:   "msg-1",
-		WorkspaceID: "ws-1",
-		ServerURL:   "https://chat.example.com",
+		Title:          "@alice in #general",
+		Body:           "Hello world",
+		ChannelID:      "ch-1",
+		MessageID:      "msg-1",
+		WorkspaceID:    "ws-1",
+		ChannelName:    "general",
+		ThreadParentID: "msg-parent-1",
+		ServerURL:      "https://chat.example.com",
 	}
 
 	ok := svc.Send(ctx, user.ID, data)
@@ -65,6 +67,12 @@ func TestSendWithMockRelay(t *testing.T) {
 		}
 		if req.Data.ChannelID != "ch-1" {
 			t.Errorf("expected channel_id 'ch-1', got %q", req.Data.ChannelID)
+		}
+		if req.Data.ChannelName != "general" {
+			t.Errorf("expected channel_name 'general', got %q", req.Data.ChannelName)
+		}
+		if req.Data.ThreadParentID != "msg-parent-1" {
+			t.Errorf("expected thread_parent_id 'msg-parent-1', got %q", req.Data.ThreadParentID)
 		}
 		if req.Data.ServerURL != "https://chat.example.com" {
 			t.Errorf("expected server_url 'https://chat.example.com', got %q", req.Data.ServerURL)

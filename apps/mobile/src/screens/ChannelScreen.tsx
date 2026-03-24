@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import {
   useMessages,
   useMarkChannelAsRead,
@@ -18,7 +17,6 @@ import { MessageActions } from '../components/MessageActions';
 import { TypingIndicator } from '../components/TypingIndicator';
 import { FullScreenLoader } from '../components/FullScreenLoader';
 import { buildListItems, type ListItem } from '../lib/buildListItems';
-import { setActiveChannelId } from '../lib/activeChannel';
 
 const CONTENT_STYLE = { paddingVertical: 8 };
 
@@ -38,14 +36,6 @@ export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>)
 
   const [actionMessage, setActionMessage] = useState<MessageWithUser | null>(null);
   const [reactionMessage, setReactionMessage] = useState<MessageWithUser | null>(null);
-
-  // Track active channel for notification suppression
-  useFocusEffect(
-    useCallback(() => {
-      setActiveChannelId(channelId);
-      return () => setActiveChannelId(null);
-    }, [channelId]),
-  );
 
   // Mark as read on mount and when new messages arrive
   const latestMessageId = data?.pages[0]?.messages[0]?.id;

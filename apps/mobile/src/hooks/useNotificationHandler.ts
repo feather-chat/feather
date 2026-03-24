@@ -4,7 +4,6 @@ import { navigateToChannel, navigateToThread } from '../navigation/navigationRef
 import { useAppState } from './useAppState';
 
 const SUPPRESS = {
-  shouldShowAlert: false,
   shouldPlaySound: false,
   shouldSetBadge: false,
   shouldShowBanner: false,
@@ -15,9 +14,10 @@ const SUPPRESS = {
 export function useNotificationHandler(isAuthenticated: boolean): void {
   const hasHandledColdStart = useRef(false);
 
-  // Always suppress notifications while the app is foregrounded.
+  // Suppress all notifications while the app is foregrounded.
   // The SSE connection delivers real-time updates already — showing a
-  // system notification on top would be redundant and noisy.
+  // system notification on top would be redundant and noisy (matches
+  // Slack and Discord behavior).
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -55,8 +55,11 @@ export function useNotificationHandler(isAuthenticated: boolean): void {
 
   // Clear badge on foreground
   useAppState({
-    onForeground: () => {
-      Notifications.setBadgeCountAsync(0);
+    onForeground: async () => {
+      const count = await Notifications.getBadgeCountAsync();
+      if (count > 0) {
+        await Notifications.setBadgeCountAsync(0);
+      }
     },
   });
 }
@@ -64,18 +67,17 @@ export function useNotificationHandler(isAuthenticated: boolean): void {
 function handleNotificationTap(data: Record<string, unknown> | undefined) {
   if (!data) return;
 
-  const { workspace_id, channel_id, channel_name, thread_parent_id } = data as {
-    workspace_id?: string;
-    channel_id?: string;
-    channel_name?: string;
-    thread_parent_id?: string;
-  };
+  const workspaceId = typeof data.workspace_id === 'string' ? data.workspace_id : undefined;
+  const channelId = typeof data.channel_id === 'string' ? data.channel_id : undefined;
+  const channelName = typeof data.channel_name === 'string' ? data.channel_name : '';
+  const threadParentId =
+    typeof data.thread_parent_id === 'string' ? data.thread_parent_id : undefined;
 
-  if (!workspace_id || !channel_id) return;
+  if (!workspaceId || !channelId) return;
 
-  if (thread_parent_id) {
-    navigateToThread(workspace_id, channel_id, thread_parent_id);
+  if (threadParentId) {
+    navigateToThread(workspaceId, channelId, threadParentId);
   } else {
-    navigateToChannel(workspace_id, channel_id, channel_name || '');
+    navigateToChannel(workspaceId, channelId, channelName);
   }
 }

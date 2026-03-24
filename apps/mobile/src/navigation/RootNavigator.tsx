@@ -3,7 +3,7 @@ import { useAuth } from '@enzyme/shared';
 import { ActivityIndicator, View } from 'react-native';
 import { AuthStack } from './AuthStack';
 import { MainStack } from './MainStack';
-import { navigationRef } from './navigationRef';
+import { navigationRef, flushPendingNavigation } from './navigationRef';
 import { WorkspaceProvider } from '../lib/WorkspaceProvider';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useNotificationHandler } from '../hooks/useNotificationHandler';
@@ -23,7 +23,7 @@ export function RootNavigator() {
   }
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} onReady={flushPendingNavigation}>
       {isAuthenticated ? (
         <WorkspaceProvider>
           <MainStack />

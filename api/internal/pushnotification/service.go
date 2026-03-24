@@ -54,11 +54,12 @@ func (s *Service) Send(ctx context.Context, userID string, data NotificationData
 			Title:       data.Title,
 			Body:        data.Body,
 			Data: RelayRequestData{
-				ChannelID:   data.ChannelID,
-				MessageID:   data.MessageID,
-				WorkspaceID: data.WorkspaceID,
-				ChannelName: data.ChannelName,
-				ServerURL:   data.ServerURL,
+				ChannelID:      data.ChannelID,
+				MessageID:      data.MessageID,
+				WorkspaceID:    data.WorkspaceID,
+				ChannelName:    data.ChannelName,
+				ThreadParentID: data.ThreadParentID,
+				ServerURL:      data.ServerURL,
 			},
 		}
 
