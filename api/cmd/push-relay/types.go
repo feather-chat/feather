@@ -34,10 +34,19 @@ const (
 	maxTitleLen        = 200
 	maxBodyLen         = 1000
 	maxDataKeys        = 10
+	maxDataValueLen    = 256
 )
 
+var allowedDataKeys = map[string]bool{
+	"channel_id":   true,
+	"message_id":   true,
+	"workspace_id": true,
+	"server_url":   true,
+}
+
 func (r *NotifyRequest) Validate() error {
-	if strings.TrimSpace(r.DeviceToken) == "" {
+	r.DeviceToken = strings.TrimSpace(r.DeviceToken)
+	if r.DeviceToken == "" {
 		return errors.New("device_token is required")
 	}
 	if len(r.DeviceToken) > maxDeviceTokenLen {
@@ -46,7 +55,8 @@ func (r *NotifyRequest) Validate() error {
 	if r.Platform != "fcm" && r.Platform != "apns" {
 		return errors.New("platform must be \"fcm\" or \"apns\"")
 	}
-	if strings.TrimSpace(r.Title) == "" {
+	r.Title = strings.TrimSpace(r.Title)
+	if r.Title == "" {
 		return errors.New("title is required")
 	}
 	if len(r.Title) > maxTitleLen {
@@ -57,6 +67,14 @@ func (r *NotifyRequest) Validate() error {
 	}
 	if len(r.Data) > maxDataKeys {
 		return fmt.Errorf("data exceeds %d keys", maxDataKeys)
+	}
+	for k, v := range r.Data {
+		if !allowedDataKeys[k] {
+			return fmt.Errorf("data key %q is not allowed", k)
+		}
+		if len(v) > maxDataValueLen {
+			return fmt.Errorf("data value for %q exceeds %d characters", k, maxDataValueLen)
+		}
 	}
 	return nil
 }

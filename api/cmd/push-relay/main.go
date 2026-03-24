@@ -7,32 +7,25 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 )
 
 func main() {
 	// Configure logging.
-	logLevel := envOr("RELAY_LOG_LEVEL", "info")
 	var level slog.Level
-	switch strings.ToLower(logLevel) {
-	case "debug":
-		level = slog.LevelDebug
-	case "warn":
-		level = slog.LevelWarn
-	case "error":
-		level = slog.LevelError
-	default:
-		level = slog.LevelInfo
-	}
+	_ = level.UnmarshalText([]byte(envOr("RELAY_LOG_LEVEL", "info")))
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})))
+
+	// Graceful shutdown context.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Initialize FCM client (optional — relay can run with only one platform).
 	var fcm *FCMClient
 	if credFile := os.Getenv("RELAY_FCM_CREDENTIALS_FILE"); credFile != "" {
 		var err error
-		fcm, err = NewFCMClient(credFile)
+		fcm, err = NewFCMClient(ctx, credFile)
 		if err != nil {
 			slog.Error("failed to initialize FCM client", "error", err)
 			os.Exit(1)
@@ -71,10 +64,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Graceful shutdown context.
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	// Rate limiter.
 	rateLimitStr := envOr("RELAY_RATE_LIMIT", "120")
 	rateLimit, err := strconv.Atoi(rateLimitStr)
@@ -91,7 +80,8 @@ func main() {
 	rateLimiter := NewRateLimiter(ctx, rateLimit, burst)
 
 	// Router.
-	router := newRouter(fcm, apns, rateLimiter)
+	trustProxy := envOr("RELAY_TRUST_PROXY", "false") == "true"
+	router := newRouter(fcm, apns, rateLimiter, trustProxy)
 
 	// HTTP server.
 	port := envOr("RELAY_PORT", "8090")

@@ -59,15 +59,14 @@ func (h *notifyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		status, sendErr = h.apns.Send(r.Context(), &req)
 	}
 
-	httpStatus := http.StatusOK
-	resp := NotifyResponse{Status: status}
 	if sendErr != nil {
 		slog.Error("push dispatch failed",
 			"platform", req.Platform,
 			"error", sendErr.Error(),
+			"latency_ms", time.Since(start).Milliseconds(),
 		)
-		httpStatus = http.StatusBadGateway
-		resp.Error = "dispatch failed"
+		writeJSON(w, http.StatusBadGateway, NotifyResponse{Status: "error", Error: "dispatch failed"})
+		return
 	}
 
 	slog.Info("push notification dispatched",
@@ -76,7 +75,7 @@ func (h *notifyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"latency_ms", time.Since(start).Milliseconds(),
 	)
 
-	writeJSON(w, httpStatus, resp)
+	writeJSON(w, http.StatusOK, NotifyResponse{Status: status})
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {

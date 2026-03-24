@@ -7,10 +7,14 @@ on:
       - 'api/cmd/push-relay/**'
       - 'api/go.mod'
       - 'api/go.sum'
+  pull_request:
+    paths:
+      - 'api/cmd/push-relay/**'
+      - 'api/go.mod'
+      - 'api/go.sum'
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   build:

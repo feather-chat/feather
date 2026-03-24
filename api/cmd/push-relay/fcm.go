@@ -24,7 +24,8 @@ type FCMClient struct {
 }
 
 // NewFCMClient initializes an FCM client from a service account credentials file.
-func NewFCMClient(credentialsFile string) (*FCMClient, error) {
+// The provided context controls the lifetime of the OAuth2 token refresh.
+func NewFCMClient(ctx context.Context, credentialsFile string) (*FCMClient, error) {
 	keyBytes, err := os.ReadFile(credentialsFile)
 	if err != nil {
 		return nil, fmt.Errorf("reading fcm credentials: %w", err)
@@ -46,7 +47,7 @@ func NewFCMClient(credentialsFile string) (*FCMClient, error) {
 	}
 
 	return &FCMClient{
-		httpClient: cfg.Client(context.Background()),
+		httpClient: cfg.Client(ctx),
 		endpoint:   fmt.Sprintf(fcmEndpoint, sa.ProjectID),
 	}, nil
 }
@@ -69,11 +70,11 @@ type fcmNotification struct {
 }
 
 type fcmAndroid struct {
-	Priority     string              `json:"priority,omitempty"`
-	Notification *fcmAndroidNotifctn `json:"notification,omitempty"`
+	Priority     string                  `json:"priority,omitempty"`
+	Notification *fcmAndroidNotification `json:"notification,omitempty"`
 }
 
-type fcmAndroidNotifctn struct {
+type fcmAndroidNotification struct {
 	ChannelID string `json:"channel_id,omitempty"`
 }
 
@@ -105,7 +106,7 @@ func (f *FCMClient) Send(ctx context.Context, req *NotifyRequest) (string, error
 			Data: req.Data,
 			Android: &fcmAndroid{
 				Priority: "high",
-				Notification: &fcmAndroidNotifctn{
+				Notification: &fcmAndroidNotification{
 					ChannelID: "messages",
 				},
 			},
@@ -132,9 +133,14 @@ func (f *FCMClient) Send(ctx context.Context, req *NotifyRequest) (string, error
 	}
 
 	// Parse error response to determine if token is invalid.
-	respBody, _ := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
+	if err != nil {
+		return "error", fmt.Errorf("fcm read error response: %w", err)
+	}
 	var fcmErr fcmErrorResponse
-	_ = json.Unmarshal(respBody, &fcmErr)
+	if err := json.Unmarshal(respBody, &fcmErr); err != nil {
+		return "error", fmt.Errorf("fcm error %d: unparseable response", resp.StatusCode)
+	}
 
 	fcmErrorCode := ""
 	for _, d := range fcmErr.Error.Details {

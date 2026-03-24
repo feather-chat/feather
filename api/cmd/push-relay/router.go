@@ -8,15 +8,13 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func newRouter(fcm, apns Dispatcher, rateLimiter *RateLimiter) http.Handler {
+func newRouter(fcm, apns Dispatcher, rateLimiter *RateLimiter, trustProxy bool) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.RequestID)
-	r.Use(rateLimiter.Middleware)
-
-	r.Post("/notify", (&notifyHandler{fcm: fcm, apns: apns}).ServeHTTP)
+	if trustProxy {
+		r.Use(middleware.RealIP)
+	}
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		resp := HealthResponse{
@@ -27,6 +25,8 @@ func newRouter(fcm, apns Dispatcher, rateLimiter *RateLimiter) http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp) //nolint:errcheck
 	})
+
+	r.With(rateLimiter.Middleware).Post("/notify", (&notifyHandler{fcm: fcm, apns: apns}).ServeHTTP)
 
 	return r
 }

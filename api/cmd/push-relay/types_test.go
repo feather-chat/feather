@@ -69,8 +69,23 @@ func TestNotifyRequest_Validate(t *testing.T) {
 		},
 		{
 			name:    "too many data keys",
-			req:     NotifyRequest{DeviceToken: "tok123", Platform: "fcm", Title: "Hello", Data: makeDataKeys(11)},
+			req:     NotifyRequest{DeviceToken: "tok123", Platform: "fcm", Title: "Hello", Data: makeTooManyDataKeys(11)},
 			wantErr: "data exceeds 10 keys",
+		},
+		{
+			name:    "disallowed data key",
+			req:     NotifyRequest{DeviceToken: "tok123", Platform: "fcm", Title: "Hello", Data: map[string]string{"evil_key": "value"}},
+			wantErr: `data key "evil_key" is not allowed`,
+		},
+		{
+			name:    "data value too long",
+			req:     NotifyRequest{DeviceToken: "tok123", Platform: "fcm", Title: "Hello", Data: map[string]string{"channel_id": strings.Repeat("x", 257)}},
+			wantErr: `data value for "channel_id" exceeds 256 characters`,
+		},
+		{
+			name:    "valid data keys",
+			req:     NotifyRequest{DeviceToken: "tok123", Platform: "fcm", Title: "Hello", Data: map[string]string{"channel_id": "ch1", "message_id": "msg1", "workspace_id": "ws1", "server_url": "https://example.com"}},
+			wantErr: "",
 		},
 	}
 
@@ -94,7 +109,7 @@ func TestNotifyRequest_Validate(t *testing.T) {
 	}
 }
 
-func makeDataKeys(n int) map[string]string {
+func makeTooManyDataKeys(n int) map[string]string {
 	m := make(map[string]string, n)
 	for i := 0; i < n; i++ {
 		m[fmt.Sprintf("key%d", i)] = "value"

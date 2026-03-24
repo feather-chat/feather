@@ -10,34 +10,26 @@ import (
 	"testing"
 )
 
-// mockFCM implements Dispatcher for testing.
-type mockFCM struct {
+// mockDispatcher implements Dispatcher for testing.
+type mockDispatcher struct {
 	status string
 	err    error
 }
 
-func (m *mockFCM) Send(_ context.Context, _ *NotifyRequest) (string, error) {
-	return m.status, m.err
-}
-
-// mockAPNs implements Dispatcher for testing.
-type mockAPNs struct {
-	status string
-	err    error
-}
-
-func (m *mockAPNs) Send(_ context.Context, _ *NotifyRequest) (string, error) {
+func (m *mockDispatcher) Send(_ context.Context, _ *NotifyRequest) (string, error) {
 	return m.status, m.err
 }
 
 // setupTestRouter creates a real router with mock dispatchers and a permissive rate limiter.
-func setupTestRouter(fcm, apns Dispatcher) http.Handler {
-	rl := NewRateLimiter(context.Background(), 100000, 100000)
-	return newRouter(fcm, apns, rl)
+func setupTestRouter(t *testing.T, fcm, apns Dispatcher) http.Handler {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	rl := NewRateLimiter(ctx, 100000, 100000)
+	return newRouter(fcm, apns, rl, false)
 }
 
 func TestHandler_ValidFCMRequest(t *testing.T) {
-	handler := setupTestRouter(&mockFCM{status: "sent"}, nil)
+	handler := setupTestRouter(t, &mockDispatcher{status: "sent"}, nil)
 	body := `{"device_token":"tok123","platform":"fcm","title":"Hello","body":"World"}`
 	req := httptest.NewRequest(http.MethodPost, "/notify", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -59,7 +51,7 @@ func TestHandler_ValidFCMRequest(t *testing.T) {
 }
 
 func TestHandler_ValidAPNsRequest(t *testing.T) {
-	handler := setupTestRouter(nil, &mockAPNs{status: "sent"})
+	handler := setupTestRouter(t, nil, &mockDispatcher{status: "sent"})
 	body := `{"device_token":"tok123","platform":"apns","title":"Hello","body":"World"}`
 	req := httptest.NewRequest(http.MethodPost, "/notify", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -81,7 +73,7 @@ func TestHandler_ValidAPNsRequest(t *testing.T) {
 }
 
 func TestHandler_InvalidToken(t *testing.T) {
-	handler := setupTestRouter(&mockFCM{status: "invalid_token"}, nil)
+	handler := setupTestRouter(t, &mockDispatcher{status: "invalid_token"}, nil)
 	body := `{"device_token":"bad-tok","platform":"fcm","title":"Hello"}`
 	req := httptest.NewRequest(http.MethodPost, "/notify", strings.NewReader(body))
 	w := httptest.NewRecorder()
@@ -102,7 +94,7 @@ func TestHandler_InvalidToken(t *testing.T) {
 }
 
 func TestHandler_DispatchError(t *testing.T) {
-	handler := setupTestRouter(&mockFCM{status: "error", err: fmt.Errorf("connection refused")}, nil)
+	handler := setupTestRouter(t, &mockDispatcher{status: "error", err: fmt.Errorf("connection refused")}, nil)
 	body := `{"device_token":"tok123","platform":"fcm","title":"Hello"}`
 	req := httptest.NewRequest(http.MethodPost, "/notify", strings.NewReader(body))
 	w := httptest.NewRecorder()
@@ -126,7 +118,7 @@ func TestHandler_DispatchError(t *testing.T) {
 }
 
 func TestHandler_MissingFields(t *testing.T) {
-	handler := setupTestRouter(&mockFCM{status: "sent"}, nil)
+	handler := setupTestRouter(t, &mockDispatcher{status: "sent"}, nil)
 	body := `{"platform":"fcm"}`
 	req := httptest.NewRequest(http.MethodPost, "/notify", strings.NewReader(body))
 	w := httptest.NewRecorder()
@@ -139,7 +131,7 @@ func TestHandler_MissingFields(t *testing.T) {
 }
 
 func TestHandler_InvalidJSON(t *testing.T) {
-	handler := setupTestRouter(&mockFCM{status: "sent"}, nil)
+	handler := setupTestRouter(t, &mockDispatcher{status: "sent"}, nil)
 	req := httptest.NewRequest(http.MethodPost, "/notify", strings.NewReader("not json"))
 	w := httptest.NewRecorder()
 
@@ -151,7 +143,7 @@ func TestHandler_InvalidJSON(t *testing.T) {
 }
 
 func TestHandler_OversizedBody(t *testing.T) {
-	handler := setupTestRouter(&mockFCM{status: "sent"}, nil)
+	handler := setupTestRouter(t, &mockDispatcher{status: "sent"}, nil)
 	// Create a body larger than 4 KB.
 	largeBody := `{"device_token":"tok","platform":"fcm","title":"Hello","body":"` + strings.Repeat("x", 5000) + `"}`
 	req := httptest.NewRequest(http.MethodPost, "/notify", strings.NewReader(largeBody))
@@ -165,7 +157,7 @@ func TestHandler_OversizedBody(t *testing.T) {
 }
 
 func TestHandler_FCMNotConfigured(t *testing.T) {
-	handler := setupTestRouter(nil, &mockAPNs{status: "sent"})
+	handler := setupTestRouter(t, nil, &mockDispatcher{status: "sent"})
 	body := `{"device_token":"tok123","platform":"fcm","title":"Hello"}`
 	req := httptest.NewRequest(http.MethodPost, "/notify", strings.NewReader(body))
 	w := httptest.NewRecorder()
@@ -178,7 +170,7 @@ func TestHandler_FCMNotConfigured(t *testing.T) {
 }
 
 func TestHandler_APNsNotConfigured(t *testing.T) {
-	handler := setupTestRouter(&mockFCM{status: "sent"}, nil)
+	handler := setupTestRouter(t, &mockDispatcher{status: "sent"}, nil)
 	body := `{"device_token":"tok123","platform":"apns","title":"Hello"}`
 	req := httptest.NewRequest(http.MethodPost, "/notify", strings.NewReader(body))
 	w := httptest.NewRecorder()
@@ -191,7 +183,7 @@ func TestHandler_APNsNotConfigured(t *testing.T) {
 }
 
 func TestHealth_BothConfigured(t *testing.T) {
-	handler := setupTestRouter(&mockFCM{status: "sent"}, &mockAPNs{status: "sent"})
+	handler := setupTestRouter(t, &mockDispatcher{status: "sent"}, &mockDispatcher{status: "sent"})
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
 
@@ -217,7 +209,7 @@ func TestHealth_BothConfigured(t *testing.T) {
 }
 
 func TestHealth_OnlyFCM(t *testing.T) {
-	handler := setupTestRouter(&mockFCM{status: "sent"}, nil)
+	handler := setupTestRouter(t, &mockDispatcher{status: "sent"}, nil)
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
 

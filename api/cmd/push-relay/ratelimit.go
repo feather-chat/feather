@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"log/slog"
+	"net"
 	"net/http"
 	"strconv"
 	"sync"
@@ -42,7 +44,10 @@ func NewRateLimiter(ctx context.Context, requestsPerMinute int, burst int) *Rate
 // Middleware returns an HTTP middleware that enforces the rate limit.
 func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := r.RemoteAddr // RealIP middleware sets this to the actual client IP
+		ip := r.RemoteAddr
+		if host, _, err := net.SplitHostPort(ip); err == nil {
+			ip = host
+		}
 
 		limiter := rl.getLimiter(ip)
 		if !limiter.Allow() {
@@ -63,6 +68,7 @@ func (rl *RateLimiter) getLimiter(ip string) *rate.Limiter {
 	entry, ok := rl.entries[ip]
 	if !ok {
 		if len(rl.entries) >= maxEntries {
+			slog.Warn("rate limiter at capacity, denying new IP", "ip", ip, "max_entries", maxEntries)
 			return rate.NewLimiter(0, 0)
 		}
 		entry = &ipEntry{
