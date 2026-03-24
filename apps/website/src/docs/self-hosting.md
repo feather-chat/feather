@@ -193,6 +193,17 @@ email:
 
 Enzyme works with any SMTP provider (Postmark, Mailgun, SendGrid, Amazon SES, self-hosted, etc.).
 
+## Push Notifications (Optional)
+
+Push notifications deliver alerts to mobile devices when users are offline. They work out of the box with the default Enzyme relay — just enable them:
+
+```yaml
+push_notifications:
+  enabled: true
+```
+
+The relay (`push.enzyme.im`) holds the FCM/APNs credentials for the published mobile app and dispatches notifications on behalf of your server. By default, it receives metadata and a short message preview. To omit message previews, set `include_preview: false`. See [Push Notifications configuration](/docs/configuration/#push-notifications) for all options.
+
 ## Running as a systemd Service
 
 Create `/etc/systemd/system/enzyme.service`:
