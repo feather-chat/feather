@@ -1,4 +1,4 @@
-.PHONY: build run test clean dev generate generate-types fmt embed-web seed
+.PHONY: build build-push-relay run test clean dev generate generate-types fmt embed-web seed
 
 BINARY_NAME=enzyme
 BUILD_DIR=./bin
@@ -23,6 +23,9 @@ embed-web:
 
 build: generate embed-web
 	go build -ldflags "-X github.com/enzyme/api/internal/version.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/enzyme
+
+build-push-relay:
+	CGO_ENABLED=0 go build -o $(BUILD_DIR)/push-relay ./cmd/push-relay
 
 run: build
 	$(BUILD_DIR)/$(BINARY_NAME)
