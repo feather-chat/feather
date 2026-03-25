@@ -25,11 +25,21 @@
       "package": "im.enzyme.mobile"
     },
     "updates": {
-      "url": "https://u.expo.dev/YOUR_PROJECT_ID",
-      "fallbackToCacheTimeout": 0
+      "url": "https://u.expo.dev/dd56c866-7a79-4c22-9da2-04047e2ec5ab",
+      "fallbackToCacheTimeout": 0,
+      "codeSigningCertificate": "./certs/certificate.der",
+      "codeSigningMetadata": {
+        "keyid": "main",
+        "alg": "rsa-v1_5-sha256"
+      }
     },
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "fingerprint"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dd56c866-7a79-4c22-9da2-04047e2ec5ab"
+      }
     },
     "plugins": [
       "expo-secure-store",
