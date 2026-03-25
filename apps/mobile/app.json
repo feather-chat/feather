@@ -26,7 +26,6 @@
     },
     "updates": {
       "url": "https://u.expo.dev/dd56c866-7a79-4c22-9da2-04047e2ec5ab",
-      "fallbackToCacheTimeout": 0,
       "codeSigningCertificate": "./certs/certificate.der",
       "codeSigningMetadata": {
         "keyid": "main",
