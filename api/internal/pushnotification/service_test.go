@@ -3,8 +3,10 @@ package pushnotification
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/enzyme/api/internal/testutil"
@@ -40,7 +42,7 @@ func TestSendWithMockRelay(t *testing.T) {
 	}))
 	defer relay.Close()
 
-	svc := NewService(repo, relay.URL)
+	svc := NewService(repo, relay.URL, "")
 	data := NotificationData{
 		Title:          "@alice in #general",
 		Body:           "Hello world",
@@ -97,7 +99,7 @@ func TestSendInvalidTokenCleanup(t *testing.T) {
 	}))
 	defer relay.Close()
 
-	svc := NewService(repo, relay.URL)
+	svc := NewService(repo, relay.URL, "")
 	ok := svc.Send(ctx, user.ID, NotificationData{Title: "test", Body: "test"})
 	if ok {
 		t.Fatal("expected Send to return false when token is invalid")
@@ -123,7 +125,7 @@ func TestSendNoTokens(t *testing.T) {
 	}))
 	defer relay.Close()
 
-	svc := NewService(repo, relay.URL)
+	svc := NewService(repo, relay.URL, "")
 	ok := svc.Send(ctx, user.ID, NotificationData{Title: "test", Body: "test"})
 	if ok {
 		t.Fatal("expected Send to return false when no tokens exist")
@@ -151,7 +153,7 @@ func TestSendRelayError(t *testing.T) {
 	}))
 	defer relay.Close()
 
-	svc := NewService(repo, relay.URL)
+	svc := NewService(repo, relay.URL, "")
 	ok := svc.Send(ctx, user.ID, NotificationData{Title: "test", Body: "test"})
 	if ok {
 		t.Fatal("expected Send to return false on relay error")
@@ -161,5 +163,50 @@ func TestSendRelayError(t *testing.T) {
 	tokens, _ := repo.ListByUserID(ctx, user.ID)
 	if len(tokens) != 1 {
 		t.Fatalf("expected token to still exist, got %d tokens", len(tokens))
+	}
+}
+
+func TestSendOmitsEmptyOptionalFields(t *testing.T) {
+	db := testutil.TestDB(t)
+	repo := NewRepository(db)
+	user := testutil.CreateTestUser(t, db, "test@example.com", "Test")
+	ctx := context.Background()
+
+	if err := repo.Upsert(ctx, &DeviceToken{
+		UserID: user.ID, Token: "token-1", Platform: "fcm", DeviceID: "device-1",
+	}); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	var rawBody []byte
+
+	relay := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rawBody, _ = io.ReadAll(r.Body)
+		json.NewEncoder(w).Encode(RelayResponse{Status: "sent"})
+	}))
+	defer relay.Close()
+
+	svc := NewService(repo, relay.URL, "")
+	// Send with empty ThreadParentID and ChannelName — both should be omitted from JSON.
+	data := NotificationData{
+		Title:       "@alice in #general",
+		Body:        "Hello",
+		ChannelID:   "ch-1",
+		MessageID:   "msg-1",
+		WorkspaceID: "ws-1",
+		ServerURL:   "https://chat.example.com",
+	}
+
+	ok := svc.Send(ctx, user.ID, data)
+	if !ok {
+		t.Fatal("expected Send to return true")
+	}
+
+	bodyStr := string(rawBody)
+	if strings.Contains(bodyStr, "thread_parent_id") {
+		t.Errorf("expected thread_parent_id to be omitted from JSON, got: %s", bodyStr)
+	}
+	if strings.Contains(bodyStr, "channel_name") {
+		t.Errorf("expected channel_name to be omitted from JSON, got: %s", bodyStr)
 	}
 }

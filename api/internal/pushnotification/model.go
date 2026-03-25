@@ -43,7 +43,7 @@ type RelayRequestData struct {
 	ChannelID      string `json:"channel_id"`
 	MessageID      string `json:"message_id"`
 	WorkspaceID    string `json:"workspace_id"`
-	ChannelName    string `json:"channel_name"`
+	ChannelName    string `json:"channel_name,omitempty"`
 	ThreadParentID string `json:"thread_parent_id,omitempty"`
 	ServerURL      string `json:"server_url"`
 }

@@ -134,7 +134,7 @@ func New(cfg *config.Config) (*App, error) {
 	var pushTokenRepo *pushnotification.Repository
 	if cfg.PushNotifications.Enabled {
 		pushTokenRepo = pushnotification.NewRepository(db.DB)
-		pushService := pushnotification.NewService(pushTokenRepo, cfg.PushNotifications.RelayURL)
+		pushService := pushnotification.NewService(pushTokenRepo, cfg.PushNotifications.RelayURL, cfg.PushNotifications.AuthSecret)
 		notificationService.SetPushService(pushService, cfg.Server.PublicURL, cfg.PushNotifications.IncludePreview)
 		slog.Info("push notifications enabled", "relay_url", cfg.PushNotifications.RelayURL)
 	}

@@ -201,6 +201,7 @@ func (d *defaultsProviderStruct) Read() (map[string]interface{}, error) {
 		"push_notifications": map[string]interface{}{
 			"enabled":         d.defaults.PushNotifications.Enabled,
 			"relay_url":       d.defaults.PushNotifications.RelayURL,
+			"auth_secret":     d.defaults.PushNotifications.AuthSecret,
 			"include_preview": d.defaults.PushNotifications.IncludePreview,
 		},
 		"sse": map[string]interface{}{

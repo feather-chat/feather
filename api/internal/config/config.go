@@ -114,6 +114,7 @@ type SSEConfig struct {
 type PushNotificationConfig struct {
 	Enabled        bool   `koanf:"enabled"`
 	RelayURL       string `koanf:"relay_url"`
+	AuthSecret     string `koanf:"auth_secret"`
 	IncludePreview bool   `koanf:"include_preview"`
 }
 
