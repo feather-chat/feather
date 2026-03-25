@@ -136,6 +136,9 @@ func New(cfg *config.Config) (*App, error) {
 		pushTokenRepo = pushnotification.NewRepository(db.DB)
 		pushService := pushnotification.NewService(pushTokenRepo, cfg.PushNotifications.RelayURL, cfg.PushNotifications.AuthSecret)
 		notificationService.SetPushService(pushService, cfg.Server.PublicURL, cfg.PushNotifications.IncludePreview)
+		if cfg.PushNotifications.AuthSecret == "" {
+			slog.Warn("push notifications enabled without auth_secret — relay requests will be unauthenticated")
+		}
 		slog.Info("push notifications enabled", "relay_url", cfg.PushNotifications.RelayURL)
 	}
 

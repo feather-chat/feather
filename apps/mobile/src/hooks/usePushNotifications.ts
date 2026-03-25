@@ -15,15 +15,10 @@ export function usePushNotifications(isAuthenticated: boolean): void {
     })().catch((err) => {
       console.warn('Push notification setup failed:', err);
     });
-  }, [isAuthenticated]);
-
-  // Listen for token refreshes while authenticated
-  useEffect(() => {
-    if (!isAuthenticated) return;
 
     const subscription = Notifications.addPushTokenListener(() => {
       registerPushToken().catch((err) => {
-        console.warn('Push token refresh registration failed:', err);
+        console.warn('Push token refresh failed:', err);
       });
     });
     return () => subscription.remove();

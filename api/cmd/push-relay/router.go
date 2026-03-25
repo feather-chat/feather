@@ -39,10 +39,10 @@ func newRouter(fcm, apns Dispatcher, rateLimiter *RateLimiter, trustProxy bool, 
 // requireAuthSecret returns middleware that validates the Authorization: Bearer header
 // against the configured secret.
 func requireAuthSecret(secret string, next http.HandlerFunc) http.HandlerFunc {
+	expected := []byte("Bearer " + secret)
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
-		expected := "Bearer " + secret
-		if subtle.ConstantTimeCompare([]byte(token), []byte(expected)) != 1 {
+		token := []byte(r.Header.Get("Authorization"))
+		if subtle.ConstantTimeCompare(token, expected) != 1 {
 			writeJSON(w, http.StatusUnauthorized, NotifyResponse{
 				Status: "error",
 				Error:  "unauthorized",

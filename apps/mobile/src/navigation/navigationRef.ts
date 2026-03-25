@@ -15,37 +15,31 @@ function deferredNavigate(fn: () => void) {
   }
 }
 
-export function navigateToChannel(workspaceId: string, channelId: string, channelName: string) {
+function resetToScreen(workspaceId: string, screen: { name: string; params: object }) {
   deferredNavigate(() => {
     // Reset the stack so ChannelList mounts (establishing SSE connection)
-    // and the Channel screen is pushed on top.
+    // and the target screen is pushed on top.
     navigationRef.dispatch(
       CommonActions.reset({
         index: 2,
         routes: [
           { name: 'WorkspaceSwitcher' },
           { name: 'ChannelList', params: { workspaceId } },
-          { name: 'Channel', params: { workspaceId, channelId, channelName } },
+          screen,
         ],
       }),
     );
   });
 }
 
+export function navigateToChannel(workspaceId: string, channelId: string, channelName: string) {
+  resetToScreen(workspaceId, { name: 'Channel', params: { workspaceId, channelId, channelName } });
+}
+
 export function navigateToThread(workspaceId: string, channelId: string, parentMessageId: string) {
-  deferredNavigate(() => {
-    // Reset the stack so ChannelList mounts (establishing SSE connection)
-    // and the Thread screen is pushed on top.
-    navigationRef.dispatch(
-      CommonActions.reset({
-        index: 2,
-        routes: [
-          { name: 'WorkspaceSwitcher' },
-          { name: 'ChannelList', params: { workspaceId } },
-          { name: 'Thread', params: { workspaceId, channelId, parentMessageId } },
-        ],
-      }),
-    );
+  resetToScreen(workspaceId, {
+    name: 'Thread',
+    params: { workspaceId, channelId, parentMessageId },
   });
 }
 

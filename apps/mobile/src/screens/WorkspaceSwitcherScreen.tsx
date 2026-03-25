@@ -15,9 +15,11 @@ export function WorkspaceSwitcherScreen({ navigation }: MainScreenProps<'Workspa
         text: 'Sign out',
         style: 'destructive',
         onPress: () => {
-          // Best-effort unregistration; don't block logout on network issues
-          unregisterPushToken();
-          logout();
+          // Best-effort unregistration with timeout; don't block logout indefinitely
+          void Promise.race([
+            unregisterPushToken(),
+            new Promise<void>((resolve) => setTimeout(resolve, 3000)),
+          ]).then(() => logout());
         },
       },
     ]);

@@ -27,39 +27,29 @@ export async function requestPermissions(): Promise<boolean> {
   return status === 'granted';
 }
 
-/** Get the native push token (FCM or APNs). Returns null on simulator. */
-export async function getDevicePushToken(): Promise<string | null> {
-  if (!Device.isDevice) return null;
-
-  try {
-    const token = await Notifications.getDevicePushTokenAsync();
-    if (typeof token.data !== 'string') return null;
-    return token.data;
-  } catch {
-    return null;
-  }
-}
-
 /** Register device token with the Enzyme backend. Idempotent (backend upserts). */
 export async function registerPushToken(): Promise<void> {
+  if (!getAuthToken()) return;
+  if (!Device.isDevice) return;
+
+  let token: string;
   try {
-    if (!getAuthToken()) return;
-
-    const [token, deviceId] = await Promise.all([getDevicePushToken(), getDeviceId()]);
-    if (!token) return;
-
-    const platform = Platform.OS === 'ios' ? 'apns' : 'fcm';
-
-    const response = await authApi.registerDeviceToken({
-      token,
-      platform,
-      device_id: deviceId,
-    });
-    // Persist to SecureStore first — in-memory is lost on process kill anyway
-    await SecureStore.setItemAsync(TOKEN_ID_KEY, response.id);
-  } catch (err) {
-    console.warn('Push token registration failed:', err);
+    const result = await Notifications.getDevicePushTokenAsync();
+    if (typeof result.data !== 'string') return;
+    token = result.data;
+  } catch {
+    return;
   }
+
+  const deviceId = await getDeviceId();
+  const platform = Platform.OS === 'ios' ? 'apns' : 'fcm';
+
+  const response = await authApi.registerDeviceToken({
+    token,
+    platform,
+    device_id: deviceId,
+  });
+  await SecureStore.setItemAsync(TOKEN_ID_KEY, response.id);
 }
 
 /** Unregister the current device token from the backend. Call on logout. */

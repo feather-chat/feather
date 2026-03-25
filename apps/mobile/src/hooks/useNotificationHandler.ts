@@ -10,8 +10,8 @@ const SUPPRESS = {
   shouldShowList: false,
 } as const;
 
-// Track handled notification IDs at module scope so re-mounts don't replay stale notifications.
-const handledNotificationIds = new Set<string>();
+// Track the last cold-start notification ID so re-mounts don't replay it.
+let lastHandledColdStartId: string | null = null;
 
 /** Configure foreground notification behavior, handle taps, and manage badge. */
 export function useNotificationHandler(isAuthenticated: boolean): void {
@@ -34,34 +34,31 @@ export function useNotificationHandler(isAuthenticated: boolean): void {
   // Handle notification taps (warm start + cold start)
   useEffect(() => {
     if (!isAuthenticated) return;
+    let cancelled = false;
 
     // Cold start — check if app was launched from a notification
     Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (!response) return;
+      if (cancelled || !response) return;
       const id = response.notification.request.identifier;
-      if (handledNotificationIds.has(id)) return;
-      handledNotificationIds.add(id);
+      if (lastHandledColdStartId === id) return;
+      lastHandledColdStartId = id;
       handleNotificationTap(response.notification.request.content.data);
     });
 
     // Warm start — listen for taps while app is running
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      const id = response.notification.request.identifier;
-      handledNotificationIds.add(id);
       handleNotificationTap(response.notification.request.content.data);
     });
 
-    return () => subscription.remove();
+    return () => {
+      cancelled = true;
+      subscription.remove();
+    };
   }, [isAuthenticated]);
 
   // Clear badge on foreground
   useAppState({
-    onForeground: async () => {
-      const count = await Notifications.getBadgeCountAsync();
-      if (count > 0) {
-        await Notifications.setBadgeCountAsync(0);
-      }
-    },
+    onForeground: () => Notifications.setBadgeCountAsync(0),
   });
 }
 

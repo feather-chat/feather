@@ -181,7 +181,11 @@ func TestSendOmitsEmptyOptionalFields(t *testing.T) {
 	var rawBody []byte
 
 	relay := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rawBody, _ = io.ReadAll(r.Body)
+		var err error
+		rawBody, err = io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("failed to read request body: %v", err)
+		}
 		json.NewEncoder(w).Encode(RelayResponse{Status: "sent"})
 	}))
 	defer relay.Close()
@@ -208,5 +212,36 @@ func TestSendOmitsEmptyOptionalFields(t *testing.T) {
 	}
 	if strings.Contains(bodyStr, "channel_name") {
 		t.Errorf("expected channel_name to be omitted from JSON, got: %s", bodyStr)
+	}
+}
+
+func TestSendWithAuthSecret(t *testing.T) {
+	db := testutil.TestDB(t)
+	repo := NewRepository(db)
+	user := testutil.CreateTestUser(t, db, "test@example.com", "Test")
+	ctx := context.Background()
+
+	if err := repo.Upsert(ctx, &DeviceToken{
+		UserID: user.ID, Token: "token-1", Platform: "fcm", DeviceID: "device-1",
+	}); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	var receivedAuthHeader string
+
+	relay := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedAuthHeader = r.Header.Get("Authorization")
+		json.NewEncoder(w).Encode(RelayResponse{Status: "sent"})
+	}))
+	defer relay.Close()
+
+	svc := NewService(repo, relay.URL, "my-secret")
+	ok := svc.Send(ctx, user.ID, NotificationData{Title: "test", Body: "test"})
+	if !ok {
+		t.Fatal("expected Send to return true")
+	}
+
+	if receivedAuthHeader != "Bearer my-secret" {
+		t.Errorf("expected Authorization header 'Bearer my-secret', got %q", receivedAuthHeader)
 	}
 }
