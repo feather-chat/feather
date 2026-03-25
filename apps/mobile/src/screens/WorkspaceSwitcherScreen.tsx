@@ -14,8 +14,9 @@ export function WorkspaceSwitcherScreen({ navigation }: MainScreenProps<'Workspa
       {
         text: 'Sign out',
         style: 'destructive',
-        onPress: async () => {
-          await unregisterPushToken();
+        onPress: () => {
+          // Best-effort unregistration; don't block logout on network issues
+          unregisterPushToken();
           logout();
         },
       },

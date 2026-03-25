@@ -7,8 +7,6 @@ import { authApi, getAuthToken } from '@enzyme/api-client';
 const DEVICE_ID_KEY = 'enzyme_device_id';
 const TOKEN_ID_KEY = 'enzyme_registered_token_id';
 
-let registeredTokenId: string | null = null;
-
 async function getDeviceId(): Promise<string> {
   const existing = await SecureStore.getItemAsync(DEVICE_ID_KEY);
   if (existing) return existing;
@@ -57,7 +55,7 @@ export async function registerPushToken(): Promise<void> {
       platform,
       device_id: deviceId,
     });
-    registeredTokenId = response.id;
+    // Persist to SecureStore first — in-memory is lost on process kill anyway
     await SecureStore.setItemAsync(TOKEN_ID_KEY, response.id);
   } catch (err) {
     console.warn('Push token registration failed:', err);
@@ -66,7 +64,7 @@ export async function registerPushToken(): Promise<void> {
 
 /** Unregister the current device token from the backend. Call on logout. */
 export async function unregisterPushToken(): Promise<void> {
-  const tokenId = registeredTokenId ?? (await SecureStore.getItemAsync(TOKEN_ID_KEY));
+  const tokenId = await SecureStore.getItemAsync(TOKEN_ID_KEY);
   if (!tokenId) return;
 
   try {
@@ -74,7 +72,6 @@ export async function unregisterPushToken(): Promise<void> {
   } catch (err) {
     console.warn('Push token unregistration failed:', err);
   } finally {
-    registeredTokenId = null;
     await SecureStore.deleteItemAsync(TOKEN_ID_KEY);
   }
 }

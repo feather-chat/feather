@@ -22,7 +22,9 @@ export function usePushNotifications(isAuthenticated: boolean): void {
     if (!isAuthenticated) return;
 
     const subscription = Notifications.addPushTokenListener(() => {
-      registerPushToken();
+      registerPushToken().catch((err) => {
+        console.warn('Push token refresh registration failed:', err);
+      });
     });
     return () => subscription.remove();
   }, [isAuthenticated]);
