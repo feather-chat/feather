@@ -1,4 +1,4 @@
-# Enzyme API
+# Enzyme Server
 
 Go backend for Enzyme, a self-hostable Slack alternative.
 
