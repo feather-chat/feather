@@ -29,7 +29,7 @@ server/internal/web/dist/*
 
 # Data directory (database and uploads)
 data/
-api/data/
+server/data/
 
 # Config files (use examples)
 config.yaml
