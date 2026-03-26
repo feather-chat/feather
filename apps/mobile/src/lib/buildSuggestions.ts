@@ -5,7 +5,12 @@ export interface Suggestion {
   displayText: string;
   token: string;
   icon?: string;
-  avatarUser?: { display_name: string; avatar_url?: string | null; gravatar_url?: string | null; id?: string };
+  avatarUser?: {
+    display_name: string;
+    avatar_url?: string | null;
+    gravatar_url?: string | null;
+    id?: string;
+  };
 }
 
 interface Member {
