@@ -66,5 +66,15 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
+# Mobile signing and credentials
+*.p8
+*.p12
+*.jks
+*.keystore
+*.mobileprovision
+google-service-account*.json
+credentials/
+apps/mobile/certs/private-key.pem
+
 # Claude Code local settings
 .claude/

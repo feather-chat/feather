@@ -9,7 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#ffffff"
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#4F46E5"
     },
     "ios": {
       "supportsTablet": true,
@@ -17,9 +19,26 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "im.enzyme.mobile"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/dd56c866-7a79-4c22-9da2-04047e2ec5ab",
+      "codeSigningCertificate": "./certs/certificate.der",
+      "codeSigningMetadata": {
+        "keyid": "main",
+        "alg": "rsa-v1_5-sha256"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dd56c866-7a79-4c22-9da2-04047e2ec5ab"
+      }
     },
     "plugins": [
       "expo-secure-store",
@@ -35,6 +54,12 @@
             "vibrationPattern": [0, 250, 250, 250],
             "sound": "default"
           }
+        }
+      ],
+      [
+        "expo-updates",
+        {
+          "username": "enzyme"
         }
       ]
     ]

@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   ci:
@@ -26,7 +26,7 @@ jobs:
           cache-dependency-path: api/go.sum
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
         with:
           version: 9.15.0
 
@@ -108,9 +108,54 @@ jobs:
           name: enzyme-${{ matrix.goos }}-${{ matrix.goarch }}
           path: enzyme-${{ matrix.goos }}-${{ matrix.goarch }}*
 
-  release:
-    needs: build-backend
+  build-mobile:
+    needs: ci
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --filter @enzyme/mobile...
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@c7b66a9c327a43a8fa7c0158e7f30d6040d2481e # v8
+        with:
+          eas-version: 18.4.0
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS and Android
+        working-directory: apps/mobile
+        run: eas build --platform all --profile production --non-interactive
+
+      - name: Publish OTA update
+        env:
+          SIGNING_KEY: ${{ secrets.EXPO_CODE_SIGNING_PRIVATE_KEY }}
+        working-directory: apps/mobile
+        run: |
+          printenv SIGNING_KEY > ./certs/private-key.pem
+          eas update --channel production --message "v${GITHUB_REF_NAME#v}" --private-key-path ./certs/private-key.pem --non-interactive
+          rm -f ./certs/private-key.pem
+
+  release:
+    # build-mobile runs independently — mobile builds should not block server releases
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -127,7 +172,7 @@ jobs:
           ls -la release/
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
         with:
           files: release/*
           generate_release_notes: true
