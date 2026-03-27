@@ -18,6 +18,10 @@ export type MainStackParamList = {
   };
   Thread: { workspaceId: string; channelId: string; parentMessageId: string };
   Profile: { workspaceId: string; userId: string };
+  ChannelDetails: { workspaceId: string; channelId: string };
+  Search: { workspaceId: string };
+  CreateChannel: { workspaceId: string };
+  BrowseChannels: { workspaceId: string };
 };
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<

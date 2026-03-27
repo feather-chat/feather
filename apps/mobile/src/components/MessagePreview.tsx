@@ -8,7 +8,7 @@ import type {
   ChannelWithMembership,
 } from '@enzyme/api-client';
 import type { MainStackParamList } from '../navigation/types';
-import { Avatar } from './Avatar';
+import { Avatar } from './ui/Avatar';
 import { MrkdwnRenderer } from './MrkdwnRenderer';
 
 interface MessagePreviewProps {

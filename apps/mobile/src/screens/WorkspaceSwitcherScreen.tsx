@@ -2,7 +2,7 @@ import { View, Text, FlatList, Pressable, ActivityIndicator, Alert } from 'react
 import { useAuth } from '@enzyme/shared';
 import type { MainScreenProps } from '../navigation/types';
 import type { WorkspaceSummary } from '@enzyme/api-client';
-import { Avatar } from '../components/Avatar';
+import { Avatar } from '../components/ui/Avatar';
 import { unregisterPushToken } from '../lib/notifications';
 
 export function WorkspaceSwitcherScreen({ navigation }: MainScreenProps<'WorkspaceSwitcher'>) {

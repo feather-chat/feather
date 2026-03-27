@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { View, Text, SectionList, Pressable, ActivityIndicator } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
 import { useChannels, useWorkspace } from '@enzyme/shared';
 import type { ChannelWithMembership } from '@enzyme/api-client';
 import type { MainScreenProps } from '../navigation/types';
-import { UnreadBadge } from '../components/UnreadBadge';
-import { Avatar } from '../components/Avatar';
+import { UnreadBadge } from '../components/ui/UnreadBadge';
+import { Avatar } from '../components/ui/Avatar';
+import { ChannelActions } from '../components/ChannelActions';
+import { NewChannelActions } from '../components/NewChannelActions';
 import { useActiveWorkspace } from '../lib/WorkspaceProvider';
 
 type Section = {
@@ -23,6 +27,8 @@ export function ChannelListScreen({ route, navigation }: MainScreenProps<'Channe
   const { data: workspaceData } = useWorkspace(workspaceId);
   const { data: channelsData, isLoading, refetch, isRefetching } = useChannels(workspaceId);
   const { setActiveWorkspaceId } = useActiveWorkspace();
+  const [actionChannel, setActionChannel] = useState<ChannelWithMembership | null>(null);
+  const [showNewChannel, setShowNewChannel] = useState(false);
 
   useEffect(() => {
     setActiveWorkspaceId(workspaceId);
@@ -34,6 +40,24 @@ export function ChannelListScreen({ route, navigation }: MainScreenProps<'Channe
       navigation.setOptions({ title: workspaceData.workspace.name });
     }
   }, [workspaceData?.workspace?.name, navigation]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View className="flex-row items-center">
+          <Pressable
+            onPress={() => navigation.navigate('Search', { workspaceId })}
+            className="px-2"
+          >
+            <Ionicons name="search-outline" size={22} color="#737373" />
+          </Pressable>
+          <Pressable onPress={() => setShowNewChannel(true)} className="px-2">
+            <Ionicons name="add-outline" size={24} color="#737373" />
+          </Pressable>
+        </View>
+      ),
+    });
+  }, [navigation, workspaceId]);
 
   const sections = useMemo<Section[]>(() => {
     const channels = channelsData?.channels;
@@ -83,6 +107,11 @@ export function ChannelListScreen({ route, navigation }: MainScreenProps<'Channe
               channelName: dmName ?? item.name,
             })
           }
+          onLongPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setActionChannel(item);
+          }}
+          delayLongPress={300}
         >
           {dmParticipant ? (
             <View className="w-8 items-center">
@@ -151,6 +180,17 @@ export function ChannelListScreen({ route, navigation }: MainScreenProps<'Channe
             </Text>
           </View>
         }
+      />
+      <ChannelActions
+        channel={actionChannel}
+        workspaceId={workspaceId}
+        onDismiss={() => setActionChannel(null)}
+      />
+      <NewChannelActions
+        visible={showNewChannel}
+        onDismiss={() => setShowNewChannel(false)}
+        onCreateChannel={() => navigation.navigate('CreateChannel', { workspaceId })}
+        onBrowseChannels={() => navigation.navigate('BrowseChannels', { workspaceId })}
       />
     </View>
   );

@@ -5,6 +5,7 @@ export {
   getInitials,
   hasPermission,
   getAvatarColor,
+  CHANNEL_NAME_REGEX,
 } from './utils';
 
 export {
@@ -109,6 +110,7 @@ export {
   useUnsubscribeFromThread,
   useChannelNotifications,
   useUpdateChannelNotifications,
+  useSearch,
   useMentions,
   useAllUnreads,
   useWorkspace,

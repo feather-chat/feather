@@ -37,6 +37,7 @@ export {
   useUnsubscribeFromThread,
 } from './useThreadSubscription';
 export { useChannelNotifications, useUpdateChannelNotifications } from './useChannelNotifications';
+export { useSearch, type UseSearchOptions } from './useSearch';
 export { useMentions } from './useMentions';
 export { useAllUnreads } from './useAllUnreads';
 export {
