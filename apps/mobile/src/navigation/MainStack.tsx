@@ -5,6 +5,10 @@ import { ChannelListScreen } from '../screens/ChannelListScreen';
 import { ChannelScreen } from '../screens/ChannelScreen';
 import { ThreadScreen } from '../screens/ThreadScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { ChannelDetailsScreen } from '../screens/ChannelDetailsScreen';
+import { SearchScreen } from '../screens/SearchScreen';
+import { CreateChannelScreen } from '../screens/CreateChannelScreen';
+import { BrowseChannelsScreen } from '../screens/BrowseChannelsScreen';
 import { useActiveWorkspace } from '../lib/WorkspaceProvider';
 import { useSSELifecycle } from '../hooks/useSSELifecycle';
 
@@ -39,6 +43,22 @@ export function MainStack() {
         />
         <Stack.Screen name="Thread" component={ThreadScreen} options={{ title: 'Thread' }} />
         <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
+        <Stack.Screen
+          name="ChannelDetails"
+          component={ChannelDetailsScreen}
+          options={{ title: 'Details' }}
+        />
+        <Stack.Screen name="Search" component={SearchScreen} options={{ title: 'Search' }} />
+        <Stack.Screen
+          name="CreateChannel"
+          component={CreateChannelScreen}
+          options={{ title: 'Create Channel' }}
+        />
+        <Stack.Screen
+          name="BrowseChannels"
+          component={BrowseChannelsScreen}
+          options={{ title: 'Browse Channels' }}
+        />
       </Stack.Navigator>
     </>
   );

@@ -8,14 +8,14 @@ import type {
   WorkspaceMemberWithUser,
   ChannelWithMembership,
 } from '@enzyme/api-client';
-import { Avatar } from './Avatar';
+import { Avatar } from './ui/Avatar';
 import { MrkdwnRenderer } from './MrkdwnRenderer';
 import { ReactionsDisplay } from './ReactionsDisplay';
 import { AttachmentDisplay } from './AttachmentDisplay';
 import { LinkPreview } from './LinkPreview';
 import { MessagePreview } from './MessagePreview';
 
-interface MessageBubbleProps {
+interface MessageItemProps {
   message: MessageWithUser;
   channelId: string;
   workspaceId: string;
@@ -30,7 +30,7 @@ interface MessageBubbleProps {
   isGrouped?: boolean;
 }
 
-export const MessageBubble = memo(function MessageBubble({
+export const MessageItem = memo(function MessageItem({
   message,
   channelId,
   workspaceId,
@@ -43,7 +43,7 @@ export const MessageBubble = memo(function MessageBubble({
   onImagePress,
   currentUserId,
   isGrouped = false,
-}: MessageBubbleProps) {
+}: MessageItemProps) {
   // System messages
   if (message.type === 'system') {
     return (

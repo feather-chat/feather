@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, FlatList, Pressable } from 'react-native';
 import { useWorkspaceMembers, useChannels } from '@enzyme/shared';
-import { Avatar } from './Avatar';
+import { Avatar } from './ui/Avatar';
 import { buildSuggestions, type Suggestion } from '../lib/buildSuggestions';
 
 interface MentionSuggestionsProps {

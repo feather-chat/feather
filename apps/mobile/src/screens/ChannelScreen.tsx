@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useMessages,
@@ -10,12 +17,12 @@ import {
 } from '@enzyme/shared';
 import type { MessageWithUser } from '@enzyme/api-client';
 import type { MainScreenProps } from '../navigation/types';
-import { MessageBubble } from '../components/MessageBubble';
-import { DateSeparator } from '../components/DateSeparator';
+import { MessageItem } from '../components/MessageItem';
+import { DateSeparator } from '../components/ui/DateSeparator';
 import { MessageComposer } from '../components/MessageComposer';
 import { MessageActions } from '../components/MessageActions';
 import { TypingIndicator } from '../components/TypingIndicator';
-import { FullScreenLoader } from '../components/FullScreenLoader';
+import { FullScreenLoader } from '../components/ui/FullScreenLoader';
 import { ImageViewer } from '../components/ImageViewer';
 import { useImageViewer } from '../hooks/useImageViewer';
 import { usePrewarmSignedUrls } from '../hooks/usePrewarmSignedUrls';
@@ -42,6 +49,19 @@ export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>)
   const { viewer, openViewer, closeViewer } = useImageViewer();
 
   usePrewarmSignedUrls(data?.pages);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          onPress={() => navigation.navigate('ChannelDetails', { workspaceId, channelId })}
+          className="px-2"
+        >
+          <Ionicons name="information-circle-outline" size={24} color="#737373" />
+        </Pressable>
+      ),
+    });
+  }, [navigation, workspaceId, channelId]);
 
   // Mark as read on mount and when new messages arrive
   const latestMessageId = data?.pages[0]?.messages[0]?.id;
@@ -88,7 +108,7 @@ export function ChannelScreen({ route, navigation }: MainScreenProps<'Channel'>)
       }
 
       return (
-        <MessageBubble
+        <MessageItem
           message={item.data}
           channelId={channelId}
           workspaceId={workspaceId}

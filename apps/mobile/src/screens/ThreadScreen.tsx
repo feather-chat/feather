@@ -18,10 +18,10 @@ import {
 } from '@enzyme/shared';
 import type { MessageWithUser } from '@enzyme/api-client';
 import type { MainScreenProps } from '../navigation/types';
-import { MessageBubble } from '../components/MessageBubble';
+import { MessageItem } from '../components/MessageItem';
 import { MessageComposer } from '../components/MessageComposer';
 import { MessageActions } from '../components/MessageActions';
-import { FullScreenLoader } from '../components/FullScreenLoader';
+import { FullScreenLoader } from '../components/ui/FullScreenLoader';
 import { ImageViewer } from '../components/ImageViewer';
 import { useImageViewer } from '../hooks/useImageViewer';
 import { shouldGroupMessages } from '../lib/buildListItems';
@@ -78,7 +78,7 @@ export function ThreadScreen({ route, navigation }: MainScreenProps<'Thread'>) {
       const isGrouped = shouldGroupMessages(item, replies[index + 1]);
 
       return (
-        <MessageBubble
+        <MessageItem
           message={item}
           channelId={channelId}
           workspaceId={workspaceId}
@@ -109,7 +109,7 @@ export function ThreadScreen({ route, navigation }: MainScreenProps<'Thread'>) {
       {/* Parent message */}
       {parentMessage && (
         <View className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800/50">
-          <MessageBubble
+          <MessageItem
             message={parentMessage}
             channelId={channelId}
             workspaceId={workspaceId}

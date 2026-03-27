@@ -1,5 +1,8 @@
 import type { WorkspaceRole, PermissionLevel } from '@enzyme/api-client';
 
+/** Lowercase letters, numbers, and hyphens (not at start/end). Shared by web and mobile. */
+export const CHANNEL_NAME_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 export function formatTime(dateString: string): string {
   const date = new Date(dateString);
   return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });

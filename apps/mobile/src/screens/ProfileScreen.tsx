@@ -1,7 +1,7 @@
 import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import type { MainScreenProps } from '../navigation/types';
 import { useWorkspaceMembers, useCreateDM, useAuth } from '@enzyme/shared';
-import { Avatar } from '../components/Avatar';
+import { Avatar } from '../components/ui/Avatar';
 
 export function ProfileScreen({ route, navigation }: MainScreenProps<'Profile'>) {
   const { workspaceId, userId } = route.params;
