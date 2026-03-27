@@ -25,6 +25,7 @@
 - **Real-time** — Instant updates powered by Server-Sent Events
 - **Dark mode** — Full dark mode support
 - **Desktop app** — Native Electron app for macOS, Windows, and Linux
+- **Mobile app** — Native iOS and Android app built with React Native
 - **Single binary** — Deploy a single binary with the web client embedded
 
 ## Why Enzyme?
@@ -63,6 +64,7 @@ Enzyme is configured via config file, environment variables, or CLI flags. See t
 | [Messages]       | Message formatting and features         |
 | [Server]         | Go backend architecture and development |
 | [Web]            | React frontend architecture             |
+| [Mobile]         | React Native mobile app                 |
 
 [Self-Hosting]: https://enzyme.im/docs/self-hosting/
 [Configuration]: https://enzyme.im/docs/configuration/
@@ -74,6 +76,7 @@ Enzyme is configured via config file, environment variables, or CLI flags. See t
 [Messages]: https://enzyme.im/docs/messages/
 [Server]: server/README.md
 [Web]: apps/web/README.md
+[Mobile]: apps/mobile/README.md
 
 ## Contributing
 
