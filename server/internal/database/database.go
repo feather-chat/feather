@@ -16,7 +16,7 @@ type DB struct {
 
 // Options controls SQLite connection pool and pragma settings.
 type Options struct {
-	MaxOpenConns int   // max open connections (default: 2)
+	MaxOpenConns int   // max open connections (default: 10)
 	BusyTimeout  int   // milliseconds to wait on lock (default: 5000)
 	CacheSize    int   // negative = KB, positive = pages (default: -2000)
 	MmapSize     int64 // bytes, 0 = disabled (default: 0)

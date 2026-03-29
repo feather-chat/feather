@@ -26,6 +26,7 @@ type ServerConfig struct {
 	PublicURL      string        `koanf:"public_url"`
 	AllowedOrigins []string      `koanf:"allowed_origins"`
 	TLS            TLSConfig     `koanf:"tls"`
+	PprofAddr      string        `koanf:"pprof_addr"` // "host:port" to enable pprof, empty to disable
 	ReadTimeout    time.Duration `koanf:"read_timeout"`
 	WriteTimeout   time.Duration `koanf:"write_timeout"`
 	IdleTimeout    time.Duration `koanf:"idle_timeout"`
@@ -154,7 +155,7 @@ func Defaults() *Config {
 		},
 		Database: DatabaseConfig{
 			Path:         "./data/enzyme.db",
-			MaxOpenConns: 2,
+			MaxOpenConns: 10,
 			BusyTimeout:  5000,
 			CacheSize:    -2000,
 		},

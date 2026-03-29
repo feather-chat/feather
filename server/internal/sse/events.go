@@ -2,6 +2,7 @@ package sse
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/enzyme/server/internal/openapi"
 	"github.com/oklog/ulid/v2"
@@ -55,14 +56,14 @@ type Event struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
-// SerializedEvent is a pre-marshaled SSE event ready for writing to clients.
-// The JSON is marshaled once in the broadcast path rather than per-subscriber.
+// SerializedEvent is a pre-formatted SSE frame ready for writing to clients.
+// The JSON payload and SSE framing are built once in the broadcast path
+// rather than per-subscriber, eliminating fmt.Fprintf overhead per connection.
 type SerializedEvent struct {
-	ID   string
-	Data []byte // pre-marshaled JSON of the full Event
+	Frame []byte // complete SSE frame: "id: <id>\ndata: <json>\n\n"
 }
 
-// Serialize marshals an Event into a SerializedEvent.
+// Serialize marshals an Event into a SerializedEvent with pre-formatted SSE frame.
 // The event ID is assigned if empty.
 func (e Event) Serialize() (SerializedEvent, error) {
 	if e.ID == "" {
@@ -72,5 +73,6 @@ func (e Event) Serialize() (SerializedEvent, error) {
 	if err != nil {
 		return SerializedEvent{}, err
 	}
-	return SerializedEvent{ID: e.ID, Data: data}, nil
+	frame := fmt.Appendf(nil, "id: %s\ndata: %s\n\n", e.ID, data)
+	return SerializedEvent{Frame: frame}, nil
 }

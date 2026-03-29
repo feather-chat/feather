@@ -3,7 +3,6 @@ package sse
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -118,10 +117,10 @@ func (h *Handler) Events(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// writeSerializedEvent writes a pre-serialized event to the response without flushing.
+// writeSerializedEvent writes a pre-formatted SSE frame to the response without flushing.
 // The caller is responsible for flushing (enables batch flush).
 func (h *Handler) writeSerializedEvent(w http.ResponseWriter, event SerializedEvent) {
-	_, _ = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", event.ID, event.Data)
+	_, _ = w.Write(event.Frame)
 }
 
 // drainAndFlush drains any pending events from the client channel and flushes once.
