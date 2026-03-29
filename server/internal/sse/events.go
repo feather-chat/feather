@@ -1,6 +1,12 @@
 package sse
 
-import "github.com/enzyme/server/internal/openapi"
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/enzyme/server/internal/openapi"
+	"github.com/oklog/ulid/v2"
+)
 
 // Event type constants derived from the generated OpenAPI enum.
 // Using string() on the generated constants ensures compile-time linkage:
@@ -48,4 +54,25 @@ type Event struct {
 	ID   string      `json:"id,omitempty"`
 	Type string      `json:"type"`
 	Data interface{} `json:"data,omitempty"`
+}
+
+// SerializedEvent is a pre-formatted SSE frame ready for writing to clients.
+// The JSON payload and SSE framing are built once in the broadcast path
+// rather than per-subscriber, eliminating fmt.Fprintf overhead per connection.
+type SerializedEvent struct {
+	Frame []byte // complete SSE frame: "id: <id>\ndata: <json>\n\n"
+}
+
+// Serialize marshals an Event into a SerializedEvent with pre-formatted SSE frame.
+// The event ID is assigned if empty.
+func (e Event) Serialize() (SerializedEvent, error) {
+	if e.ID == "" {
+		e.ID = ulid.Make().String()
+	}
+	data, err := json.Marshal(e)
+	if err != nil {
+		return SerializedEvent{}, err
+	}
+	frame := fmt.Appendf(nil, "id: %s\ndata: %s\n\n", e.ID, data)
+	return SerializedEvent{Frame: frame}, nil
 }
