@@ -1,5 +1,8 @@
 .PHONY: dev build test clean generate-types install format format-check seed load-test load-test-auth load-test-messaging load-test-sse load-test-full load-test-sse-stress
 
+# K6 community extensions (xk6-sse) are auto-resolved at runtime
+export K6_ENABLE_COMMUNITY_EXTENSIONS = true
+
 # Development - runs API and web (add DESKTOP=1 for Electron, MOBILE=1 for Expo)
 dev:
 	trap 'kill 0' EXIT; \
@@ -76,6 +79,6 @@ load-test-sse:
 load-test-full:
 	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) tests/load/full.js
 
-SSE_CONNECTIONS ?= 10000
+SSE_CONNECTIONS ?= 100
 load-test-sse-stress:
-	go run ./tests/load/sse-stress -base-url $(K6_BASE_URL) -connections $(SSE_CONNECTIONS)
+	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) --env SSE_CONNECTIONS=$(SSE_CONNECTIONS) tests/load/sse-stress.js

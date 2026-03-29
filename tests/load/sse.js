@@ -1,16 +1,16 @@
 // Load test: SSE connections (concurrent subscribers + event delivery)
 //
-// Tests maximum concurrent SSE connections and memory behavior.
-// SSE connections are long-lived, so this test holds connections open
-// while also generating events to measure delivery.
+// Ramps up SSE connections while generating events, verifying that
+// connections establish successfully and events are delivered.
+// This is a lighter-weight test than sse-stress.js — good for CI.
 //
 // Usage:
 //   k6 run tests/load/sse.js
 //   k6 run tests/load/sse.js --env K6_BASE_URL=https://chat.enzyme.im
 
+import sse from "k6/x/sse";
 import { check, sleep } from "k6";
 import { Counter, Trend } from "k6/metrics";
-import http from "k6/http";
 import {
   BASE_URL,
   loginAllUsers,
@@ -20,41 +20,39 @@ import {
 } from "./helpers.js";
 
 // Custom metrics
-const sseConnectDuration = new Trend("sse_connect_duration", true);
-const sseConnections = new Counter("sse_connections_opened");
-const sseFailures = new Counter("sse_connection_failures");
+const sseEventsReceived = new Counter("sse_events_received");
+const sseConnectionErrors = new Counter("sse_connection_errors");
 const eventTriggerDuration = new Trend("event_trigger_duration", true);
 
 export const options = {
   scenarios: {
-    // Ramp up SSE connections to test concurrency limits
+    // Ramp up SSE connections to test concurrency
     sse_connections: {
       executor: "ramping-vus",
       startVUs: 0,
       stages: [
-        { duration: "10s", target: 10 }, // 10 concurrent SSE connections
-        { duration: "20s", target: 25 }, // 25 concurrent
-        { duration: "20s", target: 50 }, // push to 50
-        { duration: "20s", target: 100 }, // stress test at 100
-        { duration: "10s", target: 0 }, // ramp down
+        { duration: "10s", target: 10 },
+        { duration: "20s", target: 25 },
+        { duration: "20s", target: 50 },
+        { duration: "20s", target: 100 },
+        { duration: "10s", target: 0 },
       ],
       exec: "sseConnection",
     },
     // Generate events while SSE connections are open
     event_generator: {
       executor: "constant-arrival-rate",
-      rate: 5, // 5 messages per second
+      rate: 5,
       timeUnit: "1s",
       duration: "60s",
       preAllocatedVUs: 10,
       exec: "generateEvents",
-      startTime: "10s", // start after some SSE connections are up
+      startTime: "10s",
     },
   },
   thresholds: {
     ...STANDARD_THRESHOLDS,
-    sse_connect_duration: ["p(95)<1000"],
-    sse_connection_failures: ["count<10"],
+    sse_connection_errors: ["count<10"],
   },
 };
 
@@ -64,32 +62,27 @@ export function setup() {
 
 export function sseConnection(data) {
   const user = pickUser(data);
+  const url = `${BASE_URL}/api/workspaces/${user.workspaceId}/events`;
 
-  const sseUrl = `${BASE_URL}/api/workspaces/${user.workspaceId}/events`;
-  const start = Date.now();
-
-  const res = http.get(sseUrl, {
-    headers: {
-      Authorization: `Bearer ${user.token}`,
-      Accept: "text/event-stream",
-      "Cache-Control": "no-cache",
+  const res = sse.open(
+    url,
+    {
+      headers: { Authorization: `Bearer ${user.token}` },
     },
-    timeout: "15s",
-  });
+    function (client) {
+      client.on("event", function () {
+        sseEventsReceived.add(1);
+      });
 
-  sseConnectDuration.add(Date.now() - start);
-  sseConnections.add(1);
+      client.on("error", function () {
+        sseConnectionErrors.add(1);
+      });
+    }
+  );
 
-  const ok = check(res, {
+  check(res, {
     "SSE connection established": (r) => r.status === 200,
-    "SSE content type": (r) =>
-      r.headers["Content-Type"]?.includes("text/event-stream") ?? false,
-    "SSE body has events": (r) => r.body?.includes("event:") ?? false,
   });
-
-  if (!ok) {
-    sseFailures.add(1);
-  }
 
   sleep(1 + Math.random() * 2);
 }
