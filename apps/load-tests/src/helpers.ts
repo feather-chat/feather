@@ -1,8 +1,8 @@
 // Shared helpers for K6 load tests
-import http from "k6/http";
+import http from 'k6/http';
 
 // Base URL — override with K6_BASE_URL env var
-export const BASE_URL = __ENV.K6_BASE_URL || "http://localhost:8080";
+export const BASE_URL = __ENV.K6_BASE_URL || 'http://localhost:8080';
 const API = `${BASE_URL}/api`;
 
 // Response shapes used across load tests
@@ -28,25 +28,9 @@ export interface SendMessageResponse {
 }
 
 // Shared constants
-export const REACTION_EMOJIS = [
-  "+1",
-  "heart",
-  "rocket",
-  "eyes",
-  "fire",
-  "tada",
-  "100",
-  "wave",
-];
+export const REACTION_EMOJIS = ['+1', 'heart', 'rocket', 'eyes', 'fire', 'tada', '100', 'wave'];
 
-export const SEARCH_QUERIES = [
-  "hello",
-  "test",
-  "meeting",
-  "update",
-  "help",
-  "thanks",
-];
+export const SEARCH_QUERIES = ['hello', 'test', 'meeting', 'update', 'help', 'thanks'];
 
 export function pickRandom<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -60,17 +44,17 @@ export function jsonAs<T>(val: unknown): T {
 
 // Seed users (all have password "password")
 export const SEED_USERS = [
-  { email: "alice@example.com", name: "Alice Chen" },
-  { email: "bob@example.com", name: "Bob Martinez" },
-  { email: "carol@example.com", name: "Carol Williams" },
-  { email: "dave@example.com", name: "Dave Johnson" },
-  { email: "eve@example.com", name: "Eve Kim" },
-  { email: "frank@example.com", name: "Frank O'Brien" },
-  { email: "grace@example.com", name: "Grace Patel" },
-  { email: "hank@example.com", name: "Hank Nguyen" },
+  { email: 'alice@example.com', name: 'Alice Chen' },
+  { email: 'bob@example.com', name: 'Bob Martinez' },
+  { email: 'carol@example.com', name: 'Carol Williams' },
+  { email: 'dave@example.com', name: 'Dave Johnson' },
+  { email: 'eve@example.com', name: 'Eve Kim' },
+  { email: 'frank@example.com', name: "Frank O'Brien" },
+  { email: 'grace@example.com', name: 'Grace Patel' },
+  { email: 'hank@example.com', name: 'Hank Nguyen' },
 ] as const;
 
-const PASSWORD = "password";
+const PASSWORD = 'password';
 
 export interface UserContext {
   email: string;
@@ -83,9 +67,9 @@ export interface UserContext {
 // JSON request helper
 export function jsonHeaders(token?: string) {
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (token) headers['Authorization'] = `Bearer ${token}`;
   return { headers };
 }
 
@@ -94,7 +78,7 @@ export function login(email: string): string | null {
   const res = http.post(
     `${API}/auth/login`,
     JSON.stringify({ email, password: PASSWORD }),
-    jsonHeaders()
+    jsonHeaders(),
   );
   if (res.status !== 200) {
     console.error(`Login failed for ${email}: ${res.status} ${res.body}`);
@@ -118,7 +102,7 @@ export function registerUser(suffix: string): RegisterResult {
       password: PASSWORD,
       display_name: `LoadTest ${suffix}`,
     }),
-    jsonHeaders()
+    jsonHeaders(),
   );
   if (res.status !== 200) {
     console.error(`Register failed: ${res.status} ${res.body}`);
@@ -147,9 +131,7 @@ export function loginAllUsers(): UserContext[] {
     let channels: string[] = [];
     if (chRes.status === 200) {
       const data = jsonAs<ChannelListResponse>(chRes.json());
-      channels = data.channels
-        .filter((c) => c.type === "public")
-        .map((c) => c.id);
+      channels = data.channels.filter((c) => c.type === 'public').map((c) => c.id);
     }
 
     users.push({
@@ -166,7 +148,7 @@ export function loginAllUsers(): UserContext[] {
 // Pick a user context from the setup data based on VU number
 export function pickUser(setupData: UserContext[]): UserContext {
   if (setupData.length === 0) {
-    throw new Error("No users available -- is the seed data loaded?");
+    throw new Error('No users available -- is the seed data loaded?');
   }
   return setupData[__VU % setupData.length];
 }
@@ -178,80 +160,56 @@ export function getMe(token: string) {
 
 // List channels in a workspace
 export function listChannels(token: string, workspaceId: string) {
-  return http.post(
-    `${API}/workspaces/${workspaceId}/channels/list`,
-    null,
-    jsonHeaders(token)
-  );
+  return http.post(`${API}/workspaces/${workspaceId}/channels/list`, null, jsonHeaders(token));
 }
 
 // Send a message
-export function sendMessage(
-  token: string,
-  channelId: string,
-  content: string
-) {
+export function sendMessage(token: string, channelId: string, content: string) {
   return http.post(
     `${API}/channels/${channelId}/messages/send`,
     JSON.stringify({ content }),
-    jsonHeaders(token)
+    jsonHeaders(token),
   );
 }
 
 // List messages
-export function listMessages(
-  token: string,
-  channelId: string,
-  limit = 50
-) {
+export function listMessages(token: string, channelId: string, limit = 50) {
   return http.post(
     `${API}/channels/${channelId}/messages/list`,
     JSON.stringify({ limit }),
-    jsonHeaders(token)
+    jsonHeaders(token),
   );
 }
 
 // Add reaction
-export function addReaction(
-  token: string,
-  messageId: string,
-  emoji: string
-) {
+export function addReaction(token: string, messageId: string, emoji: string) {
   return http.post(
     `${API}/messages/${messageId}/reactions/add`,
     JSON.stringify({ emoji }),
-    jsonHeaders(token)
+    jsonHeaders(token),
   );
 }
 
 // Typing indicator
-export function startTyping(
-  token: string,
-  workspaceId: string,
-  channelId: string
-) {
+export function startTyping(token: string, workspaceId: string, channelId: string) {
   return http.post(
     `${API}/workspaces/${workspaceId}/typing/start`,
     JSON.stringify({ channel_id: channelId }),
-    jsonHeaders(token)
+    jsonHeaders(token),
   );
 }
 
 // Search messages
-export function searchMessages(
-  token: string,
-  workspaceId: string,
-  query: string
-) {
+export function searchMessages(token: string, workspaceId: string, query: string) {
   return http.post(
     `${API}/workspaces/${workspaceId}/messages/search`,
     JSON.stringify({ query }),
-    jsonHeaders(token)
+    jsonHeaders(token),
   );
 }
 
 // Standard thresholds used across tests
 export const STANDARD_THRESHOLDS = {
-  http_req_failed: ["rate<0.01"],
-  http_req_duration: ["p(95)<500", "p(99)<1000"],
+  http_req_failed: ['rate<0.01'],
+  http_req_duration: ['p(95)<500', 'p(99)<1000'],
 };

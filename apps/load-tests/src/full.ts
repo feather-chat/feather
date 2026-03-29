@@ -6,13 +6,10 @@
 // Usage:
 //   k6 run apps/load-tests/dist/full.js
 
-import { check, sleep, group } from "k6";
-import { Counter, Trend } from "k6/metrics";
-import type { UserContext } from "./helpers.js";
-import type {
-  ChannelListResponse,
-  MessageListResponse,
-} from "./helpers.js";
+import { check, sleep, group } from 'k6';
+import { Counter, Trend } from 'k6/metrics';
+import type { UserContext } from './helpers.js';
+import type { ChannelListResponse, MessageListResponse } from './helpers.js';
 import {
   loginAllUsers,
   pickUser,
@@ -28,37 +25,37 @@ import {
   STANDARD_THRESHOLDS,
   REACTION_EMOJIS,
   SEARCH_QUERIES,
-} from "./helpers.js";
+} from './helpers.js';
 
-const workflowDuration = new Trend("workflow_duration", true);
-const workflowFailures = new Counter("workflow_failures");
+const workflowDuration = new Trend('workflow_duration', true);
+const workflowFailures = new Counter('workflow_failures');
 
 export const options = {
   scenarios: {
     realistic_users: {
-      executor: "ramping-vus" as const,
+      executor: 'ramping-vus' as const,
       startVUs: 0,
       stages: [
-        { duration: "15s", target: 10 },
-        { duration: "30s", target: 25 },
-        { duration: "15s", target: 40 },
-        { duration: "20s", target: 25 },
-        { duration: "10s", target: 0 },
+        { duration: '15s', target: 10 },
+        { duration: '30s', target: 25 },
+        { duration: '15s', target: 40 },
+        { duration: '20s', target: 25 },
+        { duration: '10s', target: 0 },
       ],
-      exec: "userWorkflow",
+      exec: 'userWorkflow',
     },
     passive_readers: {
-      executor: "constant-vus" as const,
+      executor: 'constant-vus' as const,
       vus: 10,
-      duration: "80s",
-      exec: "passiveReader",
-      startTime: "5s",
+      duration: '80s',
+      exec: 'passiveReader',
+      startTime: '5s',
     },
   },
   thresholds: {
     ...STANDARD_THRESHOLDS,
-    workflow_duration: ["p(95)<5000"],
-    workflow_failures: ["count<15"],
+    workflow_duration: ['p(95)<5000'],
+    workflow_failures: ['count<15'],
   },
 };
 
@@ -71,10 +68,10 @@ export function userWorkflow(data: UserContext[]) {
   const workflowStart = Date.now();
 
   // 1. Check profile
-  group("check profile", () => {
+  group('check profile', () => {
     const me = getMe(user.token);
     check(me, {
-      "profile loaded": (r) => r.status === 200,
+      'profile loaded': (r) => r.status === 200,
     });
   });
 
@@ -82,10 +79,10 @@ export function userWorkflow(data: UserContext[]) {
 
   // 2. List channels
   let channels: Array<{ id: string; type: string }> = [];
-  group("list channels", () => {
+  group('list channels', () => {
     const res = listChannels(user.token, user.workspaceId);
     check(res, {
-      "channels loaded": (r) => r.status === 200,
+      'channels loaded': (r) => r.status === 200,
     });
     channels = jsonAs<ChannelListResponse>(res.json()).channels || [];
   });
@@ -99,18 +96,18 @@ export function userWorkflow(data: UserContext[]) {
   sleep(0.5);
 
   // 3. Read messages
-  const publicChannels = channels.filter((c) => c.type === "public");
+  const publicChannels = channels.filter((c) => c.type === 'public');
   const channel = publicChannels.length > 0 ? publicChannels[0] : channels[0];
   let messages: Array<{ id: string }> = [];
-  group("read messages", () => {
+  group('read messages', () => {
     const res = listMessages(user.token, channel.id, 50);
     check(res, {
-      "messages loaded": (r) => r.status === 200,
+      'messages loaded': (r) => r.status === 200,
     });
     const body = jsonAs<MessageListResponse>(res.json());
     messages = body.messages || [];
     check(null, {
-      "has messages": () => messages.length > 0,
+      'has messages': () => messages.length > 0,
     });
   });
 
@@ -118,17 +115,17 @@ export function userWorkflow(data: UserContext[]) {
 
   // 4. Send a message (70% chance)
   if (Math.random() < 0.7) {
-    group("send message", () => {
+    group('send message', () => {
       startTyping(user.token, user.workspaceId, channel.id);
       sleep(0.5 + Math.random());
 
       const res = sendMessage(
         user.token,
         channel.id,
-        `Hey from ${user.name}! (load test ${__ITER})`
+        `Hey from ${user.name}! (load test ${__ITER})`,
       );
       check(res, {
-        "message sent": (r) => r.status === 200,
+        'message sent': (r) => r.status === 200,
       });
     });
   }
@@ -137,11 +134,11 @@ export function userWorkflow(data: UserContext[]) {
 
   // 5. React to a message (40% chance)
   if (Math.random() < 0.4 && messages.length > 0) {
-    group("add reaction", () => {
+    group('add reaction', () => {
       const msg = pickRandom(messages);
       const res = addReaction(user.token, msg.id, pickRandom(REACTION_EMOJIS));
       check(res, {
-        "reaction added": (r) => r.status === 200,
+        'reaction added': (r) => r.status === 200,
       });
     });
   }
@@ -150,21 +147,21 @@ export function userWorkflow(data: UserContext[]) {
 
   // 6. Search (20% of users)
   if (Math.random() < 0.2) {
-    group("search", () => {
+    group('search', () => {
       const res = searchMessages(user.token, user.workspaceId, pickRandom(SEARCH_QUERIES));
       check(res, {
-        "search returned": (r) => r.status === 200,
+        'search returned': (r) => r.status === 200,
       });
     });
   }
 
   // 7. Browse another channel (30% chance)
   if (Math.random() < 0.3 && publicChannels.length > 1) {
-    group("browse second channel", () => {
+    group('browse second channel', () => {
       const otherChannel = publicChannels[1];
       const res = listMessages(user.token, otherChannel.id, 25);
       check(res, {
-        "second channel loaded": (r) => r.status === 200,
+        'second channel loaded': (r) => r.status === 200,
       });
     });
   }
@@ -183,7 +180,7 @@ export function passiveReader(data: UserContext[]) {
 
   const res = listMessages(user.token, channelId, 25);
   check(res, {
-    "passive read ok": (r) => r.status === 200,
+    'passive read ok': (r) => r.status === 200,
   });
 
   sleep(3 + Math.random() * 4);

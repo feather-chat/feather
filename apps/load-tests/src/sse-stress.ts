@@ -5,10 +5,10 @@
 //   k6 run apps/load-tests/dist/sse-stress.js
 //   k6 run apps/load-tests/dist/sse-stress.js --env SSE_CONNECTIONS=2000 --env SSE_DURATION=2m
 
-import sse from "k6/x/sse";
-import { check } from "k6";
-import { Trend, Counter } from "k6/metrics";
-import type { UserContext, SendMessageResponse } from "./helpers.js";
+import sse from 'k6/x/sse';
+import { check } from 'k6';
+import { Trend, Counter } from 'k6/metrics';
+import type { UserContext, SendMessageResponse } from './helpers.js';
 import {
   BASE_URL,
   loginAllUsers,
@@ -19,23 +19,23 @@ import {
   addReaction,
   startTyping,
   REACTION_EMOJIS,
-} from "./helpers.js";
+} from './helpers.js';
 
-const e2eLatency = new Trend("sse_e2e_latency", true);
-const sseEventsReceived = new Counter("sse_events_received");
-const sseConnectionErrors = new Counter("sse_connection_errors");
-const sseMsgSent = new Counter("sse_messages_sent");
-const sseMsgErrors = new Counter("sse_message_errors");
+const e2eLatency = new Trend('sse_e2e_latency', true);
+const sseEventsReceived = new Counter('sse_events_received');
+const sseConnectionErrors = new Counter('sse_connection_errors');
+const sseMsgSent = new Counter('sse_messages_sent');
+const sseMsgErrors = new Counter('sse_message_errors');
 
 // Configuration via env vars (with upper bounds to prevent accidental self-DoS)
-const CONNECTIONS = Math.min(parseInt(__ENV.SSE_CONNECTIONS || "100"), 5000);
-const DURATION = __ENV.SSE_DURATION || "2m";
-const MSG_RATE = Math.min(parseInt(__ENV.SSE_MSG_RATE || "5"), 100);
-const RAMP = __ENV.SSE_RAMP || "30s";
+const CONNECTIONS = Math.min(parseInt(__ENV.SSE_CONNECTIONS || '100'), 5000);
+const DURATION = __ENV.SSE_DURATION || '2m';
+const MSG_RATE = Math.min(parseInt(__ENV.SSE_MSG_RATE || '5'), 100);
+const RAMP = __ENV.SSE_RAMP || '30s';
 
 if (CONNECTIONS > 1000) {
   console.warn(
-    `SSE_CONNECTIONS=${CONNECTIONS} is very high. Ensure the target server can handle this.`
+    `SSE_CONNECTIONS=${CONNECTIONS} is very high. Ensure the target server can handle this.`,
   );
 }
 
@@ -43,31 +43,31 @@ export const options = {
   scenarios: {
     // Each VU holds one SSE connection for the duration of the test.
     sse_listeners: {
-      executor: "ramping-vus" as const,
+      executor: 'ramping-vus' as const,
       startVUs: 0,
       stages: [
         { duration: RAMP, target: CONNECTIONS },
         { duration: DURATION, target: CONNECTIONS },
-        { duration: "10s", target: 0 },
+        { duration: '10s', target: 0 },
       ],
-      exec: "holdConnection",
-      gracefulStop: "10s",
+      exec: 'holdConnection',
+      gracefulStop: '10s',
     },
     // Sends messages at a fixed rate while SSE connections are open.
     activity: {
-      executor: "constant-arrival-rate" as const,
+      executor: 'constant-arrival-rate' as const,
       rate: MSG_RATE,
-      timeUnit: "1s",
+      timeUnit: '1s',
       duration: DURATION,
       preAllocatedVUs: 10,
       maxVUs: 20,
-      exec: "generateActivity",
+      exec: 'generateActivity',
       startTime: RAMP,
     },
   },
   thresholds: {
-    sse_connection_errors: ["count<50"],
-    sse_message_errors: ["count<10"],
+    sse_connection_errors: ['count<50'],
+    sse_message_errors: ['count<10'],
   },
 };
 
@@ -85,13 +85,13 @@ export function holdConnection(data: UserContext[]) {
       headers: { Authorization: `Bearer ${user.token}` },
     },
     (client) => {
-      client.on("event", (event) => {
+      client.on('event', (event) => {
         sseEventsReceived.add(1);
 
         // Measure end-to-end latency for messages with embedded timestamps.
         // Senders embed "t=<millis>" in message content. This measures
         // send RTT + server broadcast + SSE delivery, not just fan-out.
-        if (event.data?.includes("t=")) {
+        if (event.data?.includes('t=')) {
           const match = event.data.match(/t=(\d+)/);
           if (match) {
             const sentMs = parseInt(match[1]);
@@ -103,14 +103,14 @@ export function holdConnection(data: UserContext[]) {
         }
       });
 
-      client.on("error", () => {
+      client.on('error', () => {
         sseConnectionErrors.add(1);
       });
-    }
+    },
   );
 
   check(res, {
-    "SSE connection established": (r) => r.status === 200,
+    'SSE connection established': (r) => r.status === 200,
   });
 }
 
@@ -120,11 +120,7 @@ export function generateActivity(data: UserContext[]) {
 
   const channelId = pickRandom(user.channels);
 
-  const res = sendMessage(
-    user.token,
-    channelId,
-    `t=${Date.now()} Load test from ${user.email}`
-  );
+  const res = sendMessage(user.token, channelId, `t=${Date.now()} Load test from ${user.email}`);
 
   if (res.status === 200) {
     sseMsgSent.add(1);

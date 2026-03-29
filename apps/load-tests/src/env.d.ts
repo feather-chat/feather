@@ -1,6 +1,6 @@
 // Type declarations for K6 community extensions
 
-declare module "k6/x/sse" {
+declare module 'k6/x/sse' {
   interface SSEEvent {
     id: string;
     name: string;
@@ -9,9 +9,9 @@ declare module "k6/x/sse" {
   }
 
   interface SSEClient {
-    on(event: "open", callback: () => void): void;
-    on(event: "event", callback: (event: SSEEvent) => void): void;
-    on(event: "error", callback: (error: Error) => void): void;
+    on(event: 'open', callback: () => void): void;
+    on(event: 'event', callback: (event: SSEEvent) => void): void;
+    on(event: 'error', callback: (error: Error) => void): void;
     on(event: string, callback: (event: SSEEvent) => void): void;
     close(): void;
   }
@@ -31,16 +31,9 @@ declare module "k6/x/sse" {
     error: string;
   }
 
-  function open(
-    url: string,
-    params: SSEParams,
-    callback: (client: SSEClient) => void
-  ): SSEResponse;
+  function open(url: string, params: SSEParams, callback: (client: SSEClient) => void): SSEResponse;
 
-  function open(
-    url: string,
-    callback: (client: SSEClient) => void
-  ): SSEResponse;
+  function open(url: string, callback: (client: SSEClient) => void): SSEResponse;
 
   export default { open };
 }

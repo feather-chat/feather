@@ -56,13 +56,13 @@ pnpm --filter @enzyme/load-tests typecheck
 
 ## Test Suites
 
-| File             | What it tests                                                    | Key metrics                    |
-| ---------------- | ---------------------------------------------------------------- | ------------------------------ |
-| `auth.ts`        | Login throughput, registration burst                             | login/register latency, errors |
-| `messaging.ts`   | Message send/list/search under concurrent write load             | SQLite contention, p95 latency |
-| `sse.ts`         | SSE connections and event delivery (~100 concurrent)             | connection errors, event count |
-| `sse-stress.ts`  | Thousands of SSE connections + fan-out latency measurement       | p50/p95 latency, throughput    |
-| `full.ts`        | Realistic mixed workflow (browse, read, send, react, search)     | end-to-end workflow latency    |
+| File            | What it tests                                                | Key metrics                    |
+| --------------- | ------------------------------------------------------------ | ------------------------------ |
+| `auth.ts`       | Login throughput, registration burst                         | login/register latency, errors |
+| `messaging.ts`  | Message send/list/search under concurrent write load         | SQLite contention, p95 latency |
+| `sse.ts`        | SSE connections and event delivery (~100 concurrent)         | connection errors, event count |
+| `sse-stress.ts` | Thousands of SSE connections + fan-out latency measurement   | p50/p95 latency, throughput    |
+| `full.ts`       | Realistic mixed workflow (browse, read, send, react, search) | end-to-end workflow latency    |
 
 ## SSE Stress Test
 
@@ -70,12 +70,12 @@ The stress test (`sse-stress.ts`) holds many concurrent SSE connections while se
 
 Configuration via environment variables:
 
-| Variable | Default | Description |
-|---|---|---|
-| `SSE_CONNECTIONS` | `100` | Number of concurrent SSE connections |
-| `SSE_DURATION` | `2m` | How long to hold connections after ramp-up |
-| `SSE_MSG_RATE` | `5` | Messages per second during activity phase |
-| `SSE_RAMP` | `30s` | Ramp-up duration |
+| Variable          | Default | Description                                |
+| ----------------- | ------- | ------------------------------------------ |
+| `SSE_CONNECTIONS` | `100`   | Number of concurrent SSE connections       |
+| `SSE_DURATION`    | `2m`    | How long to hold connections after ramp-up |
+| `SSE_MSG_RATE`    | `5`     | Messages per second during activity phase  |
+| `SSE_RAMP`        | `30s`   | Ramp-up duration                           |
 
 SSE support uses the [xk6-sse](https://github.com/phymbert/xk6-sse) extension, which K6 resolves automatically at runtime.
 
