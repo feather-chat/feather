@@ -1,16 +1,16 @@
 // Load test: SSE connections (concurrent subscribers + event delivery)
 //
-// Ramps up SSE connections while generating events, verifying that
-// connections establish successfully and events are delivered.
-// This is a lighter-weight test than sse-stress.js — good for CI.
+// Lighter-weight SSE test — good for CI. For stress testing with
+// thousands of connections, use sse-stress.ts instead.
 //
 // Usage:
-//   k6 run tests/load/sse.js
-//   k6 run tests/load/sse.js --env K6_BASE_URL=https://chat.enzyme.im
+//   k6 run apps/load-tests/dist/sse.js
+//   k6 run apps/load-tests/dist/sse.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import sse from "k6/x/sse";
 import { check, sleep } from "k6";
 import { Counter, Trend } from "k6/metrics";
+import type { UserContext } from "./helpers.js";
 import {
   BASE_URL,
   loginAllUsers,
@@ -19,16 +19,14 @@ import {
   STANDARD_THRESHOLDS,
 } from "./helpers.js";
 
-// Custom metrics
 const sseEventsReceived = new Counter("sse_events_received");
 const sseConnectionErrors = new Counter("sse_connection_errors");
 const eventTriggerDuration = new Trend("event_trigger_duration", true);
 
 export const options = {
   scenarios: {
-    // Ramp up SSE connections to test concurrency
     sse_connections: {
-      executor: "ramping-vus",
+      executor: "ramping-vus" as const,
       startVUs: 0,
       stages: [
         { duration: "10s", target: 10 },
@@ -39,9 +37,8 @@ export const options = {
       ],
       exec: "sseConnection",
     },
-    // Generate events while SSE connections are open
     event_generator: {
-      executor: "constant-arrival-rate",
+      executor: "constant-arrival-rate" as const,
       rate: 5,
       timeUnit: "1s",
       duration: "60s",
@@ -60,7 +57,7 @@ export function setup() {
   return loginAllUsers();
 }
 
-export function sseConnection(data) {
+export function sseConnection(data: UserContext[]) {
   const user = pickUser(data);
   const url = `${BASE_URL}/api/workspaces/${user.workspaceId}/events`;
 
@@ -69,12 +66,12 @@ export function sseConnection(data) {
     {
       headers: { Authorization: `Bearer ${user.token}` },
     },
-    function (client) {
-      client.on("event", function () {
+    (client) => {
+      client.on("event", () => {
         sseEventsReceived.add(1);
       });
 
-      client.on("error", function () {
+      client.on("error", () => {
         sseConnectionErrors.add(1);
       });
     }
@@ -87,7 +84,7 @@ export function sseConnection(data) {
   sleep(1 + Math.random() * 2);
 }
 
-export function generateEvents(data) {
+export function generateEvents(data: UserContext[]) {
   const user = pickUser(data);
   const channelId = user.channels[0];
   if (!channelId) return;

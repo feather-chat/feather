@@ -1,15 +1,15 @@
 // Load test: Full realistic workflow
 //
 // Simulates realistic user behavior: browse channels, read messages,
-// send messages, react, search — all mixed together as real users would.
-// Logs in once during setup() to avoid rate limiting.
+// send messages, react, search — all mixed together.
 //
 // Usage:
-//   k6 run tests/load/full.js
-//   k6 run tests/load/full.js --env K6_BASE_URL=https://chat.enzyme.im
+//   k6 run apps/load-tests/dist/full.js
+//   k6 run apps/load-tests/dist/full.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import { check, sleep, group } from "k6";
 import { Counter, Trend } from "k6/metrics";
+import type { UserContext } from "./helpers.js";
 import {
   loginAllUsers,
   pickUser,
@@ -23,28 +23,25 @@ import {
   STANDARD_THRESHOLDS,
 } from "./helpers.js";
 
-// Custom metrics
 const workflowDuration = new Trend("workflow_duration", true);
 const workflowFailures = new Counter("workflow_failures");
 
 export const options = {
   scenarios: {
-    // Realistic mixed workload
     realistic_users: {
-      executor: "ramping-vus",
+      executor: "ramping-vus" as const,
       startVUs: 0,
       stages: [
-        { duration: "15s", target: 10 }, // morning ramp-up
-        { duration: "30s", target: 25 }, // normal load
-        { duration: "15s", target: 40 }, // peak hours
-        { duration: "20s", target: 25 }, // settle
-        { duration: "10s", target: 0 }, // end of day
+        { duration: "15s", target: 10 },
+        { duration: "30s", target: 25 },
+        { duration: "15s", target: 40 },
+        { duration: "20s", target: 25 },
+        { duration: "10s", target: 0 },
       ],
       exec: "userWorkflow",
     },
-    // Background readers (people with the app open, passively consuming)
     passive_readers: {
-      executor: "constant-vus",
+      executor: "constant-vus" as const,
       vus: 10,
       duration: "80s",
       exec: "passiveReader",
@@ -62,12 +59,11 @@ export function setup() {
   return loginAllUsers();
 }
 
-// Full user workflow: browse -> read -> send -> react -> search
-export function userWorkflow(data) {
+export function userWorkflow(data: UserContext[]) {
   const user = pickUser(data);
   const workflowStart = Date.now();
 
-  // 1. Check profile (simulates app startup / token validation)
+  // 1. Check profile
   group("check profile", () => {
     const me = getMe(user.token);
     check(me, {
@@ -78,13 +74,15 @@ export function userWorkflow(data) {
   sleep(0.5);
 
   // 2. List channels
-  let channels = [];
+  let channels: Array<{ id: string; type: string }> = [];
   group("list channels", () => {
     const res = listChannels(user.token, user.workspaceId);
     check(res, {
       "channels loaded": (r) => r.status === 200,
     });
-    channels = res.json().channels || [];
+    channels =
+      (res.json() as { channels?: Array<{ id: string; type: string }> })
+        .channels || [];
   });
 
   if (channels.length === 0) {
@@ -95,26 +93,28 @@ export function userWorkflow(data) {
 
   sleep(0.5);
 
-  // 3. Read messages in a channel
+  // 3. Read messages
   const publicChannels = channels.filter((c) => c.type === "public");
   const channel = publicChannels.length > 0 ? publicChannels[0] : channels[0];
-  let messages = [];
+  let messages: Array<{ id: string }> = [];
   group("read messages", () => {
     const res = listMessages(user.token, channel.id, 50);
     check(res, {
       "messages loaded": (r) => r.status === 200,
-      "has messages": (r) => (r.json().messages?.length ?? 0) > 0,
+      "has messages": (r) =>
+        ((r.json() as { messages?: unknown[] }).messages?.length ?? 0) > 0,
     });
-    messages = res.json().messages || [];
+    messages =
+      (res.json() as { messages?: Array<{ id: string }> }).messages || [];
   });
 
   sleep(1 + Math.random());
 
-  // 4. Send a message (70% chance — not everyone sends every time)
+  // 4. Send a message (70% chance)
   if (Math.random() < 0.7) {
     group("send message", () => {
       startTyping(user.token, user.workspaceId, channel.id);
-      sleep(0.5 + Math.random()); // simulate typing
+      sleep(0.5 + Math.random());
 
       const res = sendMessage(
         user.token,
@@ -144,7 +144,7 @@ export function userWorkflow(data) {
 
   sleep(0.5);
 
-  // 6. Search (20% of users search)
+  // 6. Search (20% of users)
   if (Math.random() < 0.2) {
     group("search", () => {
       const queries = ["hello", "meeting", "update", "help", "thanks"];
@@ -171,8 +171,7 @@ export function userWorkflow(data) {
   sleep(1 + Math.random() * 2);
 }
 
-// Passive reader: periodically refresh messages (app open in background)
-export function passiveReader(data) {
+export function passiveReader(data: UserContext[]) {
   const user = pickUser(data);
   const channelId = user.channels[0];
   if (!channelId) {

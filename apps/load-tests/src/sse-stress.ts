@@ -2,13 +2,14 @@
 // realistic traffic (messages, reactions, typing) and measuring fan-out latency.
 //
 // Usage:
-//   k6 run tests/load/sse-stress.js
-//   k6 run tests/load/sse-stress.js --env SSE_CONNECTIONS=2000 --env SSE_DURATION=2m
-//   k6 run tests/load/sse-stress.js --env K6_BASE_URL=https://chat.enzyme.im
+//   k6 run apps/load-tests/dist/sse-stress.js
+//   k6 run apps/load-tests/dist/sse-stress.js --env SSE_CONNECTIONS=2000 --env SSE_DURATION=2m
+//   k6 run apps/load-tests/dist/sse-stress.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import sse from "k6/x/sse";
 import { check } from "k6";
 import { Trend, Counter } from "k6/metrics";
+import type { UserContext } from "./helpers.js";
 import {
   BASE_URL,
   loginAllUsers,
@@ -18,7 +19,6 @@ import {
   startTyping,
 } from "./helpers.js";
 
-// Custom metrics
 const fanoutLatency = new Trend("sse_fanout_latency", true);
 const sseEventsReceived = new Counter("sse_events_received");
 const sseConnectionErrors = new Counter("sse_connection_errors");
@@ -34,9 +34,8 @@ const RAMP = __ENV.SSE_RAMP || "30s";
 export const options = {
   scenarios: {
     // Each VU holds one SSE connection for the duration of the test.
-    // ramping-vus controls how many are open concurrently.
     sse_listeners: {
-      executor: "ramping-vus",
+      executor: "ramping-vus" as const,
       startVUs: 0,
       stages: [
         { duration: RAMP, target: CONNECTIONS },
@@ -47,9 +46,8 @@ export const options = {
       gracefulStop: "10s",
     },
     // Sends messages at a fixed rate while SSE connections are open.
-    // Each message embeds a timestamp for fan-out latency measurement.
     activity: {
-      executor: "constant-arrival-rate",
+      executor: "constant-arrival-rate" as const,
       rate: MSG_RATE,
       timeUnit: "1s",
       duration: DURATION,
@@ -69,7 +67,7 @@ export function setup() {
   return loginAllUsers();
 }
 
-export function holdConnection(data) {
+export function holdConnection(data: UserContext[]) {
   const user = pickUser(data);
   const url = `${BASE_URL}/api/workspaces/${user.workspaceId}/events`;
 
@@ -78,14 +76,13 @@ export function holdConnection(data) {
     {
       headers: { Authorization: `Bearer ${user.token}` },
     },
-    function (client) {
-      client.on("event", function (event) {
+    (client) => {
+      client.on("event", (event) => {
         sseEventsReceived.add(1);
 
         // Measure fan-out latency for messages with embedded timestamps.
-        // Senders embed "t=<millis>" in message content; we compute the
-        // difference between now and the send time.
-        if (event.data && event.data.includes("t=")) {
+        // Senders embed "t=<millis>" in message content.
+        if (event.data?.includes("t=")) {
           const match = event.data.match(/t=(\d+)/);
           if (match) {
             const sentMs = parseInt(match[1]);
@@ -97,7 +94,7 @@ export function holdConnection(data) {
         }
       });
 
-      client.on("error", function () {
+      client.on("error", () => {
         sseConnectionErrors.add(1);
       });
     }
@@ -119,14 +116,13 @@ const emojis = [
   "wave",
 ];
 
-export function generateActivity(data) {
+export function generateActivity(data: UserContext[]) {
   const user = pickUser(data);
   if (!user.channels || user.channels.length === 0) return;
 
   const channelId =
     user.channels[Math.floor(Math.random() * user.channels.length)];
 
-  // Send message with embedded timestamp for latency measurement
   const res = sendMessage(
     user.token,
     channelId,
@@ -136,15 +132,14 @@ export function generateActivity(data) {
   if (res.status === 200) {
     sseMsgSent.add(1);
 
-    // 30% chance: add reaction to our own message
     if (Math.random() < 0.3) {
       try {
-        const msgId = res.json().message.id;
+        const msgId = (res.json() as { message: { id: string } }).message.id;
         if (msgId) {
           const emoji = emojis[Math.floor(Math.random() * emojis.length)];
           addReaction(user.token, msgId, emoji);
         }
-      } catch (_) {
+      } catch {
         /* ignore parse errors */
       }
     }
@@ -152,7 +147,6 @@ export function generateActivity(data) {
     sseMsgErrors.add(1);
   }
 
-  // 20% chance: typing indicator
   if (Math.random() < 0.2) {
     startTyping(user.token, user.workspaceId, channelId);
   }

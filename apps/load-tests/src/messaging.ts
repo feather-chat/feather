@@ -1,14 +1,14 @@
 // Load test: Messaging endpoints (send, list, react, search)
 //
-// Tests SQLite single-connection behavior under concurrent write load.
-// Logs in once during setup() to avoid rate limiting.
+// Tests SQLite write concurrency under load.
 //
 // Usage:
-//   k6 run tests/load/messaging.js
-//   k6 run tests/load/messaging.js --env K6_BASE_URL=https://chat.enzyme.im
+//   k6 run apps/load-tests/dist/messaging.js
+//   k6 run apps/load-tests/dist/messaging.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import { check, sleep } from "k6";
 import { Counter, Trend } from "k6/metrics";
+import type { UserContext } from "./helpers.js";
 import {
   loginAllUsers,
   pickUser,
@@ -20,7 +20,6 @@ import {
   STANDARD_THRESHOLDS,
 } from "./helpers.js";
 
-// Custom metrics
 const sendDuration = new Trend("msg_send_duration", true);
 const listDuration = new Trend("msg_list_duration", true);
 const searchDuration = new Trend("msg_search_duration", true);
@@ -28,29 +27,26 @@ const sendFailures = new Counter("msg_send_failures");
 
 export const options = {
   scenarios: {
-    // High-volume message sending (write-heavy — stresses SQLite single conn)
     message_sending: {
-      executor: "ramping-vus",
+      executor: "ramping-vus" as const,
       startVUs: 0,
       stages: [
         { duration: "10s", target: 10 },
-        { duration: "30s", target: 20 }, // 20 concurrent writers
-        { duration: "15s", target: 30 }, // push the limit
+        { duration: "30s", target: 20 },
+        { duration: "15s", target: 30 },
         { duration: "10s", target: 0 },
       ],
       exec: "sendMessages",
     },
-    // Message listing (read-heavy)
     message_reading: {
-      executor: "constant-vus",
+      executor: "constant-vus" as const,
       vus: 15,
       duration: "50s",
       exec: "readMessages",
       startTime: "5s",
     },
-    // Search load
     search_load: {
-      executor: "constant-vus",
+      executor: "constant-vus" as const,
       vus: 5,
       duration: "40s",
       exec: "searchLoad",
@@ -70,7 +66,7 @@ export function setup() {
   return loginAllUsers();
 }
 
-export function sendMessages(data) {
+export function sendMessages(data: UserContext[]) {
   const user = pickUser(data);
   const channelId = user.channels[0];
   if (!channelId) {
@@ -87,7 +83,8 @@ export function sendMessages(data) {
 
   const ok = check(res, {
     "send message status 200": (r) => r.status === 200,
-    "send message has id": (r) => r.json().message?.id != null,
+    "send message has id": (r) =>
+      (r.json() as { message?: { id: string } }).message?.id != null,
   });
 
   if (!ok) {
@@ -96,9 +93,8 @@ export function sendMessages(data) {
     return;
   }
 
-  // Sometimes add a reaction to the message we just sent
   if (Math.random() < 0.3) {
-    const msgId = res.json().message.id;
+    const msgId = (res.json() as { message: { id: string } }).message.id;
     const emojis = ["+1", "heart", "rocket", "eyes", "fire"];
     const emoji = emojis[Math.floor(Math.random() * emojis.length)];
     const reactRes = addReaction(user.token, msgId, emoji);
@@ -110,7 +106,7 @@ export function sendMessages(data) {
   sleep(0.5 + Math.random());
 }
 
-export function readMessages(data) {
+export function readMessages(data: UserContext[]) {
   const user = pickUser(data);
   const channelId = user.channels[0];
   if (!channelId) {
@@ -124,13 +120,14 @@ export function readMessages(data) {
 
   check(res, {
     "list messages status 200": (r) => r.status === 200,
-    "list messages returns array": (r) => Array.isArray(r.json().messages),
+    "list messages returns array": (r) =>
+      Array.isArray((r.json() as { messages?: unknown[] }).messages),
   });
 
   sleep(1 + Math.random());
 }
 
-export function searchLoad(data) {
+export function searchLoad(data: UserContext[]) {
   const user = pickUser(data);
 
   const queries = ["hello", "test", "meeting", "update", "load test", "hey"];

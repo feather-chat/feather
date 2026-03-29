@@ -1,8 +1,8 @@
 // Load test: Authentication endpoints (login + register)
 //
 // Usage:
-//   k6 run tests/load/auth.js
-//   k6 run tests/load/auth.js --env K6_BASE_URL=https://chat.enzyme.im
+//   k6 run apps/load-tests/dist/auth.js
+//   k6 run apps/load-tests/dist/auth.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import { check, sleep } from "k6";
 import { Counter, Trend } from "k6/metrics";
@@ -14,7 +14,6 @@ import {
   STANDARD_THRESHOLDS,
 } from "./helpers.js";
 
-// Custom metrics
 const loginDuration = new Trend("login_duration", true);
 const registerDuration = new Trend("register_duration", true);
 const loginFailures = new Counter("login_failures");
@@ -22,21 +21,19 @@ const registerFailures = new Counter("register_failures");
 
 export const options = {
   scenarios: {
-    // Sustained login load — simulates many users logging in
     login_load: {
-      executor: "ramping-vus",
+      executor: "ramping-vus" as const,
       startVUs: 0,
       stages: [
-        { duration: "15s", target: 20 }, // ramp up
-        { duration: "30s", target: 20 }, // steady state
-        { duration: "10s", target: 50 }, // spike
-        { duration: "15s", target: 0 }, // ramp down
+        { duration: "15s", target: 20 },
+        { duration: "30s", target: 20 },
+        { duration: "10s", target: 50 },
+        { duration: "15s", target: 0 },
       ],
       exec: "loginScenario",
     },
-    // Registration burst — new users signing up
     register_burst: {
-      executor: "ramping-vus",
+      executor: "ramping-vus" as const,
       startVUs: 0,
       stages: [
         { duration: "10s", target: 5 },
@@ -44,7 +41,7 @@ export const options = {
         { duration: "10s", target: 0 },
       ],
       exec: "registerScenario",
-      startTime: "5s", // stagger start
+      startTime: "5s",
     },
   },
   thresholds: {
@@ -56,10 +53,6 @@ export const options = {
   },
 };
 
-// Note: This test intentionally calls login per-iteration to stress the auth
-// endpoint. Rate limiting may cause failures at high VU counts — that's part
-// of what we're measuring.
-
 export function loginScenario() {
   const user = SEED_USERS[Math.floor(Math.random() * SEED_USERS.length)];
 
@@ -68,7 +61,7 @@ export function loginScenario() {
   loginDuration.add(Date.now() - start);
 
   const loginOk = check(token, {
-    "login returned token": (t) => t !== null && t.length > 0,
+    "login returned token": (t) => t !== null && t!.length > 0,
   });
 
   if (!loginOk) {
@@ -77,11 +70,11 @@ export function loginScenario() {
     return;
   }
 
-  // Verify token works with /auth/me
-  const meRes = getMe(token);
+  const meRes = getMe(token!);
   check(meRes, {
     "GET /auth/me status 200": (r) => r.status === 200,
-    "GET /auth/me returns email": (r) => r.json().user?.email === user.email,
+    "GET /auth/me returns email": (r) =>
+      (r.json() as { user?: { email: string } }).user?.email === user.email,
   });
 
   sleep(0.5 + Math.random());
@@ -93,7 +86,7 @@ export function registerScenario() {
   registerDuration.add(Date.now() - start);
 
   const regOk = check(token, {
-    "register returned token": (t) => t !== null && t.length > 0,
+    "register returned token": (t) => t !== null && t!.length > 0,
   });
 
   if (!regOk) {
@@ -102,11 +95,11 @@ export function registerScenario() {
     return;
   }
 
-  // Verify the new account works
-  const meRes = getMe(token);
+  const meRes = getMe(token!);
   check(meRes, {
     "new user GET /auth/me status 200": (r) => r.status === 200,
-    "new user email matches": (r) => r.json().user?.email === email,
+    "new user email matches": (r) =>
+      (r.json() as { user?: { email: string } }).user?.email === email,
   });
 
   sleep(1 + Math.random());

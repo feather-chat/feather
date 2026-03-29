@@ -61,24 +61,28 @@ format-check:
 	cd server && test -z "$$(gofmt -l .)" || (echo "Go files not formatted"; exit 1)
 	pnpm format:check
 
-# Load testing with K6 (set BASE_URL for remote, defaults to localhost:8080)
+# Load testing with K6 (set K6_BASE_URL for remote, defaults to localhost:8080)
 K6_BASE_URL ?= http://localhost:8080
 K6_FLAGS ?=
+LOAD_TESTS = apps/load-tests/dist
 
-load-test: load-test-auth load-test-messaging load-test-sse load-test-full
+load-test-build:
+	pnpm --filter @enzyme/load-tests build
+
+load-test: load-test-build load-test-auth load-test-messaging load-test-sse load-test-full
 
 load-test-auth:
-	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) tests/load/auth.js
+	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) $(LOAD_TESTS)/auth.js
 
 load-test-messaging:
-	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) tests/load/messaging.js
+	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) $(LOAD_TESTS)/messaging.js
 
 load-test-sse:
-	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) tests/load/sse.js
+	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) $(LOAD_TESTS)/sse.js
 
 load-test-full:
-	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) tests/load/full.js
+	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) $(LOAD_TESTS)/full.js
 
 SSE_CONNECTIONS ?= 100
-load-test-sse-stress:
-	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) --env SSE_CONNECTIONS=$(SSE_CONNECTIONS) tests/load/sse-stress.js
+load-test-sse-stress: load-test-build
+	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) --env SSE_CONNECTIONS=$(SSE_CONNECTIONS) $(LOAD_TESTS)/sse-stress.js
