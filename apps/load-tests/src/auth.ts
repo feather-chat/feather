@@ -2,15 +2,17 @@
 //
 // Usage:
 //   k6 run apps/load-tests/dist/auth.js
-//   k6 run apps/load-tests/dist/auth.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import { check, sleep } from "k6";
 import { Counter, Trend } from "k6/metrics";
+import type { MeResponse } from "./helpers.js";
 import {
   SEED_USERS,
   login,
   registerUser,
   getMe,
+  pickRandom,
+  jsonAs,
   STANDARD_THRESHOLDS,
 } from "./helpers.js";
 
@@ -54,14 +56,14 @@ export const options = {
 };
 
 export function loginScenario() {
-  const user = SEED_USERS[Math.floor(Math.random() * SEED_USERS.length)];
+  const user = pickRandom(SEED_USERS);
 
   const start = Date.now();
   const token = login(user.email);
   loginDuration.add(Date.now() - start);
 
   const loginOk = check(token, {
-    "login returned token": (t) => t !== null && t!.length > 0,
+    "login returned token": (t) => t !== null && t.length > 0,
   });
 
   if (!loginOk) {
@@ -74,7 +76,7 @@ export function loginScenario() {
   check(meRes, {
     "GET /auth/me status 200": (r) => r.status === 200,
     "GET /auth/me returns email": (r) =>
-      (r.json() as { user?: { email: string } }).user?.email === user.email,
+      jsonAs<MeResponse>(r.json()).user?.email === user.email,
   });
 
   sleep(0.5 + Math.random());
@@ -86,7 +88,7 @@ export function registerScenario() {
   registerDuration.add(Date.now() - start);
 
   const regOk = check(token, {
-    "register returned token": (t) => t !== null && t!.length > 0,
+    "register returned token": (t) => t !== null && t.length > 0,
   });
 
   if (!regOk) {
@@ -99,7 +101,7 @@ export function registerScenario() {
   check(meRes, {
     "new user GET /auth/me status 200": (r) => r.status === 200,
     "new user email matches": (r) =>
-      (r.json() as { user?: { email: string } }).user?.email === email,
+      jsonAs<MeResponse>(r.json()).user?.email === email,
   });
 
   sleep(1 + Math.random());

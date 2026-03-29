@@ -1,35 +1,43 @@
 // SSE stress test — holds many concurrent SSE connections while generating
-// realistic traffic (messages, reactions, typing) and measuring fan-out latency.
+// realistic traffic (messages, reactions, typing) and measuring end-to-end latency.
 //
 // Usage:
 //   k6 run apps/load-tests/dist/sse-stress.js
 //   k6 run apps/load-tests/dist/sse-stress.js --env SSE_CONNECTIONS=2000 --env SSE_DURATION=2m
-//   k6 run apps/load-tests/dist/sse-stress.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import sse from "k6/x/sse";
 import { check } from "k6";
 import { Trend, Counter } from "k6/metrics";
-import type { UserContext } from "./helpers.js";
+import type { UserContext, SendMessageResponse } from "./helpers.js";
 import {
   BASE_URL,
   loginAllUsers,
   pickUser,
+  pickRandom,
+  jsonAs,
   sendMessage,
   addReaction,
   startTyping,
+  REACTION_EMOJIS,
 } from "./helpers.js";
 
-const fanoutLatency = new Trend("sse_fanout_latency", true);
+const e2eLatency = new Trend("sse_e2e_latency", true);
 const sseEventsReceived = new Counter("sse_events_received");
 const sseConnectionErrors = new Counter("sse_connection_errors");
 const sseMsgSent = new Counter("sse_messages_sent");
 const sseMsgErrors = new Counter("sse_message_errors");
 
-// Configuration via env vars
-const CONNECTIONS = parseInt(__ENV.SSE_CONNECTIONS || "100");
+// Configuration via env vars (with upper bounds to prevent accidental self-DoS)
+const CONNECTIONS = Math.min(parseInt(__ENV.SSE_CONNECTIONS || "100"), 5000);
 const DURATION = __ENV.SSE_DURATION || "2m";
-const MSG_RATE = parseInt(__ENV.SSE_MSG_RATE || "5");
+const MSG_RATE = Math.min(parseInt(__ENV.SSE_MSG_RATE || "5"), 100);
 const RAMP = __ENV.SSE_RAMP || "30s";
+
+if (CONNECTIONS > 1000) {
+  console.warn(
+    `SSE_CONNECTIONS=${CONNECTIONS} is very high. Ensure the target server can handle this.`
+  );
+}
 
 export const options = {
   scenarios: {
@@ -80,15 +88,16 @@ export function holdConnection(data: UserContext[]) {
       client.on("event", (event) => {
         sseEventsReceived.add(1);
 
-        // Measure fan-out latency for messages with embedded timestamps.
-        // Senders embed "t=<millis>" in message content.
+        // Measure end-to-end latency for messages with embedded timestamps.
+        // Senders embed "t=<millis>" in message content. This measures
+        // send RTT + server broadcast + SSE delivery, not just fan-out.
         if (event.data?.includes("t=")) {
           const match = event.data.match(/t=(\d+)/);
           if (match) {
             const sentMs = parseInt(match[1]);
             const latencyMs = Date.now() - sentMs;
             if (latencyMs > 0 && latencyMs < 30000) {
-              fanoutLatency.add(latencyMs);
+              e2eLatency.add(latencyMs);
             }
           }
         }
@@ -105,23 +114,11 @@ export function holdConnection(data: UserContext[]) {
   });
 }
 
-const emojis = [
-  "+1",
-  "heart",
-  "rocket",
-  "eyes",
-  "fire",
-  "tada",
-  "100",
-  "wave",
-];
-
 export function generateActivity(data: UserContext[]) {
   const user = pickUser(data);
-  if (!user.channels || user.channels.length === 0) return;
+  if (user.channels.length === 0) return;
 
-  const channelId =
-    user.channels[Math.floor(Math.random() * user.channels.length)];
+  const channelId = pickRandom(user.channels);
 
   const res = sendMessage(
     user.token,
@@ -134,10 +131,9 @@ export function generateActivity(data: UserContext[]) {
 
     if (Math.random() < 0.3) {
       try {
-        const msgId = (res.json() as { message: { id: string } }).message.id;
+        const msgId = jsonAs<SendMessageResponse>(res.json()).message.id;
         if (msgId) {
-          const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-          addReaction(user.token, msgId, emoji);
+          addReaction(user.token, msgId, pickRandom(REACTION_EMOJIS));
         }
       } catch {
         /* ignore parse errors */

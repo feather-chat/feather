@@ -1,15 +1,62 @@
 // Shared helpers for K6 load tests
-import http, { type RefinedResponse, type ResponseType } from "k6/http";
-import type {
-  User,
-  Channel,
-  Message,
-  Workspace,
-} from "@enzyme/api-client";
+import http from "k6/http";
 
 // Base URL — override with K6_BASE_URL env var
 export const BASE_URL = __ENV.K6_BASE_URL || "http://localhost:8080";
 const API = `${BASE_URL}/api`;
+
+// Response shapes used across load tests
+export interface AuthResponse {
+  token: string;
+}
+
+export interface MeResponse {
+  user: { email: string };
+  workspaces: Array<{ id: string }>;
+}
+
+export interface ChannelListResponse {
+  channels: Array<{ id: string; type: string }>;
+}
+
+export interface MessageListResponse {
+  messages: Array<{ id: string }>;
+}
+
+export interface SendMessageResponse {
+  message: { id: string };
+}
+
+// Shared constants
+export const REACTION_EMOJIS = [
+  "+1",
+  "heart",
+  "rocket",
+  "eyes",
+  "fire",
+  "tada",
+  "100",
+  "wave",
+];
+
+export const SEARCH_QUERIES = [
+  "hello",
+  "test",
+  "meeting",
+  "update",
+  "help",
+  "thanks",
+];
+
+export function pickRandom<T>(arr: readonly T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// K6's res.json() returns a broad union type. This helper provides a clean
+// typed cast without needing `as unknown as T` at every call site.
+export function jsonAs<T>(val: unknown): T {
+  return val as T;
+}
 
 // Seed users (all have password "password")
 export const SEED_USERS = [
@@ -53,11 +100,16 @@ export function login(email: string): string | null {
     console.error(`Login failed for ${email}: ${res.status} ${res.body}`);
     return null;
   }
-  return (res.json() as { token: string }).token;
+  return jsonAs<AuthResponse>(res.json()).token;
 }
 
 // Register a unique user and return token
-export function registerUser(suffix: string) {
+interface RegisterResult {
+  token: string | null;
+  email: string;
+}
+
+export function registerUser(suffix: string): RegisterResult {
   const email = `loadtest-${suffix}-${Date.now()}@example.com`;
   const res = http.post(
     `${API}/auth/register`,
@@ -70,9 +122,9 @@ export function registerUser(suffix: string) {
   );
   if (res.status !== 200) {
     console.error(`Register failed: ${res.status} ${res.body}`);
-    return { token: null as string | null, email };
+    return { token: null, email };
   }
-  return { token: (res.json() as { token: string }).token, email };
+  return { token: jsonAs<AuthResponse>(res.json()).token, email };
 }
 
 // Login all seed users once and resolve their workspace/channel context.
@@ -83,24 +135,18 @@ export function loginAllUsers(): UserContext[] {
     const token = login(user.email);
     if (!token) continue;
 
-    const meRes = http.get(`${API}/auth/me`, jsonHeaders(token));
+    const meRes = getMe(token);
     if (meRes.status !== 200) continue;
 
-    const me = meRes.json() as { workspaces: Array<{ id: string }> };
+    const me = jsonAs<MeResponse>(meRes.json());
     if (me.workspaces.length === 0) continue;
 
     const workspaceId = me.workspaces[0].id;
 
-    const chRes = http.post(
-      `${API}/workspaces/${workspaceId}/channels/list`,
-      null,
-      jsonHeaders(token)
-    );
+    const chRes = listChannels(token, workspaceId);
     let channels: string[] = [];
     if (chRes.status === 200) {
-      const data = chRes.json() as {
-        channels: Array<{ id: string; type: string }>;
-      };
+      const data = jsonAs<ChannelListResponse>(chRes.json());
       channels = data.channels
         .filter((c) => c.type === "public")
         .map((c) => c.id);
@@ -119,6 +165,9 @@ export function loginAllUsers(): UserContext[] {
 
 // Pick a user context from the setup data based on VU number
 export function pickUser(setupData: UserContext[]): UserContext {
+  if (setupData.length === 0) {
+    throw new Error("No users available -- is the seed data loaded?");
+  }
   return setupData[__VU % setupData.length];
 }
 
@@ -205,10 +254,4 @@ export function searchMessages(
 export const STANDARD_THRESHOLDS = {
   http_req_failed: ["rate<0.01"],
   http_req_duration: ["p(95)<500", "p(99)<1000"],
-};
-
-// Stricter thresholds for read-heavy endpoints
-export const READ_THRESHOLDS = {
-  http_req_failed: ["rate<0.01"],
-  http_req_duration: ["p(95)<300", "p(99)<500"],
 };

@@ -5,7 +5,6 @@
 //
 // Usage:
 //   k6 run apps/load-tests/dist/sse.js
-//   k6 run apps/load-tests/dist/sse.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import sse from "k6/x/sse";
 import { check, sleep } from "k6";

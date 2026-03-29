@@ -4,20 +4,24 @@
 //
 // Usage:
 //   k6 run apps/load-tests/dist/messaging.js
-//   k6 run apps/load-tests/dist/messaging.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import { check, sleep } from "k6";
 import { Counter, Trend } from "k6/metrics";
 import type { UserContext } from "./helpers.js";
+import type { SendMessageResponse, MessageListResponse } from "./helpers.js";
 import {
   loginAllUsers,
   pickUser,
+  pickRandom,
+  jsonAs,
   sendMessage,
   listMessages,
   addReaction,
   searchMessages,
   startTyping,
   STANDARD_THRESHOLDS,
+  REACTION_EMOJIS,
+  SEARCH_QUERIES,
 } from "./helpers.js";
 
 const sendDuration = new Trend("msg_send_duration", true);
@@ -68,7 +72,7 @@ export function setup() {
 
 export function sendMessages(data: UserContext[]) {
   const user = pickUser(data);
-  const channelId = user.channels[0];
+  const channelId = pickRandom(user.channels);
   if (!channelId) {
     sleep(2);
     return;
@@ -81,10 +85,10 @@ export function sendMessages(data: UserContext[]) {
   const res = sendMessage(user.token, channelId, content);
   sendDuration.add(Date.now() - start);
 
+  const body = jsonAs<SendMessageResponse>(res.json());
   const ok = check(res, {
     "send message status 200": (r) => r.status === 200,
-    "send message has id": (r) =>
-      (r.json() as { message?: { id: string } }).message?.id != null,
+    "send message has id": () => body.message?.id != null,
   });
 
   if (!ok) {
@@ -94,10 +98,7 @@ export function sendMessages(data: UserContext[]) {
   }
 
   if (Math.random() < 0.3) {
-    const msgId = (res.json() as { message: { id: string } }).message.id;
-    const emojis = ["+1", "heart", "rocket", "eyes", "fire"];
-    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-    const reactRes = addReaction(user.token, msgId, emoji);
+    const reactRes = addReaction(user.token, body.message.id, pickRandom(REACTION_EMOJIS));
     check(reactRes, {
       "add reaction status 200": (r) => r.status === 200,
     });
@@ -108,7 +109,7 @@ export function sendMessages(data: UserContext[]) {
 
 export function readMessages(data: UserContext[]) {
   const user = pickUser(data);
-  const channelId = user.channels[0];
+  const channelId = pickRandom(user.channels);
   if (!channelId) {
     sleep(2);
     return;
@@ -121,7 +122,7 @@ export function readMessages(data: UserContext[]) {
   check(res, {
     "list messages status 200": (r) => r.status === 200,
     "list messages returns array": (r) =>
-      Array.isArray((r.json() as { messages?: unknown[] }).messages),
+      Array.isArray(jsonAs<MessageListResponse>(r.json()).messages),
   });
 
   sleep(1 + Math.random());
@@ -129,9 +130,7 @@ export function readMessages(data: UserContext[]) {
 
 export function searchLoad(data: UserContext[]) {
   const user = pickUser(data);
-
-  const queries = ["hello", "test", "meeting", "update", "load test", "hey"];
-  const query = queries[Math.floor(Math.random() * queries.length)];
+  const query = pickRandom(SEARCH_QUERIES);
 
   const start = Date.now();
   const res = searchMessages(user.token, user.workspaceId, query);

@@ -5,14 +5,19 @@
 //
 // Usage:
 //   k6 run apps/load-tests/dist/full.js
-//   k6 run apps/load-tests/dist/full.js --env K6_BASE_URL=https://chat.enzyme.im
 
 import { check, sleep, group } from "k6";
 import { Counter, Trend } from "k6/metrics";
 import type { UserContext } from "./helpers.js";
+import type {
+  ChannelListResponse,
+  MessageListResponse,
+} from "./helpers.js";
 import {
   loginAllUsers,
   pickUser,
+  pickRandom,
+  jsonAs,
   getMe,
   listChannels,
   sendMessage,
@@ -21,6 +26,8 @@ import {
   searchMessages,
   startTyping,
   STANDARD_THRESHOLDS,
+  REACTION_EMOJIS,
+  SEARCH_QUERIES,
 } from "./helpers.js";
 
 const workflowDuration = new Trend("workflow_duration", true);
@@ -80,9 +87,7 @@ export function userWorkflow(data: UserContext[]) {
     check(res, {
       "channels loaded": (r) => r.status === 200,
     });
-    channels =
-      (res.json() as { channels?: Array<{ id: string; type: string }> })
-        .channels || [];
+    channels = jsonAs<ChannelListResponse>(res.json()).channels || [];
   });
 
   if (channels.length === 0) {
@@ -101,11 +106,12 @@ export function userWorkflow(data: UserContext[]) {
     const res = listMessages(user.token, channel.id, 50);
     check(res, {
       "messages loaded": (r) => r.status === 200,
-      "has messages": (r) =>
-        ((r.json() as { messages?: unknown[] }).messages?.length ?? 0) > 0,
     });
-    messages =
-      (res.json() as { messages?: Array<{ id: string }> }).messages || [];
+    const body = jsonAs<MessageListResponse>(res.json());
+    messages = body.messages || [];
+    check(null, {
+      "has messages": () => messages.length > 0,
+    });
   });
 
   sleep(1 + Math.random());
@@ -132,10 +138,8 @@ export function userWorkflow(data: UserContext[]) {
   // 5. React to a message (40% chance)
   if (Math.random() < 0.4 && messages.length > 0) {
     group("add reaction", () => {
-      const msg = messages[Math.floor(Math.random() * messages.length)];
-      const emojis = ["+1", "heart", "rocket", "eyes", "tada"];
-      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-      const res = addReaction(user.token, msg.id, emoji);
+      const msg = pickRandom(messages);
+      const res = addReaction(user.token, msg.id, pickRandom(REACTION_EMOJIS));
       check(res, {
         "reaction added": (r) => r.status === 200,
       });
@@ -147,9 +151,7 @@ export function userWorkflow(data: UserContext[]) {
   // 6. Search (20% of users)
   if (Math.random() < 0.2) {
     group("search", () => {
-      const queries = ["hello", "meeting", "update", "help", "thanks"];
-      const query = queries[Math.floor(Math.random() * queries.length)];
-      const res = searchMessages(user.token, user.workspaceId, query);
+      const res = searchMessages(user.token, user.workspaceId, pickRandom(SEARCH_QUERIES));
       check(res, {
         "search returned": (r) => r.status === 200,
       });

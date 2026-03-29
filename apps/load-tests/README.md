@@ -8,11 +8,19 @@ Performance and stress tests using [K6](https://grafana.com/docs/k6/), written i
 brew install k6   # macOS
 ```
 
-The server must be running with seed data:
+The server must be running with seed data and rate limiting disabled:
 
 ```bash
 make seed
 make dev   # in another terminal
+```
+
+The auth test exceeds the default rate limits (10 logins/min, 5 registrations/hr per IP). Disable rate limiting in your config for load testing:
+
+```yaml
+# config.yaml
+rate_limit:
+  enabled: false
 ```
 
 ## Running
@@ -71,6 +79,11 @@ Configuration via environment variables:
 
 SSE support uses the [xk6-sse](https://github.com/phymbert/xk6-sse) extension, which K6 resolves automatically at runtime.
 
-## Types
+## Cleanup
 
-Tests import types from `@enzyme/api-client` for type safety on API request/response shapes. These are compile-time only (`import type`) — the runtime HTTP calls use K6's `k6/http` module.
+The `auth` test creates `loadtest-*` user accounts on each run. To clean up:
+
+```bash
+# Re-seed the database (deletes db file and re-creates)
+rm server/enzyme.db && make seed
+```

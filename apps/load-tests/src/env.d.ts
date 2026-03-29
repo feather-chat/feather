@@ -1,8 +1,6 @@
 // Type declarations for K6 community extensions
 
 declare module "k6/x/sse" {
-  import type { RefinedResponse, ResponseType, Params } from "k6/http";
-
   interface SSEEvent {
     id: string;
     name: string;

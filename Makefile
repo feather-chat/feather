@@ -1,8 +1,5 @@
 .PHONY: dev build test clean generate-types install format format-check seed load-test load-test-auth load-test-messaging load-test-sse load-test-full load-test-sse-stress
 
-# K6 community extensions (xk6-sse) are auto-resolved at runtime
-export K6_ENABLE_COMMUNITY_EXTENSIONS = true
-
 # Development - runs API and web (add DESKTOP=1 for Electron, MOBILE=1 for Expo)
 dev:
 	trap 'kill 0' EXIT; \
@@ -71,18 +68,18 @@ load-test-build:
 
 load-test: load-test-build load-test-auth load-test-messaging load-test-sse load-test-full
 
-load-test-auth:
+load-test-auth: load-test-build
 	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) $(LOAD_TESTS)/auth.js
 
-load-test-messaging:
+load-test-messaging: load-test-build
 	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) $(LOAD_TESTS)/messaging.js
 
-load-test-sse:
-	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) $(LOAD_TESTS)/sse.js
+load-test-sse: load-test-build
+	K6_ENABLE_COMMUNITY_EXTENSIONS=true k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) $(LOAD_TESTS)/sse.js
 
-load-test-full:
+load-test-full: load-test-build
 	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) $(LOAD_TESTS)/full.js
 
 SSE_CONNECTIONS ?= 100
 load-test-sse-stress: load-test-build
-	k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) --env SSE_CONNECTIONS=$(SSE_CONNECTIONS) $(LOAD_TESTS)/sse-stress.js
+	K6_ENABLE_COMMUNITY_EXTENSIONS=true k6 run $(K6_FLAGS) --env K6_BASE_URL=$(K6_BASE_URL) --env SSE_CONNECTIONS=$(SSE_CONNECTIONS) $(LOAD_TESTS)/sse-stress.js
