@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/http/pprof"
 	"os"
 	"path/filepath"
 	"strings"
@@ -343,22 +342,6 @@ func (a *App) Start(ctx context.Context) error {
 	}
 
 	s.Start(ctx)
-
-	// Start pprof server if configured
-	if addr := a.Config.Server.PprofAddr; addr != "" {
-		mux := http.NewServeMux()
-		mux.HandleFunc("/debug/pprof/", pprof.Index)
-		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
-		go func() {
-			slog.Info("pprof server started", "addr", addr)
-			if err := http.ListenAndServe(addr, mux); err != nil {
-				slog.Error("pprof server error", "error", err)
-			}
-		}()
-	}
 
 	var storageInfo string
 	switch a.Config.Storage.Type {
