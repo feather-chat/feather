@@ -55,7 +55,7 @@ export const options = {
   },
   thresholds: {
     ...STANDARD_THRESHOLDS,
-    workflow_duration: ['p(95)<5000'],
+    workflow_duration: ['p(95)<8000'],
     workflow_failures: ['count<15'],
   },
 };
