@@ -1093,18 +1093,12 @@ func (r *Repository) Search(ctx context.Context, workspaceID, currentUserID stri
 	// Prepend currentUserID for the channel_memberships join
 	joinArgs := append([]interface{}{currentUserID}, baseArgs...)
 
-	// Count query
-	countQuery := "SELECT COUNT(*) " + joinSQL + " WHERE " + whereSQL
-	var totalCount int
-	if err := r.db.QueryRowContext(ctx, countQuery, joinArgs...).Scan(&totalCount); err != nil {
-		return nil, err
-	}
-
-	// Data query
+	// Single query with COUNT(*) OVER() to avoid a separate count round-trip
 	dataQuery := `
 		SELECT m.id, m.channel_id, m.user_id, m.content, m.type, m.system_event, m.thread_parent_id, m.also_send_to_channel, m.reply_count, m.last_reply_at, m.edited_at, m.deleted_at, m.pinned_at, m.pinned_by, m.created_at, m.updated_at,
 		       COALESCE(u.display_name, '') as user_display_name, u.avatar_url, COALESCE(u.email, '') as user_email,
-		       c.name as channel_name, c.type as channel_type
+		       c.name as channel_name, c.type as channel_type,
+		       COUNT(*) OVER() as total_count
 	` + joinSQL + " WHERE " + whereSQL + `
 		ORDER BY messages_fts.rank
 		LIMIT ? OFFSET ?
@@ -1118,11 +1112,61 @@ func (r *Repository) Search(ctx context.Context, workspaceID, currentUserID stri
 	defer rows.Close()
 
 	var messages []SearchMessage
+	var totalCount int
 	for rows.Next() {
-		msg, channelName, channelType, err := r.scanUnreadMessage(rows)
+		var msg UnreadMessage
+		var userID, threadParentID, lastReplyAt, editedAt, deletedAt, pinnedAt, pinnedBy, avatarURL, userEmail, systemEventJSON sql.NullString
+		var createdAt, updatedAt, channelName, channelType string
+
+		err := rows.Scan(&msg.ID, &msg.ChannelID, &userID, &msg.Content, &msg.Type, &systemEventJSON, &threadParentID, &msg.AlsoSendToChannel, &msg.ReplyCount, &lastReplyAt, &editedAt, &deletedAt, &pinnedAt, &pinnedBy, &createdAt, &updatedAt,
+			&msg.UserDisplayName, &avatarURL, &userEmail, &channelName, &channelType, &totalCount)
 		if err != nil {
 			return nil, err
 		}
+
+		if msg.Type == "" {
+			msg.Type = MessageTypeUser
+		}
+		if userID.Valid {
+			msg.UserID = &userID.String
+		}
+		if systemEventJSON.Valid {
+			var eventData SystemEventData
+			if err := json.Unmarshal([]byte(systemEventJSON.String), &eventData); err == nil {
+				msg.SystemEvent = &eventData
+			}
+		}
+		if threadParentID.Valid {
+			msg.ThreadParentID = &threadParentID.String
+		}
+		if lastReplyAt.Valid {
+			t, _ := time.Parse(time.RFC3339, lastReplyAt.String)
+			msg.LastReplyAt = &t
+		}
+		if editedAt.Valid {
+			t, _ := time.Parse(time.RFC3339, editedAt.String)
+			msg.EditedAt = &t
+		}
+		if deletedAt.Valid {
+			t, _ := time.Parse(time.RFC3339, deletedAt.String)
+			msg.DeletedAt = &t
+		}
+		if pinnedAt.Valid {
+			t, _ := time.Parse(time.RFC3339, pinnedAt.String)
+			msg.PinnedAt = &t
+		}
+		if pinnedBy.Valid {
+			msg.PinnedBy = &pinnedBy.String
+		}
+		if avatarURL.Valid {
+			msg.UserAvatarURL = &avatarURL.String
+		}
+		if userEmail.Valid {
+			msg.UserEmail = userEmail.String
+		}
+		msg.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
+		msg.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
+
 		messages = append(messages, SearchMessage{
 			MessageWithUser: msg.MessageWithUser,
 			ChannelName:     channelName,
