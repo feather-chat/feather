@@ -156,7 +156,8 @@ func Defaults() *Config {
 			Path:         "./data/enzyme.db",
 			MaxOpenConns: 10,
 			BusyTimeout:  5000,
-			CacheSize:    -2000,
+			CacheSize:    -8000,
+			MmapSize:     268435456, // 256MB
 		},
 		Auth: AuthConfig{
 			SessionDuration: 720 * time.Hour, // 30 days

@@ -92,36 +92,30 @@ func (r *PreferencesRepository) GetOrDefault(ctx context.Context, userID, channe
 
 // Upsert creates or updates notification preferences
 func (r *PreferencesRepository) Upsert(ctx context.Context, pref *NotificationPreference) error {
-	now := time.Now().UTC()
+	now := time.Now().UTC().Format(time.RFC3339)
+	id := ulid.Make().String()
 
-	// Try to update first
-	result, err := r.db.ExecContext(ctx, `
-		UPDATE notification_preferences
-		SET notify_level = ?, email_enabled = ?, updated_at = ?
-		WHERE user_id = ? AND channel_id = ?
-	`, pref.NotifyLevel, pref.EmailEnabled, now.Format(time.RFC3339), pref.UserID, pref.ChannelID)
+	var createdAt, updatedAt string
+	err := r.db.QueryRowContext(ctx, `
+		INSERT INTO notification_preferences (id, user_id, channel_id, notify_level, email_enabled, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(user_id, channel_id) DO UPDATE SET
+			notify_level = excluded.notify_level,
+			email_enabled = excluded.email_enabled,
+			updated_at = excluded.updated_at
+		RETURNING id, user_id, channel_id, notify_level, email_enabled, created_at, updated_at
+	`, id, pref.UserID, pref.ChannelID, pref.NotifyLevel, pref.EmailEnabled, now, now).Scan(
+		&pref.ID, &pref.UserID, &pref.ChannelID, &pref.NotifyLevel, &pref.EmailEnabled,
+		&createdAt, &updatedAt,
+	)
 	if err != nil {
 		return err
 	}
 
-	rows, _ := result.RowsAffected()
-	if rows > 0 {
-		pref.UpdatedAt = now
-		return nil
-	}
+	pref.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
+	pref.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
 
-	// Insert new preference
-	pref.ID = ulid.Make().String()
-	pref.CreatedAt = now
-	pref.UpdatedAt = now
-
-	_, err = r.db.ExecContext(ctx, `
-		INSERT INTO notification_preferences (id, user_id, channel_id, notify_level, email_enabled, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
-	`, pref.ID, pref.UserID, pref.ChannelID, pref.NotifyLevel, pref.EmailEnabled,
-		now.Format(time.RFC3339), now.Format(time.RFC3339))
-
-	return err
+	return nil
 }
 
 // Delete removes notification preferences

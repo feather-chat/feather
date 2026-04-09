@@ -39,7 +39,9 @@ func Open(path string, opts Options) (*DB, error) {
 	// SQLite returns SQLITE_BUSY instantly to avoid deadlocks.
 	// temp_store=2 uses memory-backed temp tables instead of disk, avoiding
 	// temp file I/O for ORDER BY, GROUP BY, and window functions.
-	dsn := fmt.Sprintf("%s?_txlock=immediate&_pragma=journal_mode%%28WAL%%29&_pragma=busy_timeout%%28%d%%29&_pragma=foreign_keys%%28ON%%29&_pragma=synchronous%%28NORMAL%%29&_pragma=cache_size%%28%d%%29&_pragma=mmap_size%%28%d%%29&_pragma=temp_store%%282%%29",
+	// journal_size_limit caps the WAL file at 64MB, preventing unbounded
+	// growth during long-running operations or heavy write bursts.
+	dsn := fmt.Sprintf("%s?_txlock=immediate&_pragma=journal_mode%%28WAL%%29&_pragma=busy_timeout%%28%d%%29&_pragma=foreign_keys%%28ON%%29&_pragma=synchronous%%28NORMAL%%29&_pragma=cache_size%%28%d%%29&_pragma=mmap_size%%28%d%%29&_pragma=temp_store%%282%%29&_pragma=journal_size_limit%%2867108864%%29",
 		path, opts.BusyTimeout, opts.CacheSize, opts.MmapSize)
 
 	db, err := sql.Open("sqlite", dsn)
