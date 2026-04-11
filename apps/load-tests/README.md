@@ -40,8 +40,8 @@ make load-test-sse-stress                        # 100 connections, 2m
 make load-test-sse-stress SSE_CONNECTIONS=2000   # 2000 connections
 
 # Against a remote server
-make load-test K6_BASE_URL=https://chat.enzyme.im
-make load-test-sse-stress K6_BASE_URL=https://chat.enzyme.im SSE_CONNECTIONS=2000
+make load-test K6_BASE_URL=https://app.enzyme.im
+make load-test-sse-stress K6_BASE_URL=https://app.enzyme.im SSE_CONNECTIONS=2000
 ```
 
 ## Development
@@ -92,5 +92,5 @@ rm server/enzyme.db && make seed
 By default, load tests refuse to run against non-localhost servers. To run against a remote target, set `K6_CONFIRM_REMOTE=1`:
 
 ```bash
-make load-test K6_BASE_URL=https://chat.enzyme.im K6_FLAGS="--env K6_CONFIRM_REMOTE=1"
+make load-test K6_BASE_URL=https://app.enzyme.im K6_FLAGS="--env K6_CONFIRM_REMOTE=1"
 ```
