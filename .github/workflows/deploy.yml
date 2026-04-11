@@ -26,7 +26,6 @@ jobs:
       - name: Build
         run: |
           make install
-          make generate-types
           pnpm --filter @enzyme/web build
           cp -r apps/web/dist/ server/internal/web/dist/
           cd server
