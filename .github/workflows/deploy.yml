@@ -27,7 +27,7 @@ jobs:
         run: |
           make install
           pnpm --filter @enzyme/web build
-          cp -r apps/web/dist/ server/internal/web/dist/
+          rm -rf server/internal/web/dist && cp -r apps/web/dist server/internal/web/dist
           cd server
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ../enzyme ./cmd/enzyme
 
