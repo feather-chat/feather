@@ -49,6 +49,14 @@ const (
 	EventScheduledMessageDeleted = string(openapi.SSEEventTypeScheduledMessageDeleted)
 	EventScheduledMessageSent    = string(openapi.SSEEventTypeScheduledMessageSent)
 	EventScheduledMessageFailed  = string(openapi.SSEEventTypeScheduledMessageFailed)
+
+	EventVoiceJoined       = string(openapi.SSEEventTypeVoiceJoined)
+	EventVoiceLeft         = string(openapi.SSEEventTypeVoiceLeft)
+	EventVoiceSpeaking     = string(openapi.SSEEventTypeVoiceSpeaking)
+	EventVoiceMuted        = string(openapi.SSEEventTypeVoiceMuted)
+	EventVoiceOffer        = string(openapi.SSEEventTypeVoiceOffer)
+	EventVoiceAnswer       = string(openapi.SSEEventTypeVoiceAnswer)
+	EventVoiceICECandidate = string(openapi.SSEEventTypeVoiceIceCandidate)
 )
 
 type Event struct {

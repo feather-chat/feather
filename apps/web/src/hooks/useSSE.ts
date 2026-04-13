@@ -8,6 +8,7 @@ import {
   unlockAudio,
   requestNotificationPermission,
 } from '../lib/notificationSound';
+import { dispatchVoiceOffer, dispatchVoiceICECandidate } from '../lib/voiceSignaling';
 import { toast } from '../components/ui';
 import type { NotificationData } from '@enzyme/api-client';
 import {
@@ -39,6 +40,10 @@ import {
   handlePresenceChanged,
   handlePresenceInitial,
   handleNotification,
+  handleVoiceJoined,
+  handleVoiceLeft,
+  handleVoiceSpeaking,
+  handleVoiceMuted,
   authKeys,
 } from '@enzyme/shared';
 
@@ -221,6 +226,31 @@ export function useSSE(workspaceId: string | undefined) {
           }
         });
       }
+    });
+
+    // --- Voice events ---
+    connection.on('voice.joined', (event) => {
+      handleVoiceJoined(event.data);
+    });
+
+    connection.on('voice.left', (event) => {
+      handleVoiceLeft(event.data);
+    });
+
+    connection.on('voice.speaking', (event) => {
+      handleVoiceSpeaking(event.data);
+    });
+
+    connection.on('voice.muted', (event) => {
+      handleVoiceMuted(event.data);
+    });
+
+    connection.on('voice.offer', (event) => {
+      dispatchVoiceOffer(event.data);
+    });
+
+    connection.on('voice.ice_candidate', (event) => {
+      dispatchVoiceICECandidate(event.data);
     });
 
     // Unlock audio on first interaction

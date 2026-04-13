@@ -56,6 +56,32 @@ Within a channel, members can have different roles:
 
 Channel roles are independent of workspace roles. A workspace member can be a viewer in one channel and an admin in another. See [Permissions & Roles](/docs/permissions/#channel-roles) for details.
 
+## Voice Channels
+
+Voice channels provide real-time audio communication. They appear in a separate "Voice Channels" section of the sidebar.
+
+### Creating a Voice Channel
+
+When creating a channel, choose **Voice** as the channel type. Voice channels require the server to have voice enabled (see [Configuration](/docs/configuration/)).
+
+### Joining a Voice Call
+
+Click a voice channel in the sidebar, then click **Join Voice**. Your browser will request microphone access. Once connected, you'll see other participants in a grid.
+
+### Controls
+
+- **Mute** — Toggle your microphone on/off.
+- **Deafen** — Mute all incoming audio (also mutes your microphone).
+- **Leave** — Disconnect from the voice channel.
+
+### Server Mute
+
+Workspace admins and owners can server-mute any participant. A server-muted user cannot unmute themselves — only an admin can remove the server mute.
+
+### Limits
+
+Voice channels have a configurable participant limit (default: 15). When a channel is full, new users cannot join until someone leaves.
+
 ## Archiving Channels
 
 Workspace owners and admins can archive channels to make them read-only. Archived channels preserve their message history but no new messages can be sent. The #general channel and DM channels cannot be archived.

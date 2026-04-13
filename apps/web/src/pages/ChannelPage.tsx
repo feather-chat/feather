@@ -15,6 +15,7 @@ import {
   LinkIcon,
   ChevronLeftIcon,
   EnvelopeOpenIcon,
+  SpeakerWaveIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import {
@@ -37,6 +38,7 @@ import { ChannelNotificationButton } from '../components/channel/ChannelNotifica
 import { ChannelDetailsModal } from '../components/channel/ChannelDetailsModal';
 import { ConvertToChannelModal } from '../components/channel/ConvertToChannelModal';
 import { PinnedMessagesPopover } from '../components/channel/PinnedMessagesPopover';
+import { VoiceChannelView } from '../components/channel/VoiceChannelView';
 import {
   Spinner,
   Modal,
@@ -58,6 +60,9 @@ function ChannelIcon({ type, className }: { type: string; className?: string }) 
   if (type === 'private') {
     return <LockClosedIcon className={className} />;
   }
+  if (type === 'voice') {
+    return <SpeakerWaveIcon className={className} />;
+  }
   if (type === 'public') {
     return <HashtagIcon className={className} />;
   }
@@ -65,7 +70,8 @@ function ChannelIcon({ type, className }: { type: string; className?: string }) 
 }
 
 function getChannelPrefix(type: string): string {
-  return type === 'private' ? '' : '#';
+  if (type === 'private' || type === 'voice') return '';
+  return '#';
 }
 
 export function ChannelPage() {
@@ -228,7 +234,8 @@ export function ChannelPage() {
     }
   };
 
-  const canJoin = channel && channel.type === 'public' && !isMember;
+  const isVoice = channel?.type === 'voice';
+  const canJoin = channel && (channel.type === 'public' || channel.type === 'voice') && !isMember;
   const canArchive =
     channel && channel.type !== 'dm' && channel.type !== 'group_dm' && !channel.is_default;
   const canLeave = channel && channel.type !== 'dm' && !channel.is_default && isMember;
@@ -238,7 +245,8 @@ export function ChannelPage() {
     channel.type !== 'dm' &&
     channel.type !== 'group_dm' &&
     channel.channel_role !== undefined;
-  const isChannel = channel?.type === 'public' || channel?.type === 'private';
+  const isChannel =
+    channel?.type === 'public' || channel?.type === 'private' || channel?.type === 'voice';
   const isMuted = notifData?.preferences?.notify_level === 'none';
 
   const handleToggleMute = () => {
@@ -467,7 +475,7 @@ export function ChannelPage() {
 
           <div className="flex flex-shrink-0 items-center gap-1">
             {/* Pinned messages */}
-            <PinnedMessagesPopover channelId={channelId} />
+            {!isVoice && <PinnedMessagesPopover channelId={channelId} />}
 
             {/* Channel members */}
             <ChannelMembersButton
@@ -539,37 +547,55 @@ export function ChannelPage() {
         channelId={channelId}
       />
 
-      {/* Messages - always visible */}
-      <MessageList
-        channelId={channelId}
-        lastReadMessageId={channel.last_read_message_id}
-        unreadCount={channel.unread_count}
-        onAtBottomChange={handleAtBottomChange}
-      />
-
-      {canJoin ? (
-        /* Join banner for non-member channels */
-        <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-              <span className="text-gray-400">#</span>
-              <span>
-                You're viewing <strong>{channel.name}</strong>
-              </span>
-            </div>
+      {isVoice ? (
+        /* Voice channel view */
+        isMember ? (
+          <VoiceChannelView channelId={channel.id} workspaceRole={workspaceMembership?.role} />
+        ) : canJoin ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+            <p className="text-gray-500 dark:text-gray-400">
+              You're viewing <strong>{channel.name}</strong>
+            </p>
             <Button onClick={handleJoin} isLoading={joinChannel.isPending} size="sm">
               Join Channel
             </Button>
           </div>
-        </div>
+        ) : null
       ) : (
-        /* Composer for members */
-        <MessageComposer
-          ref={composerRef}
-          channelId={channelId}
-          workspaceId={workspaceId}
-          placeholder={`Message ${isDM ? dmDisplayName : `${getChannelPrefix(channel.type)}${channel.name}`}`}
-        />
+        <>
+          {/* Messages - always visible */}
+          <MessageList
+            channelId={channelId}
+            lastReadMessageId={channel.last_read_message_id}
+            unreadCount={channel.unread_count}
+            onAtBottomChange={handleAtBottomChange}
+          />
+
+          {canJoin ? (
+            /* Join banner for non-member channels */
+            <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                  <span className="text-gray-400">#</span>
+                  <span>
+                    You're viewing <strong>{channel.name}</strong>
+                  </span>
+                </div>
+                <Button onClick={handleJoin} isLoading={joinChannel.isPending} size="sm">
+                  Join Channel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Composer for members */
+            <MessageComposer
+              ref={composerRef}
+              channelId={channelId}
+              workspaceId={workspaceId}
+              placeholder={`Message ${isDM ? dmDisplayName : `${getChannelPrefix(channel.type)}${channel.name}`}`}
+            />
+          )}
+        </>
       )}
 
       {/* Channel details modal */}

@@ -47,6 +47,7 @@ export {
   pinnedMessageKeys,
   scheduledMessageKeys,
   searchKeys,
+  voiceKeys,
   serverKeys,
 } from './queryKeys';
 
@@ -68,12 +69,31 @@ export {
   useIsEditingMessage,
 } from './stores/editingMessageStore';
 
+export {
+  type VoiceParticipantState,
+  setActiveVoiceChannel,
+  addVoiceParticipant,
+  removeVoiceParticipant,
+  setVoiceParticipantMuteState,
+  setVoiceSpeaking,
+  setLocalMuted,
+  setLocalDeafened,
+  clearVoiceState,
+  useActiveVoiceChannel,
+  useVoiceChannelParticipants,
+  useIsUserSpeaking,
+  useLocalMuted,
+  useLocalDeafened,
+  getVoiceChannelParticipantCount,
+} from './stores/voiceStore';
+
 // Cache
 export { getCachedIfFresh, getUrl, getUrls, invalidate } from './cache/signedUrlCache';
 
 // Hooks
 export {
   useAuth,
+  useServerInfo,
   useSignedUrl,
   useMessage,
   useMessages,
@@ -140,6 +160,14 @@ export {
   useBlockUser,
   useUnblockUser,
   useModerationLog,
+  useVoiceParticipants,
+  useJoinVoice,
+  useLeaveVoice,
+  useVoiceAnswer,
+  useVoiceICECandidate,
+  useMuteVoice,
+  useDeafenVoice,
+  useServerMuteVoice,
 } from './hooks';
 
 // SSE cache updaters
@@ -172,4 +200,8 @@ export {
   handlePresenceChanged,
   handlePresenceInitial,
   handleNotification,
+  handleVoiceJoined,
+  handleVoiceLeft,
+  handleVoiceSpeaking,
+  handleVoiceMuted,
 } from './sse/cacheUpdaters';

@@ -327,6 +327,15 @@ sudo ufw allow 443/tcp    # HTTPS
 sudo ufw enable
 ```
 
+If you have **voice channels** enabled, also open the TURN relay ports:
+
+```bash
+sudo ufw allow 3478/udp              # TURN server
+sudo ufw allow 49152:65535/udp       # TURN relay range
+```
+
+The TURN port and relay range are configurable via `voice.turn_port`, `voice.turn_relay_min`, and `voice.turn_relay_max` in your config. You must also set `voice.turn_external_ip` to your server's public IP address for remote clients to connect.
+
 ## Backups
 
 All persistent state is in the data directory (default: `./data/`):

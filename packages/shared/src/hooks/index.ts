@@ -1,4 +1,5 @@
 export { useAuth } from './useAuth';
+export { useServerInfo } from './useServerInfo';
 export { useSignedUrl } from './useSignedUrl';
 export {
   useMessage,
@@ -69,3 +70,13 @@ export {
   useUnblockUser,
   useModerationLog,
 } from './useModeration';
+export {
+  useVoiceParticipants,
+  useJoinVoice,
+  useLeaveVoice,
+  useVoiceAnswer,
+  useVoiceICECandidate,
+  useMuteVoice,
+  useDeafenVoice,
+  useServerMuteVoice,
+} from './useVoice';
