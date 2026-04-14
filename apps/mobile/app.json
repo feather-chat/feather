@@ -43,6 +43,13 @@
     "plugins": [
       "expo-secure-store",
       [
+        "react-native-webrtc",
+        {
+          "cameraPermission": false,
+          "microphonePermission": "Allow Enzyme to access your microphone for voice channels."
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",

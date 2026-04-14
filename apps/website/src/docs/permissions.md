@@ -137,6 +137,17 @@ These are defined in `server/internal/channel/model.go`:
 | **Upload custom emoji** | Controlled by **who can manage custom emoji** setting (default: members) |
 | **Delete custom emoji** | Emoji uploader OR workspace owner/admin                                  |
 
+## Voice Channel Permissions
+
+| Action          | Who can do it            |
+| --------------- | ------------------------ |
+| **Join**        | Any workspace member     |
+| **Leave**       | Any participant          |
+| **Mute/Deafen** | Self only                |
+| **Server Mute** | Workspace owner or admin |
+
+Server mute prevents a user from being heard by others. Only workspace owners and admins can server-mute or remove a server mute.
+
 ## Moderation
 
 ### Banning

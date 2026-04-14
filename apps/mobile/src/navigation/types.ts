@@ -22,6 +22,7 @@ export type MainStackParamList = {
   Search: { workspaceId: string };
   CreateChannel: { workspaceId: string };
   BrowseChannels: { workspaceId: string };
+  VoiceChannel: { workspaceId: string; channelId: string; channelName: string };
 };
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<

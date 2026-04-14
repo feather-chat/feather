@@ -12,6 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/enzyme/server/internal/openapi"
+	"github.com/pion/webrtc/v4"
+
 	"github.com/enzyme/server/internal/auth"
 	"github.com/enzyme/server/internal/channel"
 	"github.com/enzyme/server/internal/config"
@@ -37,6 +40,7 @@ import (
 	"github.com/enzyme/server/internal/thread"
 	"github.com/enzyme/server/internal/user"
 	"github.com/enzyme/server/internal/version"
+	"github.com/enzyme/server/internal/voice"
 	"github.com/enzyme/server/internal/web"
 	"github.com/enzyme/server/internal/workspace"
 )
@@ -60,6 +64,8 @@ type App struct {
 	moderationRepo        *moderation.Repository
 	scheduler             *scheduler.Scheduler
 	Telemetry             *telemetry.Telemetry
+	voiceSFU              *voice.SFU
+	voiceTURN             *voice.TURNServer
 }
 
 func New(cfg *config.Config) (*App, error) {
@@ -120,6 +126,7 @@ func New(cfg *config.Config) (*App, error) {
 	threadRepo := thread.NewRepository(db.DB)
 	scheduledRepo := scheduled.NewRepository(db.DB)
 	moderationRepo := moderation.NewRepository(db.DB)
+	voiceRepo := voice.NewRepository(db.DB)
 
 	// Initialize services
 	authService := auth.NewService(userRepo, passwordResetRepo, emailVerificationRepo, cfg.Auth.BcryptCost)
@@ -194,6 +201,63 @@ func New(cfg *config.Config) (*App, error) {
 	// Normalize publicURL to avoid double slashes in constructed URLs
 	cfg.Server.PublicURL = strings.TrimRight(cfg.Server.PublicURL, "/")
 
+	// Initialize voice SFU and TURN server (if enabled)
+	var voiceSFU *voice.SFU
+	var voiceTURN *voice.TURNServer
+	if cfg.Voice.Enabled {
+		// Flush stale voice participants from a previous server process
+		if err := voiceRepo.FlushAll(context.Background()); err != nil {
+			slog.Error("flushing stale voice participants", "error", err)
+		}
+
+		voiceSFU, err = voice.NewSFU(cfg.Voice)
+		if err != nil {
+			_ = db.Close()
+			return nil, fmt.Errorf("initializing voice SFU: %w", err)
+		}
+
+		// Set up ICE candidate callback to forward to clients via SSE.
+		// WorkspaceID is cached in the Room, so no DB lookup needed.
+		voiceSFU.OnICECandidate = func(channelID, workspaceID, userID string, candidate *webrtc.ICECandidate) {
+			init := candidate.ToJSON()
+			hub.BroadcastToUser(workspaceID, userID, sse.NewVoiceICECandidateEvent(openapi.VoiceICECandidateEvent{
+				Candidate: init.Candidate,
+				SdpMid:    init.SDPMid,
+			}))
+		}
+
+		// Set up renegotiation callback
+		voiceSFU.OnRenegotiate = func(channelID, workspaceID, userID string, offer webrtc.SessionDescription) {
+			hub.BroadcastToUser(workspaceID, userID, sse.NewVoiceOfferEvent(openapi.VoiceSDPEvent{
+				Sdp:  offer.SDP,
+				Type: openapi.VoiceSDPEventType(offer.Type.String()),
+			}))
+		}
+
+		// Set up disconnect callback for auto-cleanup when peers drop unexpectedly
+		voiceSFU.OnPeerDisconnected = func(channelID, workspaceID, userID string) {
+			if err := voiceRepo.RemoveParticipant(context.Background(), channelID, userID); err != nil {
+				slog.Error("removing disconnected voice participant", "error", err)
+			}
+			hub.BroadcastToChannel(workspaceID, channelID, sse.NewVoiceLeftEvent(openapi.VoiceParticipantEvent{
+				UserId:    userID,
+				ChannelId: channelID,
+			}))
+		}
+
+		if cfg.Voice.TURNExternalIP != "" {
+			voiceTURN, err = voice.NewTURNServer(cfg.Voice)
+			if err != nil {
+				_ = db.Close()
+				return nil, fmt.Errorf("initializing TURN server: %w", err)
+			}
+		} else {
+			slog.Warn("voice enabled but turn_external_ip is not set — TURN relay will not start, which is fine for localhost but will break remote clients behind NAT")
+		}
+
+		slog.Info("voice channels enabled", "max_per_channel", cfg.Voice.MaxPerChannel)
+	}
+
 	// Initialize SSE handler (kept separate as it requires streaming)
 	sseHandler := sse.NewHandler(hub, workspaceRepo, channelRepo, cfg.SSE.HeartbeatInterval, cfg.SSE.ClientBufferSize)
 
@@ -220,6 +284,9 @@ func New(cfg *config.Config) (*App, error) {
 		Storage:             store,
 		MaxUploadSize:       cfg.Storage.MaxUploadSize,
 		PublicURL:           cfg.Server.PublicURL,
+		VoiceRepo:           voiceRepo,
+		VoiceSFU:            voiceSFU,
+		VoiceMaxPerChannel:  cfg.Voice.MaxPerChannel,
 	})
 
 	// Initialize scheduled message worker
@@ -297,6 +364,8 @@ func New(cfg *config.Config) (*App, error) {
 		moderationRepo:        moderationRepo,
 		scheduler:             scheduler.New(),
 		Telemetry:             tel,
+		voiceSFU:              voiceSFU,
+		voiceTURN:             voiceTURN,
 	}, nil
 }
 
@@ -341,6 +410,21 @@ func (a *App) Start(ctx context.Context) error {
 		}})
 	}
 
+	if a.voiceSFU != nil {
+		voiceRepoForCleanup := voice.NewRepository(a.DB.DB)
+		s.Register(scheduler.Task{
+			Name:     "voice-participant-cleanup",
+			Interval: 5 * time.Minute,
+			Fn: func(ctx context.Context) error {
+				n, err := voiceRepoForCleanup.RemoveStaleParticipants(ctx, 24*time.Hour)
+				if err == nil && n > 0 {
+					slog.Info("cleaned up stale voice participants", "count", n)
+				}
+				return err
+			},
+		})
+	}
+
 	s.Start(ctx)
 
 	var storageInfo string
@@ -369,6 +453,17 @@ func (a *App) Shutdown(ctx context.Context) error {
 
 	if err := a.Server.Shutdown(ctx); err != nil {
 		return err
+	}
+	// Close voice services
+	if a.voiceSFU != nil {
+		if err := a.voiceSFU.Close(); err != nil {
+			slog.Error("voice SFU shutdown error", "error", err)
+		}
+	}
+	if a.voiceTURN != nil {
+		if err := a.voiceTURN.Close(); err != nil {
+			slog.Error("TURN server shutdown error", "error", err)
+		}
 	}
 	// Flush telemetry before closing database
 	if err := a.Telemetry.Shutdown(ctx); err != nil {

@@ -294,6 +294,14 @@ push_notifications:
   relay_url: 'https://push.enzyme.im'
   include_preview: true
 
+voice:
+  enabled: true
+  turn_port: 3478
+  turn_relay_min: 49152
+  turn_relay_max: 65535
+  turn_external_ip: '203.0.113.1' # Your server's public IP
+  max_per_channel: 15
+
 telemetry:
   enabled: false
   endpoint: 'localhost:4317'

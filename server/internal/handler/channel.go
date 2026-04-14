@@ -51,7 +51,7 @@ func (h *Handler) CreateChannel(ctx context.Context, request openapi.CreateChann
 
 	// Validate type
 	channelType := string(request.Body.Type)
-	if channelType != channel.TypePublic && channelType != channel.TypePrivate {
+	if channelType != channel.TypePublic && channelType != channel.TypePrivate && channelType != channel.TypeVoice {
 		channelType = channel.TypePublic
 	}
 

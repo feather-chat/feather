@@ -13,6 +13,7 @@ type Config struct {
 	SSE               SSEConfig              `koanf:"sse"`
 	PushNotifications PushNotificationConfig `koanf:"push_notifications"`
 	Telemetry         TelemetryConfig        `koanf:"telemetry"`
+	Voice             VoiceConfig            `koanf:"voice"`
 }
 
 type LogConfig struct {
@@ -117,6 +118,17 @@ type PushNotificationConfig struct {
 	IncludePreview bool   `koanf:"include_preview"`
 }
 
+type VoiceConfig struct {
+	Enabled        bool   `koanf:"enabled"`
+	TURNPort       int    `koanf:"turn_port"`
+	TURNRelayMin   int    `koanf:"turn_relay_min"`
+	TURNRelayMax   int    `koanf:"turn_relay_max"`
+	TURNExternalIP string `koanf:"turn_external_ip"`
+	TURNUsername   string `koanf:"turn_username"`
+	TURNPassword   string `koanf:"turn_password"`
+	MaxPerChannel  int    `koanf:"max_per_channel"`
+}
+
 type TelemetryConfig struct {
 	Enabled          bool              `koanf:"enabled"`
 	Endpoint         string            `koanf:"endpoint"`
@@ -196,6 +208,15 @@ func Defaults() *Config {
 			Enabled:        false,
 			RelayURL:       "https://push.enzyme.im",
 			IncludePreview: true,
+		},
+		Voice: VoiceConfig{
+			Enabled:       false,
+			TURNPort:      3478,
+			TURNRelayMin:  49152,
+			TURNRelayMax:  65535,
+			TURNUsername:  "enzyme",
+			TURNPassword:  "enzyme-turn",
+			MaxPerChannel: 15,
 		},
 		Telemetry: TelemetryConfig{
 			Enabled:     false,

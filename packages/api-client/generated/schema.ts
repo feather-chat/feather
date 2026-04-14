@@ -1428,6 +1428,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/channels/{id}/voice/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Join a voice channel
+         * @description Join a voice channel and begin WebRTC signaling. Returns an SDP offer and a list of ICE servers (including the embedded TURN server) for the client to use.
+         */
+        post: operations["joinVoiceChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/voice/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Leave a voice channel
+         * @description Leave the voice channel and close the WebRTC connection.
+         */
+        post: operations["leaveVoiceChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/voice/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send SDP answer
+         * @description Send the client's SDP answer to complete the WebRTC handshake.
+         */
+        post: operations["voiceAnswer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/voice/ice-candidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send ICE candidate
+         * @description Send an ICE candidate for the WebRTC connection.
+         */
+        post: operations["voiceICECandidate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/voice/mute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Toggle self-mute in voice channel
+         * @description Mute or unmute your own microphone in the voice channel.
+         */
+        post: operations["muteVoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/voice/deafen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Toggle self-deafen in voice channel
+         * @description Deafen or undeafen yourself in the voice channel. When deafened, you also become muted.
+         */
+        post: operations["deafenVoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/voice/server-mute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Server-mute a user in voice channel
+         * @description Mute or unmute another user in the voice channel. Requires admin or owner role.
+         */
+        post: operations["serverMuteVoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/voice/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List voice channel participants
+         * @description List all users currently connected to the voice channel.
+         */
+        get: operations["listVoiceParticipants"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{id}": {
         parameters: {
             query?: never;
@@ -1956,7 +2116,7 @@ export interface components {
             dm_participants?: components["schemas"]["ChannelMember"][];
         };
         /** @enum {string} */
-        ChannelType: "public" | "private" | "dm" | "group_dm";
+        ChannelType: "public" | "private" | "dm" | "group_dm" | "voice";
         /** @enum {string} */
         ChannelRole: "admin" | "poster" | "viewer";
         ChannelMember: {
@@ -2254,6 +2414,7 @@ export interface components {
             version: string;
             email_enabled?: boolean;
             files_enabled?: boolean;
+            voice_enabled?: boolean;
         };
         SuccessResponse: {
             success: boolean;
@@ -2269,8 +2430,8 @@ export interface components {
             last_read_message_id: string;
         };
         /** @enum {string} */
-        SSEEventType: "connected" | "heartbeat" | "message.new" | "message.updated" | "message.deleted" | "reaction.added" | "reaction.removed" | "channel.created" | "channel.updated" | "channel.archived" | "channel.member_added" | "channel.member_removed" | "channel.read" | "typing.start" | "typing.stop" | "presence.changed" | "presence.initial" | "notification" | "emoji.created" | "emoji.deleted" | "message.pinned" | "message.unpinned" | "member.banned" | "member.unbanned" | "member.left" | "member.role_changed" | "workspace.updated" | "channels.invalidate" | "scheduled_message.created" | "scheduled_message.updated" | "scheduled_message.deleted" | "scheduled_message.sent" | "scheduled_message.failed";
-        SSEEvent: components["schemas"]["SSEEventConnected"] | components["schemas"]["SSEEventHeartbeat"] | components["schemas"]["SSEEventMessageNew"] | components["schemas"]["SSEEventMessageUpdated"] | components["schemas"]["SSEEventMessageDeleted"] | components["schemas"]["SSEEventReactionAdded"] | components["schemas"]["SSEEventReactionRemoved"] | components["schemas"]["SSEEventChannelCreated"] | components["schemas"]["SSEEventChannelUpdated"] | components["schemas"]["SSEEventChannelArchived"] | components["schemas"]["SSEEventChannelMemberAdded"] | components["schemas"]["SSEEventChannelMemberRemoved"] | components["schemas"]["SSEEventChannelRead"] | components["schemas"]["SSEEventTypingStart"] | components["schemas"]["SSEEventTypingStop"] | components["schemas"]["SSEEventPresenceChanged"] | components["schemas"]["SSEEventPresenceInitial"] | components["schemas"]["SSEEventNotification"] | components["schemas"]["SSEEventEmojiCreated"] | components["schemas"]["SSEEventEmojiDeleted"] | components["schemas"]["SSEEventScheduledMessageCreated"] | components["schemas"]["SSEEventScheduledMessageUpdated"] | components["schemas"]["SSEEventScheduledMessageDeleted"] | components["schemas"]["SSEEventScheduledMessageSent"] | components["schemas"]["SSEEventMessagePinned"] | components["schemas"]["SSEEventMessageUnpinned"] | components["schemas"]["SSEEventMemberBanned"] | components["schemas"]["SSEEventMemberUnbanned"] | components["schemas"]["SSEEventMemberLeft"] | components["schemas"]["SSEEventMemberRoleChanged"] | components["schemas"]["SSEEventWorkspaceUpdated"] | components["schemas"]["SSEEventScheduledMessageFailed"] | components["schemas"]["SSEEventChannelsInvalidate"];
+        SSEEventType: "connected" | "heartbeat" | "message.new" | "message.updated" | "message.deleted" | "reaction.added" | "reaction.removed" | "channel.created" | "channel.updated" | "channel.archived" | "channel.member_added" | "channel.member_removed" | "channel.read" | "typing.start" | "typing.stop" | "presence.changed" | "presence.initial" | "notification" | "emoji.created" | "emoji.deleted" | "message.pinned" | "message.unpinned" | "member.banned" | "member.unbanned" | "member.left" | "member.role_changed" | "workspace.updated" | "channels.invalidate" | "scheduled_message.created" | "scheduled_message.updated" | "scheduled_message.deleted" | "scheduled_message.sent" | "scheduled_message.failed" | "voice.joined" | "voice.left" | "voice.speaking" | "voice.muted" | "voice.offer" | "voice.answer" | "voice.ice_candidate";
+        SSEEvent: components["schemas"]["SSEEventConnected"] | components["schemas"]["SSEEventHeartbeat"] | components["schemas"]["SSEEventMessageNew"] | components["schemas"]["SSEEventMessageUpdated"] | components["schemas"]["SSEEventMessageDeleted"] | components["schemas"]["SSEEventReactionAdded"] | components["schemas"]["SSEEventReactionRemoved"] | components["schemas"]["SSEEventChannelCreated"] | components["schemas"]["SSEEventChannelUpdated"] | components["schemas"]["SSEEventChannelArchived"] | components["schemas"]["SSEEventChannelMemberAdded"] | components["schemas"]["SSEEventChannelMemberRemoved"] | components["schemas"]["SSEEventChannelRead"] | components["schemas"]["SSEEventTypingStart"] | components["schemas"]["SSEEventTypingStop"] | components["schemas"]["SSEEventPresenceChanged"] | components["schemas"]["SSEEventPresenceInitial"] | components["schemas"]["SSEEventNotification"] | components["schemas"]["SSEEventEmojiCreated"] | components["schemas"]["SSEEventEmojiDeleted"] | components["schemas"]["SSEEventScheduledMessageCreated"] | components["schemas"]["SSEEventScheduledMessageUpdated"] | components["schemas"]["SSEEventScheduledMessageDeleted"] | components["schemas"]["SSEEventScheduledMessageSent"] | components["schemas"]["SSEEventMessagePinned"] | components["schemas"]["SSEEventMessageUnpinned"] | components["schemas"]["SSEEventMemberBanned"] | components["schemas"]["SSEEventMemberUnbanned"] | components["schemas"]["SSEEventMemberLeft"] | components["schemas"]["SSEEventMemberRoleChanged"] | components["schemas"]["SSEEventWorkspaceUpdated"] | components["schemas"]["SSEEventScheduledMessageFailed"] | components["schemas"]["SSEEventChannelsInvalidate"] | components["schemas"]["SSEEventVoiceJoined"] | components["schemas"]["SSEEventVoiceLeft"] | components["schemas"]["SSEEventVoiceSpeaking"] | components["schemas"]["SSEEventVoiceMuted"] | components["schemas"]["SSEEventVoiceOffer"] | components["schemas"]["SSEEventVoiceAnswer"] | components["schemas"]["SSEEventVoiceICECandidate"];
         SSEEventConnected: {
             /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
             id?: string;
@@ -2604,6 +2765,158 @@ export interface components {
              */
             type: "channels.invalidate";
             data: Record<string, never>;
+        };
+        SSEEventVoiceJoined: {
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "voice.joined";
+            data: components["schemas"]["VoiceParticipantEvent"];
+        };
+        SSEEventVoiceLeft: {
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "voice.left";
+            data: components["schemas"]["VoiceParticipantEvent"];
+        };
+        SSEEventVoiceSpeaking: {
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "voice.speaking";
+            data: components["schemas"]["VoiceSpeakingEvent"];
+        };
+        SSEEventVoiceMuted: {
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "voice.muted";
+            data: components["schemas"]["VoiceMutedEvent"];
+        };
+        SSEEventVoiceOffer: {
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "voice.offer";
+            data: components["schemas"]["VoiceSDPEvent"];
+        };
+        SSEEventVoiceAnswer: {
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "voice.answer";
+            data: components["schemas"]["VoiceSDPEvent"];
+        };
+        SSEEventVoiceICECandidate: {
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            id?: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "voice.ice_candidate";
+            data: components["schemas"]["VoiceICECandidateEvent"];
+        };
+        VoiceParticipantEvent: {
+            /** @example 01JQ3KMS4WTVY6BN8FRCJD2HAQ */
+            user_id: string;
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            channel_id: string;
+        };
+        VoiceSpeakingEvent: {
+            /** @example 01JQ3KMS4WTVY6BN8FRCJD2HAQ */
+            user_id: string;
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            channel_id: string;
+            speaking: boolean;
+        };
+        VoiceMutedEvent: {
+            /** @example 01JQ3KMS4WTVY6BN8FRCJD2HAQ */
+            user_id: string;
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            channel_id: string;
+            muted: boolean;
+            deafened: boolean;
+            server_muted: boolean;
+        };
+        VoiceSDPEvent: {
+            sdp: string;
+            /** @enum {string} */
+            type: "offer" | "answer";
+        };
+        VoiceICECandidateEvent: {
+            candidate: string;
+            sdp_mid?: string;
+            sdp_mline_index?: number;
+        };
+        SDPDescription: {
+            sdp: string;
+            /** @enum {string} */
+            type: "offer" | "answer";
+        };
+        ICEServer: {
+            urls: string[];
+            username?: string;
+            credential?: string;
+        };
+        VoiceJoinResponse: {
+            offer: components["schemas"]["SDPDescription"];
+            ice_servers: components["schemas"]["ICEServer"][];
+        };
+        VoiceAnswerRequest: {
+            answer: components["schemas"]["SDPDescription"];
+        };
+        VoiceICECandidateRequest: {
+            candidate: string;
+            sdp_mid?: string;
+            sdp_mline_index?: number;
+        };
+        VoiceMuteRequest: {
+            muted: boolean;
+        };
+        VoiceDeafenRequest: {
+            deafened: boolean;
+        };
+        VoiceServerMuteRequest: {
+            user_id: string;
+            muted: boolean;
+        };
+        VoiceParticipant: {
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            id: string;
+            /** @example 01JQ3KMN7XFGY4P6WBR2SZTA9V */
+            channel_id: string;
+            /** @example 01JQ3KMS4WTVY6BN8FRCJD2HAQ */
+            user_id: string;
+            is_muted: boolean;
+            is_deafened: boolean;
+            is_server_muted: boolean;
+            /** Format: date-time */
+            joined_at: string;
+            display_name?: string;
+            avatar_url?: string;
+        };
+        VoiceParticipantList: {
+            participants: components["schemas"]["VoiceParticipant"][];
         };
         ConnectedData: {
             client_id: string;
@@ -5137,6 +5450,231 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+        };
+    };
+    joinVoiceChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description SDP offer and ICE server configuration */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceJoinResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    leaveVoiceChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Left voice channel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    voiceAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoiceAnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description Answer accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    voiceICECandidate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoiceICECandidateRequest"];
+            };
+        };
+        responses: {
+            /** @description Candidate accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    muteVoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoiceMuteRequest"];
+            };
+        };
+        responses: {
+            /** @description Mute state updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    deafenVoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoiceDeafenRequest"];
+            };
+        };
+        responses: {
+            /** @description Deafen state updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    serverMuteVoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoiceServerMuteRequest"];
+            };
+        };
+        responses: {
+            /** @description Server mute state updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listVoiceParticipants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Channel ID */
+                id: components["parameters"]["channelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of voice participants */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceParticipantList"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     getUser: {

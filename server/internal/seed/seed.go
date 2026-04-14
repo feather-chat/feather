@@ -176,6 +176,23 @@ func Run(ctx context.Context, db *sql.DB) error {
 		return fmt.Errorf("add Bob to #admins-only: %w", err)
 	}
 
+	// watercooler (voice)
+	watercooler := &channel.Channel{
+		WorkspaceID: ws1.ID,
+		Name:        "watercooler",
+		Type:        channel.TypeVoice,
+	}
+	vcDesc := "Hang out and chat"
+	watercooler.Description = &vcDesc
+	if err := channelRepo.Create(ctx, watercooler, alice.ID); err != nil {
+		return fmt.Errorf("create #watercooler: %w", err)
+	}
+	for _, u := range acmeAllExceptAlice {
+		if _, err := channelRepo.AddMember(ctx, u.ID, watercooler.ID, &posterRole); err != nil {
+			return fmt.Errorf("add %s to #watercooler: %w", u.DisplayName, err)
+		}
+	}
+
 	// Auto-create DMs in Acme Corp (mirrors runtime behavior).
 	// Each member after the creator gets DMs with up to 5 earlier members.
 	acmeMembers := []*user.User{alice, bob, carol, dave, eve, frank, grace, hank}
