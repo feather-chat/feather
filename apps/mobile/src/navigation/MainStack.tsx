@@ -9,6 +9,7 @@ import { ChannelDetailsScreen } from '../screens/ChannelDetailsScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { CreateChannelScreen } from '../screens/CreateChannelScreen';
 import { BrowseChannelsScreen } from '../screens/BrowseChannelsScreen';
+import { VoiceChannelScreen } from '../screens/VoiceChannelScreen';
 import { useActiveWorkspace } from '../lib/WorkspaceProvider';
 import { useSSELifecycle } from '../hooks/useSSELifecycle';
 
@@ -58,6 +59,11 @@ export function MainStack() {
           name="BrowseChannels"
           component={BrowseChannelsScreen}
           options={{ title: 'Browse Channels' }}
+        />
+        <Stack.Screen
+          name="VoiceChannel"
+          component={VoiceChannelScreen}
+          options={({ route }) => ({ title: route.params.channelName })}
         />
       </Stack.Navigator>
     </>

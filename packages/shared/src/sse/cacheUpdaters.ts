@@ -30,6 +30,12 @@ import {
   setUserPresence,
   setMultipleUserPresence,
 } from '../stores/presenceStore';
+import {
+  addVoiceParticipant,
+  removeVoiceParticipant,
+  setVoiceParticipantMuteState,
+  setVoiceSpeaking,
+} from '../stores/voiceStore';
 import { getUrls } from '../cache/signedUrlCache';
 
 type MessagePages = { pages: MessageListResult[]; pageParams: (string | undefined)[] };
@@ -642,4 +648,28 @@ export function handleNotification(
   }
 
   return data;
+}
+
+// --- Voice Events ---
+
+export function handleVoiceJoined(data: EventDataOf<'voice.joined'>) {
+  addVoiceParticipant(data.channel_id, data.user_id);
+}
+
+export function handleVoiceLeft(data: EventDataOf<'voice.left'>) {
+  removeVoiceParticipant(data.channel_id, data.user_id);
+}
+
+export function handleVoiceSpeaking(data: EventDataOf<'voice.speaking'>) {
+  setVoiceSpeaking(data.user_id, data.speaking);
+}
+
+export function handleVoiceMuted(data: EventDataOf<'voice.muted'>) {
+  setVoiceParticipantMuteState(
+    data.channel_id,
+    data.user_id,
+    data.muted,
+    data.deafened,
+    data.server_muted,
+  );
 }

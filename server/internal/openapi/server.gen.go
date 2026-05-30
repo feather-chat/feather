@@ -36,6 +36,7 @@ const (
 	ChannelTypeGroupDm ChannelType = "group_dm"
 	ChannelTypePrivate ChannelType = "private"
 	ChannelTypePublic  ChannelType = "public"
+	ChannelTypeVoice   ChannelType = "voice"
 )
 
 // Defines values for ConvertGroupDMInputType.
@@ -97,6 +98,12 @@ const (
 const (
 	Apns RegisterDeviceTokenRequestPlatform = "apns"
 	Fcm  RegisterDeviceTokenRequestPlatform = "fcm"
+)
+
+// Defines values for SDPDescriptionType.
+const (
+	SDPDescriptionTypeAnswer SDPDescriptionType = "answer"
+	SDPDescriptionTypeOffer  SDPDescriptionType = "offer"
 )
 
 // Defines values for SSEEventChannelArchivedType.
@@ -283,6 +290,13 @@ const (
 	SSEEventTypeScheduledMessageUpdated SSEEventType = "scheduled_message.updated"
 	SSEEventTypeTypingStart             SSEEventType = "typing.start"
 	SSEEventTypeTypingStop              SSEEventType = "typing.stop"
+	SSEEventTypeVoiceAnswer             SSEEventType = "voice.answer"
+	SSEEventTypeVoiceIceCandidate       SSEEventType = "voice.ice_candidate"
+	SSEEventTypeVoiceJoined             SSEEventType = "voice.joined"
+	SSEEventTypeVoiceLeft               SSEEventType = "voice.left"
+	SSEEventTypeVoiceMuted              SSEEventType = "voice.muted"
+	SSEEventTypeVoiceOffer              SSEEventType = "voice.offer"
+	SSEEventTypeVoiceSpeaking           SSEEventType = "voice.speaking"
 	SSEEventTypeWorkspaceUpdated        SSEEventType = "workspace.updated"
 )
 
@@ -294,6 +308,41 @@ const (
 // Defines values for SSEEventTypingStopType.
 const (
 	TypingStop SSEEventTypingStopType = "typing.stop"
+)
+
+// Defines values for SSEEventVoiceAnswerType.
+const (
+	VoiceAnswer SSEEventVoiceAnswerType = "voice.answer"
+)
+
+// Defines values for SSEEventVoiceICECandidateType.
+const (
+	VoiceIceCandidate SSEEventVoiceICECandidateType = "voice.ice_candidate"
+)
+
+// Defines values for SSEEventVoiceJoinedType.
+const (
+	VoiceJoined SSEEventVoiceJoinedType = "voice.joined"
+)
+
+// Defines values for SSEEventVoiceLeftType.
+const (
+	VoiceLeft SSEEventVoiceLeftType = "voice.left"
+)
+
+// Defines values for SSEEventVoiceMutedType.
+const (
+	VoiceMuted SSEEventVoiceMutedType = "voice.muted"
+)
+
+// Defines values for SSEEventVoiceOfferType.
+const (
+	VoiceOffer SSEEventVoiceOfferType = "voice.offer"
+)
+
+// Defines values for SSEEventVoiceSpeakingType.
+const (
+	VoiceSpeaking SSEEventVoiceSpeakingType = "voice.speaking"
 )
 
 // Defines values for SSEEventWorkspaceUpdatedType.
@@ -326,6 +375,12 @@ const (
 	ThreadSubscriptionStatusNone         ThreadSubscriptionStatus = "none"
 	ThreadSubscriptionStatusSubscribed   ThreadSubscriptionStatus = "subscribed"
 	ThreadSubscriptionStatusUnsubscribed ThreadSubscriptionStatus = "unsubscribed"
+)
+
+// Defines values for VoiceSDPEventType.
+const (
+	VoiceSDPEventTypeAnswer VoiceSDPEventType = "answer"
+	VoiceSDPEventTypeOffer  VoiceSDPEventType = "offer"
 )
 
 // Defines values for WorkspaceRole.
@@ -549,6 +604,13 @@ type EmojiDeletedData struct {
 // HeartbeatData defines model for HeartbeatData.
 type HeartbeatData struct {
 	Timestamp int64 `json:"timestamp"`
+}
+
+// ICEServer defines model for ICEServer.
+type ICEServer struct {
+	Credential *string  `json:"credential,omitempty"`
+	Urls       []string `json:"urls"`
+	Username   *string  `json:"username,omitempty"`
 }
 
 // Invite defines model for Invite.
@@ -798,6 +860,15 @@ type ReorderWorkspacesInput struct {
 	// WorkspaceIds Ordered list of workspace IDs representing the new order
 	WorkspaceIds []string `json:"workspace_ids"`
 }
+
+// SDPDescription defines model for SDPDescription.
+type SDPDescription struct {
+	Sdp  string             `json:"sdp"`
+	Type SDPDescriptionType `json:"type"`
+}
+
+// SDPDescriptionType defines model for SDPDescription.Type.
+type SDPDescriptionType string
 
 // SSEEvent defines model for SSEEvent.
 type SSEEvent struct {
@@ -1127,6 +1198,76 @@ type SSEEventTypingStop struct {
 // SSEEventTypingStopType defines model for SSEEventTypingStop.Type.
 type SSEEventTypingStopType string
 
+// SSEEventVoiceAnswer defines model for SSEEventVoiceAnswer.
+type SSEEventVoiceAnswer struct {
+	Data VoiceSDPEvent           `json:"data"`
+	Id   *string                 `json:"id,omitempty"`
+	Type SSEEventVoiceAnswerType `json:"type"`
+}
+
+// SSEEventVoiceAnswerType defines model for SSEEventVoiceAnswer.Type.
+type SSEEventVoiceAnswerType string
+
+// SSEEventVoiceICECandidate defines model for SSEEventVoiceICECandidate.
+type SSEEventVoiceICECandidate struct {
+	Data VoiceICECandidateEvent        `json:"data"`
+	Id   *string                       `json:"id,omitempty"`
+	Type SSEEventVoiceICECandidateType `json:"type"`
+}
+
+// SSEEventVoiceICECandidateType defines model for SSEEventVoiceICECandidate.Type.
+type SSEEventVoiceICECandidateType string
+
+// SSEEventVoiceJoined defines model for SSEEventVoiceJoined.
+type SSEEventVoiceJoined struct {
+	Data VoiceParticipantEvent   `json:"data"`
+	Id   *string                 `json:"id,omitempty"`
+	Type SSEEventVoiceJoinedType `json:"type"`
+}
+
+// SSEEventVoiceJoinedType defines model for SSEEventVoiceJoined.Type.
+type SSEEventVoiceJoinedType string
+
+// SSEEventVoiceLeft defines model for SSEEventVoiceLeft.
+type SSEEventVoiceLeft struct {
+	Data VoiceParticipantEvent `json:"data"`
+	Id   *string               `json:"id,omitempty"`
+	Type SSEEventVoiceLeftType `json:"type"`
+}
+
+// SSEEventVoiceLeftType defines model for SSEEventVoiceLeft.Type.
+type SSEEventVoiceLeftType string
+
+// SSEEventVoiceMuted defines model for SSEEventVoiceMuted.
+type SSEEventVoiceMuted struct {
+	Data VoiceMutedEvent        `json:"data"`
+	Id   *string                `json:"id,omitempty"`
+	Type SSEEventVoiceMutedType `json:"type"`
+}
+
+// SSEEventVoiceMutedType defines model for SSEEventVoiceMuted.Type.
+type SSEEventVoiceMutedType string
+
+// SSEEventVoiceOffer defines model for SSEEventVoiceOffer.
+type SSEEventVoiceOffer struct {
+	Data VoiceSDPEvent          `json:"data"`
+	Id   *string                `json:"id,omitempty"`
+	Type SSEEventVoiceOfferType `json:"type"`
+}
+
+// SSEEventVoiceOfferType defines model for SSEEventVoiceOffer.Type.
+type SSEEventVoiceOfferType string
+
+// SSEEventVoiceSpeaking defines model for SSEEventVoiceSpeaking.
+type SSEEventVoiceSpeaking struct {
+	Data VoiceSpeakingEvent        `json:"data"`
+	Id   *string                   `json:"id,omitempty"`
+	Type SSEEventVoiceSpeakingType `json:"type"`
+}
+
+// SSEEventVoiceSpeakingType defines model for SSEEventVoiceSpeaking.Type.
+type SSEEventVoiceSpeakingType string
+
 // SSEEventWorkspaceUpdated defines model for SSEEventWorkspaceUpdated.
 type SSEEventWorkspaceUpdated struct {
 	Data Workspace                    `json:"data"`
@@ -1250,6 +1391,7 @@ type ServerInfo struct {
 	EmailEnabled *bool  `json:"email_enabled,omitempty"`
 	FilesEnabled *bool  `json:"files_enabled,omitempty"`
 	Version      string `json:"version"`
+	VoiceEnabled *bool  `json:"voice_enabled,omitempty"`
 }
 
 // SignedUrl defines model for SignedUrl.
@@ -1449,6 +1591,96 @@ type UserProfile struct {
 	GravatarUrl *string   `json:"gravatar_url,omitempty"`
 	Id          string    `json:"id"`
 	Status      string    `json:"status"`
+}
+
+// VoiceAnswerRequest defines model for VoiceAnswerRequest.
+type VoiceAnswerRequest struct {
+	Answer SDPDescription `json:"answer"`
+}
+
+// VoiceDeafenRequest defines model for VoiceDeafenRequest.
+type VoiceDeafenRequest struct {
+	Deafened bool `json:"deafened"`
+}
+
+// VoiceICECandidateEvent defines model for VoiceICECandidateEvent.
+type VoiceICECandidateEvent struct {
+	Candidate     string  `json:"candidate"`
+	SdpMid        *string `json:"sdp_mid,omitempty"`
+	SdpMlineIndex *int    `json:"sdp_mline_index,omitempty"`
+}
+
+// VoiceICECandidateRequest defines model for VoiceICECandidateRequest.
+type VoiceICECandidateRequest struct {
+	Candidate     string  `json:"candidate"`
+	SdpMid        *string `json:"sdp_mid,omitempty"`
+	SdpMlineIndex *int    `json:"sdp_mline_index,omitempty"`
+}
+
+// VoiceJoinResponse defines model for VoiceJoinResponse.
+type VoiceJoinResponse struct {
+	IceServers []ICEServer    `json:"ice_servers"`
+	Offer      SDPDescription `json:"offer"`
+}
+
+// VoiceMuteRequest defines model for VoiceMuteRequest.
+type VoiceMuteRequest struct {
+	Muted bool `json:"muted"`
+}
+
+// VoiceMutedEvent defines model for VoiceMutedEvent.
+type VoiceMutedEvent struct {
+	ChannelId   string `json:"channel_id"`
+	Deafened    bool   `json:"deafened"`
+	Muted       bool   `json:"muted"`
+	ServerMuted bool   `json:"server_muted"`
+	UserId      string `json:"user_id"`
+}
+
+// VoiceParticipant defines model for VoiceParticipant.
+type VoiceParticipant struct {
+	AvatarUrl     *string   `json:"avatar_url,omitempty"`
+	ChannelId     string    `json:"channel_id"`
+	DisplayName   *string   `json:"display_name,omitempty"`
+	Id            string    `json:"id"`
+	IsDeafened    bool      `json:"is_deafened"`
+	IsMuted       bool      `json:"is_muted"`
+	IsServerMuted bool      `json:"is_server_muted"`
+	JoinedAt      time.Time `json:"joined_at"`
+	UserId        string    `json:"user_id"`
+}
+
+// VoiceParticipantEvent defines model for VoiceParticipantEvent.
+type VoiceParticipantEvent struct {
+	ChannelId string `json:"channel_id"`
+	UserId    string `json:"user_id"`
+}
+
+// VoiceParticipantList defines model for VoiceParticipantList.
+type VoiceParticipantList struct {
+	Participants []VoiceParticipant `json:"participants"`
+}
+
+// VoiceSDPEvent defines model for VoiceSDPEvent.
+type VoiceSDPEvent struct {
+	Sdp  string            `json:"sdp"`
+	Type VoiceSDPEventType `json:"type"`
+}
+
+// VoiceSDPEventType defines model for VoiceSDPEvent.Type.
+type VoiceSDPEventType string
+
+// VoiceServerMuteRequest defines model for VoiceServerMuteRequest.
+type VoiceServerMuteRequest struct {
+	Muted  bool   `json:"muted"`
+	UserId string `json:"user_id"`
+}
+
+// VoiceSpeakingEvent defines model for VoiceSpeakingEvent.
+type VoiceSpeakingEvent struct {
+	ChannelId string `json:"channel_id"`
+	Speaking  bool   `json:"speaking"`
+	UserId    string `json:"user_id"`
 }
 
 // Workspace defines model for Workspace.
@@ -1762,6 +1994,21 @@ type ListPinnedMessagesJSONRequestBody ListPinnedMessagesJSONBody
 
 // UpdateChannelJSONRequestBody defines body for UpdateChannel for application/json ContentType.
 type UpdateChannelJSONRequestBody = UpdateChannelInput
+
+// VoiceAnswerJSONRequestBody defines body for VoiceAnswer for application/json ContentType.
+type VoiceAnswerJSONRequestBody = VoiceAnswerRequest
+
+// DeafenVoiceJSONRequestBody defines body for DeafenVoice for application/json ContentType.
+type DeafenVoiceJSONRequestBody = VoiceDeafenRequest
+
+// VoiceICECandidateJSONRequestBody defines body for VoiceICECandidate for application/json ContentType.
+type VoiceICECandidateJSONRequestBody = VoiceICECandidateRequest
+
+// MuteVoiceJSONRequestBody defines body for MuteVoice for application/json ContentType.
+type MuteVoiceJSONRequestBody = VoiceMuteRequest
+
+// ServerMuteVoiceJSONRequestBody defines body for ServerMuteVoice for application/json ContentType.
+type ServerMuteVoiceJSONRequestBody = VoiceServerMuteRequest
 
 // SignFileUrlsJSONRequestBody defines body for SignFileUrls for application/json ContentType.
 type SignFileUrlsJSONRequestBody SignFileUrlsJSONBody
@@ -2771,6 +3018,202 @@ func (t *SSEEvent) MergeSSEEventChannelsInvalidate(v SSEEventChannelsInvalidate)
 	return err
 }
 
+// AsSSEEventVoiceJoined returns the union data inside the SSEEvent as a SSEEventVoiceJoined
+func (t SSEEvent) AsSSEEventVoiceJoined() (SSEEventVoiceJoined, error) {
+	var body SSEEventVoiceJoined
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventVoiceJoined overwrites any union data inside the SSEEvent as the provided SSEEventVoiceJoined
+func (t *SSEEvent) FromSSEEventVoiceJoined(v SSEEventVoiceJoined) error {
+	v.Type = "voice.joined"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventVoiceJoined performs a merge with any union data inside the SSEEvent, using the provided SSEEventVoiceJoined
+func (t *SSEEvent) MergeSSEEventVoiceJoined(v SSEEventVoiceJoined) error {
+	v.Type = "voice.joined"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventVoiceLeft returns the union data inside the SSEEvent as a SSEEventVoiceLeft
+func (t SSEEvent) AsSSEEventVoiceLeft() (SSEEventVoiceLeft, error) {
+	var body SSEEventVoiceLeft
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventVoiceLeft overwrites any union data inside the SSEEvent as the provided SSEEventVoiceLeft
+func (t *SSEEvent) FromSSEEventVoiceLeft(v SSEEventVoiceLeft) error {
+	v.Type = "voice.left"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventVoiceLeft performs a merge with any union data inside the SSEEvent, using the provided SSEEventVoiceLeft
+func (t *SSEEvent) MergeSSEEventVoiceLeft(v SSEEventVoiceLeft) error {
+	v.Type = "voice.left"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventVoiceSpeaking returns the union data inside the SSEEvent as a SSEEventVoiceSpeaking
+func (t SSEEvent) AsSSEEventVoiceSpeaking() (SSEEventVoiceSpeaking, error) {
+	var body SSEEventVoiceSpeaking
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventVoiceSpeaking overwrites any union data inside the SSEEvent as the provided SSEEventVoiceSpeaking
+func (t *SSEEvent) FromSSEEventVoiceSpeaking(v SSEEventVoiceSpeaking) error {
+	v.Type = "voice.speaking"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventVoiceSpeaking performs a merge with any union data inside the SSEEvent, using the provided SSEEventVoiceSpeaking
+func (t *SSEEvent) MergeSSEEventVoiceSpeaking(v SSEEventVoiceSpeaking) error {
+	v.Type = "voice.speaking"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventVoiceMuted returns the union data inside the SSEEvent as a SSEEventVoiceMuted
+func (t SSEEvent) AsSSEEventVoiceMuted() (SSEEventVoiceMuted, error) {
+	var body SSEEventVoiceMuted
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventVoiceMuted overwrites any union data inside the SSEEvent as the provided SSEEventVoiceMuted
+func (t *SSEEvent) FromSSEEventVoiceMuted(v SSEEventVoiceMuted) error {
+	v.Type = "voice.muted"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventVoiceMuted performs a merge with any union data inside the SSEEvent, using the provided SSEEventVoiceMuted
+func (t *SSEEvent) MergeSSEEventVoiceMuted(v SSEEventVoiceMuted) error {
+	v.Type = "voice.muted"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventVoiceOffer returns the union data inside the SSEEvent as a SSEEventVoiceOffer
+func (t SSEEvent) AsSSEEventVoiceOffer() (SSEEventVoiceOffer, error) {
+	var body SSEEventVoiceOffer
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventVoiceOffer overwrites any union data inside the SSEEvent as the provided SSEEventVoiceOffer
+func (t *SSEEvent) FromSSEEventVoiceOffer(v SSEEventVoiceOffer) error {
+	v.Type = "voice.offer"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventVoiceOffer performs a merge with any union data inside the SSEEvent, using the provided SSEEventVoiceOffer
+func (t *SSEEvent) MergeSSEEventVoiceOffer(v SSEEventVoiceOffer) error {
+	v.Type = "voice.offer"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventVoiceAnswer returns the union data inside the SSEEvent as a SSEEventVoiceAnswer
+func (t SSEEvent) AsSSEEventVoiceAnswer() (SSEEventVoiceAnswer, error) {
+	var body SSEEventVoiceAnswer
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventVoiceAnswer overwrites any union data inside the SSEEvent as the provided SSEEventVoiceAnswer
+func (t *SSEEvent) FromSSEEventVoiceAnswer(v SSEEventVoiceAnswer) error {
+	v.Type = "voice.answer"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventVoiceAnswer performs a merge with any union data inside the SSEEvent, using the provided SSEEventVoiceAnswer
+func (t *SSEEvent) MergeSSEEventVoiceAnswer(v SSEEventVoiceAnswer) error {
+	v.Type = "voice.answer"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSSEEventVoiceICECandidate returns the union data inside the SSEEvent as a SSEEventVoiceICECandidate
+func (t SSEEvent) AsSSEEventVoiceICECandidate() (SSEEventVoiceICECandidate, error) {
+	var body SSEEventVoiceICECandidate
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSSEEventVoiceICECandidate overwrites any union data inside the SSEEvent as the provided SSEEventVoiceICECandidate
+func (t *SSEEvent) FromSSEEventVoiceICECandidate(v SSEEventVoiceICECandidate) error {
+	v.Type = "voice.ice_candidate"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSSEEventVoiceICECandidate performs a merge with any union data inside the SSEEvent, using the provided SSEEventVoiceICECandidate
+func (t *SSEEvent) MergeSSEEventVoiceICECandidate(v SSEEventVoiceICECandidate) error {
+	v.Type = "voice.ice_candidate"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t SSEEvent) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -2849,6 +3292,20 @@ func (t SSEEvent) ValueByDiscriminator() (interface{}, error) {
 		return t.AsSSEEventTypingStart()
 	case "typing.stop":
 		return t.AsSSEEventTypingStop()
+	case "voice.answer":
+		return t.AsSSEEventVoiceAnswer()
+	case "voice.ice_candidate":
+		return t.AsSSEEventVoiceICECandidate()
+	case "voice.joined":
+		return t.AsSSEEventVoiceJoined()
+	case "voice.left":
+		return t.AsSSEEventVoiceLeft()
+	case "voice.muted":
+		return t.AsSSEEventVoiceMuted()
+	case "voice.offer":
+		return t.AsSSEEventVoiceOffer()
+	case "voice.speaking":
+		return t.AsSSEEventVoiceSpeaking()
 	case "workspace.updated":
 		return t.AsSSEEventWorkspaceUpdated()
 	default:
@@ -2949,6 +3406,30 @@ type ServerInterface interface {
 	// Update channel
 	// (POST /channels/{id}/update)
 	UpdateChannel(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Send SDP answer
+	// (POST /channels/{id}/voice/answer)
+	VoiceAnswer(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Toggle self-deafen in voice channel
+	// (POST /channels/{id}/voice/deafen)
+	DeafenVoice(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Send ICE candidate
+	// (POST /channels/{id}/voice/ice-candidate)
+	VoiceICECandidate(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Join a voice channel
+	// (POST /channels/{id}/voice/join)
+	JoinVoiceChannel(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Leave a voice channel
+	// (POST /channels/{id}/voice/leave)
+	LeaveVoiceChannel(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Toggle self-mute in voice channel
+	// (POST /channels/{id}/voice/mute)
+	MuteVoice(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// List voice channel participants
+	// (GET /channels/{id}/voice/participants)
+	ListVoiceParticipants(w http.ResponseWriter, r *http.Request, id ChannelId)
+	// Server-mute a user in voice channel
+	// (POST /channels/{id}/voice/server-mute)
+	ServerMuteVoice(w http.ResponseWriter, r *http.Request, id ChannelId)
 	// Delete a custom emoji
 	// (POST /emojis/{id}/delete)
 	DeleteCustomEmoji(w http.ResponseWriter, r *http.Request, id string)
@@ -3288,6 +3769,54 @@ func (_ Unimplemented) StarChannel(w http.ResponseWriter, r *http.Request, id Ch
 // Update channel
 // (POST /channels/{id}/update)
 func (_ Unimplemented) UpdateChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Send SDP answer
+// (POST /channels/{id}/voice/answer)
+func (_ Unimplemented) VoiceAnswer(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Toggle self-deafen in voice channel
+// (POST /channels/{id}/voice/deafen)
+func (_ Unimplemented) DeafenVoice(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Send ICE candidate
+// (POST /channels/{id}/voice/ice-candidate)
+func (_ Unimplemented) VoiceICECandidate(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Join a voice channel
+// (POST /channels/{id}/voice/join)
+func (_ Unimplemented) JoinVoiceChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Leave a voice channel
+// (POST /channels/{id}/voice/leave)
+func (_ Unimplemented) LeaveVoiceChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Toggle self-mute in voice channel
+// (POST /channels/{id}/voice/mute)
+func (_ Unimplemented) MuteVoice(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List voice channel participants
+// (GET /channels/{id}/voice/participants)
+func (_ Unimplemented) ListVoiceParticipants(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Server-mute a user in voice channel
+// (POST /channels/{id}/voice/server-mute)
+func (_ Unimplemented) ServerMuteVoice(w http.ResponseWriter, r *http.Request, id ChannelId) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -4335,6 +4864,254 @@ func (siw *ServerInterfaceWrapper) UpdateChannel(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateChannel(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// VoiceAnswer operation middleware
+func (siw *ServerInterfaceWrapper) VoiceAnswer(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.VoiceAnswer(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeafenVoice operation middleware
+func (siw *ServerInterfaceWrapper) DeafenVoice(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeafenVoice(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// VoiceICECandidate operation middleware
+func (siw *ServerInterfaceWrapper) VoiceICECandidate(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.VoiceICECandidate(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// JoinVoiceChannel operation middleware
+func (siw *ServerInterfaceWrapper) JoinVoiceChannel(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.JoinVoiceChannel(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// LeaveVoiceChannel operation middleware
+func (siw *ServerInterfaceWrapper) LeaveVoiceChannel(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.LeaveVoiceChannel(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MuteVoice operation middleware
+func (siw *ServerInterfaceWrapper) MuteVoice(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MuteVoice(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListVoiceParticipants operation middleware
+func (siw *ServerInterfaceWrapper) ListVoiceParticipants(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListVoiceParticipants(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ServerMuteVoice operation middleware
+func (siw *ServerInterfaceWrapper) ServerMuteVoice(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ChannelId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ServerMuteVoice(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -6264,6 +7041,30 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/channels/{id}/update", wrapper.UpdateChannel)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/channels/{id}/voice/answer", wrapper.VoiceAnswer)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/channels/{id}/voice/deafen", wrapper.DeafenVoice)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/channels/{id}/voice/ice-candidate", wrapper.VoiceICECandidate)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/channels/{id}/voice/join", wrapper.JoinVoiceChannel)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/channels/{id}/voice/leave", wrapper.LeaveVoiceChannel)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/channels/{id}/voice/mute", wrapper.MuteVoice)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/channels/{id}/voice/participants", wrapper.ListVoiceParticipants)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/channels/{id}/voice/server-mute", wrapper.ServerMuteVoice)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/emojis/{id}/delete", wrapper.DeleteCustomEmoji)
 	})
 	r.Group(func(r chi.Router) {
@@ -7505,6 +8306,336 @@ func (response UpdateChannel403JSONResponse) VisitUpdateChannelResponse(w http.R
 type UpdateChannel404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response UpdateChannel404JSONResponse) VisitUpdateChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type VoiceAnswerRequestObject struct {
+	Id   ChannelId `json:"id"`
+	Body *VoiceAnswerJSONRequestBody
+}
+
+type VoiceAnswerResponseObject interface {
+	VisitVoiceAnswerResponse(w http.ResponseWriter) error
+}
+
+type VoiceAnswer200JSONResponse SuccessResponse
+
+func (response VoiceAnswer200JSONResponse) VisitVoiceAnswerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type VoiceAnswer400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response VoiceAnswer400JSONResponse) VisitVoiceAnswerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type VoiceAnswer401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response VoiceAnswer401JSONResponse) VisitVoiceAnswerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type VoiceAnswer404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response VoiceAnswer404JSONResponse) VisitVoiceAnswerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeafenVoiceRequestObject struct {
+	Id   ChannelId `json:"id"`
+	Body *DeafenVoiceJSONRequestBody
+}
+
+type DeafenVoiceResponseObject interface {
+	VisitDeafenVoiceResponse(w http.ResponseWriter) error
+}
+
+type DeafenVoice200JSONResponse SuccessResponse
+
+func (response DeafenVoice200JSONResponse) VisitDeafenVoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeafenVoice401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeafenVoice401JSONResponse) VisitDeafenVoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeafenVoice404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeafenVoice404JSONResponse) VisitDeafenVoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type VoiceICECandidateRequestObject struct {
+	Id   ChannelId `json:"id"`
+	Body *VoiceICECandidateJSONRequestBody
+}
+
+type VoiceICECandidateResponseObject interface {
+	VisitVoiceICECandidateResponse(w http.ResponseWriter) error
+}
+
+type VoiceICECandidate200JSONResponse SuccessResponse
+
+func (response VoiceICECandidate200JSONResponse) VisitVoiceICECandidateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type VoiceICECandidate400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response VoiceICECandidate400JSONResponse) VisitVoiceICECandidateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type VoiceICECandidate401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response VoiceICECandidate401JSONResponse) VisitVoiceICECandidateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type VoiceICECandidate404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response VoiceICECandidate404JSONResponse) VisitVoiceICECandidateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinVoiceChannelRequestObject struct {
+	Id ChannelId `json:"id"`
+}
+
+type JoinVoiceChannelResponseObject interface {
+	VisitJoinVoiceChannelResponse(w http.ResponseWriter) error
+}
+
+type JoinVoiceChannel200JSONResponse VoiceJoinResponse
+
+func (response JoinVoiceChannel200JSONResponse) VisitJoinVoiceChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinVoiceChannel400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response JoinVoiceChannel400JSONResponse) VisitJoinVoiceChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinVoiceChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response JoinVoiceChannel401JSONResponse) VisitJoinVoiceChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinVoiceChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response JoinVoiceChannel404JSONResponse) VisitJoinVoiceChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinVoiceChannel409JSONResponse struct{ ConflictJSONResponse }
+
+func (response JoinVoiceChannel409JSONResponse) VisitJoinVoiceChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LeaveVoiceChannelRequestObject struct {
+	Id ChannelId `json:"id"`
+}
+
+type LeaveVoiceChannelResponseObject interface {
+	VisitLeaveVoiceChannelResponse(w http.ResponseWriter) error
+}
+
+type LeaveVoiceChannel200JSONResponse SuccessResponse
+
+func (response LeaveVoiceChannel200JSONResponse) VisitLeaveVoiceChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LeaveVoiceChannel401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response LeaveVoiceChannel401JSONResponse) VisitLeaveVoiceChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LeaveVoiceChannel404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response LeaveVoiceChannel404JSONResponse) VisitLeaveVoiceChannelResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MuteVoiceRequestObject struct {
+	Id   ChannelId `json:"id"`
+	Body *MuteVoiceJSONRequestBody
+}
+
+type MuteVoiceResponseObject interface {
+	VisitMuteVoiceResponse(w http.ResponseWriter) error
+}
+
+type MuteVoice200JSONResponse SuccessResponse
+
+func (response MuteVoice200JSONResponse) VisitMuteVoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MuteVoice401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response MuteVoice401JSONResponse) VisitMuteVoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MuteVoice404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response MuteVoice404JSONResponse) VisitMuteVoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListVoiceParticipantsRequestObject struct {
+	Id ChannelId `json:"id"`
+}
+
+type ListVoiceParticipantsResponseObject interface {
+	VisitListVoiceParticipantsResponse(w http.ResponseWriter) error
+}
+
+type ListVoiceParticipants200JSONResponse VoiceParticipantList
+
+func (response ListVoiceParticipants200JSONResponse) VisitListVoiceParticipantsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListVoiceParticipants401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListVoiceParticipants401JSONResponse) VisitListVoiceParticipantsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListVoiceParticipants404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ListVoiceParticipants404JSONResponse) VisitListVoiceParticipantsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ServerMuteVoiceRequestObject struct {
+	Id   ChannelId `json:"id"`
+	Body *ServerMuteVoiceJSONRequestBody
+}
+
+type ServerMuteVoiceResponseObject interface {
+	VisitServerMuteVoiceResponse(w http.ResponseWriter) error
+}
+
+type ServerMuteVoice200JSONResponse SuccessResponse
+
+func (response ServerMuteVoice200JSONResponse) VisitServerMuteVoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ServerMuteVoice401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ServerMuteVoice401JSONResponse) VisitServerMuteVoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ServerMuteVoice403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response ServerMuteVoice403JSONResponse) VisitServerMuteVoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ServerMuteVoice404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ServerMuteVoice404JSONResponse) VisitServerMuteVoiceResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
@@ -10010,6 +11141,30 @@ type StrictServerInterface interface {
 	// Update channel
 	// (POST /channels/{id}/update)
 	UpdateChannel(ctx context.Context, request UpdateChannelRequestObject) (UpdateChannelResponseObject, error)
+	// Send SDP answer
+	// (POST /channels/{id}/voice/answer)
+	VoiceAnswer(ctx context.Context, request VoiceAnswerRequestObject) (VoiceAnswerResponseObject, error)
+	// Toggle self-deafen in voice channel
+	// (POST /channels/{id}/voice/deafen)
+	DeafenVoice(ctx context.Context, request DeafenVoiceRequestObject) (DeafenVoiceResponseObject, error)
+	// Send ICE candidate
+	// (POST /channels/{id}/voice/ice-candidate)
+	VoiceICECandidate(ctx context.Context, request VoiceICECandidateRequestObject) (VoiceICECandidateResponseObject, error)
+	// Join a voice channel
+	// (POST /channels/{id}/voice/join)
+	JoinVoiceChannel(ctx context.Context, request JoinVoiceChannelRequestObject) (JoinVoiceChannelResponseObject, error)
+	// Leave a voice channel
+	// (POST /channels/{id}/voice/leave)
+	LeaveVoiceChannel(ctx context.Context, request LeaveVoiceChannelRequestObject) (LeaveVoiceChannelResponseObject, error)
+	// Toggle self-mute in voice channel
+	// (POST /channels/{id}/voice/mute)
+	MuteVoice(ctx context.Context, request MuteVoiceRequestObject) (MuteVoiceResponseObject, error)
+	// List voice channel participants
+	// (GET /channels/{id}/voice/participants)
+	ListVoiceParticipants(ctx context.Context, request ListVoiceParticipantsRequestObject) (ListVoiceParticipantsResponseObject, error)
+	// Server-mute a user in voice channel
+	// (POST /channels/{id}/voice/server-mute)
+	ServerMuteVoice(ctx context.Context, request ServerMuteVoiceRequestObject) (ServerMuteVoiceResponseObject, error)
 	// Delete a custom emoji
 	// (POST /emojis/{id}/delete)
 	DeleteCustomEmoji(ctx context.Context, request DeleteCustomEmojiRequestObject) (DeleteCustomEmojiResponseObject, error)
@@ -11004,6 +12159,249 @@ func (sh *strictHandler) UpdateChannel(w http.ResponseWriter, r *http.Request, i
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateChannelResponseObject); ok {
 		if err := validResponse.VisitUpdateChannelResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// VoiceAnswer operation middleware
+func (sh *strictHandler) VoiceAnswer(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request VoiceAnswerRequestObject
+
+	request.Id = id
+
+	var body VoiceAnswerJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.VoiceAnswer(ctx, request.(VoiceAnswerRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "VoiceAnswer")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(VoiceAnswerResponseObject); ok {
+		if err := validResponse.VisitVoiceAnswerResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeafenVoice operation middleware
+func (sh *strictHandler) DeafenVoice(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request DeafenVoiceRequestObject
+
+	request.Id = id
+
+	var body DeafenVoiceJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeafenVoice(ctx, request.(DeafenVoiceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeafenVoice")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeafenVoiceResponseObject); ok {
+		if err := validResponse.VisitDeafenVoiceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// VoiceICECandidate operation middleware
+func (sh *strictHandler) VoiceICECandidate(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request VoiceICECandidateRequestObject
+
+	request.Id = id
+
+	var body VoiceICECandidateJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.VoiceICECandidate(ctx, request.(VoiceICECandidateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "VoiceICECandidate")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(VoiceICECandidateResponseObject); ok {
+		if err := validResponse.VisitVoiceICECandidateResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// JoinVoiceChannel operation middleware
+func (sh *strictHandler) JoinVoiceChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request JoinVoiceChannelRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.JoinVoiceChannel(ctx, request.(JoinVoiceChannelRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "JoinVoiceChannel")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(JoinVoiceChannelResponseObject); ok {
+		if err := validResponse.VisitJoinVoiceChannelResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// LeaveVoiceChannel operation middleware
+func (sh *strictHandler) LeaveVoiceChannel(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request LeaveVoiceChannelRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.LeaveVoiceChannel(ctx, request.(LeaveVoiceChannelRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "LeaveVoiceChannel")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(LeaveVoiceChannelResponseObject); ok {
+		if err := validResponse.VisitLeaveVoiceChannelResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// MuteVoice operation middleware
+func (sh *strictHandler) MuteVoice(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request MuteVoiceRequestObject
+
+	request.Id = id
+
+	var body MuteVoiceJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.MuteVoice(ctx, request.(MuteVoiceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MuteVoice")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MuteVoiceResponseObject); ok {
+		if err := validResponse.VisitMuteVoiceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListVoiceParticipants operation middleware
+func (sh *strictHandler) ListVoiceParticipants(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request ListVoiceParticipantsRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListVoiceParticipants(ctx, request.(ListVoiceParticipantsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListVoiceParticipants")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListVoiceParticipantsResponseObject); ok {
+		if err := validResponse.VisitListVoiceParticipantsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ServerMuteVoice operation middleware
+func (sh *strictHandler) ServerMuteVoice(w http.ResponseWriter, r *http.Request, id ChannelId) {
+	var request ServerMuteVoiceRequestObject
+
+	request.Id = id
+
+	var body ServerMuteVoiceJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ServerMuteVoice(ctx, request.(ServerMuteVoiceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ServerMuteVoice")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ServerMuteVoiceResponseObject); ok {
+		if err := validResponse.VisitServerMuteVoiceResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

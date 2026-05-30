@@ -53,6 +53,7 @@ const (
 	TypePrivate = "private"
 	TypeDM      = "dm"
 	TypeGroupDM = "group_dm"
+	TypeVoice   = "voice"
 )
 
 // DefaultChannelName is the name of the default channel created for every workspace

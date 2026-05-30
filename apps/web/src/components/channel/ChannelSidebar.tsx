@@ -20,6 +20,7 @@ import {
   XMarkIcon,
   CheckIcon,
   ChevronLeftIcon,
+  SpeakerWaveIcon,
 } from '@heroicons/react/24/outline';
 import {
   DndContext,
@@ -31,7 +32,7 @@ import {
   useDraggable,
 } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
-import { useChannels, useWorkspace, useAuth } from '../../hooks';
+import { useChannels, useWorkspace, useAuth, useServerInfo } from '../../hooks';
 import { useUserThreads } from '../../hooks/useThreads';
 import { useScheduledMessages } from '../../hooks/useScheduledMessages';
 import { useWorkspaceMembers, useLeaveAndNavigate } from '../../hooks/useWorkspaces';
@@ -66,6 +67,7 @@ import {
 import { cn } from '../../lib/utils';
 import { getAvatarColor, hasPermission, CHANNEL_NAME_REGEX } from '@enzyme/shared';
 import { useUserPresence } from '../../lib/presenceStore';
+import { useVoiceChannelParticipants } from '@enzyme/shared';
 import { AvatarStack } from '../ui';
 import type { ChannelWithMembership, ChannelType } from '@enzyme/api-client';
 import { ChannelContextMenu } from './ChannelContextMenu';
@@ -85,6 +87,8 @@ function ChannelIcon({
   const icon =
     type === 'private' ? (
       <LockClosedIcon className={iconClass} />
+    ) : type === 'voice' ? (
+      <SpeakerWaveIcon className={iconClass} />
     ) : type === 'public' ? (
       <HashtagIcon className={iconClass} />
     ) : null;
@@ -120,6 +124,7 @@ export function ChannelSidebar({
   const { data: workspaceData } = useWorkspace(workspaceId);
   const { data, isLoading } = useChannels(workspaceId);
   const { workspaces } = useAuth();
+  const { voiceEnabled } = useServerInfo();
   const starChannel = useStarChannel(workspaceId || '');
   const unstarChannel = useUnstarChannel(workspaceId || '');
   const markAllAsRead = useMarkAllChannelsAsRead(workspaceId || '');
@@ -182,6 +187,7 @@ export function ChannelSidebar({
     const groups = {
       starred: [] as ChannelWithMembership[],
       channels: [] as ChannelWithMembership[],
+      voice: [] as ChannelWithMembership[],
       dm: [] as ChannelWithMembership[],
     };
 
@@ -198,7 +204,9 @@ export function ChannelSidebar({
         return;
       }
 
-      if (channel.type === 'public' || channel.type === 'private') {
+      if (channel.type === 'voice') {
+        groups.voice.push(channel);
+      } else if (channel.type === 'public' || channel.type === 'private') {
         groups.channels.push(channel);
       } else {
         groups.dm.push(channel);
@@ -215,6 +223,7 @@ export function ChannelSidebar({
 
     // Sort channels alphabetically
     groups.channels.sort((a, b) => a.name.localeCompare(b.name));
+    groups.voice.sort((a, b) => a.name.localeCompare(b.name));
 
     return groups;
   }, [channels]);
@@ -452,6 +461,16 @@ export function ChannelSidebar({
               onAddClick={canCreateChannels ? onCreateChannel : undefined}
               canDrop={activeChannel !== null && activeChannel.is_starred && !isDraggingDM}
             />
+
+            {voiceEnabled && groupedChannels.voice.length > 0 && (
+              <DroppableChannelSection
+                id="voice-drop-zone"
+                title="Voice Channels"
+                channels={groupedChannels.voice}
+                workspaceId={workspaceId}
+                activeChannelId={channelId}
+              />
+            )}
 
             <DroppableDMSection
               id="dms-drop-zone"
@@ -752,6 +771,9 @@ function ChannelItemContent({ channel }: ChannelItemContentProps) {
   const participantPresence =
     channel.type === 'dm' && dmParticipant ? (rawPresence ?? 'offline') : undefined;
 
+  const voiceParticipants = useVoiceChannelParticipants(channel.id);
+  const voiceCount = channel.type === 'voice' ? voiceParticipants.length : 0;
+
   const displayName = isDM
     ? channel.dm_participants?.map((p) => p.display_name).join(', ') || channel.name
     : channel.name;
@@ -782,6 +804,12 @@ function ChannelItemContent({ channel }: ChannelItemContentProps) {
         <ChannelIcon type={channel.type} bold={hasUnread} />
       )}
       <span className={cn('truncate', hasUnread && 'font-semibold')}>{displayName}</span>
+      {voiceCount > 0 && (
+        <span className="ml-auto flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+          <UsersIcon className="h-3 w-3" />
+          {voiceCount}
+        </span>
+      )}
     </>
   );
 }
@@ -803,6 +831,7 @@ function ChannelBrowserModal({
   const [type, setType] = useState<ChannelType>('public');
   const createChannel = useCreateChannel(workspaceId);
   const joinChannel = useJoinChannel(workspaceId);
+  const { voiceEnabled } = useServerInfo();
   const [joiningId, setJoiningId] = useState<string | null>(null);
 
   // Public channels the user hasn't joined
@@ -925,6 +954,7 @@ function ChannelBrowserModal({
             >
               <Radio value="public">Public</Radio>
               <Radio value="private">Private</Radio>
+              {voiceEnabled && <Radio value="voice">Voice</Radio>}
             </RadioGroup>
 
             <div className="flex justify-end gap-2">

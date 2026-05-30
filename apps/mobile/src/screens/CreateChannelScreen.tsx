@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, useColorScheme, ActivityIndicator } from 'react-native';
-import { useCreateChannel, CHANNEL_NAME_REGEX } from '@enzyme/shared';
+import { useCreateChannel, useServerInfo, CHANNEL_NAME_REGEX } from '@enzyme/shared';
 import type { MainScreenProps } from '../navigation/types';
+import type { ChannelType } from '@enzyme/api-client';
 
 export function CreateChannelScreen({ route, navigation }: MainScreenProps<'CreateChannel'>) {
   const { workspaceId } = route.params;
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const createChannel = useCreateChannel(workspaceId);
+  const { voiceEnabled } = useServerInfo();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<'public' | 'private'>('public');
+  const [type, setType] = useState<ChannelType>('public');
   const [error, setError] = useState('');
 
   const handleNameChange = (text: string) => {
@@ -31,11 +33,19 @@ export function CreateChannelScreen({ route, navigation }: MainScreenProps<'Crea
       { name, type, description: description || undefined },
       {
         onSuccess: (data) => {
-          navigation.replace('Channel', {
-            workspaceId,
-            channelId: data.channel.id,
-            channelName: data.channel.name,
-          });
+          if (data.channel.type === 'voice') {
+            navigation.replace('VoiceChannel', {
+              workspaceId,
+              channelId: data.channel.id,
+              channelName: data.channel.name,
+            });
+          } else {
+            navigation.replace('Channel', {
+              workspaceId,
+              channelId: data.channel.id,
+              channelName: data.channel.name,
+            });
+          }
         },
         onError: (err) => {
           setError(err instanceof Error ? err.message : 'Failed to create channel');
@@ -71,6 +81,18 @@ export function CreateChannelScreen({ route, navigation }: MainScreenProps<'Crea
             🔒 Private
           </Text>
         </Pressable>
+        {voiceEnabled && (
+          <Pressable
+            className={`ml-2 rounded-full px-4 py-2 ${type === 'voice' ? 'bg-blue-500' : 'bg-neutral-200 dark:bg-neutral-700'}`}
+            onPress={() => setType('voice')}
+          >
+            <Text
+              className={`text-sm font-medium ${type === 'voice' ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'}`}
+            >
+              🔊 Voice
+            </Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Channel name */}

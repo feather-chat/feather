@@ -2,7 +2,12 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'reac
 import { View, Text, SectionList, Pressable, ActivityIndicator } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { useChannels, useWorkspace } from '@enzyme/shared';
+import {
+  useChannels,
+  useWorkspace,
+  useServerInfo,
+  useVoiceChannelParticipants,
+} from '@enzyme/shared';
 import type { ChannelWithMembership } from '@enzyme/api-client';
 import type { MainScreenProps } from '../navigation/types';
 import { UnreadBadge } from '../components/ui/UnreadBadge';
@@ -19,13 +24,28 @@ type Section = {
 function channelIcon(channel: ChannelWithMembership): string {
   if (channel.type === 'dm' || channel.type === 'group_dm') return '💬';
   if (channel.type === 'private') return '🔒';
+  if (channel.type === 'voice') return '🔊';
   return '#';
+}
+
+function VoiceParticipantCount({ channelId }: { channelId: string }) {
+  const participants = useVoiceChannelParticipants(channelId);
+  if (participants.length === 0) return null;
+  return (
+    <View className="flex-row items-center gap-1">
+      <Ionicons name="people" size={12} color="#16a34a" />
+      <Text className="text-xs font-medium text-green-600 dark:text-green-400">
+        {participants.length}
+      </Text>
+    </View>
+  );
 }
 
 export function ChannelListScreen({ route, navigation }: MainScreenProps<'ChannelList'>) {
   const { workspaceId } = route.params;
   const { data: workspaceData } = useWorkspace(workspaceId);
   const { data: channelsData, isLoading, refetch, isRefetching } = useChannels(workspaceId);
+  const { voiceEnabled } = useServerInfo();
   const { setActiveWorkspaceId } = useActiveWorkspace();
   const [actionChannel, setActionChannel] = useState<ChannelWithMembership | null>(null);
   const [showNewChannel, setShowNewChannel] = useState(false);
@@ -65,12 +85,15 @@ export function ChannelListScreen({ route, navigation }: MainScreenProps<'Channe
 
     const starred: ChannelWithMembership[] = [];
     const regular: ChannelWithMembership[] = [];
+    const voice: ChannelWithMembership[] = [];
     const dms: ChannelWithMembership[] = [];
 
     for (const ch of channels) {
       if (ch.archived_at) continue;
       if (ch.is_starred) {
         starred.push(ch);
+      } else if (ch.type === 'voice') {
+        voice.push(ch);
       } else if (ch.type === 'dm' || ch.type === 'group_dm') {
         dms.push(ch);
       } else {
@@ -81,9 +104,10 @@ export function ChannelListScreen({ route, navigation }: MainScreenProps<'Channe
     const result: Section[] = [];
     if (starred.length > 0) result.push({ title: 'Starred', data: starred });
     if (regular.length > 0) result.push({ title: 'Channels', data: regular });
+    if (voiceEnabled && voice.length > 0) result.push({ title: 'Voice Channels', data: voice });
     if (dms.length > 0) result.push({ title: 'Direct Messages', data: dms });
     return result;
-  }, [channelsData]);
+  }, [channelsData, voiceEnabled]);
 
   const renderChannel = useCallback(
     ({ item }: { item: ChannelWithMembership }) => {
@@ -101,11 +125,17 @@ export function ChannelListScreen({ route, navigation }: MainScreenProps<'Channe
         <Pressable
           className="flex-row items-center px-4 py-3 active:bg-neutral-100 dark:active:bg-neutral-800"
           onPress={() =>
-            navigation.navigate('Channel', {
-              workspaceId,
-              channelId: item.id,
-              channelName: dmName ?? item.name,
-            })
+            item.type === 'voice'
+              ? navigation.navigate('VoiceChannel', {
+                  workspaceId,
+                  channelId: item.id,
+                  channelName: item.name,
+                })
+              : navigation.navigate('Channel', {
+                  workspaceId,
+                  channelId: item.id,
+                  channelName: dmName ?? item.name,
+                })
           }
           onLongPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -137,6 +167,7 @@ export function ChannelListScreen({ route, navigation }: MainScreenProps<'Channe
               {dmName ?? item.name}
             </Text>
           </View>
+          {item.type === 'voice' && <VoiceParticipantCount channelId={item.id} />}
           {item.unread_count > 0 && <UnreadBadge count={item.unread_count} />}
         </Pressable>
       );

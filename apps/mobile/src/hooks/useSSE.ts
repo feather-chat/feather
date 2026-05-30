@@ -30,8 +30,14 @@ import {
   handlePresenceChanged,
   handlePresenceInitial,
   handleNotification,
+  handleVoiceJoined,
+  handleVoiceLeft,
+  handleVoiceSpeaking,
+  handleVoiceMuted,
   clearPresence,
   authKeys,
+  dispatchVoiceOffer,
+  dispatchVoiceICECandidate,
 } from '@enzyme/shared';
 
 export function useSSE(workspaceId: string | undefined) {
@@ -195,6 +201,31 @@ export function useSSE(workspaceId: string | undefined) {
     connection.on('notification', (event) => {
       handleNotification(queryClient, workspaceId, event.data);
       // Push notifications for mobile will be handled separately (#207)
+    });
+
+    // --- Voice events ---
+    connection.on('voice.joined', (event) => {
+      handleVoiceJoined(event.data);
+    });
+
+    connection.on('voice.left', (event) => {
+      handleVoiceLeft(event.data);
+    });
+
+    connection.on('voice.speaking', (event) => {
+      handleVoiceSpeaking(event.data);
+    });
+
+    connection.on('voice.muted', (event) => {
+      handleVoiceMuted(event.data);
+    });
+
+    connection.on('voice.offer', (event) => {
+      dispatchVoiceOffer(event.data);
+    });
+
+    connection.on('voice.ice_candidate', (event) => {
+      dispatchVoiceICECandidate(event.data);
     });
 
     connection.connect();

@@ -96,6 +96,13 @@ export type UpdateScheduledMessageInput = components['schemas']['UpdateScheduled
 // File signing types
 export type SignedUrl = components['schemas']['SignedUrl'];
 
+// Voice types
+export type VoiceParticipant = components['schemas']['VoiceParticipant'];
+export type SDPDescription = components['schemas']['SDPDescription'];
+export type ICEServer = components['schemas']['ICEServer'];
+export type VoiceSDPEvent = components['schemas']['VoiceSDPEvent'];
+export type VoiceICECandidateEvent = components['schemas']['VoiceICECandidateEvent'];
+
 // Moderation types
 export type Ban = components['schemas']['Ban'];
 export type BanWithUser = components['schemas']['BanWithUser'];

@@ -2291,6 +2291,231 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
 
+  # Voice endpoints
+  /channels/{id}/voice/join:
+    post:
+      tags: [channels]
+      summary: Join a voice channel
+      description: |
+        Join a voice channel and begin WebRTC signaling. Returns an SDP offer and a list of ICE servers (including the embedded TURN server) for the client to use.
+      operationId: joinVoiceChannel
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      responses:
+        '200':
+          description: SDP offer and ICE server configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoiceJoinResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /channels/{id}/voice/leave:
+    post:
+      tags: [channels]
+      summary: Leave a voice channel
+      description: |
+        Leave the voice channel and close the WebRTC connection.
+      operationId: leaveVoiceChannel
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      responses:
+        '200':
+          description: Left voice channel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /channels/{id}/voice/answer:
+    post:
+      tags: [channels]
+      summary: Send SDP answer
+      description: |
+        Send the client's SDP answer to complete the WebRTC handshake.
+      operationId: voiceAnswer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceAnswerRequest'
+      responses:
+        '200':
+          description: Answer accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /channels/{id}/voice/ice-candidate:
+    post:
+      tags: [channels]
+      summary: Send ICE candidate
+      description: |
+        Send an ICE candidate for the WebRTC connection.
+      operationId: voiceICECandidate
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceICECandidateRequest'
+      responses:
+        '200':
+          description: Candidate accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /channels/{id}/voice/mute:
+    post:
+      tags: [channels]
+      summary: Toggle self-mute in voice channel
+      description: |
+        Mute or unmute your own microphone in the voice channel.
+      operationId: muteVoice
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceMuteRequest'
+      responses:
+        '200':
+          description: Mute state updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /channels/{id}/voice/deafen:
+    post:
+      tags: [channels]
+      summary: Toggle self-deafen in voice channel
+      description: |
+        Deafen or undeafen yourself in the voice channel. When deafened, you also become muted.
+      operationId: deafenVoice
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceDeafenRequest'
+      responses:
+        '200':
+          description: Deafen state updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /channels/{id}/voice/server-mute:
+    post:
+      tags: [channels]
+      summary: Server-mute a user in voice channel
+      description: |
+        Mute or unmute another user in the voice channel. Requires admin or owner role.
+      operationId: serverMuteVoice
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceServerMuteRequest'
+      responses:
+        '200':
+          description: Server mute state updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /channels/{id}/voice/participants:
+    get:
+      tags: [channels]
+      summary: List voice channel participants
+      description: |
+        List all users currently connected to the voice channel.
+      operationId: listVoiceParticipants
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/channelId'
+      responses:
+        '200':
+          description: List of voice participants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoiceParticipantList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   # User endpoints
   /users/{id}:
     get:
@@ -3256,7 +3481,7 @@ components:
 
     ChannelType:
       type: string
-      enum: [public, private, dm, group_dm]
+      enum: [public, private, dm, group_dm, voice]
 
     ChannelRole:
       type: string
@@ -3744,6 +3969,8 @@ components:
           type: boolean
         files_enabled:
           type: boolean
+        voice_enabled:
+          type: boolean
 
     SuccessResponse:
       type: object
@@ -3808,6 +4035,13 @@ components:
         - scheduled_message.deleted
         - scheduled_message.sent
         - scheduled_message.failed
+        - voice.joined
+        - voice.left
+        - voice.speaking
+        - voice.muted
+        - voice.offer
+        - voice.answer
+        - voice.ice_candidate
 
     SSEEvent:
       oneOf:
@@ -3844,6 +4078,13 @@ components:
         - $ref: '#/components/schemas/SSEEventWorkspaceUpdated'
         - $ref: '#/components/schemas/SSEEventScheduledMessageFailed'
         - $ref: '#/components/schemas/SSEEventChannelsInvalidate'
+        - $ref: '#/components/schemas/SSEEventVoiceJoined'
+        - $ref: '#/components/schemas/SSEEventVoiceLeft'
+        - $ref: '#/components/schemas/SSEEventVoiceSpeaking'
+        - $ref: '#/components/schemas/SSEEventVoiceMuted'
+        - $ref: '#/components/schemas/SSEEventVoiceOffer'
+        - $ref: '#/components/schemas/SSEEventVoiceAnswer'
+        - $ref: '#/components/schemas/SSEEventVoiceICECandidate'
       discriminator:
         propertyName: type
         mapping:
@@ -3880,6 +4121,13 @@ components:
           workspace.updated: '#/components/schemas/SSEEventWorkspaceUpdated'
           scheduled_message.failed: '#/components/schemas/SSEEventScheduledMessageFailed'
           channels.invalidate: '#/components/schemas/SSEEventChannelsInvalidate'
+          voice.joined: '#/components/schemas/SSEEventVoiceJoined'
+          voice.left: '#/components/schemas/SSEEventVoiceLeft'
+          voice.speaking: '#/components/schemas/SSEEventVoiceSpeaking'
+          voice.muted: '#/components/schemas/SSEEventVoiceMuted'
+          voice.offer: '#/components/schemas/SSEEventVoiceOffer'
+          voice.answer: '#/components/schemas/SSEEventVoiceAnswer'
+          voice.ice_candidate: '#/components/schemas/SSEEventVoiceICECandidate'
 
     SSEEventConnected:
       type: object
@@ -4319,6 +4567,273 @@ components:
           enum: [channels.invalidate]
         data:
           type: object
+
+    # Voice SSE events
+    SSEEventVoiceJoined:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        type:
+          type: string
+          enum: [voice.joined]
+        data:
+          $ref: '#/components/schemas/VoiceParticipantEvent'
+
+    SSEEventVoiceLeft:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        type:
+          type: string
+          enum: [voice.left]
+        data:
+          $ref: '#/components/schemas/VoiceParticipantEvent'
+
+    SSEEventVoiceSpeaking:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        type:
+          type: string
+          enum: [voice.speaking]
+        data:
+          $ref: '#/components/schemas/VoiceSpeakingEvent'
+
+    SSEEventVoiceMuted:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        type:
+          type: string
+          enum: [voice.muted]
+        data:
+          $ref: '#/components/schemas/VoiceMutedEvent'
+
+    SSEEventVoiceOffer:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        type:
+          type: string
+          enum: [voice.offer]
+        data:
+          $ref: '#/components/schemas/VoiceSDPEvent'
+
+    SSEEventVoiceAnswer:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        type:
+          type: string
+          enum: [voice.answer]
+        data:
+          $ref: '#/components/schemas/VoiceSDPEvent'
+
+    SSEEventVoiceICECandidate:
+      type: object
+      required: [type, data]
+      properties:
+        id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        type:
+          type: string
+          enum: [voice.ice_candidate]
+        data:
+          $ref: '#/components/schemas/VoiceICECandidateEvent'
+
+    # Voice data schemas
+    VoiceParticipantEvent:
+      type: object
+      required: [user_id, channel_id]
+      properties:
+        user_id:
+          type: string
+          example: '01JQ3KMS4WTVY6BN8FRCJD2HAQ'
+        channel_id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+
+    VoiceSpeakingEvent:
+      type: object
+      required: [user_id, channel_id, speaking]
+      properties:
+        user_id:
+          type: string
+          example: '01JQ3KMS4WTVY6BN8FRCJD2HAQ'
+        channel_id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        speaking:
+          type: boolean
+
+    VoiceMutedEvent:
+      type: object
+      required: [user_id, channel_id, muted, deafened, server_muted]
+      properties:
+        user_id:
+          type: string
+          example: '01JQ3KMS4WTVY6BN8FRCJD2HAQ'
+        channel_id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        muted:
+          type: boolean
+        deafened:
+          type: boolean
+        server_muted:
+          type: boolean
+
+    VoiceSDPEvent:
+      type: object
+      required: [sdp, type]
+      properties:
+        sdp:
+          type: string
+        type:
+          type: string
+          enum: [offer, answer]
+
+    VoiceICECandidateEvent:
+      type: object
+      required: [candidate]
+      properties:
+        candidate:
+          type: string
+        sdp_mid:
+          type: string
+        sdp_mline_index:
+          type: integer
+
+    # Voice request/response schemas
+    SDPDescription:
+      type: object
+      required: [sdp, type]
+      properties:
+        sdp:
+          type: string
+        type:
+          type: string
+          enum: [offer, answer]
+
+    ICEServer:
+      type: object
+      required: [urls]
+      properties:
+        urls:
+          type: array
+          items:
+            type: string
+        username:
+          type: string
+        credential:
+          type: string
+
+    VoiceJoinResponse:
+      type: object
+      required: [offer, ice_servers]
+      properties:
+        offer:
+          $ref: '#/components/schemas/SDPDescription'
+        ice_servers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ICEServer'
+
+    VoiceAnswerRequest:
+      type: object
+      required: [answer]
+      properties:
+        answer:
+          $ref: '#/components/schemas/SDPDescription'
+
+    VoiceICECandidateRequest:
+      type: object
+      required: [candidate]
+      properties:
+        candidate:
+          type: string
+        sdp_mid:
+          type: string
+        sdp_mline_index:
+          type: integer
+
+    VoiceMuteRequest:
+      type: object
+      required: [muted]
+      properties:
+        muted:
+          type: boolean
+
+    VoiceDeafenRequest:
+      type: object
+      required: [deafened]
+      properties:
+        deafened:
+          type: boolean
+
+    VoiceServerMuteRequest:
+      type: object
+      required: [user_id, muted]
+      properties:
+        user_id:
+          type: string
+        muted:
+          type: boolean
+
+    VoiceParticipant:
+      type: object
+      required: [id, channel_id, user_id, is_muted, is_deafened, is_server_muted, joined_at]
+      properties:
+        id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        channel_id:
+          type: string
+          example: '01JQ3KMN7XFGY4P6WBR2SZTA9V'
+        user_id:
+          type: string
+          example: '01JQ3KMS4WTVY6BN8FRCJD2HAQ'
+        is_muted:
+          type: boolean
+        is_deafened:
+          type: boolean
+        is_server_muted:
+          type: boolean
+        joined_at:
+          type: string
+          format: date-time
+        display_name:
+          type: string
+        avatar_url:
+          type: string
+
+    VoiceParticipantList:
+      type: object
+      required: [participants]
+      properties:
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/VoiceParticipant'
 
     ConnectedData:
       type: object

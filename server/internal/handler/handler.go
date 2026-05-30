@@ -21,6 +21,7 @@ import (
 	"github.com/enzyme/server/internal/storage"
 	"github.com/enzyme/server/internal/thread"
 	"github.com/enzyme/server/internal/user"
+	"github.com/enzyme/server/internal/voice"
 	"github.com/enzyme/server/internal/workspace"
 )
 
@@ -50,6 +51,9 @@ type Handler struct {
 	storage             storage.Storage
 	maxUploadSize       int64
 	publicURL           string
+	voiceRepo           *voice.Repository
+	voiceSFU            *voice.SFU
+	voiceMaxPerChannel  int
 }
 
 // Dependencies holds all dependencies for the Handler
@@ -75,6 +79,9 @@ type Dependencies struct {
 	Storage             storage.Storage
 	MaxUploadSize       int64
 	PublicURL           string
+	VoiceRepo           *voice.Repository
+	VoiceSFU            *voice.SFU
+	VoiceMaxPerChannel  int
 }
 
 // New creates a new Handler with all dependencies
@@ -101,6 +108,9 @@ func New(deps Dependencies) *Handler {
 		storage:             deps.Storage,
 		maxUploadSize:       deps.MaxUploadSize,
 		publicURL:           deps.PublicURL,
+		voiceRepo:           deps.VoiceRepo,
+		voiceSFU:            deps.VoiceSFU,
+		voiceMaxPerChannel:  deps.VoiceMaxPerChannel,
 	}
 }
 

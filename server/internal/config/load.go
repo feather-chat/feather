@@ -209,6 +209,16 @@ func (d *defaultsProviderStruct) Read() (map[string]interface{}, error) {
 			"heartbeat_interval": d.defaults.SSE.HeartbeatInterval.String(),
 			"client_buffer_size": d.defaults.SSE.ClientBufferSize,
 		},
+		"voice": map[string]interface{}{
+			"enabled":          d.defaults.Voice.Enabled,
+			"turn_port":        d.defaults.Voice.TURNPort,
+			"turn_relay_min":   d.defaults.Voice.TURNRelayMin,
+			"turn_relay_max":   d.defaults.Voice.TURNRelayMax,
+			"turn_external_ip": d.defaults.Voice.TURNExternalIP,
+			"turn_username":    d.defaults.Voice.TURNUsername,
+			"turn_password":    d.defaults.Voice.TURNPassword,
+			"max_per_channel":  d.defaults.Voice.MaxPerChannel,
+		},
 		"telemetry": map[string]interface{}{
 			"enabled":           d.defaults.Telemetry.Enabled,
 			"endpoint":          d.defaults.Telemetry.Endpoint,
@@ -246,6 +256,14 @@ func SetupFlags() *pflag.FlagSet {
 	flags.String("server.tls.auto.domain", "", "Domain for automatic TLS (auto mode)")
 	flags.String("server.tls.auto.email", "", "Contact email for Let's Encrypt (auto mode)")
 	flags.String("server.tls.auto.cache_dir", "", "Certificate cache directory (auto mode)")
+	flags.Bool("voice.enabled", false, "Enable voice channels")
+	flags.Int("voice.turn_port", 0, "TURN server UDP port")
+	flags.Int("voice.turn_relay_min", 0, "TURN relay port range minimum")
+	flags.Int("voice.turn_relay_max", 0, "TURN relay port range maximum")
+	flags.String("voice.turn_external_ip", "", "External IP for TURN server (required if behind NAT)")
+	flags.String("voice.turn_username", "", "TURN server username")
+	flags.String("voice.turn_password", "", "TURN server password")
+	flags.Int("voice.max_per_channel", 0, "Maximum participants per voice channel")
 	flags.Bool("telemetry.enabled", false, "Enable OpenTelemetry instrumentation")
 	flags.String("telemetry.endpoint", "", "OTLP exporter endpoint")
 	flags.String("telemetry.protocol", "", "OTLP protocol: grpc or http")

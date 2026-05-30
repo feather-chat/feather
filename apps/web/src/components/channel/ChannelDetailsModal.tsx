@@ -125,7 +125,9 @@ export function ChannelDetailsModal({
   };
 
   const isDMChannel = channel.type === 'dm' || channel.type === 'group_dm';
-  const showVisibilityToggle = canEditChannel && !channel.is_default && !isDMChannel;
+  const isVoiceChannel = channel.type === 'voice';
+  const showVisibilityToggle =
+    canEditChannel && !channel.is_default && !isDMChannel && !isVoiceChannel;
 
   const canSave = hasChanges && isNameValid && name.trim() !== '' && !updateChannel.isPending;
 
@@ -287,7 +289,13 @@ export function ChannelDetailsModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isGroupDM ? 'Conversation Details' : 'Channel Details'}
+      title={
+        isGroupDM
+          ? 'Conversation Details'
+          : isVoiceChannel
+            ? 'Voice Channel Details'
+            : 'Channel Details'
+      }
       size="md"
     >
       {isLoading ? (

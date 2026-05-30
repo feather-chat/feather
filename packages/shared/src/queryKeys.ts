@@ -81,6 +81,11 @@ export const searchKeys = {
   ) => ['search', workspaceId, query, channelId, userId, before, after, limit, offset] as const,
 };
 
+export const voiceKeys = {
+  all: ['voice'] as const,
+  participants: (channelId: string) => ['voice', 'participants', channelId] as const,
+};
+
 export const serverKeys = {
   info: () => ['server-info'] as const,
 };

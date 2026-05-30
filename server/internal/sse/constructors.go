@@ -142,3 +142,31 @@ func NewScheduledMessageSentEvent(data openapi.ScheduledMessageSentData) Event {
 func NewScheduledMessageFailedEvent(data openapi.ScheduledMessageFailedData) Event {
 	return Event{Type: EventScheduledMessageFailed, Data: data}
 }
+
+func NewVoiceJoinedEvent(data openapi.VoiceParticipantEvent) Event {
+	return Event{Type: EventVoiceJoined, Data: data}
+}
+
+func NewVoiceLeftEvent(data openapi.VoiceParticipantEvent) Event {
+	return Event{Type: EventVoiceLeft, Data: data}
+}
+
+func NewVoiceSpeakingEvent(data openapi.VoiceSpeakingEvent) Event {
+	return Event{Type: EventVoiceSpeaking, Data: data}
+}
+
+func NewVoiceMutedEvent(data openapi.VoiceMutedEvent) Event {
+	return Event{Type: EventVoiceMuted, Data: data}
+}
+
+func NewVoiceOfferEvent(data openapi.VoiceSDPEvent) Event {
+	return Event{Type: EventVoiceOffer, Data: data}
+}
+
+func NewVoiceAnswerEvent(data openapi.VoiceSDPEvent) Event {
+	return Event{Type: EventVoiceAnswer, Data: data}
+}
+
+func NewVoiceICECandidateEvent(data openapi.VoiceICECandidateEvent) Event {
+	return Event{Type: EventVoiceICECandidate, Data: data}
+}
